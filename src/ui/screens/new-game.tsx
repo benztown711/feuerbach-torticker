@@ -14,6 +14,7 @@ import { defaultOwnTeam, pushRecent, shortTeamName } from '../../domain/team-nam
 import type { Settings, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getSettings, putGame, putSettings } from '../../platform/db';
+import { testSignal } from '../../platform/signal';
 import { useDarkTheme, usePlayers } from '../hooks';
 import { navigate } from '../router';
 
@@ -257,6 +258,17 @@ export function NewGameScreen() {
             </select>
             <span class="schema__unit">Minuten</span>
           </div>
+          <button
+            type="button"
+            class="btn btn--secondary signal-test"
+            data-testid="btn-test-signal"
+            onClick={testSignal}
+          >
+            Signal testen
+          </button>
+          <p class="t-klein signal-test__hint">
+            Tipp: Lautstärke mit den Tasten am Handy einstellen, solange die App offen ist.
+          </p>
         </div>
 
         <ColorPicker side="own" label="TRIKOT EIGENE MANNSCHAFT" value={ownColor} dark={dark} onPick={setOwnColor} />

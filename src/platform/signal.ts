@@ -21,6 +21,16 @@ const LEAD_S = 0.15; // Stille vorweg: iOS verschluckt sonst den Anfang des erst
 
 let audio: HTMLAudioElement | null = null;
 let unlocked = false;
+let still: HTMLAudioElement | null = null;
+let keepAliveWanted = false;
+
+// Gerätetest 02.11.: Nach Hintergrund hielt die App den Ton für freigeschaltet, iOS hatte ihn aber gesperrt.
+// Darum gilt der Ton nach jeder Rückkehr als gesperrt, bis eine Berührung ihn neu freischaltet (FR-036, R-20).
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') unlocked = false;
+  });
+}
 
 interface AudioSessionNavigator {
   audioSession?: { type: string };
@@ -77,6 +87,55 @@ export function buildSignalWav(): ArrayBuffer {
   return buffer;
 }
 
+/** 1 Sekunde Stille als WAV: hält den Audio-Kanal offen, damit iOS ihn nicht stilllegt (FR-036, R-20). */
+function buildSilenceWav(): ArrayBuffer {
+  const samples = SAMPLE_RATE;
+  const buffer = new ArrayBuffer(44 + samples * 2);
+  const v = new DataView(buffer);
+  const text = (offset: number, s: string): void => {
+    for (let i = 0; i < s.length; i++) v.setUint8(offset + i, s.charCodeAt(i));
+  };
+  text(0, 'RIFF');
+  v.setUint32(4, 36 + samples * 2, true);
+  text(8, 'WAVE');
+  text(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, SAMPLE_RATE, true);
+  v.setUint32(28, SAMPLE_RATE * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  text(36, 'data');
+  v.setUint32(40, samples * 2, true);
+  return buffer;
+}
+
+function stillElement(): HTMLAudioElement {
+  if (!still) {
+    still = new Audio();
+    still.loop = true;
+    still.preload = 'auto';
+    still.setAttribute('playsinline', '');
+    still.setAttribute('data-keepalive', '');
+    still.src = URL.createObjectURL(new Blob([buildSilenceWav()], { type: 'audio/wav' }));
+  }
+  return still;
+}
+
+function startKeepAlive(): void {
+  stillElement()
+    .play()
+    .catch(() => undefined);
+}
+
+/** Solange ein Spiel läuft oder angehalten ist, den Audio-Kanal mit Stille offen halten. */
+export function setKeepAlive(on: boolean): void {
+  keepAliveWanted = on;
+  if (on) startKeepAlive();
+  else if (still) still.pause();
+}
+
 function element(): HTMLAudioElement {
   if (!audio) {
     audio = new Audio();
@@ -98,6 +157,7 @@ function rewind(el: HTMLAudioElement): void {
 /** Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). */
 export function unlockAudio(): void {
   setPlaybackSession();
+  if (keepAliveWanted) startKeepAlive();
   const el = element();
   el.muted = true;
   rewind(el);
@@ -132,4 +192,10 @@ export function playSignal(): void {
       unlocked = false;
     });
   if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300]);
+}
+
+/** "Signal testen" (FR-039): innerhalb einer Berührung sofort hörbar abspielen. */
+export function testSignal(): void {
+  setPlaybackSession();
+  playSignal();
 }
