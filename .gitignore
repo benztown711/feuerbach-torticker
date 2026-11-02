@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.lighthouseci/
+playwright-report/
+test-results/
+blob-report/
+# generiert aus design/ (npm run tokens)
+src/styles/tokens.css
+public/fonts/
+public/brand/
+# generiert durch vite-plugin-pwa (pwaAssets)
+*.local
+.DS_Store
+.claude/worktrees/

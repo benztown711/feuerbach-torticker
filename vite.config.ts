@@ -1,0 +1,51 @@
+import { defineConfig } from 'vite';
+import preact from '@preact/preset-vite';
+import { VitePWA } from 'vite-plugin-pwa';
+import tokens from './design/tokens.json' with { type: 'json' };
+
+const color = (name: string, theme: 'light' | 'dark' = 'light'): string => {
+  const token = tokens.color.tokens.find((t) => t.name === name);
+  if (!token) throw new Error(`Token ${name} fehlt in design/tokens.json`);
+  return token.value[theme];
+};
+
+export const BASE = '/feuerbach-torticker/';
+
+export default defineConfig({
+  base: BASE,
+  plugins: [
+    preact(),
+    VitePWA({
+      registerType: 'prompt',
+      strategies: 'generateSW',
+      injectRegister: false,
+      includeAssets: ['brand/*', 'fonts/OFL.txt'],
+      manifest: {
+        name: 'Feuerbach Torticker',
+        short_name: 'Torticker',
+        description: 'Tore, Spielminute und Spielzeit am Spielfeldrand erfassen.',
+        lang: 'de',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: BASE,
+        scope: BASE,
+        theme_color: color('vereinsrot'),
+        background_color: color('surface'),
+        icons: [
+          { src: 'brand/pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'brand/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'brand/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'brand/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt}'],
+        navigateFallback: `${BASE}index.html`,
+      },
+    }),
+  ],
+  build: {
+    target: 'es2022',
+    sourcemap: true,
+  },
+});

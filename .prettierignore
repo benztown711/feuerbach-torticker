@@ -1,0 +1,14 @@
+dist/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+public/
+node_modules/
+package-lock.json
+src/styles/tokens.css
+.specify/
+.claude/
+specs/
+design/
+*.md
