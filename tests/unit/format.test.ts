@@ -27,5 +27,14 @@ describe('FR-017 Anzeigeformate', () => {
   it('FR-022 formatTime schreibt die Uhrzeit HH:MM:SS in der gewünschten Zeitzone', () => {
     expect(formatTime(T0, 'Europe/Berlin')).toBe('10:30:00');
     expect(formatTime(T0, 'Europe/Berlin', false)).toBe('10:30');
+    expect(formatTime(T0)).toMatch(/^\d\d:\d\d:\d\d$/);
+  });
+
+  it('in der Pause zwischen den Abschnitten zeigt die Uhr die volle Abschnittsdauer, am Ende "Ende"', () => {
+    const kick = { type: 'kickoff' as const, at: T0, section: 1 };
+    const brk = deriveClock([kick, { type: 'sectionEnd', at: T0 + 26 * 60_000, section: 1 }], T0 + 30 * 60_000, two25);
+    expect(formatClock(brk)).toBe('25:00');
+    const end = deriveClock([kick, { type: 'fullTime', at: T0 + 60_000, section: 1 }], T0 + 2 * 60_000, two25);
+    expect(formatClock(end)).toBe('Ende');
   });
 });

@@ -7,6 +7,8 @@ export interface ClockState {
   section: number;
   /** Abschnitt, den der nächste Anpfiff startet; null, wenn kein Anpfiff möglich ist. */
   kickoffSection: number | null;
+  /** Dauer eines Abschnitts in ms. */
+  sectionMs: number;
   playedMs: number;
   remainingMs: number;
   overtimeMs: number;
@@ -99,6 +101,7 @@ export function deriveClock(events: ClockEvent[], nowMs: number, schema: Schema,
     status,
     section,
     kickoffSection,
+    sectionMs,
     playedMs,
     remainingMs: Math.max(0, sectionMs - playedMs),
     overtimeMs,
