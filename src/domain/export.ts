@@ -117,7 +117,8 @@ export function parseBackup(text: string): ParseResult {
     return { ok: false, error: 'Die Datei ist keine Torticker-Sicherung.' };
   }
   if (!arrayOf(data.players, isPlayer)) return { ok: false, error: 'Der Kader in der Sicherung ist beschädigt.' };
-  if (!arrayOf(data.games, isGame)) return { ok: false, error: 'Mindestens ein Spiel in der Sicherung ist beschädigt.' };
+  if (!arrayOf(data.games, isGame))
+    return { ok: false, error: 'Mindestens ein Spiel in der Sicherung ist beschädigt.' };
   return { ok: true, backup: data as unknown as Backup };
 }
 

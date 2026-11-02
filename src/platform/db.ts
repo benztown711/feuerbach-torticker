@@ -50,6 +50,17 @@ export async function findOpenGame(): Promise<Game | undefined> {
   return (await listGames()).find((g) => g.status !== 'finished');
 }
 
+/** FR-022: Spiel aus der Historie löschen (nach Bestätigung). */
+export async function deleteGame(id: string): Promise<void> {
+  await (await db()).delete('games', id);
+}
+
+/** FR-024: mehrere Spiele in einer Transaktion schreiben (Wiederherstellen). */
+export async function putGames(games: Game[]): Promise<void> {
+  const tx = (await db()).transaction('games', 'readwrite');
+  await Promise.all([...games.map((g) => tx.store.put(g)), tx.done]);
+}
+
 export async function getPlayers(): Promise<Player[]> {
   return (await db()).getAll('players');
 }

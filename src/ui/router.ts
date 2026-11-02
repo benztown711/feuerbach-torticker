@@ -4,6 +4,10 @@ export type Route =
   | { name: 'start' }
   | { name: 'new' }
   | { name: 'roster' }
+  | { name: 'history' }
+  | { name: 'more' }
+  | { name: 'settings' }
+  | { name: 'help' }
   | { name: 'game'; id: string }
   | { name: 'details'; id: string };
 
@@ -12,6 +16,10 @@ export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '') || '/';
   if (path === '/neu') return { name: 'new' };
   if (path === '/kader') return { name: 'roster' };
+  if (path === '/historie') return { name: 'history' };
+  if (path === '/mehr') return { name: 'more' };
+  if (path === '/einstellungen') return { name: 'settings' };
+  if (path === '/hilfe') return { name: 'help' };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);
   if (details?.[1]) return { name: 'details', id: details[1] };
   const game = /^\/spiel\/([\w-]+)$/.exec(path);

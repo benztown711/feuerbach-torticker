@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* FR-037: Höhe der Navigationsleiste (ohne unteren Sicherheitsabstand). */
+  --nav-h: 56px;
+}
+
 body {
   margin: 0;
   min-height: 100dvh;
@@ -14,7 +19,8 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(var(--nav-h) + env(safe-area-inset-bottom))
+    env(safe-area-inset-left);
 }
 
 button {

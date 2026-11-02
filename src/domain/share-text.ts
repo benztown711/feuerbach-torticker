@@ -19,7 +19,9 @@ export function buildShareText(game: Game, players: Player[], timeZone?: string)
   const tz = timeZone ? { timeZone } : {};
   const kicked = game.clockEvents.some((e) => e.type === 'kickoff');
   const at = startedAt(game);
-  const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', ...tz }).format(at);
+  const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', ...tz }).format(
+    at,
+  );
   const time = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', ...tz }).format(at);
   const lines = [`⚽ ${home} - ${away} ${total.home}:${total.away}${half}`, kicked ? `${date}, Anpfiff ${time}` : date];
   for (const row of goalRows(game).reverse()) {

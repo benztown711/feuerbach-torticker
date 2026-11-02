@@ -74,10 +74,12 @@ describe('T078 FR-011 Teilen-Text (contracts/share-text.md)', () => {
   });
 
   it('entfernte Tore fehlen, der laufende Stand zählt sie nicht', () => {
-    let g = kickoff(createGame({ ...base, venue: 'home', schema: { sections: 1, sectionMinutes: 12 } }, { id: 'e', now: T0 }), T0);
-    let removed: string;
-    [g, removed] = goal(g, 'own', T0 + min(1));
-    [g] = goal(g, 'opp', T0 + min(2));
+    let g = kickoff(
+      createGame({ ...base, venue: 'home', schema: { sections: 1, sectionMinutes: 12 } }, { id: 'e', now: T0 }),
+      T0,
+    );
+    const [withGoal, removed] = goal(g, 'own', T0 + min(1));
+    [g] = goal(withGoal, 'opp', T0 + min(2));
     g = removeGoal(g, removed, T0 + min(3));
     g = endSection(g, T0 + min(12));
     expect(buildShareText(g, players, TZ).split('\n').slice(2)).toEqual(["3' 0:1"]);
@@ -86,7 +88,9 @@ describe('T078 FR-011 Teilen-Text (contracts/share-text.md)', () => {
   it('nur ein Abschnitt: kein Halbzeitstand; ohne Tore nur zwei Zeilen', () => {
     let g = kickoff(createGame({ ...base, schema: { sections: 1, sectionMinutes: 12 } }, { id: 'o', now: T0 }), T0);
     g = endSection(g, T0 + min(12));
-    expect(buildShareText(g, players, TZ)).toBe('⚽ TSV Musterstadt - Sportvg Feuerbach 0:0\n07.11.2026, Anpfiff 10:30');
+    expect(buildShareText(g, players, TZ)).toBe(
+      '⚽ TSV Musterstadt - Sportvg Feuerbach 0:0\n07.11.2026, Anpfiff 10:30',
+    );
   });
 
   it('ohne Anpfiff: nur das Datum (Anlegezeit), ohne Uhrzeit', () => {

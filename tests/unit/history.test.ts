@@ -40,7 +40,10 @@ describe('T096 FR-038 Historie aus Feuerbach-Sicht', () => {
   });
 
   it('Unentschieden U, Niederlage N, Heimspiel "heim"', () => {
-    expect(historyEntry(finished(['own', 'opp'], { venue: 'home' }))).toMatchObject({ result: 'U', venueLabel: 'heim' });
+    expect(historyEntry(finished(['own', 'opp'], { venue: 'home' }))).toMatchObject({
+      result: 'U',
+      venueLabel: 'heim',
+    });
     expect(historyEntry(finished(['opp']))).toMatchObject({ scoreText: '0:1', result: 'N' });
   });
 
