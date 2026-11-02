@@ -77,7 +77,7 @@ Nach einem Feuerbach-Tor kann der Nutzer optional den Torschützen auswählen, e
 
 **Acceptance Scenarios**:
 
-1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Lenny" antippt, **Then** zeigt die Torliste "12' Feuerbach, Lenny".
+1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Max" antippt, **Then** zeigt die Torliste "12' Feuerbach, Max".
 2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach 8 Sekunden ohne Torschützen.
 3. **Given** ein Feuerbach-Tor ohne Torschützen, **When** der Nutzer es in der Torliste antippt, **Then** kann er einen Torschützen aus dem Kader wählen.
 4. **Given** ein Gegentor, **When** der Nutzer es in der Torliste antippt, **Then** kann er optional einen Torschützen als Freitext eintragen (Name oder Rückennummer, z. B. "Nr. 9"; das Feld zeigt diesen Hinweis als Platzhalter).
@@ -97,8 +97,9 @@ Nach Abpfiff teilt der Nutzer das Ergebnis mit Torfolge über das System-Teilen-
 
 1. **Given** ein beendetes Spiel Sportvg Feuerbach gegen TSV Musterstadt 3:1, **When** der Nutzer "Teilen" tippt, **Then** öffnet sich das Teilen-Menü mit einem Text wie:
    ```
-   ⚽ Sportvg Feuerbach – TSV Musterstadt 3:1 (1:1)
-   7' 1:0 Lenny
+   ⚽ Sportvg Feuerbach - TSV Musterstadt 3:1 (1:1)
+   07.11.2026, Anpfiff 10:30
+   7' 1:0 Max
    18' 1:1
    31' 2:1 Ben
    44' 3:1 Eigentor
@@ -117,7 +118,7 @@ Der Nutzer legt einmalig eine Spielerliste (Vorname oder Kürzel, optional Rück
 
 **Acceptance Scenarios**:
 
-1. **Given** ein leerer Kader, **When** der Nutzer "Lenny" mit Nummer 7 anlegt, **Then** erscheint "7 Lenny" in der Torschützenauswahl.
+1. **Given** ein leerer Kader, **When** der Nutzer "Max" mit Nummer 7 anlegt, **Then** erscheint "7 Max" in der Torschützenauswahl.
 
 ---
 

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/benztown711/feuerbach-torticker/specs/001-spiel-erfassen/contracts/export.schema.json",
+  "title": "Feuerbach Torticker Sicherung",
+  "type": "object",
+  "required": ["format", "schemaVersion", "exportedAt", "games", "players"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "feuerbach-torticker-backup" },
+    "schemaVersion": { "const": 1 },
+    "exportedAt": { "type": "integer", "description": "Epoch-ms" },
+    "appVersion": { "type": "string" },
+    "players": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "active"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 20 },
+          "number": { "type": ["integer", "null"], "minimum": 1, "maximum": 99 },
+          "active": { "type": "boolean" }
+        }
+      }
+    },
+    "games": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "schemaVersion", "ownTeam", "opponent", "venue", "schema", "createdAt", "clockEvents", "goals", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "schemaVersion": { "const": 1 },
+          "ownTeam": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "opponent": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "venue": { "enum": ["home", "away"] },
+          "schema": {
+            "type": "object",
+            "required": ["sections", "sectionMinutes"],
+            "additionalProperties": false,
+            "properties": {
+              "sections": { "type": "integer", "minimum": 1, "maximum": 4 },
+              "sectionMinutes": { "type": "integer", "minimum": 1, "maximum": 60 }
+            }
+          },
+          "createdAt": { "type": "integer" },
+          "status": { "enum": ["created", "running", "paused", "break", "finished"] },
+          "signalledThresholds": { "type": "array", "items": { "type": "string" } },
+          "finalScore": { "$ref": "#/$defs/score" },
+          "halfTimeScore": { "oneOf": [{ "$ref": "#/$defs/score" }, { "type": "null" }] },
+          "clockEvents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "at", "section"],
+              "additionalProperties": false,
+              "properties": {
+                "type": { "enum": ["kickoff", "pause", "resume", "sectionEnd", "fullTime", "reset"] },
+                "at": { "type": "integer" },
+                "section": { "type": "integer", "minimum": 1, "maximum": 4 }
+              }
+            }
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "side", "at", "section", "minute", "stoppage", "scorer", "deletedAt"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string", "format": "uuid" },
+                "side": { "enum": ["own", "opp"] },
+                "at": { "type": "integer" },
+                "section": { "type": "integer", "minimum": 1, "maximum": 4 },
+                "minute": { "type": "integer", "minimum": 1, "maximum": 240 },
+                "stoppage": { "type": ["integer", "null"], "minimum": 1 },
+                "deletedAt": { "type": ["integer", "null"] },
+                "scorer": {
+                  "oneOf": [
+                    { "type": "null" },
+                    { "type": "object", "required": ["kind", "playerId"], "additionalProperties": false, "properties": { "kind": { "const": "player" }, "playerId": { "type": "string" } } },
+                    { "type": "object", "required": ["kind", "text"], "additionalProperties": false, "properties": { "kind": { "const": "text" }, "text": { "type": "string", "minLength": 1, "maxLength": 30 } } },
+                    { "type": "object", "required": ["kind"], "additionalProperties": false, "properties": { "kind": { "const": "ownGoal" } } }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "score": {
+      "type": "object",
+      "required": ["own", "opp"],
+      "additionalProperties": false,
+      "properties": { "own": { "type": "integer", "minimum": 0 }, "opp": { "type": "integer", "minimum": 0 } }
+    }
+  }
+}
