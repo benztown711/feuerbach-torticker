@@ -95,3 +95,9 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
   - Aufgebot: Mehrfachauswahl beim Anlegen, Vorauswahl aus `settings.lastSquad`; Schnellauswahl als Raster mit bis zu 16 Knöpfen (4 × 4) ohne Scrollen.
 - **Rationale**: Klärung vom 02.11.: Teilen per WhatsApp genügt; kein Server, keine Kindernamen im öffentlichen Repo; minimaler Code (Prinzip VI), ein Import-Weg für alle Quellen.
 - **Alternatives**: QR-Code/komprimierter Kader-Code (mehr Abhängigkeiten, nach Klärung nicht nötig); SpielerPlus-CSV (nur mit Premium; kann später auf denselben Parser aufsetzen); zentraler Kader auf Server (Datenschutz Minderjähriger, widerspricht Prinzip II und III).
+
+## R-15 Review B (Mockups, 02.11.2026)
+
+- **Kleinstes Gerät als Maßstab**: Playwright-Projekt `iphone-se` (WebKit, `devices['iPhone SE']`, 375 × 667) ergänzt; E2E-Kernszenarien und Screenshot-Vergleich laufen dort. Layout-Test: Spielbildschirm ohne Seiten-Scroll (`document.scrollingElement.scrollHeight <= innerHeight`).
+- **Trikotfarben**: feste Palette `design/trikot-farben.json` (12 Farben) statt freier Farbwahl: garantiert geprüfte Kontraste, schnelle Auswahl am Spielfeldrand, keine Farbwerte im Code. Kontraste werden im Unit-Test geprüft (Schrift auf Knopf; Rahmen bei < 3:1 zum Hintergrund).
+- **Kostenfreiheit (Constitution VIII)**: Native Hülle, Apple Developer Account, kostenpflichtige KI-Review-Dienste und bezahlte Hosting-Pläne sind ausgeschlossen. Für release-please-PRs, die CI auslösen sollen, wird ein kostenloses Fine-grained Personal Access Token als Repository-Secret genutzt.

@@ -22,12 +22,13 @@ Navigation per URL-Hash, damit Zurück-Geste und Neuladen funktionieren.
 | Heim / Auswärts | `venue-home`, `venue-away` | Segment-Schalter, keine Vorauswahl |
 | Abschnitte | `schema-sections` | 1 bis 4, Vorgabe letzte Einstellung |
 | Minuten | `schema-minutes` | 1 bis 60 |
+| Trikotfarben | `color-own-<id>`, `color-opp-<id>`, `color-clash-hint` | Farbfelder aus `design/trikot-farben.json`; Hinweis bei gleicher Farbe |
 | Aufgebot | `squad-picker`, `squad-option-<playerId>`, `squad-take-last` | optional; Vorauswahl = letztes Aufgebot |
 | Weiter | `btn-create` | legt Spiel an, öffnet Spielbildschirm im Zustand `created` |
 
 ## Spielbildschirm (`#/spiel/:id`)
 
-Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Spielstand, Uhr, Steuerleiste, Torliste (letzte 3), Tor-Knöpfe (untere Bildschirmhälfte).
+Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Mannschaften mit Farbmarke und Spielstand, Uhr, Steuerleiste, Torliste (alle Tore, in sich scrollbar), Tor-Knöpfe (unteres Drittel). Maßstab: 375 × 667 pt ohne Seiten-Scrollen (FR-033).
 
 | Element | Test-ID | Verhalten |
 |---|---|---|
@@ -36,12 +37,14 @@ Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Spielstand, Uh
 | Uhr | `clock` | Restzeit `mm:ss`; in Nachspielzeit `+m:ss` in `rot-text`, `data-overtime="true"` |
 | Abschnitt | `section-label` | "1. HZ", "2. HZ", bei 1 Abschnitt "Spielzeit", bei 3/4 "1. Drittel"/"1. Viertel" |
 | Anpfiff | `btn-kickoff` | sichtbar in `created` und `break`; ohne Abfrage; schaltet Ton frei |
-| Pause / Weiter | `btn-pause`, `btn-resume` | Pause mit Abfrage |
-| Halbzeitpfiff / Abpfiff | `btn-section-end` | Beschriftung je nach Abschnitt; mit Abfrage |
+| Uhr anhalten / Uhr fortsetzen | `btn-pause`, `btn-resume` | Pause-/Play-Symbol (kein Emoji); Anhalten mit Abfrage |
+| Pausenpfiff / Schlusspfiff | `btn-section-end` | "Pausenpfiff" vor dem letzten Abschnitt, sonst "Schlusspfiff"; mit Abfrage; in der Nachspielzeit gefüllt `ink` hervorgehoben |
 | Zurücksetzen | `btn-reset` | im Menü "…", mit Abfrage |
 | Sicherheitsabfrage | `confirm-dialog`, `confirm-yes`, `confirm-no` | Tippen außerhalb = Abbrechen |
-| Tor Feuerbach | `btn-goal-own` | `vereinsrot`; `disabled` außerhalb `running`/`paused` |
-| Tor Gegner | `btn-goal-opp` | `ink`; gleiche Aktivregel |
+| Tor Feuerbach | `btn-goal-own` | Trikotfarbe `ownColor`; `disabled` außerhalb `running`/`paused` |
+| Tor Gegner | `btn-goal-opp` | Trikotfarbe `oppColor`; gleiche Aktivregel |
+| Torliste | `goal-list`, `goal-row-<id>` | alle Tore, neuestes oben, scrollt in sich; Antippen öffnet `goal-actions` |
+| Tor-Aktionen | `goal-actions`, `goal-disallow`, `goal-allow`, `goal-edit-scorer` | "Tor aberkennen" (mit Abfrage) bzw. "Tor wieder zählen"; Torschütze ändern |
 | Undo-Leiste | `undo-bar`, `btn-undo` | 10 s nach jedem Tor sichtbar |
 | Schnellauswahl Torschütze | `scorer-picker`, `scorer-option-<playerId>`, `scorer-others`, `scorer-own-goal`, `scorer-skip` | nur nach eigenem Tor, Aufgebot als Raster (bis 16 Knöpfe), "Andere …" für restlichen Kader, schließt nach 8 s |
 | Signal-Overlay | `signal-flash` | blinkt 3 s bei jeder Signalschwelle |
@@ -81,7 +84,7 @@ Doppeltipp-Schutz: Ein zweiter Tap auf denselben Tor-Knopf innerhalb 1,5 s wird 
 | Element | Test-ID |
 |---|---|
 | Name eigene Mannschaft | `input-own-team` |
-| Theme | `theme-system`, `theme-light` |
+| Theme | `theme-system`, `theme-light`, `theme-dark` |
 | Historie sichern | `btn-export` |
 | Sicherung laden | `input-import` |
 | Installationshinweis | `install-hint` (nur außerhalb Standalone) |

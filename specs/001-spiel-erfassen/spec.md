@@ -16,7 +16,7 @@
 - Q: Mehrere eigene Teams? → A: Nein, ein Team, Name einstellbar.
 - Q: Signal am Abschnittsende? → A: Ton plus Vibration (wo technisch möglich). Anhalten und Zurücksetzen der Uhr nur mit Sicherheitsabfrage.
 - Q: Tor vor Anpfiff? → A: Tor-Knöpfe sind erst ab Anpfiff aktiv.
-- Q: Signal in der Nachspielzeit? → A: Jede volle Minute erneut Ton, blinkende Anzeige und (wo möglich) Vibration, bis Halbzeitpfiff bzw. Abpfiff.
+- Q: Signal in der Nachspielzeit? → A: Jede volle Minute erneut Ton, blinkende Anzeige und (wo möglich) Vibration, bis Pausenpfiff bzw. Abpfiff.
 - Q: Vibration auf dem iPhone (in Web-Apps nicht möglich)? → A: Ton plus blinkende Anzeige genügen; keine native Hülle.
 - Q: Historie? → A: Wichtig. Alle Spiele bleiben lokal auf dem Handy gespeichert, mit Datum und Uhrzeit-Zeitstempeln für Anpfiff, Abpfiff und jedes Tor.
 - Q: Torschützen beim Gegner? → A (ergänzt): Freitext für Name oder Rückennummer, weil der Name oft nicht auf dem Trikot steht.
@@ -26,6 +26,16 @@
 - Q: Doppelte Vornamen? → A: Kürzeste eindeutige Nachnamen-Abkürzung, z. B. "Max Mü." / "Max Me." (FR-025).
 - Q: Spieler löschen? → A: Ja, für den Nutzer wie gelöscht, intern erhalten (FR-029).
 - Q: Hosting? → A: Repository öffentlich, Auslieferung über GitHub Pages.
+
+### Session 2026-11-02 (Review B, Mockups)
+
+- Q: Zielgerät? → A: Kleines, älteres iPhone als Maßstab: iPhone SE (2./3. Generation, 375 × 667 pt); alles muss dort ohne Scrollen des Spielbildschirms passen.
+- Q: Dunkelmodus? → A: Ja, automatisch nach Systemeinstellung, zusätzlich in den Einstellungen fest "Hell" oder "Dunkel" wählbar.
+- Q: Kosten? → A: Die Lösung muss komplett kostenlos bleiben (keine Bezahl-Accounts, -Dienste oder -APIs).
+- Q: Mannschaftsfarben? → A: Pro Spiel wählbar. Feuerbach meist Rot oder Schwarz, kann abweichen; der Gegner kann jede Farbe haben. Die Tor-Knöpfe erscheinen in den Trikotfarben.
+- Q: Tor zurücknehmen? → A: Jedes Tor muss jederzeit aberkannt werden können (Umentscheiden, Verklicken), nicht nur in den ersten 10 Sekunden.
+- Q: Torliste? → A: Scrollbar, wenn der Platz nicht reicht; zeigt alle Tore des Spiels.
+- Q: Beschriftung der Uhr-Knöpfe? → A: "Uhr anhalten" / "Uhr fortsetzen" mit Pause-/Play-Symbol; Abschnittsende heißt "Pausenpfiff", der letzte Abschnitt endet mit "Schlusspfiff".
 
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
@@ -45,7 +55,9 @@ Atti steht am Spielfeldrand, das Spiel läuft. Fällt ein Tor, tippt er auf den 
 2. **Given** ein laufendes Spiel in der 7. Minute (Uhr zeigt 06:12 gespielt), **When** der Nutzer auf "Tor Feuerbach" tippt, **Then** steht es 1:0 für Feuerbach und die Torliste zeigt "7' Feuerbach".
 3. **Given** ein laufendes Spiel, **When** der Nutzer auf "Tor Gegner" tippt, **Then** erhöht sich der Zähler des Gegners um 1 und der Eintrag wird mit Minute gespeichert.
 4. **Given** ein gerade erfasstes Tor, **When** der Nutzer innerhalb von 10 Sekunden auf "Rückgängig" tippt, **Then** wird das Tor entfernt und der Spielstand korrigiert.
-5. **Given** ein beliebiges erfasstes Tor, **When** der Nutzer es in der Torliste löscht, **Then** wird der Spielstand neu berechnet.
+5. **Given** ein beliebiges erfasstes Tor (auch nach Minuten), **When** der Nutzer es in der Torliste antippt und "Tor aberkennen" bestätigt, **Then** wird der Spielstand neu berechnet und das Tor bleibt durchgestrichen mit dem Hinweis "aberkannt" in der Liste stehen.
+6. **Given** ein aberkanntes Tor, **When** der Nutzer "Tor wieder zählen" wählt, **Then** zählt es wieder mit seiner ursprünglichen Minute.
+7. **Given** mehr Tore als in den sichtbaren Bereich passen, **When** der Nutzer in der Torliste wischt, **Then** scrollt die Liste, ohne dass sich Uhr oder Tor-Knöpfe bewegen.
 
 ---
 
@@ -63,10 +75,10 @@ Vor dem Anpfiff trägt der Nutzer den Gegner ein, wählt "Heim" oder "Auswärts"
 2. **Given** ein angelegtes Spiel, **When** der Nutzer "Anpfiff" tippt, **Then** läuft der Countdown von 25:00 abwärts.
 3. **Given** der Countdown erreicht 00:00 in Halbzeit 1, **Then** ertönt ein Signal (Ton, Vibration wo möglich), und die Uhr läuft als Nachspielzeit aufwärts weiter ("+0:01", "+0:02" ...), rot gekennzeichnet.
 4. **Given** Halbzeit 1 ist seit 40 Sekunden in der Nachspielzeit (2 × 25 Min), **When** ein Tor erfasst wird, **Then** wird es als "25+1'" gespeichert.
-5. **Given** Nachspielzeit läuft, **When** der Nutzer "Halbzeitpfiff" tippt und die Sicherheitsabfrage bestätigt, **Then** stoppt die Uhr und die Anzeige zeigt "Halbzeit".
+5. **Given** Nachspielzeit läuft, **When** der Nutzer "Pausenpfiff" tippt und die Sicherheitsabfrage bestätigt, **Then** stoppt die Uhr und die Anzeige zeigt "Halbzeit".
 6. **Given** Halbzeit 2 läuft seit 3:10 Minuten, **When** ein Tor erfasst wird, **Then** wird es als Minute 29 gespeichert (fortlaufende Zählung über beide Halbzeiten).
 7. **Given** ein laufendes Spiel, **When** das Handy 5 Minuten gesperrt war und wieder geöffnet wird, **Then** zeigt die Uhr die korrekte Restzeit.
-8. **Given** ein laufendes Spiel, **When** der Nutzer "Pause" tippt (z. B. Verletzung), **Then** fragt die App "Uhr wirklich anhalten?"; erst nach Bestätigung hält die Uhr an, bis "Weiter" getippt wird.
+8. **Given** ein laufendes Spiel, **When** der Nutzer "Uhr anhalten" tippt (z. B. Verletzung), **Then** fragt die App "Uhr wirklich anhalten?"; erst nach Bestätigung hält die Uhr an, bis "Uhr fortsetzen" getippt wird.
 9. **Given** ein laufendes Spiel, **When** der Nutzer "Zurücksetzen" wählt, **Then** fragt die App "Uhr wirklich zurücksetzen?"; ohne Bestätigung bleibt alles unverändert.
 10. **Given** eine Sicherheitsabfrage ist offen, **When** der Nutzer "Abbrechen" tippt oder daneben tippt, **Then** läuft die Uhr unverändert weiter.
 
@@ -175,7 +187,7 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 ### Edge Cases
 
 - Ein Tor fällt in der Nachspielzeit von Halbzeit 1 (2 × 25 Min): Es wird als "25+1'" gespeichert; Halbzeit 2 beginnt trotzdem bei 26'.
-- Der Nutzer vergisst den Halbzeitpfiff: Die Nachspielzeit läuft weiter, die Anzeige bleibt rot, und jede volle Minute ertönt das Signal erneut.
+- Der Nutzer vergisst den Pausenpfiff: Die Nachspielzeit läuft weiter, die Anzeige bleibt rot, und jede volle Minute ertönt das Signal erneut.
 - Ton auf dem iPhone: Web-Apps dürfen Töne nur nach einer Berührung abspielen und nur bei eingeschaltetem Bildschirm. Der Anpfiff schaltet den Ton frei; die App hält den Bildschirm wach (FR-013). Steht das Handy auf lautlos, bleibt nur die blinkende Anzeige.
 - Speicher auf dem iPhone: Safari kann Daten von Webseiten nach 7 Tagen ohne Nutzung löschen, nicht aber von Apps auf dem Home-Bildschirm. Die App fordert dauerhaften Speicher an und weist im Browser auf "Zum Home-Bildschirm" hin.
 - Tore während Halbzeitpause oder nach Abpfiff: Tor-Knöpfe sind deaktiviert; nachträgliche Korrektur über die Torliste.
@@ -191,12 +203,16 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 
 - **FR-001**: Nutzer MUSS ein Spiel mit Gegnername (Pflicht), Heim/Auswärts (Pflicht) und Spielzeit-Schema anlegen können.
 - **FR-002**: Spielzeit-Schema MUSS aus Anzahl Abschnitten (1 bis 4) und Dauer pro Abschnitt (1 bis 60 Minuten) bestehen; Vorgabe 2 × 25 Minuten. Die zuletzt genutzte Einstellung wird vorbelegt.
-- **FR-003**: Der Spielbildschirm MUSS zwei große Tor-Knöpfe zeigen, Heimmannschaft links, Gastmannschaft rechts, jeweils mit Mannschaftsnamen beschriftet.
+- **FR-003**: Der Spielbildschirm MUSS zwei große Tor-Knöpfe zeigen, Heimmannschaft links, Gastmannschaft rechts, jeweils mit Mannschaftsnamen beschriftet und in der für dieses Spiel gewählten Trikotfarbe.
+- **FR-031**: Beim Anlegen eines Spiels MÜSSEN die Trikotfarben beider Mannschaften aus einer festen Palette (`design/trikot-farben.json`) gewählt werden können. Vorgabe Feuerbach: zuletzt genutzte Farbe, sonst Rot. Vorgabe Gegner: zuletzt für diesen Gegnernamen genutzte Farbe, sonst Weiß. Gleiche Farben auf beiden Seiten sind erlaubt und werden mit einem Hinweis angezeigt.
+- **FR-032**: Die Schriftfarbe auf jedem Tor-Knopf MUSS automatisch so gewählt werden, dass sie mindestens 4,5:1 Kontrast zur Trikotfarbe hat (bei fetter Schrift ab 24px mindestens 3:1, z. B. Weiß auf Rot); hebt sich ein Knopf weniger als 3:1 vom Hintergrund ab (z. B. Weiß auf hellem, Schwarz auf dunklem Theme), erhält er einen Rahmen.
+- **FR-033**: Der Spielbildschirm MUSS auf 375 × 667 pt (iPhone SE) vollständig ohne Scrollen bedienbar sein; nur die Torliste darf in sich scrollen.
 - **FR-004**: Ein Tap auf einen Tor-Knopf MUSS ein Tor mit Mannschaft, Spielminute, Abschnitt und Zeitstempel speichern und den Spielstand sofort aktualisieren.
 - **FR-005**: Die Spielminute MUSS als angefangene Minute fortlaufend über alle Abschnitte berechnet werden (Sekunde 0:00 bis 0:59 = 1. Minute; bei 2 × 25 Min beginnt Halbzeit 2 bei 26'). In der Nachspielzeit lautet die Minute "<Abschnittsende>+<angefangene Nachspielminute>", z. B. "25+1'", "50+2'", bei 3 × 25 Min "75+1'".
-- **FR-006**: Die Uhr MUSS Anpfiff, Pause, Fortsetzen, Abschnittsende (Halbzeitpfiff), Abpfiff und Zurücksetzen unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Halbzeitpfiff, Abpfiff und Zurücksetzen MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht.
+- **FR-006**: Die Uhr MUSS Anpfiff, Anhalten ("Uhr anhalten"), Fortsetzen ("Uhr fortsetzen"), Abschnittsende ("Pausenpfiff"), Spielende ("Schlusspfiff"; bei nur einem Abschnitt der einzige Endknopf) und Zurücksetzen unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Pausenpfiff, Abpfiff und Zurücksetzen MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht.
 - **FR-007**: Bei 00:00 MUSS ein deutliches Signal erfolgen (Ton, blinkende Anzeige, Vibration wo das Gerät es erlaubt). Danach läuft die Uhr als Nachspielzeit aufwärts weiter, in `rot-text` und mit "+" gekennzeichnet, und das Signal wiederholt sich zu jeder vollen Nachspielminute, bis der Nutzer den Abschnitt beendet.
-- **FR-008**: Jedes Tor MUSS rückgängig gemacht (Undo-Leiste) und in der Torliste gelöscht oder bearbeitet werden können.
+- **FR-008**: Jedes Tor MUSS sofort rückgängig gemacht (Undo-Leiste, 10 s) und jederzeit über die Torliste aberkannt (mit Bestätigung), wieder gezählt oder bearbeitet werden können. Aberkannte Tore zählen nicht, bleiben durchgestrichen sichtbar und erscheinen nicht im geteilten Text.
+- **FR-034**: Die Torliste auf dem Spielbildschirm MUSS alle Tore zeigen (neuestes oben) und in sich scrollbar sein.
 - **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze aus dem Kader gewählt werden können, zusätzlich "Eigentor Gegner". Für Gegentore KANN optional ein Torschütze als Freitext eingetragen werden.
 - **FR-010**: Der Spielzustand MUSS nach jeder Änderung lokal persistiert werden und einen App-Neustart überstehen.
 - **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
@@ -217,9 +233,9 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 ### Gestaltung (Design System der Sportvg Feuerbach, Details in `design/README.md`)
 
 - **FR-015**: Die App MUSS die Farben, Schriften und Abstände aus `design/tokens.json` verwenden; eigene Farbwerte im Code sind nicht erlaubt.
-- **FR-016**: Der Tor-Knopf der Sportvg Feuerbach MUSS die einzige rote Fläche des Spielbildschirms sein (`vereinsrot`, Beschriftung `on-rot` fett ab 24px). Der Tor-Knopf des Gegners MUSS neutral sein (`ink` als Fläche, `surface` als Schrift), damit beide Knöpfe sich in der Helligkeit unterscheiden und nicht nur im Farbton.
+- **FR-016**: Die Tor-Knöpfe sind die einzigen großen Farbflächen des Spielbildschirms (Trikotfarben, FR-031). Alle übrigen Bedienelemente bleiben neutral (`ink`/`surface`), damit keine Verwechslung mit einer Mannschaftsfarbe entsteht; Symbole statt Emojis.
 - **FR-017**: Spielstand und Uhr MÜSSEN im Stil `ergebnis` mit gleich breiten Ziffern dargestellt werden, damit die Anzeige beim Herunterzählen nicht springt.
-- **FR-018**: Die App MUSS ein helles und ein dunkles Theme nach Systemeinstellung anbieten; das Wappen bleibt in beiden Themes auf weißem Feld.
+- **FR-018**: Die App MUSS ein helles und ein dunkles Theme anbieten: standardmäßig nach Systemeinstellung, in den Einstellungen fest "Hell" oder "Dunkel" wählbar; das Wappen bleibt in beiden Themes auf weißem Feld.
 - **FR-019**: App-Icon und Kopfbereich MÜSSEN das Vereinswappen unverzerrt verwenden (Seitenverhältnis 0,84, Mindestgröße 24px, Schutzraum ringsum).
 - **FR-020**: Torschützen MÜSSEN als Vorname oder Kürzel erfasst werden; die Eingabe weist darauf hin, keine Nachnamen zu verwenden. Der geteilte Text enthält nur Vornamen.
 

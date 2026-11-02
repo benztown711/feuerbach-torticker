@@ -47,11 +47,16 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Bedienbarkeit am Spielfeldrand (Prinzip I) und Kontrast gehen vor Markenwirkung: Weicht beides voneinander ab, wird die Abweichung in `design/README.md` begründet.
 - Schriften und Logos werden mit der App ausgeliefert (offline), nicht von fremden Servern geladen.
 
+### VIII. Kostenfrei
+
+- Entwicklung, Betrieb und Nutzung bleiben dauerhaft kostenlos: öffentliches Repository, GitHub Actions und Pages im Gratis-Kontingent, freie Schriften, keine Bezahl-Accounts (z. B. Apple Developer), keine kostenpflichtigen Dienste oder APIs.
+- Eine Lösung, die Kosten verursacht, ist ausgeschlossen, auch wenn sie technisch besser wäre.
+
 ## Technische Rahmenbedingungen
 
 - Auslieferung als Progressive Web App (PWA), installierbar über "Zum Home-Bildschirm" auf iOS (Safari) und Android (Chrome).
 - Hosting als statische Seite (GitHub Pages), keine Server-Komponente.
-- Zielgeräte: iPhone ab iOS 17, aktuelle Android-Geräte. Hochformat ist Pflicht, Querformat optional.
+- Zielgeräte: iPhone ab iOS 17, aktuelle Android-Geräte. Maßstab für das Layout ist das kleinste unterstützte iPhone (iPhone SE, 375 × 667 pt). Hochformat ist Pflicht, Querformat optional.
 - Bekannte iOS-PWA-Grenzen müssen im Plan explizit adressiert werden (keine Vibration-API, eingeschränkte Hintergrundausführung, Wake Lock erst ab iOS 16.4/18.4 zuverlässig).
 
 ## Entwicklungsablauf und Qualitätstore
@@ -67,4 +72,4 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-02
+**Version**: 1.2.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-02
