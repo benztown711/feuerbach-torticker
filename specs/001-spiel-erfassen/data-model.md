@@ -8,7 +8,7 @@ Alle Zeitstempel sind Epoch-Millisekunden (`Date.now()`), Anzeige in lokaler Zei
 |---|---|---|
 | `id` | string | UUID |
 | `schemaVersion` | number | aktuell `1` |
-| `ownTeam` | string | 1 bis 40 Zeichen, Vorgabe aus Settings |
+| `ownTeam` | string | 1 bis 40 Zeichen, pro Spiel frei (z. B. "Sportvg Feuerbach E1"), Vorgabe `settings.recentOwnTeams[0]` |
 | `opponent` | string | Pflicht, 1 bis 40 Zeichen, getrimmt |
 | `venue` | `"home"` \| `"away"` | bestimmt links/rechts (Heim links) |
 | `ownColor`, `oppColor` | string | Farb-ID aus `design/trikot-farben.json` (FR-031) |
@@ -43,7 +43,7 @@ Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel
 | `minute` | number | reguläre Minute, max. Abschnittsende |
 | `stoppage` | number \| null | angefangene Nachspielminute, z. B. `1` für "25+1'" |
 | `scorer` | `{ kind: "player", playerId } \| { kind: "text", text } \| { kind: "ownGoal" } \| null` | `player` nur bei `side = own`; `text` nur bei `side = opp` (max. 30 Zeichen, Name oder Rückennummer); `ownGoal` = Eigentor des Gegners, zählt für `own` |
-| `deletedAt` | number \| null | Undo bzw. "aberkannt" (FR-008); Spielstand zählt nur `deletedAt = null`; "wieder zählen" setzt `null`; aberkannte Tore bleiben durchgestrichen sichtbar |
+| `deletedAt` | number \| null | Undo bzw. "entfernt" (FR-008); Spielstand zählt nur `deletedAt = null`; "wiederherstellen" setzt `null`; entfernte Tore bleiben durchgestrichen sichtbar |
 
 ## Player (Object Store `players`, keyPath `id`)
 
@@ -58,10 +58,10 @@ Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel
 
 | Feld | Typ | Vorgabe |
 |---|---|---|
-| `ownTeam` | string | "Sportvg Feuerbach" |
+| `recentOwnTeams` | string[] | bis 5 zuletzt genutzte eigene Namen; leer = "Sportvg Feuerbach" |
 | `lastSchema` | Schema | 2 × 25 |
 | `lastSquad` | string[] | Aufgebot des letzten Spiels (Vorauswahl) |
-| `lastOwnColor` | string | Vorgabe Feuerbach-Farbe, initial `"rot"` |
+| `lastOwnColor` | string \| null | null = Vorgabe Rot; wird gesetzt, sobald die eigene Farbe einmal geändert wurde |
 | `opponentColors` | Record<string, string> | zuletzt genutzte Farbe je Gegnername (normalisiert: klein, getrimmt) |
 | `theme` | `"system"` \| `"light"` \| `"dark"` | `"system"` |
 | `installHintDismissedAt` | number \| null | null |

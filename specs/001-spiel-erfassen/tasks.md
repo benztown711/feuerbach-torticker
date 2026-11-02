@@ -104,8 +104,9 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [ ] T038 [P] [US2] `src/platform/wake-lock.ts`: Wake Lock anfordern solange Uhr läuft, bei `visibilitychange` erneut anfordern, Fallback-Hinweis wenn API fehlt (FR-013)
 - [ ] T039 [US2] Bildschirm "Neues Spiel" `src/ui/screens/new-game.tsx` laut UI-Vertrag (`input-opponent`, `venue-home`/`venue-away` ohne Vorauswahl, `schema-sections`, `schema-minutes` mit Vorgabe aus `settings.lastSchema`, `btn-create`); speichert `lastSchema` (FR-001, FR-002)
 - [ ] T092 [US2] Trikotfarben-Auswahl in `src/ui/screens/new-game.tsx` (`color-own-<id>`, `color-opp-<id>`, `color-clash-hint`) und `src/domain/jersey-colors.ts` (Palette laden, Schriftfarbe, `needsBorder`); speichert `lastOwnColor` und `opponentColors` (macht T090 grün)
+- [ ] T095 [US2] Eigener Mannschaftsname pro Spiel (`input-own-team`, `own-team-recent-<n>`, `settings.recentOwnTeams`, Kurzform ohne "Sportvg " für Tor-Knöpfe) und Tausch-Knopf `btn-swap-venue` in `src/ui/screens/new-game.tsx` und `src/ui/screens/game.tsx` (vor Anpfiff direkt, danach Menü mit Abfrage); Test-first in `tests/unit/team-name.test.ts` und `tests/e2e/us2-tauschen.spec.ts` (FR-001, FR-014, FR-035)
 - [ ] T040 [P] [US2] Komponenten `src/ui/components/clock-display.tsx` und `src/ui/components/scoreboard.tsx` (Stil `ergebnis`, `tabular-nums lining-nums`), macht T033 grün
-- [ ] T041 [US2] Spielbildschirm `src/ui/screens/game.tsx`: Kopf mit Wappen 24px und `section-label`, Teams links Heim/rechts Gast, Uhr, Steuerleiste (`btn-kickoff`, `btn-pause` "Uhr anhalten"/`btn-resume` "Uhr fortsetzen" mit Linien-Symbol, `btn-section-end` mit Beschriftung "Pausenpfiff"/"Schlusspfiff", `btn-reset` im Menü), Sicherheitsabfrage für Uhr anhalten/Pausenpfiff/Schlusspfiff/Reset (FR-006)
+- [ ] T041 [US2] Spielbildschirm `src/ui/screens/game.tsx`: Kopf mit Wappen 24px und `section-label`, Teams links Heim/rechts Gast, Uhr, Steuerleiste (`btn-kickoff`, `btn-pause` "Uhr anhalten"/`btn-resume` "Uhr fortsetzen" als reine Textknöpfe, `btn-section-end` mit Beschriftung "Pausenpfiff"/"Schlusspfiff", `btn-reset` im Menü), Sicherheitsabfrage für Uhr anhalten/Pausenpfiff/Schlusspfiff/Reset (FR-006)
 - [ ] T042 [US2] Tick-Schleife in `src/ui/screens/game.tsx`: 4× pro Sekunde `deriveClock` neu berechnen; für jede `dueThreshold` `playSignal`, `vibrate`, `signal-flash` 3 s auslösen und Schwelle in `signalledThresholds` speichern (FR-007)
 - [ ] T043 [US2] Persistenz: jedes Uhr-Ereignis sofort per `putGame`; beim App-Start offenes Spiel über `findOpenGame` fortsetzen (FR-010)
 
@@ -124,17 +125,17 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [ ] T044 [P] [US1] `tests/unit/goals.test.ts`: `addGoal` speichert `side`, `at`, `section`, `minute`, `stoppage` aus `deriveClock`; Spielstand zählt nur `deletedAt = null`; Heim/Gast-Abbildung von own/opp je nach `venue`; Doppeltipp innerhalb 1,5 s auf dieselbe Seite wird ignoriert; Undo setzt `deletedAt`; Tore nur in `running`/`paused` erlaubt (FR-004, FR-008, FR-021)
 - [ ] T045 [P] [US1] `tests/e2e/us1-tor-erfassen.spec.ts`: US1-S1 Knöpfe vor Anpfiff `disabled`; US1-S2 bei 06:12 gespielt Tor Feuerbach → `score` "1 : 0" und Eintrag "7' Feuerbach"; US1-S3 Gegentor; US1-S4 Undo innerhalb 10 s; US1-S5 Löschen in Torliste mit Abfrage; Messung Tap bis Anzeige < 100 ms (SC-001); Knöpfe in Halbzeitpause und nach Abpfiff deaktiviert (FR-021)
 - [ ] T046 [P] [US1] `tests/e2e/a11y.spec.ts`: axe-core ohne Verstöße auf Start, Neues Spiel und Spielbildschirm in beiden Projekten; Tor-Knöpfe mindestens 64 × 64 CSS-Pixel
-- [ ] T093 [P] [US1] `tests/e2e/us1-aberkennen.spec.ts`: US1-S5 bis US1-S7 (Tor nach Minuten aberkennen mit Abfrage, durchgestrichen mit "aberkannt", "wieder zählen", Torliste scrollt in sich bei 8 Toren, Uhr und Knöpfe bleiben stehen) (FR-008, FR-034)
+- [ ] T093 [P] [US1] `tests/e2e/us1-entfernen.spec.ts`: US1-S5 bis US1-S7 (Tor nach Minuten entfernen mit Abfrage, durchgestrichen mit "entfernt", "wiederherstellen", Torliste scrollt in sich bei 8 Toren, Uhr und Knöpfe bleiben stehen) (FR-008, FR-034)
 
 ### Implementierung für User Story 1
 
 - [ ] T047 [US1] `src/domain/goals.ts`: `addGoal`, `undoGoal`, `deleteGoal`, `score(game)` implementieren (macht T044 grün)
 - [ ] T048 [P] [US1] Komponente `src/ui/components/goal-button.tsx`: `btn-goal-own`/`btn-goal-opp` in Trikotfarbe mit Schriftfarbe aus der Palette (fett ≥ 24px) und Rahmen nach `needsBorder`, zusammen unteres Drittel, Hinweis "Schon gezählt" bei Doppeltipp (FR-003, FR-016)
 - [ ] T049 [P] [US1] Komponente `src/ui/components/undo-bar.tsx` (`undo-bar`, `btn-undo`, 10 s sichtbar)
-- [ ] T050 [P] [US1] Komponente `src/ui/components/goal-list.tsx`: alle Tore, neuestes oben, Minute-Label, Stand, Torschütze; aberkannte durchgestrichen
+- [ ] T050 [P] [US1] Komponente `src/ui/components/goal-list.tsx`: alle Tore, neuestes oben, Minute-Label, Stand, Torschütze; entfernte durchgestrichen
 - [ ] T051 [US1] Tor-Knöpfe, Undo-Leiste und Torliste in `src/ui/screens/game.tsx` einbauen; Aktivregel nach Status (FR-021); sofort persistieren
 - [ ] T052 [US1] Spieldetails `src/ui/screens/game-details.tsx`: alle Tore mit Minute-Label und Uhrzeit `HH:MM:SS` (`goal-<id>`), Löschen mit Abfrage (`goal-delete-<id>`), Uhr-Ereignisse mit Uhrzeit (`clock-events`) (FR-008, FR-022)
-- [ ] T094 [US1] Torliste `src/ui/components/goal-list.tsx` auf alle Tore mit eigenem Scrollbereich umstellen, Antippen öffnet `goal-actions` (`goal-disallow` mit Abfrage, `goal-allow`, `goal-edit-scorer`); `src/domain/goals.ts` um `disallowGoal`/`allowGoal` erweitern (macht T093 grün)
+- [ ] T094 [US1] Torliste `src/ui/components/goal-list.tsx` auf alle Tore mit eigenem Scrollbereich umstellen, Antippen öffnet `goal-actions` (`goal-remove` mit Abfrage, `goal-restore`, `goal-edit-scorer`); `src/domain/goals.ts` um `removeGoal`/`restoreGoal` erweitern (macht T093 grün)
 
 **Checkpoint (MVP)**: Ein komplettes Spiel lässt sich mit Uhr und Toren erfassen. Ab hier ist die App am Spielfeldrand nutzbar und wird bei jedem Merge automatisch ausgeliefert.
 
@@ -227,7 +228,7 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 - [ ] T075 [US6] `src/domain/export.ts` (`buildBackup`, `parseBackup`, `mergeBackup`) implementieren (macht T072 grün)
 - [ ] T076 [US6] Historie `src/ui/screens/history.tsx` (`history-list`, `history-item-<id>`, `history-delete-<id>` mit Abfrage), Öffnen führt zu `src/ui/screens/game-details.tsx`
-- [ ] T077 [US6] Einstellungen `src/ui/screens/settings.tsx`: `input-own-team` (FR-014), `theme-system`/`theme-light`/`theme-dark` (FR-018), `btn-export` (Datei `torticker-sicherung-JJJJ-MM-TT.json` über Teilen-Menü mit Dateien, Fallback Download), `input-import`, `install-hint` (FR-023, FR-024)
+- [ ] T077 [US6] Einstellungen `src/ui/screens/settings.tsx`: `recent-own-teams` (FR-014), `theme-system`/`theme-light`/`theme-dark` (FR-018), `btn-export` (Datei `torticker-sicherung-JJJJ-MM-TT.json` über Teilen-Menü mit Dateien, Fallback Download), `input-import`, `install-hint` (FR-023, FR-024)
 
 **Checkpoint**: Historie dauerhaft und sicherbar.
 
