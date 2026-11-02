@@ -7,7 +7,7 @@ test.describe('Smoke: Startbildschirm', () => {
     await expect(page).toHaveTitle('Feuerbach Torticker');
     await expect(page.getByRole('heading', { level: 1, name: 'TORTICKER' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Wappen der Sportvg Feuerbach' })).toBeVisible();
-    await expect(page.getByTestId('status-hint')).toContainText('In Arbeit');
+    await expect(page.getByTestId('btn-new-game')).toHaveText('Neues Spiel');
   });
 
   test('FR-015 nutzt die Vereinsschrift und das Vereinsrot aus den Design-Tokens', async ({ page }) => {
