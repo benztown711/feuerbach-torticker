@@ -28,7 +28,7 @@ import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster'
 import { shortTeamName } from '../../domain/team-name';
 import type { Game, Goal, Scorer, Side } from '../../domain/types';
 import { getGame, putGame } from '../../platform/db';
-import { playSignal, unlockAudio } from '../../platform/signal';
+import { audioReady, playSignal, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
@@ -211,8 +211,14 @@ export function GameScreen({ id }: { id: string }) {
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
 
+  // FR-007: Nach Hintergrund oder Neuladen ist der Ton auf iOS gesperrt; jede Berührung schaltet ihn wieder frei.
+  const reArmAudio = (): void => {
+    if (!audioReady()) unlockAudio();
+  };
+  const showAudioHint = (status === 'running' || status === 'paused') && !audioReady();
+
   return (
-    <main class="game">
+    <main class="game" onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>
@@ -228,6 +234,11 @@ export function GameScreen({ id }: { id: string }) {
           <span data-testid="section-label">{headerLabel}</span>
           {overtime && <span> · Nachspielzeit</span>}
         </span>
+        {showAudioHint && (
+          <button type="button" class="audio-hint" data-testid="audio-hint" onClick={unlockAudio}>
+            Ton aus · tippen
+          </button>
+        )}
         <button
           type="button"
           class="icon-btn"

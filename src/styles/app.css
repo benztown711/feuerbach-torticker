@@ -343,6 +343,19 @@
   color: var(--color-rot-text);
 }
 
+.audio-hint {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .teams {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);

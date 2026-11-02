@@ -49,7 +49,18 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
         state = 'running';
         currentTime = 0;
         destination = {};
-        resume = async () => undefined;
+        constructor() {
+          (window as unknown as { __audioCtx: unknown }).__audioCtx = this;
+        }
+        resume = async () => {
+          this.state = 'running';
+        };
+        createBuffer() {
+          return {};
+        }
+        createBufferSource() {
+          return { buffer: null, connect: () => undefined, start: () => undefined };
+        }
         createOscillator() {
           return {
             frequency: { value: 0, setValueAtTime: () => undefined },

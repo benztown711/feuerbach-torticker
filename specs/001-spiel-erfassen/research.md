@@ -119,7 +119,14 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Stylelint**: `currentColor` ist als Schlüsselwort erlaubt (kein Farbwert), damit Linien-Icons die Textfarbe übernehmen.
 - **Noch nicht umgesetzt** (gehört zu späteren Stories): Torschütze ändern (`goal-edit-scorer`, US3), Löschen von Toren in den Spieldetails (dort nur Anzeige; Entfernen über den Spielbildschirm), Einstellungen-Bildschirm (US6).
 
-## R-17 Anpassungen bei der Umsetzung von Kader, Aufgebot und Torschützen (US5, US3, US7)
+## R-17 Ton auf dem iPhone (Gerätetest 02.11.2026)
+
+- **Befund**: Kein Signalton auf dem iPhone, weder lautlos noch mit Ton. Bildschirm wach und Uhr im Hintergrund funktionieren.
+- **Decision**: `navigator.audioSession.type = 'playback'` (Safari 17+) gegen den Lautlos-Schalter; in `unlockAudio()` zusätzlich ein stiller 1-Sample-Puffer innerhalb der Berührung; jede Berührung des Spielbildschirms schaltet einen gesperrten AudioContext (`suspended`/`interrupted`) wieder frei; `playSignal()` versucht bei gesperrtem Context ein `resume()`; sichtbarer Hinweis "Ton aus · tippen" (FR-036).
+- **Grenze**: Im Hintergrund oder bei gesperrtem Bildschirm spielt iOS keine Web-Töne. Abhilfe bleibt das Wachhalten des Bildschirms.
+- **Prüfung**: Komponententest `tests/component/signal.test.tsx` (Fake-AudioContext), E2E `US2-S11`; echter Ton nur auf dem Gerät (quickstart.md, manueller Check).
+
+## R-18 Anpassungen bei der Umsetzung von Kader, Aufgebot und Torschützen (US5, US3, US7)
 
 - **Schnellauswahl nur mit Kader**: Die Torschützen-Auswahl öffnet sich nach einem eigenen Tor nur, wenn der Kader mindestens einen Spieler hat. Ohne Kader bleibt der MVP-Ablauf unverändert. Statt "Spieler anlegen" mitten im Spiel (Edge Case) bietet "Neues Spiel" bei leerem Kader den Link "Kader anlegen" an; ein Wechsel weg vom laufenden Spiel ist am Spielfeldrand riskant.
 - **Rückgängig in der Schnellauswahl**: Solange die Auswahl offen ist, liegt "Rückgängig" (`btn-undo`) in ihrem Kopf statt in der Undo-Leiste, die sonst verdeckt wäre. Nach dem Schließen gilt wieder die Undo-Leiste (10 s ab Tor).
