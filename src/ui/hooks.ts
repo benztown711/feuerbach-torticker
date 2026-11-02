@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
+import type { Player } from '../domain/types';
+import { getPlayers } from '../platform/db';
 import { isDarkTheme } from '../platform/storage';
 
 /** Aktuelle Zeit, alle `intervalMs` neu (Uhr wird daraus berechnet, nie hochgezählt). */
@@ -21,4 +23,14 @@ export function useDarkTheme(): boolean {
     return () => mq.removeEventListener('change', update);
   }, []);
   return dark;
+}
+
+/** Kader aus IndexedDB; `undefined` solange geladen wird, `reload` nach Änderungen. */
+export function usePlayers(): [Player[] | undefined, () => void] {
+  const [players, setPlayers] = useState<Player[] | undefined>(undefined);
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    void getPlayers().then(setPlayers);
+  }, [version]);
+  return [players, () => setVersion((v) => v + 1)];
 }

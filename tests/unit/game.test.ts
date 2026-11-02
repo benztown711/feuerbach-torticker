@@ -27,6 +27,11 @@ const input: NewGameInput = {
 const fresh = () => createGame(input, { id: 'g1', now: T0 });
 
 describe('T031 FR-006 Spiel-Reducer', () => {
+  it('T057 FR-030 createGame übernimmt das Aufgebot', () => {
+    expect(createGame({ ...input, squad: ['p1', 'p2'] }, { id: 'g9', now: T0 }).squad).toEqual(['p1', 'p2']);
+    expect(fresh().squad).toEqual([]);
+  });
+
   it('createGame legt ein Spiel im Zustand created an', () => {
     const g = fresh();
     expect(g).toMatchObject({

@@ -50,6 +50,16 @@ export async function findOpenGame(): Promise<Game | undefined> {
   return (await listGames()).find((g) => g.status !== 'finished');
 }
 
+export async function getPlayers(): Promise<Player[]> {
+  return (await db()).getAll('players');
+}
+
+/** Schreibt die übergebenen Spieler (neu oder geändert) in einer Transaktion. */
+export async function putPlayers(players: Player[]): Promise<void> {
+  const tx = (await db()).transaction('players', 'readwrite');
+  await Promise.all([...players.map((p) => tx.store.put(p)), tx.done]);
+}
+
 export async function getSettings(): Promise<Settings> {
   return withSettingsDefaults(await (await db()).get('settings', SETTINGS_KEY));
 }

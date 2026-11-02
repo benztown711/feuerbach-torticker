@@ -1,6 +1,8 @@
 import { deriveClock } from './clock';
 import { formatMinute } from './minute';
-import type { Game, Goal, Score, Side, Venue } from './types';
+import { resolvePlayer } from './roster';
+import type { Game, Goal, Player, Score, Scorer, Side, Venue } from './types';
+import { validateOpponentScorerText } from './validation';
 
 /** Doppeltipp-Schutz (UI-Vertrag): zweiter Tap derselben Seite innerhalb 1,5 s zählt nicht. */
 export const DOUBLE_TAP_MS = 1500;
@@ -49,6 +51,34 @@ export const removeGoal = (game: Game, goalId: string, now: number): Game =>
 
 /** FR-008: entferntes Tor wiederherstellen. */
 export const restoreGoal = (game: Game, goalId: string): Game => patchGoal(game, goalId, { deletedAt: null });
+
+/**
+ * FR-009: Torschütze setzen. Spieler und Eigentor nur bei eigenen Toren, Freitext nur bei Gegentoren
+ * (getrimmt, max. 30 Zeichen; leer = ohne). Ungültige Kombinationen ändern nichts.
+ */
+export function setScorer(game: Game, goalId: string, scorer: Scorer): Game {
+  const goal = game.goals.find((g) => g.id === goalId);
+  if (!goal) return game;
+  if (scorer === null) return patchGoal(game, goalId, { scorer: null });
+  if (scorer.kind === 'text') {
+    if (goal.side !== 'opp') return game;
+    const text = scorer.text.trim();
+    if (text === '') return patchGoal(game, goalId, { scorer: null });
+    if (validateOpponentScorerText(text)) return game;
+    return patchGoal(game, goalId, { scorer: { kind: 'text', text } });
+  }
+  if (goal.side !== 'own') return game;
+  return patchGoal(game, goalId, { scorer });
+}
+
+/** Anzeige des Torschützen; gelöschte Spieler bleiben lesbar (FR-029). */
+export function scorerLabel(goal: Goal, players: Player[]): string {
+  const s = goal.scorer;
+  if (s === null) return '';
+  if (s.kind === 'ownGoal') return 'Eigentor';
+  if (s.kind === 'text') return s.text;
+  return resolvePlayer(players, s.playerId)?.name ?? '?';
+}
 
 export function score(game: Game): Score {
   const active = game.goals.filter((g) => g.deletedAt === null);

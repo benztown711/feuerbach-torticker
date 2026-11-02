@@ -18,7 +18,7 @@ export function createGame(input: NewGameInput, opts: { id: string; now: number 
     clockEvents: [],
     goals: [],
     signalledThresholds: [],
-    squad: [],
+    squad: [...(input.squad ?? [])],
     status: 'created',
     finalScore: null,
     halfTimeScore: null,

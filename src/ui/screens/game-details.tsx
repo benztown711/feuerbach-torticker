@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
-import { goalRows, homeAway, score } from '../../domain/goals';
+import { goalRows, homeAway, score, scorerLabel } from '../../domain/goals';
 import { shortTeamName } from '../../domain/team-name';
-import type { ClockEvent, Game } from '../../domain/types';
-import { getGame } from '../../platform/db';
+import type { ClockEvent, Game, Player } from '../../domain/types';
+import { getGame, getPlayers } from '../../platform/db';
 import { navigate } from '../router';
 
 const eventText = (e: ClockEvent, game: Game): string => {
@@ -28,8 +28,10 @@ const eventText = (e: ClockEvent, game: Game): string => {
 /** Spieldetails (FR-022): alle Tore mit Minute und Uhrzeit, Uhr-Ereignisse mit Uhrzeit. */
 export function GameDetailsScreen({ id }: { id: string }) {
   const [game, setGame] = useState<Game | null | undefined>(undefined);
+  const [players, setPlayers] = useState<Player[]>([]);
   useEffect(() => {
     void getGame(id).then((g) => setGame(g ?? null));
+    void getPlayers().then(setPlayers);
   }, [id]);
   if (game === undefined) return <main class="page" aria-busy="true" />;
   if (game === null) {
@@ -68,7 +70,10 @@ export function GameDetailsScreen({ id }: { id: string }) {
           {goalRows(game).map((r) => (
             <li key={r.goal.id} class={r.removed ? 'details__item details__item--removed' : 'details__item'}>
               <span class="details__minute">{r.label}</span>
-              <span>{r.goal.side === 'own' ? shortTeamName(game.ownTeam) : game.opponent}</span>
+              <span>
+                {r.goal.side === 'own' ? shortTeamName(game.ownTeam) : game.opponent}
+                {r.goal.scorer && `, ${scorerLabel(r.goal, players)}`}
+              </span>
               <span class="details__time">{formatTime(r.goal.at)}</span>
               {r.removed && <span class="goal-row__tag">entfernt</span>}
             </li>
