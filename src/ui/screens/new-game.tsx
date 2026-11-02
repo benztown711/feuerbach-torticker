@@ -8,12 +8,13 @@ import {
   needsBorder,
   rememberColors,
 } from '../../domain/jersey-colors';
+import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
 import { defaultOwnTeam, pushRecent, shortTeamName } from '../../domain/team-name';
 import type { Settings, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getSettings, putGame, putSettings } from '../../platform/db';
-import { useDarkTheme } from '../hooks';
+import { useDarkTheme, usePlayers } from '../hooks';
 import { navigate } from '../router';
 
 const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
@@ -61,6 +62,8 @@ export function NewGameScreen() {
   const [oppColor, setOppColor] = useState('schwarz');
   const [oppTouched, setOppTouched] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [players] = usePlayers();
+  const [squad, setSquad] = useState<string[]>([]);
 
   useEffect(() => {
     void getSettings().then((s) => {
@@ -74,12 +77,30 @@ export function NewGameScreen() {
     });
   }, []);
 
+  const visible = visiblePlayers(players ?? []);
+  const lastSquad = (settings?.lastSquad ?? []).filter((id) => visible.some((p) => p.id === id));
+  // FR-030: Aufgebot des letzten Spiels ist vorausgewählt.
+  const lastKey = lastSquad.join(',');
+  useEffect(() => {
+    setSquad(lastKey === '' ? [] : lastKey.split(','));
+  }, [lastKey]);
+  const toggle = (id: string): void => setSquad(squad.includes(id) ? squad.filter((x) => x !== id) : [...squad, id]);
+
   // FR-031: Gegnerfarbe folgt dem Gegnernamen, solange sie nicht von Hand gewählt wurde.
   useEffect(() => {
     if (!oppTouched) setOppColor(defaultOppColor(settings ?? defaultSettings(), opponent, ownColor));
   }, [opponent, ownColor, settings, oppTouched]);
 
-  const input = { ownTeam, opponent, venue, schema: { sections, sectionMinutes: minutes }, ownColor, oppColor };
+  const chosen = visible.filter((p) => squad.includes(p.id)).map((p) => p.id);
+  const input = {
+    ownTeam,
+    opponent,
+    venue,
+    schema: { sections, sectionMinutes: minutes },
+    ownColor,
+    oppColor,
+    squad: chosen,
+  };
   const check = validateNewGame(input);
   const ownLabel = ownTeam.trim() || 'Eigene Mannschaft';
   const oppLabel = opponent.trim() || 'Gegner';
@@ -97,6 +118,7 @@ export function NewGameScreen() {
           ...settings,
           recentOwnTeams: pushRecent(settings.recentOwnTeams, check.value.ownTeam),
           lastSchema: check.value.schema,
+          lastSquad: chosen,
         },
         check.value,
       ),
@@ -270,6 +292,52 @@ export function NewGameScreen() {
               </div>
             );
           })}
+        </div>
+
+        <div class="field">
+          <div class="squad__head">
+            <span class="field__label t-label squad__count" data-testid="squad-count">
+              AUFGEBOT · {chosen.length} VON {visible.length}
+            </span>
+            {lastSquad.length > 0 && (
+              <button
+                type="button"
+                class="btn btn--quiet btn--small"
+                data-testid="squad-take-last"
+                onClick={() => setSquad(lastSquad)}
+              >
+                Wie letztes Spiel
+              </button>
+            )}
+          </div>
+          {visible.length === 0 ? (
+            <p class="hint">
+              Noch kein Kader angelegt. Torschützen kannst du wählen, sobald der Kader steht.{' '}
+              <button type="button" class="link-btn" onClick={() => navigate('/kader')}>
+                Kader anlegen
+              </button>
+            </p>
+          ) : (
+            <>
+              <div class="squad" data-testid="squad-picker" role="group" aria-label="Aufgebot">
+                {visible.map((p) => (
+                  <button
+                    type="button"
+                    key={p.id}
+                    class="squad__option"
+                    aria-pressed={squad.includes(p.id)}
+                    data-testid={`squad-option-${p.id}`}
+                    onClick={() => toggle(p.id)}
+                  >
+                    {p.number === null ? p.name : `${p.number} ${p.name}`}
+                  </button>
+                ))}
+              </div>
+              {chosen.length === 0 && (
+                <p class="field__help">Ohne Auswahl steht in der Torschützen-Auswahl der ganze Kader.</p>
+              )}
+            </>
+          )}
         </div>
 
         <button

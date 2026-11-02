@@ -11,12 +11,22 @@ import {
   sectionLabel,
   swapVenue,
 } from '../../domain/game';
-import { addGoal, homeAway, removeGoal, restoreGoal, score, undoGoal } from '../../domain/goals';
+import {
+  addGoal,
+  homeAway,
+  removeGoal,
+  restoreGoal,
+  score,
+  scorerLabel,
+  setScorer,
+  undoGoal,
+} from '../../domain/goals';
 import { getColor } from '../../domain/jersey-colors';
 import { formatMinute } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
+import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
-import type { Game, Goal, Side } from '../../domain/types';
+import type { Game, Goal, Scorer, Side } from '../../domain/types';
 import { getGame, putGame } from '../../platform/db';
 import { playSignal, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
@@ -24,14 +34,17 @@ import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { GoalList } from '../components/goal-list';
+import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
-import { useDarkTheme, useNow } from '../hooks';
+import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 
 const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
+/** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
+const PICKER_MS = 8_000;
 
 type Ask = { kind: 'pause' | 'end' | 'reset' | 'swap' } | { kind: 'remove'; goalId: string };
 
@@ -49,6 +62,10 @@ export function GameScreen({ id }: { id: string }) {
   const [undo, setUndo] = useState<{ goalId: string; until: number } | null>(null);
   const [flashUntil, setFlashUntil] = useState(0);
   const [hintUntil, setHintUntil] = useState(0);
+  const [players] = usePlayers();
+  /** Torschützen-Auswahl: `until` gesetzt = direkt nach dem Tor (mit Auto-Schließen), null = Nachtragen. */
+  const [picker, setPicker] = useState<{ goalId: string; until: number | null } | null>(null);
+  const [textEdit, setTextEdit] = useState<{ goalId: string; value: string } | null>(null);
   const gameRef = useRef<Game | null>(null);
 
   useEffect(() => {
@@ -83,6 +100,11 @@ export function GameScreen({ id }: { id: string }) {
     keepAwake(status === 'running' || status === 'paused');
   }, [status]);
   useEffect(() => () => keepAwake(false), []);
+
+  const pickerExpired = picker?.until != null && now >= picker.until;
+  useEffect(() => {
+    if (pickerExpired) setPicker(null);
+  }, [pickerExpired]);
 
   if (game === undefined) return <main class="game" aria-busy="true" />;
   if (game === null || !clock) {
@@ -125,6 +147,8 @@ export function GameScreen({ id }: { id: string }) {
     if (r.added && r.goal) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
+      if (side === 'own' && visiblePlayers(players ?? []).length > 0)
+        setPicker({ goalId: r.goal.id, until: t + PICKER_MS });
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
     }
@@ -173,6 +197,17 @@ export function GameScreen({ id }: { id: string }) {
   };
 
   const undoGoalObj = undo && now < undo.until ? game.goals.find((g) => g.id === undo.goalId) : undefined;
+  const doUndo = (goalId: string): void => {
+    update(undoGoal(cur(), goalId));
+    setUndo(null);
+    setPicker(null);
+  };
+  const pickScorer = (goalId: string, scorer: Scorer): void => {
+    update(setScorer(cur(), goalId, scorer));
+    setPicker(null);
+  };
+  const pickerGoal = picker && !pickerExpired ? game.goals.find((g) => g.id === picker.goalId) : undefined;
+  const roster = players ?? [];
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
 
@@ -294,7 +329,7 @@ export function GameScreen({ id }: { id: string }) {
         )}
       </section>
 
-      <GoalList game={game} ownName={ownShort} onOpen={(g) => setSheetGoal(g.id)} />
+      <GoalList game={game} ownName={ownShort} players={roster} onOpen={(g) => setSheetGoal(g.id)} />
 
       <section class="goal-buttons" aria-label="Tore erfassen">
         {[homeSide, awaySide].map((side) => (
@@ -310,7 +345,7 @@ export function GameScreen({ id }: { id: string }) {
         ))}
       </section>
 
-      {undoGoalObj && (
+      {undoGoalObj && !pickerGoal && (
         <div class="undo-bar" data-testid="undo-bar" role="status">
           <span class="undo-bar__text">
             Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
@@ -320,10 +355,7 @@ export function GameScreen({ id }: { id: string }) {
             type="button"
             class="btn btn--secondary btn--small"
             data-testid="btn-undo"
-            onClick={() => {
-              update(undoGoal(cur(), undoGoalObj.id));
-              setUndo(null);
-            }}
+            onClick={() => doUndo(undoGoalObj.id)}
           >
             Rückgängig
           </button>
@@ -380,7 +412,9 @@ export function GameScreen({ id }: { id: string }) {
 
       {selected && !ask && (
         <Sheet
-          title={`${formatMinute(selected.minute, selected.stoppage)} ${selected.side === 'own' ? ownShort : game.opponent}`}
+          title={`${formatMinute(selected.minute, selected.stoppage)} ${selected.side === 'own' ? ownShort : game.opponent}${
+            selected.scorer ? `, ${scorerLabel(selected, roster)}` : ''
+          }`}
           subtitle={`erfasst um ${formatTime(selected.at)} Uhr${selected.deletedAt !== null ? ' · entfernt' : ''}`}
           testId="goal-actions"
           onClose={() => setSheetGoal(null)}
@@ -407,6 +441,81 @@ export function GameScreen({ id }: { id: string }) {
               Tor wiederherstellen
             </button>
           )}
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="goal-edit-scorer"
+            onClick={() => {
+              setSheetGoal(null);
+              if (selected.side === 'own') setPicker({ goalId: selected.id, until: null });
+              else
+                setTextEdit({
+                  goalId: selected.id,
+                  value: selected.scorer?.kind === 'text' ? selected.scorer.text : '',
+                });
+            }}
+          >
+            Torschütze ändern
+          </button>
+        </Sheet>
+      )}
+
+      {pickerGoal && (
+        <ScorerPicker
+          subtitle={`Tor in Minute ${formatMinute(pickerGoal.minute, pickerGoal.stoppage)}`}
+          squad={squadPlayers(roster, game.squad)}
+          others={otherPlayers(roster, game.squad)}
+          onPick={(scorer) => pickScorer(pickerGoal.id, scorer)}
+          onClose={() => setPicker(null)}
+          {...(picker?.until != null
+            ? {
+                countdown: Math.max(1, Math.ceil((picker.until - now) / 1000)),
+                ...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {}),
+              }
+            : {})}
+        />
+      )}
+
+      {textEdit && (
+        <Sheet title="Torschütze Gegner" testId="scorer-text" onClose={() => setTextEdit(null)}>
+          <form
+            class="scorer-text"
+            onSubmit={(e) => {
+              e.preventDefault();
+              update(setScorer(cur(), textEdit.goalId, { kind: 'text', text: textEdit.value }));
+              setTextEdit(null);
+            }}
+          >
+            <label class="visually-hidden" for="scorer-text-input">
+              Torschütze des Gegners
+            </label>
+            <input
+              id="scorer-text-input"
+              class="input"
+              data-testid="scorer-text-input"
+              value={textEdit.value}
+              maxLength={30}
+              autocomplete="off"
+              placeholder="Name oder Rückennummer"
+              onInput={(e) => setTextEdit({ ...textEdit, value: e.currentTarget.value })}
+            />
+            <div class="button-row">
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="scorer-text-clear"
+                onClick={() => {
+                  update(setScorer(cur(), textEdit.goalId, null));
+                  setTextEdit(null);
+                }}
+              >
+                Ohne Torschütze
+              </button>
+              <button type="submit" class="btn btn--primary" data-testid="scorer-text-save">
+                Speichern
+              </button>
+            </div>
+          </form>
         </Sheet>
       )}
 

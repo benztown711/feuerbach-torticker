@@ -1,14 +1,15 @@
-import { goalRows } from '../../domain/goals';
-import type { Game, Goal } from '../../domain/types';
+import { goalRows, scorerLabel } from '../../domain/goals';
+import type { Game, Goal, Player } from '../../domain/types';
 
 interface Props {
   game: Game;
   ownName: string;
+  players: Player[];
   onOpen: (goal: Goal) => void;
 }
 
 /** Alle Tore, neuestes oben, in sich scrollbar (FR-034); entfernte durchgestrichen (FR-008). */
-export function GoalList({ game, ownName, onOpen }: Props) {
+export function GoalList({ game, ownName, players, onOpen }: Props) {
   const rows = goalRows(game);
   return (
     <section class="goal-list" aria-label="Torliste" data-testid="goal-list">
@@ -23,7 +24,10 @@ export function GoalList({ game, ownName, onOpen }: Props) {
         >
           <span class="goal-row__minute">{r.label}</span>
           <span class="goal-row__score">{r.score}</span>
-          <span class="goal-row__team">{r.goal.side === 'own' ? ownName : game.opponent}</span>
+          <span class="goal-row__team">
+            {r.goal.side === 'own' ? ownName : game.opponent}
+            {r.goal.scorer && `, ${scorerLabel(r.goal, players)}`}
+          </span>
           {r.removed && <span class="goal-row__tag">entfernt</span>}
         </button>
       ))}
