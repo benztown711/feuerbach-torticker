@@ -13,7 +13,7 @@
 - Q: Torschütze per Kader oder Freitext? → A: Eigene Tore per Kaderliste; Gegentore optional per Freitext.
 - Q: Was passiert bei 00:00? → A: Die Uhr läuft als Nachspielzeit weiter, deutlich gekennzeichnet (rot). Tore darin werden als "25+1'", "50+2'" usw. dokumentiert, je nach eingestelltem Spielzeit-Schema.
 - Q: Torschützen beim Gegner? → A: Nur optionaler Freitext, relevant bei bekannten Gegnern.
-- Q: Mehrere eigene Teams? → A: Kein Mannschaftsverwaltung, aber der eigene Name ist pro Spiel frei wählbar (z. B. "Sportvg Feuerbach E1", "… E2", "… D3"), siehe Review B Runde 3.
+- Q: Mehrere eigene Teams? → A: Keine Mannschaftsverwaltung, aber der eigene Name ist pro Spiel frei wählbar (z. B. "Sportvg Feuerbach E1", "… E2", "… D3"), siehe Review B Runde 3.
 - Q: Signal am Abschnittsende? → A: Ton plus Vibration (wo technisch möglich). Anhalten und Zurücksetzen der Uhr nur mit Sicherheitsabfrage.
 - Q: Tor vor Anpfiff? → A: Tor-Knöpfe sind erst ab Anpfiff aktiv.
 - Q: Signal in der Nachspielzeit? → A: Jede volle Minute erneut Ton, blinkende Anzeige und (wo möglich) Vibration, bis Pausenpfiff bzw. Abpfiff.
