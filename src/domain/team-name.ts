@@ -18,3 +18,9 @@ export function pushRecent(list: string[], name: string): string[] {
   const n = name.trim();
   return [n, ...list.filter((x) => x.toLowerCase() !== n.toLowerCase())].slice(0, MAX_RECENT);
 }
+
+/** FR-014: gespeicherten Namen entfernen (Einstellungen). */
+export function removeRecent(list: string[], name: string): string[] {
+  const n = name.trim().toLowerCase();
+  return list.filter((x) => x.toLowerCase() !== n);
+}
