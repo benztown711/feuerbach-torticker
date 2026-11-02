@@ -142,3 +142,11 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Decision**: Ein einziges `HTMLAudioElement` mit einer im Browser erzeugten WAV-Datei (Blob-URL, offline, keine Datei im Repo): drei Pfiffe à 0,3 s mit 2,9 kHz, nahezu Rechteck bei voller Aussteuerung. Freischaltung durch stummes Anspielen desselben Elements innerhalb einer Berührung; spätere Wiedergabe ohne Berührung erlaubt. Lehnt iOS ab, meldet `audioReady()` false und der Hinweis "Ton aus · tippen" erscheint.
 - **Rationale**: Audio-Elemente nutzen den Medien-Kanal: kein Lautlos-Schalter, Regelung über die Lautstärketasten, keine Stilllegung im Vordergrund.
 - **Prüfung**: `tests/component/signal.test.tsx` (WAV-Aufbau, Pegel, Freischaltung, Sperre); E2E `US2-S11` über gemocktes `HTMLMediaElement.play`. Echter Pegel nur auf dem Gerät.
+
+## R-20 Audio-Kanal offen halten (vierter Gerätetest 02.11.2026)
+
+- **Befund**: Nach #10 kam bei Ablauf der regulären Spielzeit kein Ton (mit und ohne Lautlos-Schalter, App im Vordergrund), obwohl dieselbe Technik im Test zuvor funktionierte.
+- **Hypothese**: iOS legt die Audio-Sitzung einer Web-App nach einigen Minuten ohne Wiedergabe still; das spätere `play()` ohne Berührung wird dann verweigert oder bleibt stumm.
+- **Decision**: Ein zweites Audio-Element spielt ab dem Anpfiff (innerhalb der Berührung gestartet) eine 1-s-Stille in Schleife, solange das Spiel läuft oder angehalten ist; beim Schlusspfiff bzw. Verlassen wird es gestoppt. Zusätzlich "Signal testen" (FR-039) zur Kontrolle vor dem Anpfiff.
+- **Nebenwirkung**: iOS kann die App in der Steuerzentrale als "Wiedergabe" anzeigen; der Akkuverbrauch einer stillen Spur ist vernachlässigbar.
+- **Offen**: Bestätigung auf dem Gerät; Diagnosefragen an Atti (Hinweis "Ton aus · tippen" sichtbar? Blinken? Ton in späteren Minuten?).

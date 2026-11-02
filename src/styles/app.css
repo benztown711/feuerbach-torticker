@@ -993,3 +993,13 @@
   flex-direction: column;
   gap: var(--space-2);
 }
+
+.signal-test {
+  margin-top: var(--space-2);
+  align-self: flex-start;
+}
+
+.signal-test__hint {
+  margin: var(--space-1) 0 0;
+  color: var(--color-ink-muted);
+}
