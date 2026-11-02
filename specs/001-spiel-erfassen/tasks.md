@@ -149,14 +149,14 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ### Tests für User Story 5 ⚠️ zuerst schreiben
 
-- [ ] T053 [P] [US5] `tests/unit/roster.test.ts`: Spieler anlegen (`name` "1 bis 24 Zeichen", `number` "1 bis 99" oder null), Soft-Delete setzt `deletedAt` und blendet aus, gelöschte bleiben über ID für alte Tore auflösbar, Sortierung nach Nummer dann Name (FR-029)
-- [ ] T054 [P] [US5] `tests/e2e/us5-kader.spec.ts`: US5-S1 bis US5-S6 (Anlegen, Aufgebot 10 aus 21, Vorauswahl letztes Aufgebot, ohne Aufgebot ganzer Kader, "Andere …", Löschen mit Abfrage und Anzeige in altem Spiel)
+- [x] T053 [P] [US5] `tests/unit/roster.test.ts`: Spieler anlegen (`name` "1 bis 24 Zeichen", `number` "1 bis 99" oder null), Soft-Delete setzt `deletedAt` und blendet aus, gelöschte bleiben über ID für alte Tore auflösbar, Sortierung nach Nummer dann Name (FR-029)
+- [x] T054 [P] [US5] `tests/e2e/us5-kader.spec.ts`: US5-S1 bis US5-S6 (Anlegen, Aufgebot 10 aus 21, Vorauswahl letztes Aufgebot, ohne Aufgebot ganzer Kader, "Andere …", Löschen mit Abfrage und Anzeige in altem Spiel)
 
 ### Implementierung für User Story 5
 
-- [ ] T055 [US5] `src/domain/roster.ts`: `addPlayer`, `updatePlayer`, `softDeletePlayer`, `visiblePlayers`, `resolvePlayer(id)` (macht T053 grün)
-- [ ] T056 [US5] Kader-Bildschirm `src/ui/screens/roster.tsx` laut UI-Vertrag (`roster-list`, `btn-add-player`, `player-edit-<id>`, `player-delete-<id>` mit Abfrage); Hinweis "Bitte nur Vornamen" bei Leerzeichen im Namen (FR-020)
-- [ ] T057 [US5] Aufgebotsauswahl in `src/ui/screens/new-game.tsx` (`squad-picker`, `squad-option-<id>`, `squad-take-last`), speichert `game.squad` und `settings.lastSquad` (FR-030)
+- [x] T055 [US5] `src/domain/roster.ts`: `addPlayer`, `updatePlayer`, `softDeletePlayer`, `visiblePlayers`, `resolvePlayer(id)` (macht T053 grün)
+- [x] T056 [US5] Kader-Bildschirm `src/ui/screens/roster.tsx` laut UI-Vertrag (`roster-list`, `btn-add-player`, `player-edit-<id>`, `player-delete-<id>` mit Abfrage); Hinweis "Bitte nur Vornamen" bei Leerzeichen im Namen (FR-020)
+- [x] T057 [US5] Aufgebotsauswahl in `src/ui/screens/new-game.tsx` (`squad-picker`, `squad-option-<id>`, `squad-take-last`), speichert `game.squad` und `settings.lastSquad` (FR-030)
 
 **Checkpoint**: Kader und Aufgebot funktionieren; US5-Tests grün.
 
@@ -172,14 +172,14 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ### Tests für User Story 3 ⚠️ zuerst schreiben
 
-- [ ] T058 [P] [US3] `tests/unit/scorer.test.ts`: `scorer.kind = "player"` nur bei `side = own`, `"text"` nur bei `side = opp` (max. 30 Zeichen), `"ownGoal"` zählt für own (FR-009)
-- [ ] T059 [P] [US3] `tests/e2e/us3-torschuetze.spec.ts`: US3-S1 bis US3-S5 (Schnellauswahl, Schließen nach 8 s, Nachtragen aus Kader, Gegentor Freitext mit Platzhalter "Name oder Rückennummer", Eigentor)
+- [x] T058 [P] [US3] `tests/unit/scorer.test.ts`: `scorer.kind = "player"` nur bei `side = own`, `"text"` nur bei `side = opp` (max. 30 Zeichen), `"ownGoal"` zählt für own (FR-009)
+- [x] T059 [P] [US3] `tests/e2e/us3-torschuetze.spec.ts`: US3-S1 bis US3-S5 (Schnellauswahl, Schließen nach 8 s, Nachtragen aus Kader, Gegentor Freitext mit Platzhalter "Name oder Rückennummer", Eigentor)
 
 ### Implementierung für User Story 3
 
-- [ ] T060 [US3] `src/domain/goals.ts` um `setScorer(game, goalId, scorer)` mit Regeln aus T058 erweitern
-- [ ] T061 [US3] Komponente `src/ui/components/scorer-picker.tsx`: Raster bis 16 Knöpfe (4 × 4) aus `game.squad` bzw. ganzem Kader, `scorer-others` für restlichen Kader, `scorer-own-goal`, `scorer-skip`, Auto-Schließen nach 8 s (FR-030)
-- [ ] T062 [US3] Bearbeiten in `src/ui/screens/game-details.tsx` (`goal-edit-<id>`): eigene Tore Kaderauswahl + Eigentor, Gegentore Freitextfeld mit Platzhalter "Name oder Rückennummer"
+- [x] T060 [US3] `src/domain/goals.ts` um `setScorer(game, goalId, scorer)` mit Regeln aus T058 erweitern
+- [x] T061 [US3] Komponente `src/ui/components/scorer-picker.tsx`: Raster bis 16 Knöpfe (4 × 4) aus `game.squad` bzw. ganzem Kader, `scorer-others` für restlichen Kader, `scorer-own-goal`, `scorer-skip`, Auto-Schließen nach 8 s (FR-030)
+- [x] T062 [US3] Bearbeiten in `src/ui/screens/game-details.tsx` (`goal-edit-<id>`): eigene Tore Kaderauswahl + Eigentor, Gegentore Freitextfeld mit Platzhalter "Name oder Rückennummer"
 
 **Checkpoint**: Torschützen vollständig; US3-Tests grün.
 
@@ -195,18 +195,18 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ### Tests für User Story 7 ⚠️ zuerst schreiben
 
-- [ ] T063 [P] [US7] `tests/unit/roster-parse.test.ts`: Formate `1 Max`, `1. Max`, `#1 Max`, `1 - Max`, `1,Max`, `Max 1`, `Max`, Tab-getrennt aus Excel, Leerzeilen überspringen, Nummer außerhalb 1 bis 99 → Warnung, Zeile ohne Buchstaben → übersprungen (FR-025)
-- [ ] T064 [P] [US7] `tests/unit/roster-names.test.ts`: "Max Mustermann" allein → "Max"; "Max Müller" + "Max Meier" → "Max Mü." + "Max Me."; "Max Meier" + "Max Meyer" → "Max Mei." + "Max Mey."; identische Namen → Warnung "doppelt"; Ergebnis nie länger als 24 Zeichen, nie ein voller Nachname (FR-020, FR-025)
-- [ ] T065 [P] [US7] `tests/unit/roster-merge.test.ts`: Zuordnung über Nummer + Vorname, sonst Vorname + Präfix-Verträglichkeit; Abkürzung wird bei neuem Namensvetter verlängert ("Max M." → "Max Mü."); keine Löschung; gelöschter Spieler wird wiederbelebt statt dupliziert (FR-027)
-- [ ] T066 [P] [US7] `tests/e2e/us7-kader-import.spec.ts`: US7-S1 bis US7-S9 inkl. Vorschau editierbar und Teilen-Text "Nummer Name" pro Zeile (gemocktes `navigator.share`) (FR-026, FR-028)
+- [x] T063 [P] [US7] `tests/unit/roster-parse.test.ts`: Formate `1 Max`, `1. Max`, `#1 Max`, `1 - Max`, `1,Max`, `Max 1`, `Max`, Tab-getrennt aus Excel, Leerzeilen überspringen, Nummer außerhalb 1 bis 99 → Warnung, Zeile ohne Buchstaben → übersprungen (FR-025)
+- [x] T064 [P] [US7] `tests/unit/roster-names.test.ts`: "Max Mustermann" allein → "Max"; "Max Müller" + "Max Meier" → "Max Mü." + "Max Me."; "Max Meier" + "Max Meyer" → "Max Mei." + "Max Mey."; identische Namen → Warnung "doppelt"; Ergebnis nie länger als 24 Zeichen, nie ein voller Nachname (FR-020, FR-025)
+- [x] T065 [P] [US7] `tests/unit/roster-merge.test.ts`: Zuordnung über Nummer + Vorname, sonst Vorname + Präfix-Verträglichkeit; Abkürzung wird bei neuem Namensvetter verlängert ("Max M." → "Max Mü."); keine Löschung; gelöschter Spieler wird wiederbelebt statt dupliziert (FR-027)
+- [x] T066 [P] [US7] `tests/e2e/us7-kader-import.spec.ts`: US7-S1 bis US7-S9 inkl. Vorschau editierbar und Teilen-Text "Nummer Name" pro Zeile (gemocktes `navigator.share`) (FR-026, FR-028)
 
 ### Implementierung für User Story 7
 
-- [ ] T067 [P] [US7] `src/domain/roster-parse.ts` implementieren (macht T063 grün)
-- [ ] T068 [P] [US7] `src/domain/roster-names.ts` implementieren (macht T064 grün)
-- [ ] T069 [US7] `src/domain/roster-merge.ts` implementieren (macht T065 grün, nutzt T067, T068)
-- [ ] T070 [US7] Einfügen-Dialog in `src/ui/screens/roster.tsx` (`btn-paste-list`, `paste-input`, `paste-preview` mit Warnungen und editierbaren Namen, `paste-apply`); Nachnamen nur im Speicher der Vorschau, nie persistiert
-- [ ] T071 [US7] `src/platform/share.ts` (`shareText` mit Fallback Zwischenablage) und `btn-share-roster` in `src/ui/screens/roster.tsx`
+- [x] T067 [P] [US7] `src/domain/roster-parse.ts` implementieren (macht T063 grün)
+- [x] T068 [P] [US7] `src/domain/roster-names.ts` implementieren (macht T064 grün)
+- [x] T069 [US7] `src/domain/roster-merge.ts` implementieren (macht T065 grün, nutzt T067, T068)
+- [x] T070 [US7] Einfügen-Dialog in `src/ui/screens/roster.tsx` (`btn-paste-list`, `paste-input`, `paste-preview` mit Warnungen und editierbaren Namen, `paste-apply`); Nachnamen nur im Speicher der Vorschau, nie persistiert
+- [x] T071 [US7] `src/platform/share.ts` (`shareText` mit Fallback Zwischenablage) und `btn-share-roster` in `src/ui/screens/roster.tsx`
 
 **Checkpoint**: Fünf Trainer können denselben Kader per WhatsApp-Text übernehmen.
 

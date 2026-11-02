@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'preact/hooks';
 
 export type Route =
-  { name: 'start' } | { name: 'new' } | { name: 'game'; id: string } | { name: 'details'; id: string };
+  | { name: 'start' }
+  | { name: 'new' }
+  | { name: 'roster' }
+  | { name: 'game'; id: string }
+  | { name: 'details'; id: string };
 
 /** Hash-Routen laut contracts/ui-contract.md, damit Zurück-Geste und Neuladen funktionieren. */
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '') || '/';
   if (path === '/neu') return { name: 'new' };
+  if (path === '/kader') return { name: 'roster' };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);
   if (details?.[1]) return { name: 'details', id: details[1] };
   const game = /^\/spiel\/([\w-]+)$/.exec(path);

@@ -14,6 +14,8 @@ Navigation per URL-Hash, damit Zurück-Geste und Neuladen funktionieren.
 | `#/kader` | Kader |
 | `#/einstellungen` | Einstellungen inkl. Export/Import |
 
+Startseite: `btn-continue`, `btn-new-game`, `btn-roster` (Kader).
+
 ## Neues Spiel (`#/neu`)
 
 | Element | Test-ID | Verhalten |
@@ -24,7 +26,7 @@ Navigation per URL-Hash, damit Zurück-Geste und Neuladen funktionieren.
 | Abschnitte | `schema-sections` | 1 bis 4, Vorgabe letzte Einstellung |
 | Minuten | `schema-minutes` | 1 bis 60 |
 | Trikotfarben | `color-own-<id>`, `color-opp-<id>`, `color-clash-hint` | Farbfelder aus `design/trikot-farben.json`; Hinweis bei gleicher Farbe |
-| Aufgebot | `squad-picker`, `squad-option-<playerId>`, `squad-take-last` | optional; Vorauswahl = letztes Aufgebot |
+| Aufgebot | `squad-count`, `squad-picker`, `squad-option-<playerId>`, `squad-take-last` | optional; Vorauswahl = letztes Aufgebot; leerer Kader: Link "Kader anlegen" |
 | Weiter | `btn-create` | legt Spiel an, öffnet Spielbildschirm im Zustand `created` |
 
 ## Spielbildschirm (`#/spiel/:id`)
@@ -46,6 +48,7 @@ Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Mannschaften m
 | Tor Feuerbach | `btn-goal-own` | Trikotfarbe `ownColor`; `disabled` außerhalb `running`/`paused` |
 | Tor Gegner | `btn-goal-opp` | Trikotfarbe `oppColor`; gleiche Aktivregel |
 | Torliste | `goal-list`, `goal-row-<id>` | alle Tore, neuestes oben, scrollt in sich; Antippen öffnet `goal-actions` |
+| Torschütze Gegner | `scorer-text-input`, `scorer-text-save`, `scorer-text-clear` | Freitext, Platzhalter "Name oder Rückennummer", max. 30 Zeichen |
 | Tor-Aktionen | `goal-actions`, `goal-remove`, `goal-restore`, `goal-edit-scorer` | "Tor entfernen" (mit Abfrage) bzw. "Tor wiederherstellen"; Torschütze ändern |
 | Undo-Leiste | `undo-bar`, `btn-undo` | 10 s nach jedem Tor sichtbar |
 | Schnellauswahl Torschütze | `scorer-picker`, `scorer-option-<playerId>`, `scorer-others`, `scorer-own-goal`, `scorer-skip` | nur nach eigenem Tor, Aufgebot als Raster (bis 16 Knöpfe), "Andere …" für restlichen Kader, schließt nach 8 s |
@@ -76,9 +79,9 @@ Doppeltipp-Schutz: Ein zweiter Tap auf denselben Tor-Knopf innerhalb 1,5 s wird 
 | Element | Test-ID | Verhalten |
 |---|---|---|
 | Liste | `roster-list` | sortiert nach Nummer, dann Name; gelöschte unsichtbar |
-| Spieler hinzufügen | `btn-add-player` | Name + Nummer |
+| Spieler hinzufügen | `btn-add-player`, `input-player-name`, `input-player-number`, `btn-save-player`, `hint-first-name-only` | Name + Nummer; Hinweis "Bitte nur Vornamen" (FR-020) |
 | Spieler bearbeiten / löschen | `player-edit-<id>`, `player-delete-<id>` | Löschen mit Abfrage (Soft-Delete) |
-| Liste einfügen | `btn-paste-list`, `paste-input`, `paste-preview`, `paste-apply` | Vorschau mit Warnungen, Namen in der Vorschau editierbar |
+| Liste einfügen | `btn-paste-list`, `paste-input`, `paste-preview`, `paste-row-<n>`, `paste-name-<n>`, `paste-remove-<n>`, `paste-cancel`, `paste-apply` | Vorschau mit Warnungen, Namen in der Vorschau editierbar |
 | Kader teilen | `btn-share-roster` | Teilen-Menü mit "Nummer Name" pro Zeile |
 
 ## Einstellungen (`#/einstellungen`)

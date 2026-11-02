@@ -3,7 +3,17 @@ import { IDBFactory } from 'fake-indexeddb';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
 import type { NewGameInput } from '../../src/domain/types';
-import { closeDb, findOpenGame, getGame, getSettings, listGames, putGame, putSettings } from '../../src/platform/db';
+import {
+  closeDb,
+  findOpenGame,
+  getGame,
+  getPlayers,
+  getSettings,
+  listGames,
+  putGame,
+  putPlayers,
+  putSettings,
+} from '../../src/platform/db';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
 const input: NewGameInput = {
@@ -52,5 +62,16 @@ describe('T022 FR-010 IndexedDB', () => {
 
   it('findOpenGame liefert undefined ohne offene Spiele', async () => {
     expect(await findOpenGame()).toBeUndefined();
+  });
+
+  it('T056 speichert und liest den Kader, ersetzt geänderte Spieler', async () => {
+    expect(await getPlayers()).toEqual([]);
+    await putPlayers([
+      { id: 'a', name: 'Max', number: 1, deletedAt: null },
+      { id: 'b', name: 'Ben', number: 3, deletedAt: null },
+    ]);
+    await putPlayers([{ id: 'a', name: 'Maxi', number: 1, deletedAt: null }]);
+    const all = await getPlayers();
+    expect(all.map((x) => x.name).sort()).toEqual(['Ben', 'Maxi']);
   });
 });
