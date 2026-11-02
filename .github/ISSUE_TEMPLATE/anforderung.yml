@@ -1,0 +1,27 @@
+name: Anforderung
+description: Neuer Wunsch oder Änderung an der App
+title: "Anforderung: "
+labels: ["anforderung"]
+body:
+  - type: textarea
+    id: wunsch
+    attributes:
+      label: Was soll die App können?
+      description: In eigenen Worten, gerne mit Beispiel aus dem Spielalltag.
+    validations:
+      required: true
+  - type: textarea
+    id: warum
+    attributes:
+      label: Warum ist das wichtig?
+  - type: dropdown
+    id: prio
+    attributes:
+      label: Dringlichkeit
+      options:
+        - Vor dem nächsten Spieltag
+        - Diese Saison
+        - Irgendwann
+  - type: markdown
+    attributes:
+      value: "Bitte keine Nachnamen von Kindern eintragen, das Repository ist öffentlich."
