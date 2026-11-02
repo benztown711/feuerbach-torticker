@@ -2,7 +2,7 @@
 
 Ergebnis-Tracker für Fußballspiele der Sportvereinigung Feuerbach: große Tor-Knöpfe, automatische Spielminute, Countdown, optional Torschütze, Ergebnis per WhatsApp teilen.
 
-Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne Konto.
+Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne Konto. Gestaltung nach dem Design System der Sportvg Feuerbach, siehe [`design/`](design/README.md).
 
 ## Vorgehen: Spec-Driven Development mit GitHub Spec Kit
 

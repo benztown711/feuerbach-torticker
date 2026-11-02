@@ -20,7 +20,7 @@ Atti steht am Spielfeldrand, das Spiel läuft. Fällt ein Tor, tippt er auf den 
 
 **Acceptance Scenarios**:
 
-1. **Given** ein laufendes Spiel in der 7. Minute (Uhr zeigt 06:12 gespielt), **When** der Nutzer auf "Tor SVF" tippt, **Then** steht es 1:0 für SVF und die Torliste zeigt "7' SVF".
+1. **Given** ein laufendes Spiel in der 7. Minute (Uhr zeigt 06:12 gespielt), **When** der Nutzer auf "Tor Feuerbach" tippt, **Then** steht es 1:0 für Feuerbach und die Torliste zeigt "7' Feuerbach".
 2. **Given** ein laufendes Spiel, **When** der Nutzer auf "Tor Gegner" tippt, **Then** erhöht sich der Zähler des Gegners um 1 und der Eintrag wird mit Minute gespeichert.
 3. **Given** ein gerade erfasstes Tor, **When** der Nutzer innerhalb von 10 Sekunden auf "Rückgängig" tippt, **Then** wird das Tor entfernt und der Spielstand korrigiert.
 4. **Given** ein beliebiges erfasstes Tor, **When** der Nutzer es in der Torliste löscht, **Then** wird der Spielstand neu berechnet.
@@ -37,7 +37,7 @@ Vor dem Anpfiff trägt der Nutzer den Gegner ein, wählt "Heim" oder "Auswärts"
 
 **Acceptance Scenarios**:
 
-1. **Given** der Startbildschirm, **When** der Nutzer Gegner "TSV Musterstadt" eingibt und "Auswärts" wählt, **Then** zeigt der Spielbildschirm "TSV Musterstadt" als Heim (links) und "SV Feuerbach" als Gast (rechts).
+1. **Given** der Startbildschirm, **When** der Nutzer Gegner "TSV Musterstadt" eingibt und "Auswärts" wählt, **Then** zeigt der Spielbildschirm "TSV Musterstadt" als Heim (links) und "Sportvg Feuerbach" als Gast (rechts).
 2. **Given** ein angelegtes Spiel, **When** der Nutzer "Anpfiff" tippt, **Then** läuft der Countdown von 25:00 abwärts.
 3. **Given** der Countdown erreicht 00:00 in Halbzeit 1, **Then** ertönt ein akustisches Signal, die Anzeige markiert "Halbzeit", und die Uhr stoppt.
 4. **Given** Halbzeit 2 läuft seit 3:10 Minuten, **When** ein Tor erfasst wird, **Then** wird es als Minute 29 gespeichert (fortlaufende Zählung über beide Halbzeiten).
@@ -48,7 +48,7 @@ Vor dem Anpfiff trägt der Nutzer den Gegner ein, wählt "Heim" oder "Auswärts"
 
 ### User Story 3 - Torschütze nachtragen (Priority: P2)
 
-Nach einem SVF-Tor kann der Nutzer optional den Torschützen auswählen, entweder sofort über ein kurz eingeblendetes Auswahlfeld oder später in der Torliste.
+Nach einem Feuerbach-Tor kann der Nutzer optional den Torschützen auswählen, entweder sofort über ein kurz eingeblendetes Auswahlfeld oder später in der Torliste.
 
 **Why this priority**: Wertvoll für Eltern und Trainer, aber das Spiel ist auch ohne Torschützen vollständig dokumentiert.
 
@@ -56,7 +56,7 @@ Nach einem SVF-Tor kann der Nutzer optional den Torschützen auswählen, entwede
 
 **Acceptance Scenarios**:
 
-1. **Given** ein gerade erfasstes SVF-Tor, **When** der Nutzer in der Schnellauswahl "Lenny" antippt, **Then** zeigt die Torliste "12' SVF, Lenny".
+1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Lenny" antippt, **Then** zeigt die Torliste "12' Feuerbach, Lenny".
 2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach [NEEDS CLARIFICATION: 5 oder 8 Sekunden?] ohne Torschützen.
 3. **Given** ein Tor ohne Torschützen, **When** der Nutzer es in der Torliste antippt, **Then** kann er einen Torschützen aus dem Kader oder als Freitext eintragen.
 4. **Given** ein Tor, **When** der Nutzer "Eigentor" wählt, **Then** wird es als Eigentor gekennzeichnet.
@@ -73,9 +73,9 @@ Nach Abpfiff teilt der Nutzer das Ergebnis mit Torfolge über das System-Teilen-
 
 **Acceptance Scenarios**:
 
-1. **Given** ein beendetes Spiel SVF gegen TSV Musterstadt 3:1, **When** der Nutzer "Teilen" tippt, **Then** öffnet sich das Teilen-Menü mit einem Text wie:
+1. **Given** ein beendetes Spiel Sportvg Feuerbach gegen TSV Musterstadt 3:1, **When** der Nutzer "Teilen" tippt, **Then** öffnet sich das Teilen-Menü mit einem Text wie:
    ```
-   ⚽ SV Feuerbach – TSV Musterstadt 3:1 (1:1)
+   ⚽ Sportvg Feuerbach – TSV Musterstadt 3:1 (1:1)
    7' 1:0 Lenny
    18' 1:1
    31' 2:1 Ben
@@ -132,17 +132,26 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 - **FR-006**: Der Countdown MUSS Start, Pause, Fortsetzen, Abschnittsende und Abpfiff unterstützen und seine Zeit ausschließlich aus Zeitstempeln berechnen.
 - **FR-007**: Bei Ablauf eines Abschnitts MUSS ein deutliches akustisches und visuelles Signal erfolgen.
 - **FR-008**: Jedes Tor MUSS rückgängig gemacht (Undo-Leiste) und in der Torliste gelöscht oder bearbeitet werden können.
-- **FR-009**: Für SVF-Tore MUSS optional ein Torschütze eingetragen werden können, per Kaderauswahl oder Freitext; zusätzlich "Eigentor (Gegner)". Für Gegentore [NEEDS CLARIFICATION: Torschütze erfassen ja/nein?].
+- **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze eingetragen werden können, per Kaderauswahl oder Freitext; zusätzlich "Eigentor (Gegner)". Für Gegentore [NEEDS CLARIFICATION: Torschütze erfassen ja/nein?].
 - **FR-010**: Der Spielzustand MUSS nach jeder Änderung lokal persistiert werden und einen App-Neustart überstehen.
 - **FR-011**: Ein beendetes Spiel MUSS als Text über das System-Teilen-Menü geteilt werden können (Fallback: Zwischenablage).
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
 - **FR-013**: Während die Uhr läuft, SOLL der Bildschirm wach gehalten werden.
-- **FR-014**: Der Name der eigenen Mannschaft MUSS einstellbar sein (Vorgabe "SV Feuerbach") [NEEDS CLARIFICATION: mehrere eigene Teams/Jahrgänge nötig?].
+- **FR-014**: Der Name der eigenen Mannschaft MUSS einstellbar sein (Vorgabe "Sportvg Feuerbach") [NEEDS CLARIFICATION: mehrere eigene Teams/Jahrgänge nötig?].
+
+### Gestaltung (Design System der Sportvg Feuerbach, Details in `design/README.md`)
+
+- **FR-015**: Die App MUSS die Farben, Schriften und Abstände aus `design/tokens.json` verwenden; eigene Farbwerte im Code sind nicht erlaubt.
+- **FR-016**: Der Tor-Knopf der Sportvg Feuerbach MUSS die einzige rote Fläche des Spielbildschirms sein (`vereinsrot`, Beschriftung `on-rot` fett ab 24px). Der Tor-Knopf des Gegners MUSS neutral sein (`ink` als Fläche, `surface` als Schrift), damit beide Knöpfe sich in der Helligkeit unterscheiden und nicht nur im Farbton.
+- **FR-017**: Spielstand und Uhr MÜSSEN im Stil `ergebnis` mit gleich breiten Ziffern dargestellt werden, damit die Anzeige beim Herunterzählen nicht springt.
+- **FR-018**: Die App MUSS ein helles und ein dunkles Theme nach Systemeinstellung anbieten; das Wappen bleibt in beiden Themes auf weißem Feld.
+- **FR-019**: App-Icon und Kopfbereich MÜSSEN das Vereinswappen unverzerrt verwenden (Seitenverhältnis 0,84, Mindestgröße 24px, Schutzraum ringsum).
+- **FR-020**: Torschützen MÜSSEN als Vorname oder Kürzel erfasst werden; die Eingabe weist darauf hin, keine Nachnamen zu verwenden. Der geteilte Text enthält nur Vornamen.
 
 ### Key Entities
 
 - **Spiel**: Gegner, Heim/Auswärts, eigene Mannschaft, Datum, Spielzeit-Schema, Uhr-Ereignisse (Start/Pause/Fortsetzen/Abschnittsende mit Zeitstempel), Status (angelegt, läuft, Pause, Halbzeit, beendet).
-- **Tor**: gehört zu einem Spiel; Mannschaft (SVF/Gegner), Minute, Abschnitt, Zeitstempel, optional Torschütze (Kaderspieler oder Freitext), Eigentor-Kennzeichen.
+- **Tor**: gehört zu einem Spiel; Mannschaft (eigene/Gegner), Minute, Abschnitt, Zeitstempel, optional Torschütze (Kaderspieler oder Freitext), Eigentor-Kennzeichen.
 - **Spieler (Kader)**: Vorname oder Kürzel, optional Rückennummer, aktiv/inaktiv.
 
 ## Success Criteria *(mandatory)*
@@ -154,11 +163,12 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 - **SC-003**: Die angezeigte Restzeit weicht nach 25 Minuten (inkl. Sperrbildschirm-Phasen) um höchstens 1 Sekunde von einer Referenzuhr ab.
 - **SC-004**: In einem Test mit 3 Eltern/Trainern erfassen alle ein Tor beim ersten Versuch ohne Erklärung.
 - **SC-005**: Lighthouse-PWA- und Accessibility-Score jeweils ≥ 90.
+- **SC-006**: Alle Text-Hintergrund-Paare erreichen in beiden Themes mindestens 4,5:1 (große Schrift ab 24px: 3:1), automatisch geprüft in der CI.
 
 ## Assumptions
 
 - Ein Gerät erfasst ein Spiel; keine Synchronisation zwischen mehreren Geräten.
-- Primärer Nutzer ist ein Trainer oder Elternteil der SVF-Mannschaft; Ansicht immer aus SVF-Perspektive.
+- Primärer Nutzer ist ein Trainer oder Elternteil der Mannschaft der Sportvg Feuerbach; Ansicht immer aus Sicht der Sportvg Feuerbach.
 - Karten, Wechsel und Spielerstatistiken über Tore hinaus sind nicht Teil dieser Version.
 - Kein Login, keine Cloud-Sicherung in Version 1.
 
@@ -168,6 +178,6 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 2. **Nachspielzeit**: Wenn die Uhr 00:00 erreicht, endet der Abschnitt automatisch, oder läuft eine Nachspielzeit (25+1') weiter, bis der Nutzer abpfeift?
 3. **Gegentore**: Torschütze beim Gegner erfassen (Rückennummer) oder nie?
 4. **Turniermodus**: Mehrere kurze Spiele hintereinander (z. B. Hallenturnier) mit Turnier-Gesamtübersicht, jetzt oder später?
-5. **Mehrere Teams**: Nur eine SVF-Mannschaft oder auswählbar (E1, E2, F-Jugend ...)?
+5. **Mehrere Teams**: Nur eine Mannschaft der Sportvg Feuerbach oder auswählbar (E1, E2, F-Jugend ...)?
 6. **Signal am Abschnittsende**: Ton reicht? (Vibration ist in iOS-Web-Apps nicht verfügbar; bei gesperrtem Bildschirm ist auch der Ton nicht garantiert.)
 7. **Tor ohne Anpfiff**: Startet ein Tor-Tap die Uhr automatisch, oder ist "Tor" erst nach Anpfiff aktiv?

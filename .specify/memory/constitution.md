@@ -41,6 +41,12 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Nur bauen, was eine priorisierte User Story verlangt. Neue Abhängigkeiten müssen im Plan begründet werden.
 - Bevorzugt Web-Standards vor Frameworks, wo der Unterschied gering ist.
 
+### VII. Vereinsdesign
+
+- Gestaltung folgt dem Design System der Sportvg Feuerbach; Farben, Schriften, Abstände und Logos kommen ausschließlich aus `design/` (Quelle: `design/tokens.json`).
+- Bedienbarkeit am Spielfeldrand (Prinzip I) und Kontrast gehen vor Markenwirkung: Weicht beides voneinander ab, wird die Abweichung in `design/README.md` begründet.
+- Schriften und Logos werden mit der App ausgeliefert (offline), nicht von fremden Servern geladen.
+
 ## Technische Rahmenbedingungen
 
 - Auslieferung als Progressive Web App (PWA), installierbar über "Zum Home-Bildschirm" auf iOS (Safari) und Android (Chrome).
@@ -61,4 +67,4 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-02
+**Version**: 1.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-02
