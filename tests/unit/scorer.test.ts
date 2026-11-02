@@ -62,8 +62,11 @@ describe('T058 FR-009 Torschützen', () => {
   });
 
   it('Torschütze entfernen', () => {
-    const g = setScorer(withGoals(), 'goal-1', { kind: 'player', playerId: 'p1' });
-    expect(setScorer(g, 'goal-1', null).goals[0]?.scorer).toBeNull();
+    const base = withGoals();
+    const id = base.goals[0]!.id;
+    const g = setScorer(base, id, { kind: 'player', playerId: 'p1' });
+    expect(g.goals[0]?.scorer).not.toBeNull();
+    expect(setScorer(g, id, null).goals[0]?.scorer).toBeNull();
   });
 
   it('US5-S6 gelöschte Spieler bleiben als Torschütze lesbar; unbekannte ID zeigt Platzhalter', () => {

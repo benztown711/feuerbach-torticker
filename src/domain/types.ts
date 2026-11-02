@@ -91,4 +91,6 @@ export interface NewGameInput {
   schema: Schema;
   ownColor: string;
   oppColor: string;
+  /** FR-030: Spieler-IDs des Aufgebots; leer = ganzer Kader. */
+  squad?: string[];
 }
