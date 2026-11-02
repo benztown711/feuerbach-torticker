@@ -47,3 +47,39 @@ export async function forward(page: Page, ms: number): Promise<void> {
   // Ein weiterer kurzer Schritt, damit der 250-ms-Takt den neuen Stand rendert.
   await page.clock.runFor(300);
 }
+
+/** Füllt den Kader über "Liste einfügen" (US7); endet auf dem Kader-Bildschirm. */
+export async function seedRoster(page: Page, list: string): Promise<void> {
+  await page.goto('./#/kader');
+  await page.getByTestId('btn-paste-list').click();
+  await page.getByTestId('paste-input').fill(list);
+  await page.getByTestId('paste-apply').click();
+  await expect(page.getByTestId('paste-input')).toBeHidden();
+}
+
+/** 21 fiktive Kinder mit Nummern 1 bis 21. */
+export const ROSTER_21 = [
+  'Max',
+  'Ben',
+  'Tom',
+  'Leo',
+  'Paul',
+  'Maxi',
+  'Finn',
+  'Noah',
+  'Emil',
+  'Luis',
+  'Ole',
+  'Felix',
+  'Karl',
+  'Mats',
+  'Nico',
+  'Tim',
+  'Elias',
+  'Anton',
+  'Moritz',
+  'Jonas',
+  'Henri',
+]
+  .map((name, i) => `${i + 1} ${name}`)
+  .join('\n');
