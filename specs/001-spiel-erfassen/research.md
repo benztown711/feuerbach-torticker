@@ -103,3 +103,9 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Schriften** werden direkt aus `design/fonts/` über `src/styles/tokens.css` eingebunden und von Vite mit Hash ausgeliefert (kein Kopieren nötig). `OFL.txt` wird mit ausgeliefert.
 - **Lighthouse CI** läuft per `npx @lhci/cli@0.15.1` nur in der CI und ist keine Projekt-Abhängigkeit, weil die Lighthouse-Kette viele bekannte Schwachstellen in Dev-Abhängigkeiten mitbringt. Die PWA-Kategorie gibt es in Lighthouse 12 nicht mehr; Installierbarkeit (Manifest, Icons, Service Worker) prüft stattdessen der E2E-Smoke-Test.
 - **Dependency Review** blockiert nur Laufzeit-Abhängigkeiten ab Schweregrad "high"; Dev-Werkzeuge werden über Dependabot aktuell gehalten.
+
+## R-15 Review B (Mockups, 02.11.2026)
+
+- **Kleinstes Gerät als Maßstab**: Playwright-Projekt `iphone-se` (WebKit, `devices['iPhone SE']`, 375 × 667) ergänzt; E2E-Kernszenarien und Screenshot-Vergleich laufen dort. Layout-Test: Spielbildschirm ohne Seiten-Scroll (`document.scrollingElement.scrollHeight <= innerHeight`).
+- **Trikotfarben**: feste Palette `design/trikot-farben.json` (12 Farben) statt freier Farbwahl: garantiert geprüfte Kontraste, schnelle Auswahl am Spielfeldrand, keine Farbwerte im Code. Kontraste werden im Unit-Test geprüft (Schrift auf Knopf; Rahmen bei < 3:1 zum Hintergrund).
+- **Kostenfreiheit (Constitution VIII)**: Native Hülle, Apple Developer Account, kostenpflichtige KI-Review-Dienste und bezahlte Hosting-Pläne sind ausgeschlossen. Für release-please-PRs, die CI auslösen sollen, wird ein kostenloses Fine-grained Personal Access Token als Repository-Secret genutzt.

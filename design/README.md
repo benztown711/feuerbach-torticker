@@ -25,14 +25,17 @@ Bei Änderungen am Design System: Dateien hier aktualisieren und per Pull Reques
 ### Farben auf dem Spielbildschirm
 | Element | Fläche | Schrift | Begründung |
 |---|---|---|---|
-| Tor-Knopf Feuerbach | `vereinsrot` | `on-rot`, fett, ab 24px | die eine rote Fläche pro Motiv; Trikot rot |
-| Tor-Knopf Gegner | `ink` | `surface` | neutral, klar heller/dunkler als Rot, über 13:1 |
+| Tor-Knöpfe | Trikotfarbe des Spiels aus `trikot-farben.json` | `text` der Palette, fett, ab 24px | die Knöpfe sind die einzigen großen Farbflächen; Vorgabe Feuerbach Rot (= `vereinsrot`) |
+| Rahmen um Tor-Knopf | – | `ink` 2px | nur wenn Trikotfarbe < 3:1 zum Hintergrund (z. B. Weiß hell, Schwarz dunkel) |
+| Uhr-Knöpfe, Pausen-/Schlusspfiff | `surface` mit `ink`-Rahmen | `ink` | neutral, damit nichts mit einer Mannschaftsfarbe verwechselt wird |
 | Hintergrund | `surface` | `ink` | |
 | Torliste, Undo-Leiste | `surface-alt` | `ink`, Meta in `ink-muted` | |
 | Hinweis "Halbzeit", "Abpfiff" | `rot-tief` | `on-rot` | kleine weiße Schrift nur auf `rot-tief` |
 | Restzeit unter 1 Minute | `surface` | `rot-text` | |
 
-Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startbildschirm. Auf dem Spielbildschirm ist der Feuerbach-Knopf die rote Fläche, kein zusätzlicher Balken.
+Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startbildschirm. Auf dem Spielbildschirm gibt es keinen Balken, die Farbe kommt allein von den Trikotfarben.
+
+**Abweichung vom Design System (begründet):** Trikotfarben sind Spieldaten, keine Markenfarben. Sie stehen in `design/trikot-farben.json` mit geprüfter Schriftfarbe und gelten nur für die Tor-Knöpfe und kleine Farbmarken neben den Mannschaftsnamen. Keine Emojis in der Oberfläche; Symbole als einfarbige Linien-Icons.
 
 ### Schrift
 - Fira Sans als Ersatz für die Kaufschrift TheSans. Stile: `ergebnis` für Spielstand und Uhr, `zwischentitel` für Mannschaftsnamen, `text` für die Torliste, `label` für "1. HZ", "E1".
@@ -50,4 +53,4 @@ Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startb
 
 ### Dunkles Theme
 - Folgt standardmäßig der Systemeinstellung. Markenflächen (`vereinsrot`, `rot-tief`, Wappen) bleiben gleich, `ink` und `surface` tauschen.
-- In den Einstellungen lässt sich "immer hell" festlegen, empfohlen für den Einsatz in der Sonne.
+- In den Einstellungen lässt sich "Hell" oder "Dunkel" festlegen ("Hell" empfohlen für den Einsatz in der Sonne).

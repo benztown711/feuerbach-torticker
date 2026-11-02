@@ -1,0 +1,17 @@
+{
+  "description": "Trikotfarben für die Tor-Knöpfe (Spec 001, FR-031/FR-032). Spieldaten, keine Markenfarben; gelten in beiden Themes unverändert. 'text' ist die Beschriftung mit mindestens 4,5:1 Kontrast.",
+  "colors": [
+    { "id": "rot", "name": "Rot", "value": "#eb1e25", "text": "#ffffff", "note": "= vereinsrot; 4,4:1 mit Weiß, Beschriftung daher immer fett ab 24px" },
+    { "id": "schwarz", "name": "Schwarz", "value": "#231f20", "text": "#ffffff" },
+    { "id": "weiss", "name": "Weiß", "value": "#ffffff", "text": "#231f20" },
+    { "id": "gelb", "name": "Gelb", "value": "#ffd400", "text": "#231f20" },
+    { "id": "orange", "name": "Orange", "value": "#f28c00", "text": "#231f20" },
+    { "id": "gruen", "name": "Grün", "value": "#00843d", "text": "#ffffff" },
+    { "id": "hellblau", "name": "Hellblau", "value": "#6cc4f0", "text": "#231f20" },
+    { "id": "blau", "name": "Blau", "value": "#1f4fbf", "text": "#ffffff" },
+    { "id": "dunkelblau", "name": "Dunkelblau", "value": "#16264a", "text": "#ffffff" },
+    { "id": "lila", "name": "Lila", "value": "#6a3d9a", "text": "#ffffff" },
+    { "id": "bordeaux", "name": "Bordeaux", "value": "#7a1e2c", "text": "#ffffff" },
+    { "id": "grau", "name": "Grau", "value": "#9a9c9e", "text": "#231f20" }
+  ]
+}

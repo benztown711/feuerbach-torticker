@@ -3,24 +3,62 @@
   "$id": "https://github.com/benztown711/feuerbach-torticker/specs/001-spiel-erfassen/contracts/export.schema.json",
   "title": "Feuerbach Torticker Sicherung",
   "type": "object",
-  "required": ["format", "schemaVersion", "exportedAt", "games", "players"],
+  "required": [
+    "format",
+    "schemaVersion",
+    "exportedAt",
+    "games",
+    "players"
+  ],
   "additionalProperties": false,
   "properties": {
-    "format": { "const": "feuerbach-torticker-backup" },
-    "schemaVersion": { "const": 1 },
-    "exportedAt": { "type": "integer", "description": "Epoch-ms" },
-    "appVersion": { "type": "string" },
+    "format": {
+      "const": "feuerbach-torticker-backup"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "exportedAt": {
+      "type": "integer",
+      "description": "Epoch-ms"
+    },
+    "appVersion": {
+      "type": "string"
+    },
     "players": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "deletedAt"],
+        "required": [
+          "id",
+          "name",
+          "deletedAt"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string", "minLength": 1, "maxLength": 24 },
-          "number": { "type": ["integer", "null"], "minimum": 1, "maximum": 99 },
-          "deletedAt": { "type": ["integer", "null"] }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          },
+          "number": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 99
+          },
+          "deletedAt": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
         }
       }
     },
@@ -28,39 +66,129 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "schemaVersion", "ownTeam", "opponent", "venue", "schema", "createdAt", "clockEvents", "goals", "status"],
+        "required": [
+          "id",
+          "schemaVersion",
+          "ownTeam",
+          "opponent",
+          "venue",
+          "schema",
+          "createdAt",
+          "clockEvents",
+          "goals",
+          "status"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "schemaVersion": { "const": 1 },
-          "ownTeam": { "type": "string", "minLength": 1, "maxLength": 40 },
-          "opponent": { "type": "string", "minLength": 1, "maxLength": 40 },
-          "venue": { "enum": ["home", "away"] },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "schemaVersion": {
+            "const": 1
+          },
+          "ownTeam": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "opponent": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "venue": {
+            "enum": [
+              "home",
+              "away"
+            ]
+          },
           "schema": {
             "type": "object",
-            "required": ["sections", "sectionMinutes"],
+            "required": [
+              "sections",
+              "sectionMinutes"
+            ],
             "additionalProperties": false,
             "properties": {
-              "sections": { "type": "integer", "minimum": 1, "maximum": 4 },
-              "sectionMinutes": { "type": "integer", "minimum": 1, "maximum": 60 }
+              "sections": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4
+              },
+              "sectionMinutes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60
+              }
             }
           },
-          "createdAt": { "type": "integer" },
-          "status": { "enum": ["created", "running", "paused", "break", "finished"] },
-          "signalledThresholds": { "type": "array", "items": { "type": "string" } },
-          "squad": { "type": "array", "items": { "type": "string" } },
-          "finalScore": { "$ref": "#/$defs/score" },
-          "halfTimeScore": { "oneOf": [{ "$ref": "#/$defs/score" }, { "type": "null" }] },
+          "createdAt": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "created",
+              "running",
+              "paused",
+              "break",
+              "finished"
+            ]
+          },
+          "signalledThresholds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "squad": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "finalScore": {
+            "$ref": "#/$defs/score"
+          },
+          "halfTimeScore": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/score"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "clockEvents": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["type", "at", "section"],
+              "required": [
+                "type",
+                "at",
+                "section"
+              ],
               "additionalProperties": false,
               "properties": {
-                "type": { "enum": ["kickoff", "pause", "resume", "sectionEnd", "fullTime", "reset"] },
-                "at": { "type": "integer" },
-                "section": { "type": "integer", "minimum": 1, "maximum": 4 }
+                "type": {
+                  "enum": [
+                    "kickoff",
+                    "pause",
+                    "resume",
+                    "sectionEnd",
+                    "fullTime",
+                    "reset"
+                  ]
+                },
+                "at": {
+                  "type": "integer"
+                },
+                "section": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                }
               }
             }
           },
@@ -68,26 +196,115 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "side", "at", "section", "minute", "stoppage", "scorer", "deletedAt"],
+              "required": [
+                "id",
+                "side",
+                "at",
+                "section",
+                "minute",
+                "stoppage",
+                "scorer",
+                "deletedAt"
+              ],
               "additionalProperties": false,
               "properties": {
-                "id": { "type": "string", "format": "uuid" },
-                "side": { "enum": ["own", "opp"] },
-                "at": { "type": "integer" },
-                "section": { "type": "integer", "minimum": 1, "maximum": 4 },
-                "minute": { "type": "integer", "minimum": 1, "maximum": 240 },
-                "stoppage": { "type": ["integer", "null"], "minimum": 1 },
-                "deletedAt": { "type": ["integer", "null"] },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "side": {
+                  "enum": [
+                    "own",
+                    "opp"
+                  ]
+                },
+                "at": {
+                  "type": "integer"
+                },
+                "section": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "minute": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 240
+                },
+                "stoppage": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "deletedAt": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
                 "scorer": {
                   "oneOf": [
-                    { "type": "null" },
-                    { "type": "object", "required": ["kind", "playerId"], "additionalProperties": false, "properties": { "kind": { "const": "player" }, "playerId": { "type": "string" } } },
-                    { "type": "object", "required": ["kind", "text"], "additionalProperties": false, "properties": { "kind": { "const": "text" }, "text": { "type": "string", "minLength": 1, "maxLength": 30 } } },
-                    { "type": "object", "required": ["kind"], "additionalProperties": false, "properties": { "kind": { "const": "ownGoal" } } }
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "playerId"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "kind": {
+                          "const": "player"
+                        },
+                        "playerId": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "text"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "kind": {
+                          "const": "text"
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 30
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "kind": {
+                          "const": "ownGoal"
+                        }
+                      }
+                    }
                   ]
                 }
               }
             }
+          },
+          "ownColor": {
+            "type": "string"
+          },
+          "oppColor": {
+            "type": "string"
           }
         }
       }
@@ -96,9 +313,21 @@
   "$defs": {
     "score": {
       "type": "object",
-      "required": ["own", "opp"],
+      "required": [
+        "own",
+        "opp"
+      ],
       "additionalProperties": false,
-      "properties": { "own": { "type": "integer", "minimum": 0 }, "opp": { "type": "integer", "minimum": 0 } }
+      "properties": {
+        "own": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "opp": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   }
 }
