@@ -32,7 +32,9 @@ describe('T020 FR-001 FR-002 Validierung', () => {
   });
 
   it('FR-014 eigener Name ist Pflicht, 1 bis 40 Zeichen', () => {
-    expect(validateNewGame({ ...valid, ownTeam: '' }).errors.ownTeam).toBe('Bitte den eigenen Mannschaftsnamen eintragen.');
+    expect(validateNewGame({ ...valid, ownTeam: '' }).errors.ownTeam).toBe(
+      'Bitte den eigenen Mannschaftsnamen eintragen.',
+    );
     expect(validateNewGame({ ...valid, ownTeam: 'y'.repeat(41) }).errors.ownTeam).toBe('Höchstens 40 Zeichen.');
   });
 

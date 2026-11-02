@@ -120,7 +120,12 @@ describe('T029 FR-006 FR-007 SC-003 deriveClock', () => {
   });
 
   it('Zurücksetzen in Abschnitt 2: Pause vor dem erneuten Anpfiff von Abschnitt 2', () => {
-    const events = [ev('kickoff', T0), ev('sectionEnd', T0 + min(25)), ev('kickoff', T0 + min(30), 2), ev('reset', T0 + min(31), 2)];
+    const events = [
+      ev('kickoff', T0),
+      ev('sectionEnd', T0 + min(25)),
+      ev('kickoff', T0 + min(30), 2),
+      ev('reset', T0 + min(31), 2),
+    ];
     expect(deriveClock(events, T0 + min(32), two25)).toMatchObject({ status: 'break', section: 2, kickoffSection: 2 });
   });
 

@@ -6,7 +6,9 @@ describe('T095 FR-014 eigener Mannschaftsname', () => {
   it('Vorgabe ist "Sportvg Feuerbach", danach der zuletzt genutzte Name', () => {
     expect(DEFAULT_OWN_TEAM).toBe('Sportvg Feuerbach');
     expect(defaultOwnTeam(defaultSettings())).toBe('Sportvg Feuerbach');
-    expect(defaultOwnTeam({ ...defaultSettings(), recentOwnTeams: ['Sportvg Feuerbach D3'] })).toBe('Sportvg Feuerbach D3');
+    expect(defaultOwnTeam({ ...defaultSettings(), recentOwnTeams: ['Sportvg Feuerbach D3'] })).toBe(
+      'Sportvg Feuerbach D3',
+    );
   });
 
   it('Kurzform ohne "Sportvg " für die Tor-Knöpfe', () => {

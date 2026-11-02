@@ -77,6 +77,7 @@ export function buildTokensCss(tokens: DesignTokens): string {
   );
 
   out.push(':root[data-theme="light"] {', '  color-scheme: light;', colorVars(tokens, 'light', '  '), '}', '');
+  out.push(':root[data-theme="dark"] {', '  color-scheme: dark;', colorVars(tokens, 'dark', '  '), '}', '');
 
   for (const group of tokens.type.groups) {
     for (const s of group.styles) {

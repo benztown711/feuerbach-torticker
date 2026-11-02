@@ -93,8 +93,9 @@ describe('T031 FR-006 Spiel-Reducer', () => {
     expect(() => resetClock(g, T0)).toThrow('Aktion nicht erlaubt: reset');
     const running = kickoff(g, T0);
     expect(() => kickoff(running, T0)).toThrow('Aktion nicht erlaubt: kickoff');
-    const finished = endSection(endSection(kickoff(endSection(running, T0 + min(25)), T0 + min(30)), T0 + min(55)), T0);
+    const finished = endSection(kickoff(endSection(running, T0 + min(25)), T0 + min(30)), T0 + min(55));
     expect(finished.status).toBe('finished');
+    expect(() => kickoff(finished, T0 + min(56))).toThrow('Aktion nicht erlaubt: kickoff');
   });
 
   it('endSection auf beendetem Spiel ist nicht erlaubt', () => {

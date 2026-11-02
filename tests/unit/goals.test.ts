@@ -31,7 +31,15 @@ describe('T044 FR-004 FR-008 FR-021 Tore', () => {
   it('US1-S2 addGoal speichert Seite, Uhrzeit, Abschnitt und Minute aus der Uhr', () => {
     const r = addGoal(running(), 'own', T0 + sec(372), ids);
     expect(r.added).toBe(true);
-    expect(r.goal).toMatchObject({ side: 'own', at: T0 + sec(372), section: 1, minute: 7, stoppage: null, scorer: null, deletedAt: null });
+    expect(r.goal).toMatchObject({
+      side: 'own',
+      at: T0 + sec(372),
+      section: 1,
+      minute: 7,
+      stoppage: null,
+      scorer: null,
+      deletedAt: null,
+    });
     expect(score(r.game)).toEqual({ own: 1, opp: 0 });
   });
 
