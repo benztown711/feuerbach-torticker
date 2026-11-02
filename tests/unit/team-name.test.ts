@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_OWN_TEAM, defaultOwnTeam, pushRecent, shortTeamName } from '../../src/domain/team-name';
+import { DEFAULT_OWN_TEAM, defaultOwnTeam, pushRecent, removeRecent, shortTeamName } from '../../src/domain/team-name';
 import { defaultSettings, withSettingsDefaults } from '../../src/domain/settings';
 
 describe('T095 FR-014 eigener Mannschaftsname', () => {
@@ -36,5 +36,11 @@ describe('T095 FR-014 eigener Mannschaftsname', () => {
     });
     expect(withSettingsDefaults({ theme: 'dark' }).theme).toBe('dark');
     expect(withSettingsDefaults(undefined).lastSchema).toEqual({ sections: 2, sectionMinutes: 25 });
+  });
+
+  it('FR-014 removeRecent entfernt einen gespeicherten Namen (Groß/klein egal)', () => {
+    expect(removeRecent(['Sportvg Feuerbach E1', 'Sportvg Feuerbach E2'], 'sportvg feuerbach e1')).toEqual([
+      'Sportvg Feuerbach E2',
+    ]);
   });
 });

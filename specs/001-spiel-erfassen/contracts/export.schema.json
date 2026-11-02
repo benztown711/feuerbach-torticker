@@ -148,7 +148,14 @@
             }
           },
           "finalScore": {
-            "$ref": "#/$defs/score"
+            "oneOf": [
+              {
+                "$ref": "#/$defs/score"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "halfTimeScore": {
             "oneOf": [
