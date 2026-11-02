@@ -128,4 +128,22 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     await expect(page.getByTestId('schema-sections')).toHaveValue('1');
     await expect(page.getByTestId('schema-minutes')).toHaveValue('12');
   });
+
+  test('US2-S11 FR-007 Ton nach Hintergrund gesperrt: Hinweis erscheint, eine Berührung schaltet ihn wieder frei', async ({
+    page,
+    recorded,
+  }) => {
+    await startGame(page);
+    await expect(page.getByTestId('audio-hint')).toHaveCount(0);
+    await page.evaluate(() => {
+      (window as unknown as { __audioCtx: { state: string } }).__audioCtx.state = 'interrupted';
+    });
+    await forward(page, 1 * SEC);
+    await expect(page.getByTestId('audio-hint')).toBeVisible();
+    await page.getByTestId('audio-hint').click();
+    await forward(page, 1 * SEC);
+    await expect(page.getByTestId('audio-hint')).toHaveCount(0);
+    await forward(page, 25 * MIN);
+    expect((await recorded()).sounds).toBeGreaterThan(0);
+  });
 });
