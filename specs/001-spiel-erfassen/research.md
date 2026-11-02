@@ -66,14 +66,15 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Rationale**: WebKit-Engine kommt iOS-Safari am nächsten; Zeitsprünge machen Uhr-Tests schnell und deterministisch.
 - **Grenzen**: Wake Lock, echte Töne und Home-Bildschirm-Speicher lassen sich nur auf echten Geräten prüfen → manuelle Checkliste in quickstart.md.
 
-## R-11 Hosting und Deployment (offene Entscheidung D-1)
+## R-11 Hosting und Deployment
 
 - **Ausgangslage**: Repository ist privat. GitHub Pages für private Repos erfordert einen kostenpflichtigen GitHub-Plan; die Seite selbst ist dann trotzdem öffentlich.
 - **Optionen**:
   1. **Repository öffentlich machen + GitHub Pages** (kostenlos, einfachste Pipeline mit `actions/deploy-pages`). Code enthält keine personenbezogenen Daten; Beispielnamen in Specs sind fiktiv.
   2. **Privat bleiben + Cloudflare Pages** (kostenlos, Deploy per `cloudflare/wrangler-action` mit API-Token als Repository-Secret, eigene Subdomain `*.pages.dev`, PR-Vorschauen inklusive).
   3. **Privat bleiben + GitHub Pro** (4 USD/Monat), sonst wie Option 1.
-- **Empfehlung**: Option 1, solange keine vertraulichen Inhalte im Repo liegen. Option 2, falls der Code privat bleiben soll; bringt als Bonus Vorschau-Links pro Pull Request.
+- **Decision (02.11.2026)**: Option 1. Repository öffentlich, Deployment mit `actions/upload-pages-artifact` + `actions/deploy-pages`, Vite `base: '/feuerbach-torticker/'`. Später optional eigene Domain (z. B. `torticker.sportvg-feuerbach.de`, DNS-Eintrag beim Verein).
+- **Folge**: Keine echten Kindernamen in Repo, Issues oder Testdaten (CI-Check gegen eine lokale, nicht eingecheckte Namensliste ist nicht möglich; daher Review-Regel und fiktive Testnamen).
 
 ## R-12 Automatisierung
 
@@ -85,11 +86,12 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
   - Branch-Schutz für `main`: CI grün erforderlich.
 - **Rationale**: "Höchst automatisiert" laut Projektauftrag; jeder Merge ist sofort auf den Handys verfügbar (Update-Hinweis in der App).
 
-## R-13 Kader importieren und teilen (User Story 7)
+## R-13 Kader importieren, teilen, Aufgebot (User Stories 5 und 7)
 
 - **Decision**:
-  - Listen-Import: eigener, unit-getesteter Parser `src/domain/roster-parse.ts` (Zeilen → `{number?, name, warnings[]}`), Vorschau vor Übernahme, Zusammenführen nach ID bzw. Name.
-  - Kader-Code: JSON (`{v:1, players:[{id,name,number,team?}]}`) → komprimiert (`CompressionStream('deflate-raw')`, in iOS 16.4+ und Chrome vorhanden) → Base64url mit Präfix `FTK1:`. 21 Spieler ergeben ca. 400 bis 600 Zeichen, passt in einen QR-Code mittlerer Größe.
-  - QR erzeugen: `uqr` (klein, ohne Abhängigkeiten, SVG-Ausgabe). QR scannen: `qr-scanner` (WebWorker, nutzt `BarcodeDetector` wo vorhanden, sonst eigene Dekodierung; iOS Safari hat kein `BarcodeDetector`). Beide nur bei Bedarf nachgeladen (dynamischer Import), damit das Spiel-Bundle klein bleibt.
-- **Rationale**: Kein Server, keine Kindernamen im öffentlichen Repo oder in der Cloud; funktioniert offline am Platz (QR) und aus der Ferne (WhatsApp-Code). Ein Link wäre auf dem iPhone ungeeignet, weil Safari und Home-Bildschirm-App getrennte Speicher haben.
-- **Alternatives**: SpielerPlus-Export (nur mit Premium, CSV-Import kann später ergänzt werden, gleicher Parser-Kern); zentraler Kader auf einem Server oder als Datei im Repo (Datenschutz Minderjähriger, widerspricht Prinzip II und III); Teilen per Link (siehe oben).
+  - Listen-Import: eigener, unit-getesteter Parser `src/domain/roster-parse.ts` (Zeilen → `{number?, firstName, lastName?, warnings[]}`), danach `src/domain/roster-names.ts` für Anzeigenamen: pro Vornamen-Gruppe die kürzeste Nachnamen-Abkürzung, die alle unterscheidet ("Max Mü." / "Max Me."). Nachnamen leben nur im Speicher der Vorschau und werden nie persistiert.
+  - Zuordnung beim erneuten Import: gleiche Nummer und gleicher Vorname → derselbe Spieler; sonst Vorname + Präfix-Verträglichkeit der Abkürzung; sonst neu. Abkürzungen werden bei Bedarf verlängert.
+  - Kader teilen: Textliste "Nummer Name" über das Teilen-Menü; Empfänger nutzen denselben Listen-Import. Kein eigenes Code-Format, kein QR.
+  - Aufgebot: Mehrfachauswahl beim Anlegen, Vorauswahl aus `settings.lastSquad`; Schnellauswahl als Raster mit bis zu 16 Knöpfen (4 × 4) ohne Scrollen.
+- **Rationale**: Klärung vom 02.11.: Teilen per WhatsApp genügt; kein Server, keine Kindernamen im öffentlichen Repo; minimaler Code (Prinzip VI), ein Import-Weg für alle Quellen.
+- **Alternatives**: QR-Code/komprimierter Kader-Code (mehr Abhängigkeiten, nach Klärung nicht nötig); SpielerPlus-CSV (nur mit Premium; kann später auf denselben Parser aufsetzen); zentraler Kader auf Server (Datenschutz Minderjähriger, widerspricht Prinzip II und III).

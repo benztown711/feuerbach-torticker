@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-02
 
-**Status**: Plan erstellt; User Story 7 (Kader teilen) ergänzt, 2 offene Fragen
+**Status**: Geklärt (Stand 02.11.2026), Plan erstellt
 
 ## Clarifications
 
@@ -21,6 +21,11 @@
 - Q: Historie? → A: Wichtig. Alle Spiele bleiben lokal auf dem Handy gespeichert, mit Datum und Uhrzeit-Zeitstempeln für Anpfiff, Abpfiff und jedes Tor.
 - Q: Torschützen beim Gegner? → A (ergänzt): Freitext für Name oder Rückennummer, weil der Name oft nicht auf dem Trikot steht.
 - Q: Turniermodus? → A: Gewünscht, aber Priorität 2 und eigene Spec (`specs/002-turniermodus`). Gemeint ist das Erfassen von Spielen zweier fremder Mannschaften.
+- Q: E1/E2? → A: Gemeinsamer Pool; pro Spiel ca. 10 (E-Jugend) bzw. 15 (D-Jugend) im Aufgebot (→ FR-030).
+- Q: Spiele mit Kollegen teilen? → A: Teilen als Text per WhatsApp genügt (FR-011); kein Import von Spielen.
+- Q: Doppelte Vornamen? → A: Kürzeste eindeutige Nachnamen-Abkürzung, z. B. "Max Mü." / "Max Me." (FR-025).
+- Q: Spieler löschen? → A: Ja, für den Nutzer wie gelöscht, intern erhalten (FR-029).
+- Q: Hosting? → A: Repository öffentlich, Auslieferung über GitHub Pages.
 
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
@@ -108,17 +113,22 @@ Nach Abpfiff teilt der Nutzer das Ergebnis mit Torfolge über das System-Teilen-
 
 ---
 
-### User Story 5 - Kader pflegen (Priority: P3)
+### User Story 5 - Kader und Aufgebot pflegen (Priority: P2)
 
-Der Nutzer legt einmalig eine Spielerliste (Vorname oder Kürzel, optional Rückennummer) an, die für die Torschützenauswahl genutzt wird.
+Der Kader ist ein gemeinsamer Pool (z. B. E1 und E2 zusammen, ca. 20 bis 30 Kinder). Pro Spiel stehen davon nur ca. 10 (E-Jugend) bzw. 15 (D-Jugend) im Aufgebot. Der Nutzer wählt das Aufgebot vor dem Anpfiff, damit die Torschützen-Auswahl nur diese Kinder als große Knöpfe zeigt.
 
-**Why this priority**: Nur nötig, wenn Torschützen per Auswahl statt Freitext erfasst werden.
+**Why this priority**: Ohne Aufgebot müsste die Schnellauswahl 20+ Namen zeigen; das ist am Spielfeldrand zu klein und zu langsam.
 
-**Independent Test**: Spieler anlegen, umbenennen, löschen; Auswahl im Spiel prüfen.
+**Independent Test**: Spieler anlegen, umbenennen, löschen; Aufgebot wählen; Auswahl im Spiel prüfen.
 
 **Acceptance Scenarios**:
 
-1. **Given** ein leerer Kader, **When** der Nutzer "Max" mit Nummer 7 anlegt, **Then** erscheint "7 Max" in der Torschützenauswahl.
+1. **Given** ein leerer Kader, **When** der Nutzer "Max" mit Nummer 7 anlegt, **Then** erscheint "7 Max" im Kader.
+2. **Given** ein Kader mit 21 Spielern, **When** der Nutzer beim Anlegen eines Spiels 10 Spieler fürs Aufgebot antippt, **Then** zeigt die Torschützen-Auswahl in diesem Spiel nur diese 10, sortiert nach Nummer.
+3. **Given** ein früheres Spiel mit Aufgebot, **When** der Nutzer ein neues Spiel anlegt, **Then** ist das Aufgebot des letzten Spiels vorausgewählt und mit einem Tap übernehmbar.
+4. **Given** kein Aufgebot gewählt, **When** ein Tor fällt, **Then** zeigt die Auswahl alle Spieler des Kaders.
+5. **Given** ein laufendes Spiel, **When** der Nutzer in der Auswahl "Andere …" tippt, **Then** kann er einen Spieler außerhalb des Aufgebots wählen (z. B. kurzfristig eingesprungen).
+6. **Given** "Max" hat in früheren Spielen Tore geschossen, **When** der Nutzer Max löscht und bestätigt, **Then** verschwindet Max aus Kader, Aufgebot und Auswahl; in alten Spielen steht er weiterhin als Torschütze.
 
 ---
 
@@ -142,7 +152,7 @@ Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergan
 
 ### User Story 7 - Kader per Liste importieren und mit Trainerkollegen teilen (Priority: P2)
 
-Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp oder Excel kopiert), prüft die Vorschau und übernimmt sie. Danach gibt er den Kader per QR-Code oder Kader-Code (WhatsApp) an die anderen Trainer weiter, die ihn mit einem Tap übernehmen.
+Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp oder Excel kopiert), prüft die Vorschau und übernimmt sie. Mit "Kader teilen" schickt er die Liste als Text per WhatsApp an die Kollegen; die fügen sie in ihrer App genauso ein.
 
 **Why this priority**: Fünf Trainer der E1/E2 sollen nicht jeweils 21 Spieler abtippen. Ein SpielerPlus-Export ist nur mit Premium möglich, eine eingefügte Liste funktioniert immer.
 
@@ -151,11 +161,14 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 **Acceptance Scenarios**:
 
 1. **Given** ein leerer Kader, **When** der Nutzer die Liste "1 Max", "2 Maxi", "5 Ben", "Tom" einfügt, **Then** zeigt die Vorschau 4 Spieler (Tom ohne Nummer), und nach "Übernehmen" stehen sie im Kader.
-2. **Given** eine Zeile "Max Mustermann", **When** die Vorschau erscheint, **Then** wird "Max M." vorgeschlagen und auf "nur Vornamen" hingewiesen.
-3. **Given** zwei Zeilen mit derselben Nummer, **When** die Vorschau erscheint, **Then** sind beide markiert, und der Nutzer kann trotzdem übernehmen.
-4. **Given** ein Kader mit "Max" (Nr. 1), **When** eine Liste mit "Max" ohne Nummer und "Leo" eingefügt wird, **Then** bleibt Max (Nr. 1) einmal erhalten und Leo kommt hinzu; nicht aufgeführte Spieler werden nicht gelöscht.
-5. **Given** ein gepflegter Kader, **When** der Nutzer "Kader teilen" wählt, **Then** kann er einen QR-Code anzeigen oder einen Kader-Code über das Teilen-Menü versenden.
-6. **Given** ein zweites Gerät, **When** der Kollege in der App den QR-Code scannt oder den Kader-Code einfügt, **Then** wird der Kader nach Vorschau zusammengeführt; spätere Updates desselben Kaders erzeugen keine Duplikate.
+2. **Given** eine Zeile "Max Mustermann" und kein weiterer Max, **When** die Vorschau erscheint, **Then** wird "Max" übernommen und der Nachname verworfen.
+3. **Given** die Zeilen "Max Müller" und "Max Meier", **When** die Vorschau erscheint, **Then** werden "Max Mü." und "Max Me." vorgeschlagen (so viele Buchstaben des Nachnamens wie nötig, damit die Namen eindeutig sind).
+4. **Given** zwei identische Namen ohne unterscheidbaren Nachnamen, **When** die Vorschau erscheint, **Then** sind beide markiert und der Nutzer kann einen Namen direkt in der Vorschau anpassen.
+5. **Given** zwei Zeilen mit derselben Nummer, **When** die Vorschau erscheint, **Then** sind beide markiert, und der Nutzer kann trotzdem übernehmen.
+6. **Given** ein Kader mit "Max" (Nr. 1), **When** eine Liste mit "Max" ohne Nummer und "Leo" eingefügt wird, **Then** bleibt Max (Nr. 1) einmal erhalten und Leo kommt hinzu; nicht aufgeführte Spieler werden nicht gelöscht.
+7. **Given** ein gepflegter Kader, **When** der Nutzer "Kader teilen" wählt, **Then** öffnet sich das Teilen-Menü mit der Liste im Format "Nummer Name" pro Zeile.
+8. **Given** ein zweites Gerät, **When** der Kollege diese Liste in "Liste einfügen" einfügt, **Then** entsteht derselbe Kader; ein späteres erneutes Einfügen erzeugt keine Duplikate.
+9. **Given** ein gelöschter Spieler, **When** er in einer neu eingefügten Liste wieder auftaucht, **Then** wird er wieder sichtbar (statt doppelt angelegt).
 
 ---
 
@@ -189,10 +202,12 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
 - **FR-023**: Die App MUSS beim Browser dauerhaften Speicher anfordern und, wenn sie nicht vom Home-Bildschirm läuft, auf die Installation hinweisen.
 - **FR-024**: Die Historie MUSS als Datei exportiert und wieder importiert werden können (Sicherung bei Handywechsel).
-- **FR-025**: Der Kader MUSS per eingefügter Textliste importiert werden können, ein Spieler pro Zeile. Erkannt werden: optionale Rückennummer (1 bis 99) vor oder nach dem Namen, Trennzeichen Leerzeichen, Tab, Punkt, Bindestrich, Komma oder "#"; leere Zeilen und Kopfzeilen ohne Namen werden übersprungen. Mehrwortnamen werden auf Vorname plus Initial gekürzt.
+- **FR-025**: Der Kader MUSS per eingefügter Textliste importiert werden können, ein Spieler pro Zeile. Erkannt werden: optionale Rückennummer (1 bis 99) vor oder nach dem Namen, Trennzeichen Leerzeichen, Tab, Punkt, Bindestrich, Komma oder "#"; leere Zeilen werden übersprungen. Nachnamen werden nie gespeichert: Gespeichert wird der Vorname, bei gleichen Vornamen ergänzt um die kürzeste eindeutige Nachnamen-Abkürzung ("Max Mü.", "Max Me."). Beim erneuten Import werden bestehende Einträge über Vorname, Nachnamen-Anfang und Nummer zugeordnet und die Abkürzung bei Bedarf verlängert.
 - **FR-026**: Vor jedem Import MUSS eine Vorschau mit Auffälligkeiten (doppelte Nummer, doppelter Name, gekürzter Nachname) gezeigt werden; erst "Übernehmen" schreibt in den Kader.
-- **FR-027**: Import und Kader-Übernahme MÜSSEN zusammenführen statt ersetzen: gleicher Spieler (gleiche ID, sonst gleicher Name) wird aktualisiert, neue werden ergänzt, keiner wird gelöscht.
-- **FR-028**: Der Kader MUSS als QR-Code angezeigt und als Kader-Code über das Teilen-Menü versendet werden können; die App MUSS beides einlesen können (Kamera-Scan bzw. Einfügen). Der Code enthält nur Vorname/Kürzel, Nummer, Spieler-ID und gegebenenfalls Mannschaftszuordnung.
+- **FR-027**: Import MUSS zusammenführen statt ersetzen: gleicher Spieler wird aktualisiert, neue werden ergänzt, keiner wird gelöscht; gelöschte Spieler, die wieder in der Liste stehen, werden wieder sichtbar.
+- **FR-028**: "Kader teilen" MUSS den sichtbaren Kader als Textliste ("Nummer Name" pro Zeile) über das Teilen-Menü versenden, sodass Kollegen sie per FR-025 einfügen können.
+- **FR-029**: Spieler MÜSSEN gelöscht werden können (mit Bestätigung). Gelöschte Spieler verschwinden aus Kader, Aufgebot und Auswahl, bleiben aber intern erhalten, damit Torschützen in alten Spielen lesbar bleiben.
+- **FR-030**: Beim Anlegen eines Spiels KANN ein Aufgebot aus dem Kader gewählt werden; vorausgewählt ist das Aufgebot des letzten Spiels. Die Torschützen-Auswahl zeigt das Aufgebot als große Knöpfe (bis 16 ohne Scrollen) und bietet "Andere …" für den restlichen Kader.
 - **FR-011**: Ein beendetes Spiel MUSS als Text über das System-Teilen-Menü geteilt werden können (Fallback: Zwischenablage).
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
 - **FR-013**: Während die Uhr läuft, MUSS die App den Bildschirm wach halten, sofern das Gerät es unterstützt (Voraussetzung für Ton und Anzeige am Abschnittsende).
@@ -212,7 +227,8 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 
 - **Spiel**: Gegner, Heim/Auswärts, eigene Mannschaft, Datum, Spielzeit-Schema, Uhr-Ereignisse (Anpfiff/Pause/Fortsetzen/Abschnittsende/Abpfiff, jeweils mit Uhrzeit-Zeitstempel), Status (angelegt, läuft, Pause, Halbzeit, beendet).
 - **Tor**: gehört zu einem Spiel; Mannschaft (eigene/Gegner), Minute, Nachspielminute (optional), Abschnitt, Zeitstempel, optional Torschütze (eigene: Kaderspieler; Gegner: Freitext), Eigentor-Kennzeichen.
-- **Spieler (Kader)**: Vorname oder Kürzel, optional Rückennummer, aktiv/inaktiv.
+- **Spieler (Kader)**: Anzeigename (Vorname, bei Bedarf mit Nachnamen-Abkürzung), optional Rückennummer, Löschmarke (Soft-Delete).
+- **Aufgebot**: gehört zu einem Spiel; Liste von Spieler-IDs.
 
 ## Success Criteria *(mandatory)*
 
@@ -234,7 +250,6 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 
 ## Offene Fragen
 
-1. **E1/E2**: Gemeinsamer Pool oder Zuordnung je Spieler (z. B. Kopfzeilen "E1:" / "E2:" in der eingefügten Liste)?
-2. **Spiele teilen**: Sollen Trainerkollegen später auch Spiele übernehmen können (gemeinsame Historie, Torschützenliste)? Vorschlag: eigene Spec, gleicher Mechanismus wie Kader-Code.
+Keine.
 
 Turniermodus folgt als `specs/002-turniermodus`.

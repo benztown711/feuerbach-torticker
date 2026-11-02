@@ -19,6 +19,7 @@ Alle Zeitstempel sind Epoch-Millisekunden (`Date.now()`), Anzeige in lokaler Zei
 | `status` | GameStatus | abgeleitet und mitgespeichert für die Historien-Liste |
 | `finalScore` | `{ own, opp }` | gesetzt bei `fullTime` |
 | `halfTimeScore` | `{ own, opp }` \| null | Stand am Ende von Abschnitt 1 |
+| `squad` | string[] | Spieler-IDs des Aufgebots; leer = ganzer Kader (FR-030) |
 
 Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel finden).
 
@@ -48,9 +49,9 @@ Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel
 | Feld | Typ | Regeln |
 |---|---|---|
 | `id` | string | UUID |
-| `name` | string | 1 bis 20 Zeichen, nur ein Wort empfohlen (Vorname/Kürzel); Hinweis bei Leerzeichen "Bitte nur Vornamen" (FR-020) |
+| `name` | string | Anzeigename, 1 bis 24 Zeichen: Vorname, bei gleichen Vornamen plus kürzeste eindeutige Nachnamen-Abkürzung ("Max Mü."); nie ein voller Nachname (FR-020, FR-025) |
 | `number` | number \| null | 1 bis 99 |
-| `active` | boolean | inaktive erscheinen nicht in der Schnellauswahl, bleiben in alten Spielen lesbar |
+| `deletedAt` | number \| null | Soft-Delete (FR-029): ausgeblendet in Kader, Aufgebot, Auswahl; in alten Spielen weiter lesbar; Wiederauftauchen beim Import setzt auf `null` |
 
 ## Settings (Object Store `settings`, Schlüssel `"app"`)
 
@@ -58,6 +59,7 @@ Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel
 |---|---|---|
 | `ownTeam` | string | "Sportvg Feuerbach" |
 | `lastSchema` | Schema | 2 × 25 |
+| `lastSquad` | string[] | Aufgebot des letzten Spiels (Vorauswahl) |
 | `theme` | `"system"` \| `"light"` | `"system"` |
 | `installHintDismissedAt` | number \| null | null |
 

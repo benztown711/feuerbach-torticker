@@ -26,7 +26,7 @@ Eine installierbare Web-App (PWA), die am Spielfeldrand Tore mit einem Tap erfas
 
 **Constraints**: offline-fähig nach erstem Laden; keine Drittanbieter-Requests (Schriften selbst gehostet); Uhr-Abweichung ≤ 1 s nach 25 Min mit Sperrbildschirm (SC-003); Kontrast ≥ 4,5:1 in beiden Themes (SC-006)
 
-**Scale/Scope**: 1 Nutzer pro Gerät, ca. 30 bis 60 Spiele pro Saison, 5 Bildschirme (Start/Neues Spiel, Spiel, Torliste/Spieldetail, Historie, Kader/Einstellungen)
+**Scale/Scope**: 1 Nutzer pro Gerät, ca. 30 bis 60 Spiele pro Saison, Kader-Pool bis ca. 40 Kinder, Aufgebot 10 bis 16, 7 Bildschirme
 
 ## Constitution Check
 
@@ -41,9 +41,9 @@ Eine installierbare Web-App (PWA), die am Spielfeldrand Tore mit einem Tap erfas
 | V. Zeit ist eine Berechnung | `clock.ts` ist eine reine Funktion `(events, now, schema) → Zustand`; kein Hochzählen | erfüllt |
 | VI. Einfachheit | 5 Laufzeit-Abhängigkeiten, begründet in research.md; kein Router-Framework, kein State-Framework über Signals hinaus | erfüllt |
 | VII. Vereinsdesign | `scripts/tokens-to-css.ts` erzeugt CSS-Variablen aus `design/tokens.json`; Lint-Regel verbietet Farbwerte in `src/` | erfüllt |
-| Technische Rahmen | PWA, statisch, iOS-Grenzen (Vibration, Hintergrund, Wake Lock) in research.md adressiert | erfüllt, siehe offene Entscheidung D-1 |
+| Technische Rahmen | PWA, statisch, iOS-Grenzen (Vibration, Hintergrund, Wake Lock) in research.md adressiert | erfüllt |
 
-**Offene Entscheidung D-1 (Hosting)**: Das Repository ist privat. GitHub Pages ist für private Repositories nur mit kostenpflichtigem Plan (GitHub Pro o. ä.) verfügbar. Optionen in research.md R-11. Der Plan ist so gebaut, dass nur der Deploy-Job vom Ergebnis abhängt.
+**Entscheidung D-1 (Hosting)**: Repository öffentlich, GitHub Pages (research.md R-11).
 
 **Nach Phase 1 erneut geprüft**: Datenmodell und Verträge führen keine neuen Abhängigkeiten oder Server ein. Alle Gates bleiben erfüllt.
 
@@ -79,6 +79,9 @@ src/
 │   ├── minute.ts            # Minuten-Label inkl. "25+1'"
 │   ├── game.ts              # Spiel-Reducer: Ereignis anwenden, Tore, Undo
 │   ├── share-text.ts        # Ergebnistext
+│   ├── roster-parse.ts      # Listen-Import: Zeilen erkennen
+│   ├── roster-names.ts      # eindeutige Anzeigenamen ("Max Mü.")
+│   ├── roster-merge.ts      # Zusammenführen, Soft-Delete, Wiederbeleben
 │   └── export.ts            # Export/Import inkl. Validierung
 ├── platform/                # dünne Adapter auf Browser-APIs
 │   ├── db.ts                # IndexedDB (idb)
@@ -98,7 +101,7 @@ tests/
 └── e2e/                     # Playwright: ein File pro User Story
 .github/
 ├── workflows/ci.yml         # PR: lint, typecheck, unit, build, e2e, lighthouse
-├── workflows/deploy.yml     # main: build + deploy (Ziel je nach D-1)
+├── workflows/deploy.yml     # main: build + deploy auf GitHub Pages
 ├── workflows/release.yml    # release-please (Conventional Commits)
 └── dependabot.yml
 ```

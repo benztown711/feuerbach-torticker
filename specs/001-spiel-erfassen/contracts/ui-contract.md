@@ -22,6 +22,7 @@ Navigation per URL-Hash, damit Zurück-Geste und Neuladen funktionieren.
 | Heim / Auswärts | `venue-home`, `venue-away` | Segment-Schalter, keine Vorauswahl |
 | Abschnitte | `schema-sections` | 1 bis 4, Vorgabe letzte Einstellung |
 | Minuten | `schema-minutes` | 1 bis 60 |
+| Aufgebot | `squad-picker`, `squad-option-<playerId>`, `squad-take-last` | optional; Vorauswahl = letztes Aufgebot |
 | Weiter | `btn-create` | legt Spiel an, öffnet Spielbildschirm im Zustand `created` |
 
 ## Spielbildschirm (`#/spiel/:id`)
@@ -42,7 +43,7 @@ Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Spielstand, Uh
 | Tor Feuerbach | `btn-goal-own` | `vereinsrot`; `disabled` außerhalb `running`/`paused` |
 | Tor Gegner | `btn-goal-opp` | `ink`; gleiche Aktivregel |
 | Undo-Leiste | `undo-bar`, `btn-undo` | 10 s nach jedem Tor sichtbar |
-| Schnellauswahl Torschütze | `scorer-picker`, `scorer-option-<playerId>`, `scorer-own-goal`, `scorer-skip` | nur nach eigenem Tor, schließt nach 8 s |
+| Schnellauswahl Torschütze | `scorer-picker`, `scorer-option-<playerId>`, `scorer-others`, `scorer-own-goal`, `scorer-skip` | nur nach eigenem Tor, Aufgebot als Raster (bis 16 Knöpfe), "Andere …" für restlichen Kader, schließt nach 8 s |
 | Signal-Overlay | `signal-flash` | blinkt 3 s bei jeder Signalschwelle |
 
 Doppeltipp-Schutz: Ein zweiter Tap auf denselben Tor-Knopf innerhalb 1,5 s wird ignoriert und zeigt kurz "Schon gezählt".
@@ -64,6 +65,16 @@ Doppeltipp-Schutz: Ein zweiter Tap auf denselben Tor-Knopf innerhalb 1,5 s wird 
 | Liste | `history-list` | neueste zuerst |
 | Eintrag | `history-item-<gameId>` | Datum, Anpfiff-Uhrzeit, Gegner, Ergebnis, H/A |
 | Löschen | `history-delete-<gameId>` | mit Abfrage |
+
+## Kader (`#/kader`)
+
+| Element | Test-ID | Verhalten |
+|---|---|---|
+| Liste | `roster-list` | sortiert nach Nummer, dann Name; gelöschte unsichtbar |
+| Spieler hinzufügen | `btn-add-player` | Name + Nummer |
+| Spieler bearbeiten / löschen | `player-edit-<id>`, `player-delete-<id>` | Löschen mit Abfrage (Soft-Delete) |
+| Liste einfügen | `btn-paste-list`, `paste-input`, `paste-preview`, `paste-apply` | Vorschau mit Warnungen, Namen in der Vorschau editierbar |
+| Kader teilen | `btn-share-roster` | Teilen-Menü mit "Nummer Name" pro Zeile |
 
 ## Einstellungen (`#/einstellungen`)
 
