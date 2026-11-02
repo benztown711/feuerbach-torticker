@@ -2,17 +2,17 @@
 
 Ergebnis-Tracker für Fußballspiele der Sportvereinigung Feuerbach: große Tor-Knöpfe, automatische Spielminute, Countdown, optional Torschütze, Ergebnis per WhatsApp teilen.
 
-Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne Konto.
+Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne Konto. Gestaltung nach dem Design System der Sportvg Feuerbach, siehe [`design/`](design/README.md).
 
 ## Vorgehen: Spec-Driven Development mit GitHub Spec Kit
 
 | Phase | Befehl (Claude Code) | Ergebnis | Status |
 |---|---|---|---|
 | 0. Grundsätze | `/speckit-constitution` | `.specify/memory/constitution.md` | erledigt |
-| 1. Spezifikation | `/speckit-specify` | `specs/001-spiel-erfassen/spec.md` | Entwurf |
-| 2. Klärung | `/speckit-clarify` | offene Fragen in der Spec beantwortet | offen |
-| 3. Architektur | `/speckit-plan` | `plan.md`, `data-model.md`, `research.md` | offen |
-| 4. Aufgaben + Testfälle | `/speckit-tasks`, `/speckit-checklist` | `tasks.md` | offen |
+| 1. Spezifikation | `/speckit-specify` | `specs/001-spiel-erfassen/spec.md` | erledigt |
+| 2. Klärung | `/speckit-clarify` | offene Fragen in der Spec beantwortet | erledigt |
+| 3. Architektur | `/speckit-plan` | `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` | erledigt (offen: Hosting D-1) |
+| 4. Aufgaben + Testfälle | `/speckit-tasks`, `/speckit-checklist` | `tasks.md` (88 Aufgaben) | erledigt |
 | 5. Konsistenzprüfung | `/speckit-analyze` | Report | offen |
 | 6. Umsetzung | `/speckit-implement` | Code + Tests | offen |
 

@@ -1,0 +1,46 @@
+# Arbeitsweise im Projekt Feuerbach Torticker
+
+Dieses Projekt wird spec-getrieben (GitHub Spec Kit) und weitgehend automatisiert entwickelt. Der Product Owner (Atti) liefert **nur Anforderungen und Reviews**. Alles andere erledigt der Agent selbstständig nach diesem Ablauf.
+
+Verbindlich sind außerdem `.specify/memory/constitution.md` (Grundsätze) und `design/README.md` (Vereinsdesign).
+
+## Ablauf pro Anforderung
+
+| Schritt | Wer | Was | Ergebnis |
+|---|---|---|---|
+| 1 Anforderung | Atti | Wunsch im Chat oder als GitHub-Issue (Vorlage "Anforderung") | Text |
+| 2 Spezifizieren | Agent | `/speckit-specify` bzw. bestehende Spec ergänzen; Unklarheiten mit `/speckit-clarify`, **max. 5 Fragen**, jeweils mit Empfehlung | `specs/<nr>/spec.md` |
+| 3 **Review A: Spec** | Atti | Kurzfassung (User Stories, Entscheidungen, offene Fragen) im Chat bestätigen | Freigabe |
+| 4 Mockup | Agent | Klickbares Mockup im Vereinsdesign, iPhone-Format, hell + dunkel, als Artifact-Link | Link |
+| 5 **Review B: Mockup** | Atti | Feedback oder Freigabe | Freigabe |
+| 6 Planen | Agent | `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze` (keine kritischen Befunde offen) | plan.md, tasks.md |
+| 7 Umsetzen | Agent | Test-first je Aufgabe, kleine Commits (Conventional Commits), ein PR pro User Story bzw. Phase | Draft-PR |
+| 8 Selbstprüfung | Agent | Alle CI-Checks lokal grün, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti senden | grüner PR |
+| 9 **Review C: Ergebnis** | Atti | Screenshots/Live-Test prüfen, PR mit "Squash and merge" übernehmen | Merge |
+| 10 Ausliefern | Automatisch | Deploy auf GitHub Pages, release-please erzeugt Version + Changelog | Live |
+
+Atti wird nur in den Schritten 3, 5 und 9 gebraucht. Kleine Änderungen (Fehlerbehebung, Text, Abhängigkeits-Update) überspringen Schritt 4/5.
+
+## Qualitätstore (automatisch, blockieren den Merge)
+
+- Lint (ESLint, Stylelint ohne Farbwerte außerhalb `tokens.css`), Prettier, `tsc --noEmit`
+- Vitest: `src/domain/**` mit 100 % Branch-Coverage
+- Playwright E2E in zwei Profilen: `iphone` (WebKit) und `android` (Chromium); jedes Akzeptanzszenario der Spec ist ein Test mit ID im Namen
+- axe-core ohne Verstöße, Kontrastmatrix beider Themes (SC-006)
+- Visueller Vergleich der Kernbildschirme (hell/dunkel)
+- Lighthouse CI (Accessibility, Best Practices, PWA-Installierbarkeit ≥ 0,9)
+- Bundle-Budget (Hauptbundle < 60 KB gzip)
+- Netzwerk-Wächter: keine Requests an Drittanbieter
+- CodeQL und Dependency Review
+- PR-Titel nach Conventional Commits
+
+Ein Test wird nie übersprungen oder abgeschwächt, um grün zu werden.
+
+## Regeln für den Agenten
+
+- Niemals direkt auf `main` pushen (Ruleset). Branch je Arbeitspaket, Draft-PR, erst nach grüner CI "ready for review".
+- Keine echten Kindernamen in Repo, Issues, Tests, Screenshots oder Mockups. Fiktive Namen: Max, Ben, Tom, Leo, Maxi, Paul.
+- Keine Farbwerte, Schriften oder Logos außerhalb von `design/` erfinden.
+- Neue Laufzeit-Abhängigkeiten nur mit Begründung in `research.md`.
+- Spec, Plan, Tasks und Code bleiben konsistent: Jede Verhaltensänderung beginnt in `spec.md`.
+- Antworten an Atti auf Deutsch, Kurzfassung zuerst, kurz, Anrede "Atti", keine langen Gedankenstriche.
