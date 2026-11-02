@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-02
 
-**Status**: Draft (2 offene Punkte, siehe Abschnitt "Offene Fragen")
+**Status**: Geklärt, bereit für `/speckit-plan`
 
 ## Clarifications
 
@@ -16,6 +16,11 @@
 - Q: Mehrere eigene Teams? → A: Nein, ein Team, Name einstellbar.
 - Q: Signal am Abschnittsende? → A: Ton plus Vibration (wo technisch möglich). Anhalten und Zurücksetzen der Uhr nur mit Sicherheitsabfrage.
 - Q: Tor vor Anpfiff? → A: Tor-Knöpfe sind erst ab Anpfiff aktiv.
+- Q: Signal in der Nachspielzeit? → A: Jede volle Minute erneut Ton, blinkende Anzeige und (wo möglich) Vibration, bis Halbzeitpfiff bzw. Abpfiff.
+- Q: Vibration auf dem iPhone (in Web-Apps nicht möglich)? → A: Ton plus blinkende Anzeige genügen; keine native Hülle.
+- Q: Historie? → A: Wichtig. Alle Spiele bleiben lokal auf dem Handy gespeichert, mit Datum und Uhrzeit-Zeitstempeln für Anpfiff, Abpfiff und jedes Tor.
+- Q: Torschützen beim Gegner? → A (ergänzt): Freitext für Name oder Rückennummer, weil der Name oft nicht auf dem Trikot steht.
+- Q: Turniermodus? → A: Gewünscht, aber Priorität 2 und eigene Spec (`specs/002-turniermodus`). Gemeint ist das Erfassen von Spielen zweier fremder Mannschaften.
 
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
@@ -75,7 +80,7 @@ Nach einem Feuerbach-Tor kann der Nutzer optional den Torschützen auswählen, e
 1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Lenny" antippt, **Then** zeigt die Torliste "12' Feuerbach, Lenny".
 2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach 8 Sekunden ohne Torschützen.
 3. **Given** ein Feuerbach-Tor ohne Torschützen, **When** der Nutzer es in der Torliste antippt, **Then** kann er einen Torschützen aus dem Kader wählen.
-4. **Given** ein Gegentor, **When** der Nutzer es in der Torliste antippt, **Then** kann er optional einen Torschützen als Freitext eintragen (z. B. "Nr. 9").
+4. **Given** ein Gegentor, **When** der Nutzer es in der Torliste antippt, **Then** kann er optional einen Torschützen als Freitext eintragen (Name oder Rückennummer, z. B. "Nr. 9"; das Feld zeigt diesen Hinweis als Platzhalter).
 5. **Given** ein Tor, **When** der Nutzer "Eigentor" wählt, **Then** wird es als Eigentor gekennzeichnet.
 
 ---
@@ -116,22 +121,30 @@ Der Nutzer legt einmalig eine Spielerliste (Vorname oder Kürzel, optional Rück
 
 ---
 
-### User Story 6 - Spielhistorie (Priority: P3)
+### User Story 6 - Spielhistorie (Priority: P2)
 
-Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, teilen oder löschen.
+Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergangene Spiele mit Datum, Uhrzeit, Gegner und Ergebnis und kann sie öffnen, teilen oder löschen.
+
+**Why this priority**: Für Atti ausdrücklich wichtig; die Saison soll nachvollziehbar bleiben, auch ohne Server.
 
 **Independent Test**: Zwei Spiele beenden, Historie öffnen, Reihenfolge und Inhalte prüfen.
 
 **Acceptance Scenarios**:
 
-1. **Given** zwei beendete Spiele, **When** der Nutzer die Historie öffnet, **Then** sind beide neuestes zuerst mit Datum, Gegner und Ergebnis gelistet.
+1. **Given** zwei beendete Spiele, **When** der Nutzer die Historie öffnet, **Then** sind beide neuestes zuerst mit Datum, Anpfiff-Uhrzeit, Gegner und Ergebnis gelistet.
+2. **Given** ein Spiel aus der Historie, **When** der Nutzer es öffnet, **Then** sieht er jedes Tor mit Spielminute (z. B. "25+1'") und Uhrzeit (z. B. "10:52:13"), dazu Anpfiff, Halbzeit, Pausen und Abpfiff mit Uhrzeit.
+3. **Given** die App wurde geschlossen, das Handy neu gestartet und 30 Tage nicht benutzt, **When** der Nutzer die Historie öffnet, **Then** sind alle Spiele unverändert vorhanden (installierte App vom Home-Bildschirm).
+4. **Given** ein Spiel in der Historie, **When** der Nutzer "Löschen" wählt und bestätigt, **Then** ist es entfernt; ohne Bestätigung bleibt es erhalten.
+5. **Given** mehrere Spiele, **When** der Nutzer "Historie sichern" wählt, **Then** wird eine Datei mit allen Spielen über das Teilen-Menü bereitgestellt (z. B. zum Speichern in iCloud Drive), die sich wieder importieren lässt.
 
 ---
 
 ### Edge Cases
 
 - Ein Tor fällt in der Nachspielzeit von Halbzeit 1 (2 × 25 Min): Es wird als "25+1'" gespeichert; Halbzeit 2 beginnt trotzdem bei 26'.
-- Der Nutzer vergisst den Halbzeitpfiff: Die Nachspielzeit läuft weiter, die Anzeige bleibt rot; ab +5:00 erscheint ein deutlicher Hinweis "Halbzeitpfiff vergessen?".
+- Der Nutzer vergisst den Halbzeitpfiff: Die Nachspielzeit läuft weiter, die Anzeige bleibt rot, und jede volle Minute ertönt das Signal erneut.
+- Ton auf dem iPhone: Web-Apps dürfen Töne nur nach einer Berührung abspielen und nur bei eingeschaltetem Bildschirm. Der Anpfiff schaltet den Ton frei; die App hält den Bildschirm wach (FR-013). Steht das Handy auf lautlos, bleibt nur die blinkende Anzeige.
+- Speicher auf dem iPhone: Safari kann Daten von Webseiten nach 7 Tagen ohne Nutzung löschen, nicht aber von Apps auf dem Home-Bildschirm. Die App fordert dauerhaften Speicher an und weist im Browser auf "Zum Home-Bildschirm" hin.
 - Tore während Halbzeitpause oder nach Abpfiff: Tor-Knöpfe sind deaktiviert; nachträgliche Korrektur über die Torliste.
 - Kader ist beim ersten Spiel noch leer: Die Schnellauswahl bietet "Spieler anlegen" direkt an.
 - Die App wird während des Spiels versehentlich geschlossen oder der Browser leert den Cache: Das laufende Spiel muss nach dem Öffnen exakt wiederhergestellt werden.
@@ -149,13 +162,16 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 - **FR-004**: Ein Tap auf einen Tor-Knopf MUSS ein Tor mit Mannschaft, Spielminute, Abschnitt und Zeitstempel speichern und den Spielstand sofort aktualisieren.
 - **FR-005**: Die Spielminute MUSS als angefangene Minute fortlaufend über alle Abschnitte berechnet werden (Sekunde 0:00 bis 0:59 = 1. Minute; bei 2 × 25 Min beginnt Halbzeit 2 bei 26'). In der Nachspielzeit lautet die Minute "<Abschnittsende>+<angefangene Nachspielminute>", z. B. "25+1'", "50+2'", bei 3 × 25 Min "75+1'".
 - **FR-006**: Die Uhr MUSS Anpfiff, Pause, Fortsetzen, Abschnittsende (Halbzeitpfiff), Abpfiff und Zurücksetzen unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Halbzeitpfiff, Abpfiff und Zurücksetzen MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht.
-- **FR-007**: Bei 00:00 MUSS ein deutliches Signal erfolgen (Ton, Vibration wo das Gerät es erlaubt, visuell). Danach läuft die Uhr als Nachspielzeit aufwärts weiter, in `rot-text` und mit "+" gekennzeichnet, bis der Nutzer den Abschnitt beendet.
+- **FR-007**: Bei 00:00 MUSS ein deutliches Signal erfolgen (Ton, blinkende Anzeige, Vibration wo das Gerät es erlaubt). Danach läuft die Uhr als Nachspielzeit aufwärts weiter, in `rot-text` und mit "+" gekennzeichnet, und das Signal wiederholt sich zu jeder vollen Nachspielminute, bis der Nutzer den Abschnitt beendet.
 - **FR-008**: Jedes Tor MUSS rückgängig gemacht (Undo-Leiste) und in der Torliste gelöscht oder bearbeitet werden können.
 - **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze aus dem Kader gewählt werden können, zusätzlich "Eigentor Gegner". Für Gegentore KANN optional ein Torschütze als Freitext eingetragen werden.
 - **FR-010**: Der Spielzustand MUSS nach jeder Änderung lokal persistiert werden und einen App-Neustart überstehen.
+- **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
+- **FR-023**: Die App MUSS beim Browser dauerhaften Speicher anfordern und, wenn sie nicht vom Home-Bildschirm läuft, auf die Installation hinweisen.
+- **FR-024**: Die Historie MUSS als Datei exportiert und wieder importiert werden können (Sicherung bei Handywechsel).
 - **FR-011**: Ein beendetes Spiel MUSS als Text über das System-Teilen-Menü geteilt werden können (Fallback: Zwischenablage).
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
-- **FR-013**: Während die Uhr läuft, SOLL der Bildschirm wach gehalten werden.
+- **FR-013**: Während die Uhr läuft, MUSS die App den Bildschirm wach halten, sofern das Gerät es unterstützt (Voraussetzung für Ton und Anzeige am Abschnittsende).
 - **FR-014**: Es gibt genau eine eigene Mannschaft; ihr Name MUSS einstellbar sein (Vorgabe "Sportvg Feuerbach").
 - **FR-021**: Die Tor-Knöpfe MÜSSEN nur zwischen Anpfiff und Abschnittsende bzw. Abpfiff aktiv sein (einschließlich Nachspielzeit und Pause); davor, in der Halbzeitpause und nach Abpfiff sind sie deaktiviert.
 
@@ -170,7 +186,7 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 
 ### Key Entities
 
-- **Spiel**: Gegner, Heim/Auswärts, eigene Mannschaft, Datum, Spielzeit-Schema, Uhr-Ereignisse (Start/Pause/Fortsetzen/Abschnittsende mit Zeitstempel), Status (angelegt, läuft, Pause, Halbzeit, beendet).
+- **Spiel**: Gegner, Heim/Auswärts, eigene Mannschaft, Datum, Spielzeit-Schema, Uhr-Ereignisse (Anpfiff/Pause/Fortsetzen/Abschnittsende/Abpfiff, jeweils mit Uhrzeit-Zeitstempel), Status (angelegt, läuft, Pause, Halbzeit, beendet).
 - **Tor**: gehört zu einem Spiel; Mannschaft (eigene/Gegner), Minute, Nachspielminute (optional), Abschnitt, Zeitstempel, optional Torschütze (eigene: Kaderspieler; Gegner: Freitext), Eigentor-Kennzeichen.
 - **Spieler (Kader)**: Vorname oder Kürzel, optional Rückennummer, aktiv/inaktiv.
 
@@ -194,5 +210,4 @@ Der Nutzer sieht vergangene Spiele mit Ergebnis und kann sie erneut öffnen, tei
 
 ## Offene Fragen
 
-1. **Turniermodus**: Gewünscht? (Erläuterung im Chat vom 02.11.2026; Vorschlag: eigene Spec 002.)
-2. **Vibration auf dem iPhone**: Web-Apps können auf dem iPhone nicht vibrieren. Reicht Ton plus Bildschirmsignal, oder wird die App als native Hülle (Capacitor) verpackt?
+Keine. Turniermodus folgt als `specs/002-turniermodus`.
