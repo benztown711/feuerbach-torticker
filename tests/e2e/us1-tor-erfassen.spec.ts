@@ -53,6 +53,15 @@ test.describe('US1 Tor mit einem Tap erfassen', () => {
     await expect(page.getByTestId('score')).toHaveText('2 : 0');
   });
 
+  test('FR-004 zwei Tore direkt hintereinander (ohne Zwischen-Rendern) gehen nicht verloren', async ({ page }) => {
+    await startGame(page);
+    await page.evaluate(() => {
+      (document.querySelector('[data-testid="btn-goal-own"]') as HTMLButtonElement).click();
+      (document.querySelector('[data-testid="btn-goal-opp"]') as HTMLButtonElement).click();
+    });
+    await expect(page.getByTestId('score')).toHaveText('1 : 1');
+  });
+
   test('SC-001 Tap bis Anzeige unter 100 ms', async ({ page }) => {
     await startGame(page);
     const ms = await page.evaluate(async () => {

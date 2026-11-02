@@ -96,6 +96,8 @@ export function GameScreen({ id }: { id: string }) {
     );
   }
 
+  /** Neuester Stand für Handler: schnelle Taps hintereinander dürfen sich nicht überschreiben. */
+  const cur = (): Game => gameRef.current ?? game;
   const ownShort = shortTeamName(game.ownTeam);
   const s = score(game);
   const ha = homeAway(game.venue, s);
@@ -119,7 +121,7 @@ export function GameScreen({ id }: { id: string }) {
 
   const onGoal = (side: Side): void => {
     const t = Date.now();
-    const r = addGoal(game, side, t);
+    const r = addGoal(cur(), side, t);
     if (r.added && r.goal) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
@@ -130,18 +132,19 @@ export function GameScreen({ id }: { id: string }) {
 
   const doKickoff = (): void => {
     unlockAudio();
-    update(kickoff(game, Date.now()));
+    update(kickoff(cur(), Date.now()));
   };
 
   const confirmYes = (): void => {
     const t = Date.now();
     if (!ask) return;
-    if (ask.kind === 'pause' && canAct(game, 'pause', t)) update(pauseClock(game, t));
-    if (ask.kind === 'end' && canAct(game, 'end', t)) update(endSection(game, t));
-    if (ask.kind === 'reset' && canAct(game, 'reset', t)) update(resetClock(game, t));
-    if (ask.kind === 'swap') update(swapVenue(game));
+    const g = cur();
+    if (ask.kind === 'pause' && canAct(g, 'pause', t)) update(pauseClock(g, t));
+    if (ask.kind === 'end' && canAct(g, 'end', t)) update(endSection(g, t));
+    if (ask.kind === 'reset' && canAct(g, 'reset', t)) update(resetClock(g, t));
+    if (ask.kind === 'swap') update(swapVenue(g));
     if (ask.kind === 'remove') {
-      update(removeGoal(game, ask.goalId, t));
+      update(removeGoal(g, ask.goalId, t));
       setSheetGoal(null);
     }
     setAsk(null);
@@ -219,7 +222,7 @@ export function GameScreen({ id }: { id: string }) {
             class="icon-btn teams__swap"
             aria-label="Heim und Gast tauschen"
             data-testid="btn-swap-venue"
-            onClick={() => update(swapVenue(game))}
+            onClick={() => update(swapVenue(cur()))}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon">
               <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />
@@ -264,7 +267,7 @@ export function GameScreen({ id }: { id: string }) {
             type="button"
             class="btn btn--secondary"
             data-testid="btn-resume"
-            onClick={() => update(resumeClock(game, Date.now()))}
+            onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
           >
             Uhr fortsetzen
           </button>
@@ -318,7 +321,7 @@ export function GameScreen({ id }: { id: string }) {
             class="btn btn--secondary btn--small"
             data-testid="btn-undo"
             onClick={() => {
-              update(undoGoal(game, undoGoalObj.id));
+              update(undoGoal(cur(), undoGoalObj.id));
               setUndo(null);
             }}
           >
@@ -397,7 +400,7 @@ export function GameScreen({ id }: { id: string }) {
               class="btn btn--primary"
               data-testid="goal-restore"
               onClick={() => {
-                update(restoreGoal(game, selected.id));
+                update(restoreGoal(cur(), selected.id));
                 setSheetGoal(null);
               }}
             >
