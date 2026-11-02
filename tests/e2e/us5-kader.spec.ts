@@ -4,7 +4,8 @@ import { ROSTER_21, SEC, confirmYes, forward, newGame, seedRoster } from './help
 test.describe('US5 Kader und Aufgebot', () => {
   test('US5-S1 FR-029 Spieler anlegen, ändern; Hinweis bei Nachnamen', async ({ page }) => {
     await page.goto('./');
-    await page.getByTestId('btn-roster').click();
+    await page.getByTestId('nav-more').click();
+    await page.getByTestId('more-roster').click();
     await page.getByTestId('btn-add-player').click();
     await page.getByTestId('input-player-name').fill('Max Mustermann');
     await expect(page.getByTestId('hint-first-name-only')).toBeVisible();

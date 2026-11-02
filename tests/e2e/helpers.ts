@@ -83,3 +83,15 @@ export const ROSTER_21 = [
 ]
   .map((name, i) => `${i + 1} ${name}`)
   .join('\n');
+
+/** Spielt ein beendetes Spiel 1 × 12 Minuten mit den angegebenen Toren (je eine Minute Abstand). */
+export async function playFinishedGame(page: Page, goals: ('own' | 'opp')[], o: NewGameOptions = {}): Promise<void> {
+  await startGame(page, { sections: 1, minutes: 12, ...o });
+  for (const side of goals) {
+    await forward(page, MIN);
+    await page.getByTestId(side === 'own' ? 'btn-goal-own' : 'btn-goal-opp').click();
+  }
+  await page.getByTestId('btn-section-end').click();
+  await confirmYes(page);
+  await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+}

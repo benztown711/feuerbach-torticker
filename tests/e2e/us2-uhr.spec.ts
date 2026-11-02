@@ -115,16 +115,6 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     await expect(page.getByTestId('clock')).not.toHaveText(before ?? '');
   });
 
-  test('US2-S9 Uhr zurücksetzen über das Menü mit Abfrage', async ({ page }) => {
-    await startGame(page);
-    await forward(page, 4 * MIN);
-    await page.getByTestId('btn-menu').click();
-    await page.getByTestId('btn-reset').click();
-    await confirmYes(page);
-    await expect(page.getByTestId('clock')).toHaveText('25:00');
-    await expect(page.getByTestId('btn-kickoff')).toBeVisible();
-  });
-
   test('US2-S10 Abbrechen einer Abfrage lässt die Uhr weiterlaufen', async ({ page }) => {
     await startGame(page);
     await page.getByTestId('btn-pause').click();

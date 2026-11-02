@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
-import { MIN, forward, newGame, seedRoster, startGame } from './helpers';
+import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -49,6 +49,22 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByTestId('btn-goal-own').click();
       await expect(page.getByTestId('scorer-picker')).toBeVisible();
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    });
+
+    test('FR-037 FR-038 Historie, Spieldetails, Mehr, Einstellungen und Hilfe ohne axe-Verstöße', async ({ page }) => {
+      await playFinishedGame(page, ['own', 'opp'], { ownTeam: 'Sportvg Feuerbach E1' });
+      await playFinishedGame(page, ['opp'], { ownTeam: 'Sportvg Feuerbach E2' });
+      await page.getByTestId('nav-history').click();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
+      await expect(page.getByTestId('details-timeline')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      for (const id of ['more-settings', 'more-help']) {
+        await page.getByTestId('nav-more').click();
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+        await page.getByTestId(id).click();
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      }
     });
   });
 }

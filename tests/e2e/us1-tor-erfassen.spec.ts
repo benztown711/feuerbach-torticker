@@ -91,8 +91,9 @@ test.describe('US1 Tor mit einem Tap erfassen', () => {
     await page.getByTestId('btn-goal-own').click();
     await page.getByTestId('btn-menu').click();
     await page.getByTestId('menu-details').click();
-    await expect(page.getByTestId('details-goals')).toContainText("4'");
-    await expect(page.getByTestId('details-goals')).toContainText(/\d\d:\d\d:\d\d/);
-    await expect(page.getByTestId('clock-events')).toContainText('Anpfiff');
+    const timeline = page.getByTestId('details-timeline');
+    await expect(timeline).toContainText("4'");
+    await expect(timeline).toContainText(/\d\d:\d\d:\d\d/);
+    await expect(timeline).toContainText('Anpfiff');
   });
 });
