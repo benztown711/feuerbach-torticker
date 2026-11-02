@@ -45,6 +45,12 @@
 - Q: Eigener Mannschaftsname? → A: Pro Spiel individuell, z. B. "Sportvg Feuerbach E1", "… E2", "… D3".
 - Q: Icon im Knopf "Uhr anhalten"? → A: Nein, reine Textbeschriftung (das Pause-Symbol könnte als "11" gelesen werden); gilt für alle Uhr-Knöpfe.
 
+### Session 2026-11-02 (Gerätetest MVP)
+
+- Befund: Bildschirm bleibt an (FR-013 erfüllt), Uhr läuft im Hintergrund korrekt weiter. Kein Ton: weder mit Lautlos-Schalter noch im Vordergrund mit Ton.
+- Ursache: iOS sperrt Web Audio ohne hörbare Freischaltung innerhalb einer Berührung und nach jedem Wechsel in den Hintergrund; der Lautlos-Schalter dämpft Web Audio standardmäßig.
+- Entscheidung: Fix gemäß FR-036. Ton im Hintergrund bleibt technisch unmöglich (Web-App-Grenze, Constitution VIII schließt native App aus).
+
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -220,6 +226,7 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-005**: Die Spielminute MUSS als angefangene Minute fortlaufend über alle Abschnitte berechnet werden (Sekunde 0:00 bis 0:59 = 1. Minute; bei 2 × 25 Min beginnt Halbzeit 2 bei 26'). In der Nachspielzeit lautet die Minute "<Abschnittsende>+<angefangene Nachspielminute>", z. B. "25+1'", "50+2'", bei 3 × 25 Min "75+1'".
 - **FR-006**: Die Uhr MUSS Anpfiff, Anhalten ("Uhr anhalten"), Fortsetzen ("Uhr fortsetzen") (reine Textknöpfe, keine Symbole), Abschnittsende ("Pausenpfiff"), Spielende ("Schlusspfiff"; bei nur einem Abschnitt der einzige Endknopf) und Zurücksetzen unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Pausenpfiff, Abpfiff und Zurücksetzen MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht.
 - **FR-007**: Bei 00:00 MUSS ein deutliches Signal erfolgen (Ton, blinkende Anzeige, Vibration wo das Gerät es erlaubt). Danach läuft die Uhr als Nachspielzeit aufwärts weiter, in `rot-text` und mit "+" gekennzeichnet, und das Signal wiederholt sich zu jeder vollen Nachspielminute, bis der Nutzer den Abschnitt beendet.
+- **FR-036**: Der Signalton MUSS auch bei eingeschaltetem Lautlos-Schalter hörbar sein, wo der Browser das erlaubt (iOS: Audio-Session "playback"). Ist der Ton gesperrt (z. B. nach Rückkehr aus dem Hintergrund), MUSS der Spielbildschirm den Hinweis "Ton aus · tippen" zeigen; jede Berührung des Spielbildschirms schaltet den Ton wieder frei.
 - **FR-008**: Jedes Tor MUSS sofort rückgängig gemacht (Undo-Leiste, 10 s) und jederzeit über die Torliste entfernt (mit Bestätigung), wiederhergestellt oder bearbeitet werden können. Entfernte Tore zählen nicht, bleiben durchgestrichen sichtbar und erscheinen nicht im geteilten Text.
 - **FR-034**: Die Torliste auf dem Spielbildschirm MUSS alle Tore zeigen (neuestes oben) und in sich scrollbar sein.
 - **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze aus dem Kader gewählt werden können, zusätzlich "Eigentor Gegner". Für Gegentore KANN optional ein Torschütze als Freitext eingetragen werden.

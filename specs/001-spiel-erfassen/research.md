@@ -118,3 +118,10 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Theme "Dunkel"**: `tokens-to-css` erzeugt zusätzlich `:root[data-theme="dark"]`; die Auswahl in den Einstellungen folgt mit US6 (T077).
 - **Stylelint**: `currentColor` ist als Schlüsselwort erlaubt (kein Farbwert), damit Linien-Icons die Textfarbe übernehmen.
 - **Noch nicht umgesetzt** (gehört zu späteren Stories): Torschütze ändern (`goal-edit-scorer`, US3), Löschen von Toren in den Spieldetails (dort nur Anzeige; Entfernen über den Spielbildschirm), Einstellungen-Bildschirm (US6).
+
+## R-17 Ton auf dem iPhone (Gerätetest 02.11.2026)
+
+- **Befund**: Kein Signalton auf dem iPhone, weder lautlos noch mit Ton. Bildschirm wach und Uhr im Hintergrund funktionieren.
+- **Decision**: `navigator.audioSession.type = 'playback'` (Safari 17+) gegen den Lautlos-Schalter; in `unlockAudio()` zusätzlich ein stiller 1-Sample-Puffer innerhalb der Berührung; jede Berührung des Spielbildschirms schaltet einen gesperrten AudioContext (`suspended`/`interrupted`) wieder frei; `playSignal()` versucht bei gesperrtem Context ein `resume()`; sichtbarer Hinweis "Ton aus · tippen" (FR-036).
+- **Grenze**: Im Hintergrund oder bei gesperrtem Bildschirm spielt iOS keine Web-Töne. Abhilfe bleibt das Wachhalten des Bildschirms.
+- **Prüfung**: Komponententest `tests/component/signal.test.tsx` (Fake-AudioContext), E2E `US2-S11`; echter Ton nur auf dem Gerät (quickstart.md, manueller Check).
