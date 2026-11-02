@@ -134,3 +134,11 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Zuordnung beim Einfügen**: Gleicher Vorname mit unterschiedlicher Nummer gilt als anderes Kind (kein Überschreiben der Nummer). Steht in der Liste keine Nummer, bleibt die gespeicherte erhalten.
 - **Vorschau**: Zeilen lassen sich entfernen; jede Zeile zeigt "neu", "aktualisiert" oder "wieder sichtbar". Kopfzeilen mit Doppelpunkt (z. B. "E1:") werden übersprungen. Manuell eingetippte volle Namen bekommen den Hinweis "Bitte nur Vornamen" (FR-020).
 - **Kader teilen**: Web Share API, sonst Zwischenablage mit Hinweis (`src/platform/share.ts`, auch für US4 nutzbar).
+
+## R-19 Signal über Audio-Element statt Web Audio (zweiter Gerätetest 02.11.2026)
+
+- **Befund**: Auch mit Audio-Session "playback" blieb Web Audio bei Lautlos-Schalter stumm, war mit Ton sehr leise und verstummte nach einigen Minuten (3. Nachspielminute: Blinken ohne Ton).
+- **Ursache**: Web Audio läuft auf dem iPhone über den Klingelton-Kanal; iOS stellt den AudioContext nach Inaktivität still.
+- **Decision**: Ein einziges `HTMLAudioElement` mit einer im Browser erzeugten WAV-Datei (Blob-URL, offline, keine Datei im Repo): drei Pfiffe à 0,3 s mit 2,9 kHz, nahezu Rechteck bei voller Aussteuerung. Freischaltung durch stummes Anspielen desselben Elements innerhalb einer Berührung; spätere Wiedergabe ohne Berührung erlaubt. Lehnt iOS ab, meldet `audioReady()` false und der Hinweis "Ton aus · tippen" erscheint.
+- **Rationale**: Audio-Elemente nutzen den Medien-Kanal: kein Lautlos-Schalter, Regelung über die Lautstärketasten, keine Stilllegung im Vordergrund.
+- **Prüfung**: `tests/component/signal.test.tsx` (WAV-Aufbau, Pegel, Freischaltung, Sperre); E2E `US2-S11` über gemocktes `HTMLMediaElement.play`. Echter Pegel nur auf dem Gerät.
