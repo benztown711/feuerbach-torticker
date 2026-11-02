@@ -12,7 +12,7 @@ Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne K
 | 1. Spezifikation | `/speckit-specify` | `specs/001-spiel-erfassen/spec.md` | erledigt |
 | 2. Klärung | `/speckit-clarify` | offene Fragen in der Spec beantwortet | erledigt |
 | 3. Architektur | `/speckit-plan` | `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` | erledigt (offen: Hosting D-1) |
-| 4. Aufgaben + Testfälle | `/speckit-tasks`, `/speckit-checklist` | `tasks.md` | offen |
+| 4. Aufgaben + Testfälle | `/speckit-tasks`, `/speckit-checklist` | `tasks.md` (88 Aufgaben) | erledigt |
 | 5. Konsistenzprüfung | `/speckit-analyze` | Report | offen |
 | 6. Umsetzung | `/speckit-implement` | Code + Tests | offen |
 
