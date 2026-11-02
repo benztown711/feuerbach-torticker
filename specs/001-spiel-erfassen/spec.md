@@ -54,6 +54,16 @@
 - Entscheidung: Signal über Audio-Element statt Web Audio (research.md R-19), lauter Pfiff-Ton.
 - Dritter Gerätetest (nach #9): Ton mit und ohne Lautlos-Schalter im Vordergrund ok, Wiederholung ok; nur zwei statt drei Pfiffe hörbar (Anfang verschluckt → 0,15 s Stille vorweg). Tor bei angehaltener Uhr ohne Rückfrage war unerwartet → FR-021 geändert: bei angehaltener Uhr Abfrage "Tor eintragen und Uhr fortsetzen?".
 
+### Session 2026-11-02 (Review B, Runde 4: Navigation, Historie)
+
+- Q: Menü oben rechts ist mit dem Daumen schwer erreichbar. Navigation unten? → A: Ja, Leiste in der untersten Zeile mit drei Einträgen "Spiel", "Historie", "Mehr" (FR-037). Mehr als drei wirken überladen und sind schlechter zu treffen.
+- Q: Was steckt hinter "Mehr"? → A: Kader, Einstellungen (inkl. Sicherung) und Hilfe.
+- Q: Was passiert bei versehentlichem Tipp während des Spiels? → A: Keine Abfrage; das Spiel läuft weiter, "Spiel" führt direkt zurück (kein Datenverlust).
+- Q: "…"-Menü im Spiel? → A: Bleibt oben rechts (nur selten gebrauchte Aktionen: Uhr zurücksetzen, Heim/Gast tauschen, Spieldetails).
+- Q: Ergebnis in der Historie? → A: Aus Feuerbach-Sicht (eigene Tore zuerst) mit S/U/N; Filter nach eigener Mannschaft (FR-038). Spieldetails und Teilen-Text bleiben "Heim zuerst".
+- Mockups 7 bis 9 (Historie, Spieldetails mit Teilen, Einstellungen) freigegeben.
+- Q: Uhr zurücksetzen? → A: Entfällt, wird nicht gebraucht. Das "…"-Menü im Spiel enthält danach nur noch "Heim und Gast tauschen" und "Spieldetails" ("Zur Startseite" übernimmt die Navigationsleiste). Gespeicherte Spiele mit einem alten Zurücksetzen-Ereignis werden weiterhin korrekt ausgewertet.
+
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -96,7 +106,7 @@ Vor dem Anpfiff trägt der Nutzer den Gegner ein, wählt "Heim" oder "Auswärts"
 6. **Given** Halbzeit 2 läuft seit 3:10 Minuten, **When** ein Tor erfasst wird, **Then** wird es als Minute 29 gespeichert (fortlaufende Zählung über beide Halbzeiten).
 7. **Given** ein laufendes Spiel, **When** das Handy 5 Minuten gesperrt war und wieder geöffnet wird, **Then** zeigt die Uhr die korrekte Restzeit.
 8. **Given** ein laufendes Spiel, **When** der Nutzer "Uhr anhalten" tippt (z. B. Verletzung), **Then** fragt die App "Uhr wirklich anhalten?"; erst nach Bestätigung hält die Uhr an, bis "Uhr fortsetzen" getippt wird.
-9. **Given** ein laufendes Spiel, **When** der Nutzer "Zurücksetzen" wählt, **Then** fragt die App "Uhr wirklich zurücksetzen?"; ohne Bestätigung bleibt alles unverändert.
+9. *(entfallen am 02.11.2026: "Uhr zurücksetzen" wird nicht gebraucht, siehe Clarifications Runde 4)*
 10. **Given** eine Sicherheitsabfrage ist offen, **When** der Nutzer "Abbrechen" tippt oder daneben tippt, **Then** läuft die Uhr unverändert weiter.
 
 ---
@@ -176,6 +186,8 @@ Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergan
 3. **Given** die App wurde geschlossen, das Handy neu gestartet und 30 Tage nicht benutzt, **When** der Nutzer die Historie öffnet, **Then** sind alle Spiele unverändert vorhanden (installierte App vom Home-Bildschirm).
 4. **Given** ein Spiel in der Historie, **When** der Nutzer "Löschen" wählt und bestätigt, **Then** ist es entfernt; ohne Bestätigung bleibt es erhalten.
 5. **Given** mehrere Spiele, **When** der Nutzer "Historie sichern" wählt, **Then** wird eine Datei mit allen Spielen über das Teilen-Menü bereitgestellt (z. B. zum Speichern in iCloud Drive), die sich wieder importieren lässt.
+6. **Given** Spiele der E1 und der E2, **When** der Nutzer in der Historie den Filter "E1" wählt, **Then** sieht er nur die E1-Spiele, jeweils mit Ergebnis aus Feuerbach-Sicht (eigene Tore zuerst) und S/U/N.
+7. **Given** ein Auswärtsspiel, das Feuerbach 3:1 gewonnen hat, **When** die Historie es zeigt, **Then** steht dort "3:1" mit "S" und "auswärts"; die Spieldetails zeigen "Heim : Gast" mit "1:3".
 
 ---
 
@@ -227,7 +239,7 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-033**: Der Spielbildschirm MUSS auf 375 × 667 pt (iPhone SE) vollständig ohne Scrollen bedienbar sein; nur die Torliste darf in sich scrollen.
 - **FR-004**: Ein Tap auf einen Tor-Knopf MUSS ein Tor mit Mannschaft, Spielminute, Abschnitt und Zeitstempel speichern und den Spielstand sofort aktualisieren.
 - **FR-005**: Die Spielminute MUSS als angefangene Minute fortlaufend über alle Abschnitte berechnet werden (Sekunde 0:00 bis 0:59 = 1. Minute; bei 2 × 25 Min beginnt Halbzeit 2 bei 26'). In der Nachspielzeit lautet die Minute "<Abschnittsende>+<angefangene Nachspielminute>", z. B. "25+1'", "50+2'", bei 3 × 25 Min "75+1'".
-- **FR-006**: Die Uhr MUSS Anpfiff, Anhalten ("Uhr anhalten"), Fortsetzen ("Uhr fortsetzen") (reine Textknöpfe, keine Symbole), Abschnittsende ("Pausenpfiff"), Spielende ("Schlusspfiff"; bei nur einem Abschnitt der einzige Endknopf) und Zurücksetzen unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Pausenpfiff, Abpfiff und Zurücksetzen MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht.
+- **FR-006**: Die Uhr MUSS Anpfiff, Anhalten ("Uhr anhalten"), Fortsetzen ("Uhr fortsetzen") (reine Textknöpfe, keine Symbole), Abschnittsende ("Pausenpfiff"), Spielende ("Schlusspfiff"; bei nur einem Abschnitt der einzige Endknopf) unterstützen und ihre Zeit ausschließlich aus Zeitstempeln berechnen. Pause, Pausenpfiff und Abpfiff MÜSSEN per Sicherheitsabfrage bestätigt werden; Anpfiff und Fortsetzen nicht. Ein Zurücksetzen der Uhr gibt es nicht (entfallen in Runde 4).
 - **FR-007**: Bei 00:00 MUSS ein deutliches Signal erfolgen (Ton, blinkende Anzeige, Vibration wo das Gerät es erlaubt). Danach läuft die Uhr als Nachspielzeit aufwärts weiter, in `rot-text` und mit "+" gekennzeichnet, und das Signal wiederholt sich zu jeder vollen Nachspielminute, bis der Nutzer den Abschnitt beendet.
 - **FR-036**: Der Signalton MUSS über den Medien-Kanal abgespielt werden (Audio-Element), damit er den Lautlos-Schalter ignoriert und mit den Lautstärketasten geregelt wird; er MUSS als lautes Pfeifsignal (drei kurze Pfiffe, ca. 1,4 s, Frequenz im lautesten Bereich kleiner Lautsprecher) ausgelegt sein. Ist der Ton gesperrt (z. B. nach Rückkehr aus dem Hintergrund), MUSS der Spielbildschirm den Hinweis "Ton aus · tippen" zeigen; jede Berührung des Spielbildschirms schaltet den Ton wieder frei.
 - **FR-008**: Jedes Tor MUSS sofort rückgängig gemacht (Undo-Leiste, 10 s) und jederzeit über die Torliste entfernt (mit Bestätigung), wiederhergestellt oder bearbeitet werden können. Entfernte Tore zählen nicht, bleiben durchgestrichen sichtbar und erscheinen nicht im geteilten Text.
@@ -237,6 +249,8 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
 - **FR-023**: Die App MUSS beim Browser dauerhaften Speicher anfordern und, wenn sie nicht vom Home-Bildschirm läuft, auf die Installation hinweisen.
 - **FR-024**: Die Historie MUSS als Datei exportiert und wieder importiert werden können (Sicherung bei Handywechsel).
+- **FR-037**: Am unteren Bildschirmrand MUSS eine Navigationsleiste mit genau drei Einträgen stehen (Icon und Text): "Spiel" (Startseite bzw. laufendes Spiel), "Historie" und "Mehr" (Kader, Einstellungen mit Sicherung, Hilfe). Höhe 56 pt zuzüglich des unteren Sicherheitsabstands; der aktive Eintrag ist fett und oben mit einer Linie in `ink` markiert. Läuft ein Spiel (Uhr läuft, angehalten oder Halbzeitpause) und ist der Nutzer auf einer anderen Seite, zeigt "Spiel" in `rot-text` "Läuft <Minute>" bzw. "Pause" und führt direkt zum Spiel. Ein Tipp auf "Spiel" im Spielbildschirm führt zur Startseite. Navigieren ändert nichts am Spiel (kein Datenverlust, keine Abfrage). Das "…"-Menü im Spiel bleibt oben rechts. Der Spielbildschirm erfüllt mit Leiste weiterhin FR-033.
+- **FR-038**: Die Historie MUSS alle Spiele neueste zuerst zeigen, je Eintrag Datum, Anpfiff-Uhrzeit (bzw. Anlegezeit), Gegner, Kurzname der eigenen Mannschaft, heim/auswärts und das Ergebnis aus Feuerbach-Sicht (eigene Tore zuerst) mit S/U/N bei beendeten Spielen ("läuft" bei offenen). Gibt es mehr als einen eigenen Mannschaftsnamen, MUSS sie Filter-Chips anbieten ("Alle" plus je Name die Kurzform, z. B. "E1", "E2", "D3"). Die Spieldetails zeigen eine Zeitleiste aller Uhr-Ereignisse und Tore mit Uhrzeit (entfernte Tore durchgestrichen), "Heim : Gast" mit Halbzeitstand, die Vorschau des Teilen-Texts sowie "Ergebnis teilen" und "Löschen …" (mit Abfrage).
 - **FR-025**: Der Kader MUSS per eingefügter Textliste importiert werden können, ein Spieler pro Zeile. Erkannt werden: optionale Rückennummer (1 bis 99) vor oder nach dem Namen, Trennzeichen Leerzeichen, Tab, Punkt, Bindestrich, Komma oder "#"; leere Zeilen werden übersprungen. Nachnamen werden nie gespeichert: Gespeichert wird der Vorname, bei gleichen Vornamen ergänzt um die kürzeste eindeutige Nachnamen-Abkürzung ("Max Mü.", "Max Me."). Beim erneuten Import werden bestehende Einträge über Vorname, Nachnamen-Anfang und Nummer zugeordnet und die Abkürzung bei Bedarf verlängert.
 - **FR-026**: Vor jedem Import MUSS eine Vorschau mit Auffälligkeiten (doppelte Nummer, doppelter Name, gekürzter Nachname) gezeigt werden; erst "Übernehmen" schreibt in den Kader.
 - **FR-027**: Import MUSS zusammenführen statt ersetzen: gleicher Spieler wird aktualisiert, neue werden ergänzt, keiner wird gelöscht; gelöschte Spieler, die wieder in der Liste stehen, werden wieder sichtbar.

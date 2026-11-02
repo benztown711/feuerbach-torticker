@@ -227,7 +227,7 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 ### Implementierung für User Story 6
 
 - [ ] T075 [US6] `src/domain/export.ts` (`buildBackup`, `parseBackup`, `mergeBackup`) implementieren (macht T072 grün)
-- [ ] T076 [US6] Historie `src/ui/screens/history.tsx` (`history-list`, `history-item-<id>`, `history-delete-<id>` mit Abfrage), Öffnen führt zu `src/ui/screens/game-details.tsx`
+- [ ] T076 [US6] Historie `src/ui/screens/history.tsx` (`history-list`, `history-item-<id>`, Filter `history-filter-*`), Öffnen führt zu `src/ui/screens/game-details.tsx`; Löschen dort (`btn-delete-game`, Runde 4)
 - [ ] T077 [US6] Einstellungen `src/ui/screens/settings.tsx`: `recent-own-teams` (FR-014), `theme-system`/`theme-light`/`theme-dark` (FR-018), `btn-export` (Datei `torticker-sicherung-JJJJ-MM-TT.json` über Teilen-Menü mit Dateien, Fallback Download), `input-import`, `install-hint` (FR-023, FR-024)
 
 **Checkpoint**: Historie dauerhaft und sicherbar.
@@ -265,6 +265,17 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [ ] T088 `/speckit-analyze` laufen lassen und Abweichungen zwischen spec.md, plan.md, tasks.md und Code beheben
 
 ---
+
+## Phase 11: Review B Runde 4 (Navigation, Historie, Uhr zurücksetzen entfällt)
+
+**Goal**: Navigationsleiste unten (FR-037), Historie mit Feuerbach-Sicht und Filter (FR-038), Spieldetails mit Zeitleiste und Teilen, "Uhr zurücksetzen" entfernt.
+
+- [ ] T096 [P] [US6] `tests/unit/history.test.ts`: Ergebnis aus Feuerbach-Sicht, S/U/N, "läuft" bei offenen Spielen, Filter-Chips aus Mannschaftsnamen (Kurzform E1/E2/D3, nur bei mehr als einem Namen), Filtern, Zeitleiste der Spieldetails (Ereignisse und Tore chronologisch, entfernte markiert), Live-Anzeige "Läuft <Minute>"/"Pause" (FR-037, FR-038)
+- [ ] T097 [US6] `src/domain/history.ts` implementieren (macht T096 grün)
+- [ ] T098 [P] `tests/e2e/nav.spec.ts`: Leiste mit drei Einträgen auf allen Bildschirmen, aktiver Eintrag, "Läuft <Minute>" bei laufendem Spiel auf anderer Seite und Rückweg, Tipp auf "Spiel" im Spiel führt zur Startseite, Spiel läuft nach Navigation weiter; FR-033 mit Leiste auf 375 × 667 (FR-037)
+- [ ] T099 Komponente `src/ui/components/nav-bar.tsx` und App-Rahmen in `src/ui/app.tsx` (fixe Leiste, Spielbildschirm-Höhe ohne Leiste), Seite "Mehr" `src/ui/screens/more.tsx` (`more-roster`, `more-settings`, `more-help`), Startseite ohne Kader-Knopf (macht T098 grün)
+- [ ] T100 [US6] Spieldetails `src/ui/screens/game-details.tsx` nach Mockup 8: Kopf "Heim : Gast" mit Halbzeit, Zeitleiste (`details-timeline`), Teilen-Vorschau (`share-preview`), `btn-share`, `btn-delete-game` mit Abfrage
+- [ ] T101 Uhr zurücksetzen entfernen: `resetClock`/Aktion `reset` aus `src/domain/game.ts`, Menüpunkt und Abfrage aus `src/ui/screens/game.tsx`, E2E US2-S9; `deriveClock` wertet alte `reset`-Ereignisse weiter aus (Unit-Test bleibt), Export-Schema behält `reset`
 
 ## Dependencies & Execution Order
 
