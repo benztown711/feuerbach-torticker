@@ -1,14 +1,25 @@
 /**
- * Signal am Abschnittsende (FR-007, research.md R-4): Ton über Web Audio, Vibration wo vorhanden.
+ * Signal am Abschnittsende (FR-007, FR-036, research.md R-4, R-17, R-18).
  *
- * iOS-Besonderheiten (Fehlerbericht vom 02.11.2026):
- * - Ton nur nach einer Berührung: unlockAudio() muss in einem Tap-Handler laufen und spielt dort
- *   einen stillen Puffer ab, sonst bleibt der AudioContext gesperrt.
- * - Nach dem Wechsel in den Hintergrund steht der Context auf "interrupted"/"suspended" und muss
- *   durch die nächste Berührung erneut freigeschaltet werden (audioReady() meldet das der Oberfläche).
- * - Audio-Session "playback" (Safari 17+), damit der Lautlos-Schalter den Signalton nicht stummschaltet.
+ * Abgespielt über ein HTML-Audio-Element mit einer im Browser erzeugten WAV-Datei, nicht über
+ * Web Audio. Gerätetest vom 02.11.2026: Web Audio läuft auf dem iPhone über den Klingelton-Kanal,
+ * wird vom Lautlos-Schalter stummgeschaltet, ist leise und verstummt nach einigen Minuten.
+ * Ein Audio-Element nutzt den Medien-Kanal (Lautstärketasten, kein Lautlos-Schalter).
+ *
+ * iOS erlaubt das spätere, automatische Abspielen nur, wenn dasselbe Element einmal innerhalb einer
+ * Berührung gestartet wurde: unlockAudio() spielt es dort stumm an. Lehnt iOS später ab
+ * (z. B. nach dem Hintergrund), meldet audioReady() false und die Oberfläche bittet um eine Berührung.
  */
-let ctx: AudioContext | null = null;
+const SAMPLE_RATE = 22050;
+const TONE_HZ = 2900; // Bereich, in dem kleine Handy-Lautsprecher am lautesten sind
+const BEEP_S = 0.3;
+const GAP_S = 0.15;
+const BEEPS = 3;
+const TAIL_S = 0.15;
+const FADE_S = 0.005;
+
+let audio: HTMLAudioElement | null = null;
+let unlocked = false;
 
 interface AudioSessionNavigator {
   audioSession?: { type: string };
@@ -25,64 +36,98 @@ function setPlaybackSession(): void {
   }
 }
 
-function context(): AudioContext | null {
-  const Ctor =
-    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctor) return null;
-  ctx ??= new Ctor();
-  return ctx;
+/** Drei laute, kurze Pfeiftöne als 16-Bit-Mono-WAV. */
+export function buildSignalWav(): ArrayBuffer {
+  const total = BEEPS * BEEP_S + (BEEPS - 1) * GAP_S + TAIL_S;
+  const samples = Math.round(total * SAMPLE_RATE);
+  const buffer = new ArrayBuffer(44 + samples * 2);
+  const v = new DataView(buffer);
+  const text = (offset: number, s: string): void => {
+    for (let i = 0; i < s.length; i++) v.setUint8(offset + i, s.charCodeAt(i));
+  };
+  text(0, 'RIFF');
+  v.setUint32(4, 36 + samples * 2, true);
+  text(8, 'WAVE');
+  text(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); // PCM
+  v.setUint16(22, 1, true); // mono
+  v.setUint32(24, SAMPLE_RATE, true);
+  v.setUint32(28, SAMPLE_RATE * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  text(36, 'data');
+  v.setUint32(40, samples * 2, true);
+  for (let i = 0; i < samples; i++) {
+    const t = i / SAMPLE_RATE;
+    const period = BEEP_S + GAP_S;
+    const inPeriod = t % period;
+    const beepIndex = Math.floor(t / period);
+    let value = 0;
+    if (beepIndex < BEEPS && inPeriod < BEEP_S) {
+      const fade = Math.min(1, inPeriod / FADE_S, (BEEP_S - inPeriod) / FADE_S);
+      // Stark übersteuerter Sinus: nahezu Rechteck, hoher Lautheitseindruck ohne harte Knackser.
+      const raw = Math.max(-1, Math.min(1, Math.sin(2 * Math.PI * TONE_HZ * t) * 3));
+      value = raw * fade * 0.98;
+    }
+    v.setInt16(44 + i * 2, Math.round(value * 32767), true);
+  }
+  return buffer;
+}
+
+function element(): HTMLAudioElement {
+  if (!audio) {
+    audio = new Audio();
+    audio.preload = 'auto';
+    audio.setAttribute('playsinline', '');
+    audio.src = URL.createObjectURL(new Blob([buildSignalWav()], { type: 'audio/wav' }));
+  }
+  return audio;
+}
+
+function rewind(el: HTMLAudioElement): void {
+  try {
+    el.currentTime = 0;
+  } catch {
+    /* noch nicht geladen */
+  }
 }
 
 /** Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). */
 export function unlockAudio(): void {
   setPlaybackSession();
-  const c = context();
-  if (!c) return;
-  if (c.state !== 'running') void c.resume();
-  // Stiller Puffer innerhalb der Berührung: schaltet Web Audio auf iOS zuverlässig frei.
-  const src = c.createBufferSource();
-  src.buffer = c.createBuffer(1, 1, 22050);
-  src.connect(c.destination);
-  src.start(0);
+  const el = element();
+  el.muted = true;
+  rewind(el);
+  el.play()
+    .then(() => {
+      el.pause();
+      rewind(el);
+      el.muted = false;
+      unlocked = true;
+    })
+    .catch(() => {
+      el.muted = false;
+      unlocked = false;
+    });
 }
 
 /** true, wenn ein Signal jetzt hörbar abgespielt werden kann. */
 export function audioReady(): boolean {
-  return ctx !== null && ctx.state === 'running';
+  return unlocked;
 }
 
-function beep(c: AudioContext, start: number, frequency: number): void {
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.linearRampToValueAtTime(0.6, start + 0.02);
-  gain.gain.linearRampToValueAtTime(0.0001, start + 0.45);
-  osc.connect(gain);
-  gain.connect(c.destination);
-  osc.start(start);
-  osc.stop(start + 0.5);
-}
-
-function playBeeps(c: AudioContext): void {
-  const t = c.currentTime;
-  beep(c, t, 1760);
-  beep(c, t + 0.6, 1760);
-}
-
-/** Doppelton, etwa 1,2 Sekunden. */
+/** Drei Pfiffe, etwa 1,4 Sekunden. */
 export function playSignal(): void {
-  const c = ctx;
-  if (c) {
-    if (c.state === 'running') playBeeps(c);
-    else
-      void c
-        .resume()
-        .then(() => {
-          if (c.state === 'running') playBeeps(c);
-        })
-        .catch(() => undefined);
-  }
+  const el = element();
+  el.muted = false;
+  rewind(el);
+  el.play()
+    .then(() => {
+      unlocked = true;
+    })
+    .catch(() => {
+      unlocked = false;
+    });
   if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300]);
 }

@@ -9,7 +9,7 @@ export interface Recorded {
 /**
  * Gemeinsame E2E-Fixture:
  * - Netzwerk-Wächter: jeder Request außerhalb der eigenen Origin lässt den Test scheitern (Constitution III).
- * - Mocks für navigator.share, AudioContext und navigator.vibrate mit Aufzeichnung (window.__rec).
+ * - Mocks für navigator.share, Audio-Wiedergabe (HTMLMediaElement.play) und navigator.vibrate mit Aufzeichnung (window.__rec).
  * - page.clock ist installiert, Tests können per page.clock.fastForward vorspulen.
  */
 export const test = base.extend<{ foreignRequests: string[]; recorded: () => Promise<Recorded> }>({
@@ -30,7 +30,7 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
   page: async ({ page }, use) => {
     await page.clock.install();
     await page.addInitScript(() => {
-      const rec = { shares: [] as unknown[], sounds: 0, vibrations: 0 };
+      const rec = { shares: [] as unknown[], sounds: 0, vibrations: 0, blockAudio: false };
       (window as unknown as { __rec: typeof rec }).__rec = rec;
       Object.defineProperty(navigator, 'share', {
         configurable: true,
@@ -45,41 +45,13 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
           return true;
         },
       });
-      class FakeAudioContext {
-        state = 'running';
-        currentTime = 0;
-        destination = {};
-        constructor() {
-          (window as unknown as { __audioCtx: unknown }).__audioCtx = this;
-        }
-        resume = async () => {
-          this.state = 'running';
-        };
-        createBuffer() {
-          return {};
-        }
-        createBufferSource() {
-          return { buffer: null, connect: () => undefined, start: () => undefined };
-        }
-        createOscillator() {
-          return {
-            frequency: { value: 0, setValueAtTime: () => undefined },
-            type: 'sine',
-            connect: () => undefined,
-            start: () => {
-              rec.sounds++;
-            },
-            stop: () => undefined,
-          };
-        }
-        createGain() {
-          return {
-            gain: { value: 1, setValueAtTime: () => undefined, linearRampToValueAtTime: () => undefined },
-            connect: () => undefined,
-          };
-        }
-      }
-      (window as unknown as { AudioContext: unknown }).AudioContext = FakeAudioContext;
+      // Signal läuft über ein Audio-Element (R-18). Hörbare Starts zählen; blockAudio simuliert die iOS-Sperre.
+      HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) {
+        if (rec.blockAudio) return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
+        if (!this.muted) rec.sounds++;
+        return Promise.resolve();
+      };
+      HTMLMediaElement.prototype.pause = () => undefined;
     });
     await use(page);
   },
