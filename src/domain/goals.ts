@@ -19,7 +19,7 @@ const defaultId = (): string => globalThis.crypto.randomUUID();
 /** FR-004, FR-021: Tor mit Minute aus der Uhr; nur bei laufender oder angehaltener Uhr. */
 export function addGoal(game: Game, side: Side, now: number, newId: () => string = defaultId): AddGoalResult {
   const clock = deriveClock(game.clockEvents, now, game.schema);
-  if (clock.status !== 'running' && clock.status !== 'paused') return { game, added: false, reason: 'locked' };
+  if (clock.status !== 'running') return { game, added: false, reason: 'locked' };
   const recent = game.goals.some((g) => g.side === side && g.deletedAt === null && now - g.at < DOUBLE_TAP_MS);
   if (recent) return { game, added: false, reason: 'double' };
   const goal: Goal = {

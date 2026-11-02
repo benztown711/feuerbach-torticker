@@ -17,6 +17,7 @@ const GAP_S = 0.15;
 const BEEPS = 3;
 const TAIL_S = 0.15;
 const FADE_S = 0.005;
+const LEAD_S = 0.15; // Stille vorweg: iOS verschluckt sonst den Anfang des ersten Pfiffs
 
 let audio: HTMLAudioElement | null = null;
 let unlocked = false;
@@ -38,7 +39,7 @@ function setPlaybackSession(): void {
 
 /** Drei laute, kurze Pfeiftöne als 16-Bit-Mono-WAV. */
 export function buildSignalWav(): ArrayBuffer {
-  const total = BEEPS * BEEP_S + (BEEPS - 1) * GAP_S + TAIL_S;
+  const total = LEAD_S + BEEPS * BEEP_S + (BEEPS - 1) * GAP_S + TAIL_S;
   const samples = Math.round(total * SAMPLE_RATE);
   const buffer = new ArrayBuffer(44 + samples * 2);
   const v = new DataView(buffer);
@@ -59,12 +60,13 @@ export function buildSignalWav(): ArrayBuffer {
   text(36, 'data');
   v.setUint32(40, samples * 2, true);
   for (let i = 0; i < samples; i++) {
-    const t = i / SAMPLE_RATE;
+    const t0 = i / SAMPLE_RATE;
+    const t = t0 - LEAD_S;
     const period = BEEP_S + GAP_S;
     const inPeriod = t % period;
     const beepIndex = Math.floor(t / period);
     let value = 0;
-    if (beepIndex < BEEPS && inPeriod < BEEP_S) {
+    if (t >= 0 && beepIndex < BEEPS && inPeriod < BEEP_S) {
       const fade = Math.min(1, inPeriod / FADE_S, (BEEP_S - inPeriod) / FADE_S);
       // Stark übersteuerter Sinus: nahezu Rechteck, hoher Lautheitseindruck ohne harte Knackser.
       const raw = Math.max(-1, Math.min(1, Math.sin(2 * Math.PI * TONE_HZ * t) * 3));

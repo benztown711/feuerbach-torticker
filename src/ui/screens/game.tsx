@@ -350,7 +350,7 @@ export function GameScreen({ id }: { id: string }) {
             team={buttonName(side)}
             colorId={colorOf(side)}
             dark={dark}
-            disabled={!goalsOpen}
+            disabled={status !== 'running'}
             onGoal={() => onGoal(side)}
           />
         ))}

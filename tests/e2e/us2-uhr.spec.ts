@@ -86,10 +86,14 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     const stopped = await page.getByTestId('clock').textContent();
     await forward(page, 3 * MIN);
     await expect(page.getByTestId('clock')).toHaveText(stopped ?? '');
+    // FR-021 (Gerätetest 02.11.): bei angehaltener Uhr keine Tore
+    await expect(page.getByTestId('btn-goal-own')).toBeDisabled();
+    await expect(page.getByTestId('btn-goal-opp')).toBeDisabled();
     await expect(page.getByTestId('btn-resume')).toHaveText('Uhr fortsetzen');
     await page.getByTestId('btn-resume').click();
     await expect(page.getByTestId('confirm-dialog')).toBeHidden();
     await expect(page.getByTestId('btn-pause')).toBeVisible();
+    await expect(page.getByTestId('btn-goal-own')).toBeEnabled();
   });
 
   test('US2-S9 Uhr zurücksetzen über das Menü mit Abfrage', async ({ page }) => {
