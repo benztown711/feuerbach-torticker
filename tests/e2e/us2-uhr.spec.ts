@@ -135,15 +135,19 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
   }) => {
     await startGame(page);
     await expect(page.getByTestId('audio-hint')).toHaveCount(0);
-    await page.evaluate(() => {
-      (window as unknown as { __audioCtx: { state: string } }).__audioCtx.state = 'interrupted';
-    });
-    await forward(page, 1 * SEC);
+    const setBlocked = (blocked: boolean) =>
+      page.evaluate((b) => {
+        (window as unknown as { __rec: { blockAudio: boolean } }).__rec.blockAudio = b;
+      }, blocked);
+    await setBlocked(true);
+    await forward(page, 25 * MIN + 2 * SEC);
     await expect(page.getByTestId('audio-hint')).toBeVisible();
+    await setBlocked(false);
     await page.getByTestId('audio-hint').click();
     await forward(page, 1 * SEC);
     await expect(page.getByTestId('audio-hint')).toHaveCount(0);
-    await forward(page, 25 * MIN);
-    expect((await recorded()).sounds).toBeGreaterThan(0);
+    const before = (await recorded()).sounds;
+    await forward(page, 1 * MIN);
+    expect((await recorded()).sounds).toBeGreaterThan(before);
   });
 });
