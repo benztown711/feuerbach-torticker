@@ -48,11 +48,11 @@ describe('T044 FR-004 FR-008 FR-021 Tore', () => {
     expect(r.goal).toMatchObject({ minute: 25, stoppage: 1 });
   });
 
-  it('FR-021 Tore auch bei angehaltener Uhr, nicht vor Anpfiff, in der Pause oder nach Schlusspfiff', () => {
+  it('FR-021 Tore nur bei laufender Uhr: nicht vor Anpfiff, nicht bei angehaltener Uhr, nicht in der Pause oder nach Schlusspfiff', () => {
     const created = createGame(input, { id: 'g', now: T0 });
     expect(addGoal(created, 'own', T0)).toMatchObject({ added: false, reason: 'locked' });
     const paused = pauseClock(running(), T0 + min(1));
-    expect(addGoal(paused, 'own', T0 + min(2), ids).added).toBe(true);
+    expect(addGoal(paused, 'own', T0 + min(2), ids)).toMatchObject({ added: false, reason: 'locked' });
     const brk = endSection(running(), T0 + min(25));
     expect(addGoal(brk, 'own', T0 + min(26)).reason).toBe('locked');
   });

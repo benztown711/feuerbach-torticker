@@ -46,7 +46,10 @@ const HINT_MS = 1_500;
 /** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
 const PICKER_MS = 8_000;
 
-type Ask = { kind: 'pause' | 'end' | 'reset' | 'swap' } | { kind: 'remove'; goalId: string };
+type Ask =
+  | { kind: 'pause' | 'end' | 'reset' | 'swap' }
+  | { kind: 'remove'; goalId: string }
+  | { kind: 'goalResume'; side: Side };
 
 function TeamMark({ colorId }: { colorId: string }) {
   return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
@@ -142,6 +145,11 @@ export function GameScreen({ id }: { id: string }) {
         : sectionLabel(clock.section, game.schema.sections);
 
   const onGoal = (side: Side): void => {
+    // FR-021: Bei angehaltener Uhr erst fragen, ob die Uhr weiterlaufen soll.
+    if (clockOf(cur(), Date.now()).status === 'paused') {
+      setAsk({ kind: 'goalResume', side });
+      return;
+    }
     const t = Date.now();
     const r = addGoal(cur(), side, t);
     if (r.added && r.goal) {
@@ -167,6 +175,12 @@ export function GameScreen({ id }: { id: string }) {
     if (ask.kind === 'end' && canAct(g, 'end', t)) update(endSection(g, t));
     if (ask.kind === 'reset' && canAct(g, 'reset', t)) update(resetClock(g, t));
     if (ask.kind === 'swap') update(swapVenue(g));
+    if (ask.kind === 'goalResume' && canAct(g, 'resume', t)) {
+      update(resumeClock(g, t));
+      setAsk(null);
+      onGoal(ask.side);
+      return;
+    }
     if (ask.kind === 'remove') {
       update(removeGoal(g, ask.goalId, t));
       setSheetGoal(null);
@@ -183,6 +197,11 @@ export function GameScreen({ id }: { id: string }) {
       'Uhr wirklich zurücksetzen?',
       'Die Uhr dieses Abschnitts beginnt von vorn. Tore bleiben erhalten.',
       'Zurücksetzen',
+    ],
+    goalResume: [
+      'Tor eintragen und Uhr fortsetzen?',
+      'Die Uhr ist angehalten. Mit „Tor + weiter“ läuft sie wieder und das Tor wird gezählt.',
+      'Tor + weiter',
     ],
     swap: [
       'Heim und Gast tauschen?',

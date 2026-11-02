@@ -45,7 +45,7 @@ Aufbau von oben nach unten: Kopf (Wappen 24 px, Abschnitt-Label), Mannschaften m
 | Pausenpfiff / Schlusspfiff | `btn-section-end` | "Pausenpfiff" vor dem letzten Abschnitt, sonst "Schlusspfiff"; mit Abfrage; in der Nachspielzeit gefüllt `ink` hervorgehoben |
 | Zurücksetzen | `btn-reset` | im Menü "…", mit Abfrage |
 | Sicherheitsabfrage | `confirm-dialog`, `confirm-yes`, `confirm-no` | Tippen außerhalb = Abbrechen |
-| Tor Feuerbach | `btn-goal-own` | Trikotfarbe `ownColor`; `disabled` außerhalb `running`/`paused` |
+| Tor Feuerbach | `btn-goal-own` | Trikotfarbe `ownColor`; `disabled` außerhalb `running`/`paused`; bei `paused` Abfrage "Tor eintragen und Uhr fortsetzen?" (FR-021) |
 | Tor Gegner | `btn-goal-opp` | Trikotfarbe `oppColor`; gleiche Aktivregel |
 | Torliste | `goal-list`, `goal-row-<id>` | alle Tore, neuestes oben, scrollt in sich; Antippen öffnet `goal-actions` |
 | Torschütze Gegner | `scorer-text-input`, `scorer-text-save`, `scorer-text-clear` | Freitext, Platzhalter "Name oder Rückennummer", max. 30 Zeichen |

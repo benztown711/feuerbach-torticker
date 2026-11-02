@@ -86,10 +86,33 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     const stopped = await page.getByTestId('clock').textContent();
     await forward(page, 3 * MIN);
     await expect(page.getByTestId('clock')).toHaveText(stopped ?? '');
+    // FR-021 (Gerätetest 02.11.): Tor bei angehaltener Uhr nur mit Abfrage "Tor eintragen und Uhr fortsetzen?"
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('confirm-dialog')).toContainText('Tor eintragen und Uhr fortsetzen?');
+    await page.getByTestId('confirm-no').click();
+    await expect(page.getByTestId('score')).toHaveText('0 : 0');
+    await expect(page.getByTestId('btn-resume')).toBeVisible();
     await expect(page.getByTestId('btn-resume')).toHaveText('Uhr fortsetzen');
     await page.getByTestId('btn-resume').click();
     await expect(page.getByTestId('confirm-dialog')).toBeHidden();
     await expect(page.getByTestId('btn-pause')).toBeVisible();
+  });
+
+  test('US2-S12 FR-021 Tor bei angehaltener Uhr: nach Bestätigung läuft die Uhr weiter und das Tor zählt', async ({
+    page,
+  }) => {
+    await startGame(page);
+    await forward(page, MIN);
+    await page.getByTestId('btn-pause').click();
+    await confirmYes(page);
+    await page.getByTestId('btn-goal-opp').click();
+    await expect(page.getByTestId('confirm-dialog')).toContainText('Tor eintragen und Uhr fortsetzen?');
+    await confirmYes(page);
+    await expect(page.getByTestId('score')).toHaveText('0 : 1');
+    await expect(page.getByTestId('btn-pause')).toBeVisible();
+    const before = await page.getByTestId('clock').textContent();
+    await forward(page, 5 * SEC);
+    await expect(page.getByTestId('clock')).not.toHaveText(before ?? '');
   });
 
   test('US2-S9 Uhr zurücksetzen über das Menü mit Abfrage', async ({ page }) => {
