@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "feuerbach-torticker",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
+      "changelog-sections": [
+        { "type": "feat", "section": "Neue Funktionen" },
+        { "type": "fix", "section": "Fehlerbehebungen" },
+        { "type": "perf", "section": "Leistung" },
+        { "type": "docs", "section": "Dokumentation", "hidden": false },
+        { "type": "ci", "section": "Pipeline", "hidden": true },
+        { "type": "build", "section": "Build", "hidden": true },
+        { "type": "test", "section": "Tests", "hidden": true },
+        { "type": "chore", "section": "Sonstiges", "hidden": true }
+      ]
+    }
+  }
+}

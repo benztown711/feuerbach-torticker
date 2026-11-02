@@ -95,3 +95,11 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
   - Aufgebot: Mehrfachauswahl beim Anlegen, Vorauswahl aus `settings.lastSquad`; Schnellauswahl als Raster mit bis zu 16 Knöpfen (4 × 4) ohne Scrollen.
 - **Rationale**: Klärung vom 02.11.: Teilen per WhatsApp genügt; kein Server, keine Kindernamen im öffentlichen Repo; minimaler Code (Prinzip VI), ein Import-Weg für alle Quellen.
 - **Alternatives**: QR-Code/komprimierter Kader-Code (mehr Abhängigkeiten, nach Klärung nicht nötig); SpielerPlus-CSV (nur mit Premium; kann später auf denselben Parser aufsetzen); zentraler Kader auf Server (Datenschutz Minderjähriger, widerspricht Prinzip II und III).
+
+## R-14 Anpassungen bei der Umsetzung von Phase 1 (02.11.2026)
+
+- **TypeScript 6.0 statt 7.0**: typescript-eslint 8 unterstützt TypeScript bis < 6.1; TypeScript 7 (nativer Compiler) hat noch keine kompatible Lint-Anbindung. Wechsel, sobald typescript-eslint TS 7 unterstützt (Dependabot meldet es).
+- **App-Icons per CLI** (`npm run icons`, @vite-pwa/assets-generator) vor dem Vite-Build statt über die pwaAssets-Integration von vite-plugin-pwa; die Integration hat im Build keine Dateien ausgegeben. Icons liegen generiert in `public/brand/` (nicht eingecheckt), Manifest und `<head>` verweisen explizit darauf.
+- **Schriften** werden direkt aus `design/fonts/` über `src/styles/tokens.css` eingebunden und von Vite mit Hash ausgeliefert (kein Kopieren nötig). `OFL.txt` wird mit ausgeliefert.
+- **Lighthouse CI** läuft per `npx @lhci/cli@0.15.1` nur in der CI und ist keine Projekt-Abhängigkeit, weil die Lighthouse-Kette viele bekannte Schwachstellen in Dev-Abhängigkeiten mitbringt. Die PWA-Kategorie gibt es in Lighthouse 12 nicht mehr; Installierbarkeit (Manifest, Icons, Service Worker) prüft stattdessen der E2E-Smoke-Test.
+- **Dependency Review** blockiert nur Laufzeit-Abhängigkeiten ab Schweregrad "high"; Dev-Werkzeuge werden über Dependabot aktuell gehalten.
