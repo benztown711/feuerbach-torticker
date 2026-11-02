@@ -469,7 +469,8 @@ export function GameScreen({ id }: { id: string }) {
           onClose={() => setPicker(null)}
           {...(picker?.until != null
             ? {
-                countdown: Math.max(1, Math.ceil((picker.until - now) / 1000)),
+                // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 s anzeigen.
+                countdown: Math.min(PICKER_MS / 1000, Math.max(1, Math.ceil((picker.until - now) / 1000))),
                 ...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {}),
               }
             : {})}
