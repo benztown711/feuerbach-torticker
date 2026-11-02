@@ -34,6 +34,14 @@ describe('T005 FR-015 FR-018 tokens-to-css', () => {
     }
   });
 
+  it('FR-018 [data-theme="dark"] erzwingt die dunklen Werte (Einstellung "Dunkel")', () => {
+    const dark = block(':root[data-theme="dark"]');
+    expect(dark).toContain('color-scheme: dark;');
+    for (const t of tokens.color.tokens) {
+      expect(dark).toContain(`--color-${t.name}: ${t.value.dark};`);
+    }
+  });
+
   it('FR-015 erzeugt Abstände, Radien und Schriftfamilien als Variablen', () => {
     const root = block(':root');
     for (const t of tokens.spacing.tokens) expect(root).toContain(`--${t.name}: ${t.value};`);

@@ -109,3 +109,12 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Kleinstes Gerät als Maßstab**: Playwright-Projekt `iphone-se` (WebKit, `devices['iPhone SE']`, 375 × 667) ergänzt; E2E-Kernszenarien und Screenshot-Vergleich laufen dort. Layout-Test: Spielbildschirm ohne Seiten-Scroll (`document.scrollingElement.scrollHeight <= innerHeight`).
 - **Trikotfarben**: feste Palette `design/trikot-farben.json` (12 Farben) statt freier Farbwahl: garantiert geprüfte Kontraste, schnelle Auswahl am Spielfeldrand, keine Farbwerte im Code. Kontraste werden im Unit-Test geprüft (Schrift auf Knopf; Rahmen bei < 3:1 zum Hintergrund).
 - **Kostenfreiheit (Constitution VIII)**: Native Hülle, Apple Developer Account, kostenpflichtige KI-Review-Dienste und bezahlte Hosting-Pläne sind ausgeschlossen. Für release-please-PRs, die CI auslösen sollen, wird ein kostenloses Fine-grained Personal Access Token als Repository-Secret genutzt.
+
+## R-16 Anpassungen bei der Umsetzung des MVP (US1, US2)
+
+- **Rückgängig vs. Entfernen**: "Rückgängig" (10 s nach dem Tap) löscht das Tor vollständig, weil es sich um ein Verklicken handelt; "Tor entfernen" über die Torliste setzt `deletedAt` und lässt das Tor durchgestrichen stehen (FR-008). So bleibt die Liste frei von Fehltaps.
+- **Uhr-Ticks**: Die Anzeige rechnet alle 250 ms `deriveClock` neu; Signale werden über die Liste der fälligen Schwellen ausgelöst und sofort als signalisiert gespeichert (nach Neuladen höchstens ein Signal für mehrere verpasste Schwellen).
+- **Tor-Knöpfe ohne `aria-label`**: Der sichtbare Text "TOR Feuerbach E1" ist der zugängliche Name (axe-Regel label-content-name-mismatch).
+- **Theme "Dunkel"**: `tokens-to-css` erzeugt zusätzlich `:root[data-theme="dark"]`; die Auswahl in den Einstellungen folgt mit US6 (T077).
+- **Stylelint**: `currentColor` ist als Schlüsselwort erlaubt (kein Farbwert), damit Linien-Icons die Textfarbe übernehmen.
+- **Noch nicht umgesetzt** (gehört zu späteren Stories): Torschütze ändern (`goal-edit-scorer`, US3), Löschen von Toren in den Spieldetails (dort nur Anzeige; Entfernen über den Spielbildschirm), Einstellungen-Bildschirm (US6).

@@ -9,7 +9,7 @@
     "scale-unlimited/declaration-strict-value": [
       ["/color$/", "background", "background-color", "border-color", "fill", "stroke", "outline-color"],
       {
-        "ignoreValues": ["transparent", "inherit", "currentcolor", "none", "initial", "unset"],
+        "ignoreValues": ["transparent", "inherit", "currentcolor", "currentColor", "none", "initial", "unset"],
         "disableFix": true
       }
     ],

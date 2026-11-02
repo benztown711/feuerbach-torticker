@@ -43,4 +43,5 @@ Ein Test wird nie übersprungen oder abgeschwächt, um grün zu werden.
 - Keine Farbwerte, Schriften oder Logos außerhalb von `design/` erfinden.
 - Neue Laufzeit-Abhängigkeiten nur mit Begründung in `research.md`.
 - Spec, Plan, Tasks und Code bleiben konsistent: Jede Verhaltensänderung beginnt in `spec.md`.
+- Schreibt Atti im Chat "Merge #x", übernimmt der Agent den PR per Squash-Merge, aber nur bei grüner CI auf dem aktuellen Stand.
 - Antworten an Atti auf Deutsch, Kurzfassung zuerst, kurz, Anrede "Atti", keine langen Gedankenstriche.

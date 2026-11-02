@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E in zwei Profilen (research.md R-10): iphone (WebKit) und android (Chromium).
+ * E2E in drei Profilen (research.md R-10, R-15): iphone und iphone-se (WebKit) sowie android (Chromium).
  * Lokal im Cloud-Container gibt es nur Chromium: PW_CHROMIUM_PATH setzt den Browserpfad,
  * PW_PROJECTS=android beschränkt auf das Android-Profil. In der CI laufen beide.
  */
@@ -23,6 +23,8 @@ export default defineConfig({
   },
   projects: [
     { name: 'iphone', use: { ...devices['iPhone 15'] } },
+    // T089 FR-033: kleinstes unterstütztes iPhone als Maßstab (375 × 667).
+    { name: 'iphone-se', use: { ...devices['iPhone SE'] } },
     {
       name: 'android',
       use: {
