@@ -84,3 +84,12 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
   - Dependabot wöchentlich für npm und GitHub Actions, gruppiert.
   - Branch-Schutz für `main`: CI grün erforderlich.
 - **Rationale**: "Höchst automatisiert" laut Projektauftrag; jeder Merge ist sofort auf den Handys verfügbar (Update-Hinweis in der App).
+
+## R-13 Kader importieren und teilen (User Story 7)
+
+- **Decision**:
+  - Listen-Import: eigener, unit-getesteter Parser `src/domain/roster-parse.ts` (Zeilen → `{number?, name, warnings[]}`), Vorschau vor Übernahme, Zusammenführen nach ID bzw. Name.
+  - Kader-Code: JSON (`{v:1, players:[{id,name,number,team?}]}`) → komprimiert (`CompressionStream('deflate-raw')`, in iOS 16.4+ und Chrome vorhanden) → Base64url mit Präfix `FTK1:`. 21 Spieler ergeben ca. 400 bis 600 Zeichen, passt in einen QR-Code mittlerer Größe.
+  - QR erzeugen: `uqr` (klein, ohne Abhängigkeiten, SVG-Ausgabe). QR scannen: `qr-scanner` (WebWorker, nutzt `BarcodeDetector` wo vorhanden, sonst eigene Dekodierung; iOS Safari hat kein `BarcodeDetector`). Beide nur bei Bedarf nachgeladen (dynamischer Import), damit das Spiel-Bundle klein bleibt.
+- **Rationale**: Kein Server, keine Kindernamen im öffentlichen Repo oder in der Cloud; funktioniert offline am Platz (QR) und aus der Ferne (WhatsApp-Code). Ein Link wäre auf dem iPhone ungeeignet, weil Safari und Home-Bildschirm-App getrennte Speicher haben.
+- **Alternatives**: SpielerPlus-Export (nur mit Premium, CSV-Import kann später ergänzt werden, gleicher Parser-Kern); zentraler Kader auf einem Server oder als Datei im Repo (Datenschutz Minderjähriger, widerspricht Prinzip II und III); Teilen per Link (siehe oben).

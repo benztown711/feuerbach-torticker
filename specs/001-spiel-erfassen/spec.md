@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-02
 
-**Status**: Geklärt, bereit für `/speckit-plan`
+**Status**: Plan erstellt; User Story 7 (Kader teilen) ergänzt, 2 offene Fragen
 
 ## Clarifications
 
@@ -140,6 +140,25 @@ Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergan
 
 ---
 
+### User Story 7 - Kader per Liste importieren und mit Trainerkollegen teilen (Priority: P2)
+
+Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp oder Excel kopiert), prüft die Vorschau und übernimmt sie. Danach gibt er den Kader per QR-Code oder Kader-Code (WhatsApp) an die anderen Trainer weiter, die ihn mit einem Tap übernehmen.
+
+**Why this priority**: Fünf Trainer der E1/E2 sollen nicht jeweils 21 Spieler abtippen. Ein SpielerPlus-Export ist nur mit Premium möglich, eine eingefügte Liste funktioniert immer.
+
+**Independent Test**: Liste einfügen, Vorschau prüfen, übernehmen; Kader-Code auf zweitem Gerät einfügen; Kader identisch.
+
+**Acceptance Scenarios**:
+
+1. **Given** ein leerer Kader, **When** der Nutzer die Liste "1 Max", "2 Maxi", "5 Ben", "Tom" einfügt, **Then** zeigt die Vorschau 4 Spieler (Tom ohne Nummer), und nach "Übernehmen" stehen sie im Kader.
+2. **Given** eine Zeile "Max Mustermann", **When** die Vorschau erscheint, **Then** wird "Max M." vorgeschlagen und auf "nur Vornamen" hingewiesen.
+3. **Given** zwei Zeilen mit derselben Nummer, **When** die Vorschau erscheint, **Then** sind beide markiert, und der Nutzer kann trotzdem übernehmen.
+4. **Given** ein Kader mit "Max" (Nr. 1), **When** eine Liste mit "Max" ohne Nummer und "Leo" eingefügt wird, **Then** bleibt Max (Nr. 1) einmal erhalten und Leo kommt hinzu; nicht aufgeführte Spieler werden nicht gelöscht.
+5. **Given** ein gepflegter Kader, **When** der Nutzer "Kader teilen" wählt, **Then** kann er einen QR-Code anzeigen oder einen Kader-Code über das Teilen-Menü versenden.
+6. **Given** ein zweites Gerät, **When** der Kollege in der App den QR-Code scannt oder den Kader-Code einfügt, **Then** wird der Kader nach Vorschau zusammengeführt; spätere Updates desselben Kaders erzeugen keine Duplikate.
+
+---
+
 ### Edge Cases
 
 - Ein Tor fällt in der Nachspielzeit von Halbzeit 1 (2 × 25 Min): Es wird als "25+1'" gespeichert; Halbzeit 2 beginnt trotzdem bei 26'.
@@ -170,6 +189,10 @@ Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergan
 - **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
 - **FR-023**: Die App MUSS beim Browser dauerhaften Speicher anfordern und, wenn sie nicht vom Home-Bildschirm läuft, auf die Installation hinweisen.
 - **FR-024**: Die Historie MUSS als Datei exportiert und wieder importiert werden können (Sicherung bei Handywechsel).
+- **FR-025**: Der Kader MUSS per eingefügter Textliste importiert werden können, ein Spieler pro Zeile. Erkannt werden: optionale Rückennummer (1 bis 99) vor oder nach dem Namen, Trennzeichen Leerzeichen, Tab, Punkt, Bindestrich, Komma oder "#"; leere Zeilen und Kopfzeilen ohne Namen werden übersprungen. Mehrwortnamen werden auf Vorname plus Initial gekürzt.
+- **FR-026**: Vor jedem Import MUSS eine Vorschau mit Auffälligkeiten (doppelte Nummer, doppelter Name, gekürzter Nachname) gezeigt werden; erst "Übernehmen" schreibt in den Kader.
+- **FR-027**: Import und Kader-Übernahme MÜSSEN zusammenführen statt ersetzen: gleicher Spieler (gleiche ID, sonst gleicher Name) wird aktualisiert, neue werden ergänzt, keiner wird gelöscht.
+- **FR-028**: Der Kader MUSS als QR-Code angezeigt und als Kader-Code über das Teilen-Menü versendet werden können; die App MUSS beides einlesen können (Kamera-Scan bzw. Einfügen). Der Code enthält nur Vorname/Kürzel, Nummer, Spieler-ID und gegebenenfalls Mannschaftszuordnung.
 - **FR-011**: Ein beendetes Spiel MUSS als Text über das System-Teilen-Menü geteilt werden können (Fallback: Zwischenablage).
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
 - **FR-013**: Während die Uhr läuft, MUSS die App den Bildschirm wach halten, sofern das Gerät es unterstützt (Voraussetzung für Ton und Anzeige am Abschnittsende).
@@ -211,4 +234,7 @@ Alle Spiele bleiben dauerhaft auf dem Handy gespeichert. Der Nutzer sieht vergan
 
 ## Offene Fragen
 
-Keine. Turniermodus folgt als `specs/002-turniermodus`.
+1. **E1/E2**: Gemeinsamer Pool oder Zuordnung je Spieler (z. B. Kopfzeilen "E1:" / "E2:" in der eingefügten Liste)?
+2. **Spiele teilen**: Sollen Trainerkollegen später auch Spiele übernehmen können (gemeinsame Historie, Torschützenliste)? Vorschlag: eigene Spec, gleicher Mechanismus wie Kader-Code.
+
+Turniermodus folgt als `specs/002-turniermodus`.
