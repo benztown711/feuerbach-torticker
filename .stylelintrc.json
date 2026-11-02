@@ -1,0 +1,20 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-declaration-strict-value"],
+  "ignoreFiles": ["src/styles/tokens.css", "dist/**"],
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla", "oklch", "lab", "lch", "color-mix"],
+    "scale-unlimited/declaration-strict-value": [
+      ["/color$/", "background", "background-color", "border-color", "fill", "stroke", "outline-color"],
+      {
+        "ignoreValues": ["transparent", "inherit", "currentcolor", "none", "initial", "unset"],
+        "disableFix": true
+      }
+    ],
+    "selector-class-pattern": "^[a-z][a-z0-9-]*(__[a-z0-9-]+)?(--[a-z0-9-]+)?$",
+    "custom-property-pattern": null,
+    "value-keyword-case": ["lower", { "camelCaseSvgKeywords": true }]
+  }
+}

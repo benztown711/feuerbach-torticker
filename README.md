@@ -28,3 +28,23 @@ Läuft als Web-App (PWA) auf iPhone und Android, offline, ohne Server und ohne K
 ```bash
 uvx --from git+https://github.com/github/spec-kit.git specify check
 ```
+
+## App installieren
+
+Die aktuelle Version läuft unter **https://benztown711.github.io/feuerbach-torticker/**.
+
+- **iPhone:** Link in Safari öffnen → Teilen → "Zum Home-Bildschirm". Nur so bleiben die Daten dauerhaft gespeichert.
+- **Android:** Link in Chrome öffnen → Menü → "App installieren".
+
+Neue Versionen kommen automatisch nach jedem Merge auf `main`; die App zeigt dann einen Update-Hinweis.
+
+## Entwicklung
+
+Voraussetzung: Node.js 22.
+
+```bash
+npm ci
+npm run dev
+```
+
+Alle Prüfungen wie in der CI und die manuelle Geräteprüfung: siehe [`specs/001-spiel-erfassen/quickstart.md`](specs/001-spiel-erfassen/quickstart.md). Arbeitsweise und Qualitätstore: [`CLAUDE.md`](CLAUDE.md).

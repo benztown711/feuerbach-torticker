@@ -1,7 +1,7 @@
 name: Anforderung
 description: Neuer Wunsch oder Änderung an der App
-title: "Anforderung: "
-labels: ["anforderung"]
+title: 'Anforderung: '
+labels: ['anforderung']
 body:
   - type: textarea
     id: wunsch
@@ -24,4 +24,4 @@ body:
         - Irgendwann
   - type: markdown
     attributes:
-      value: "Bitte keine Nachnamen von Kindern eintragen, das Repository ist öffentlich."
+      value: 'Bitte keine Nachnamen von Kindern eintragen, das Repository ist öffentlich.'
