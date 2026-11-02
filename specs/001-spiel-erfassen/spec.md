@@ -52,7 +52,7 @@
 - Entscheidung: Fix gemäß FR-036. Ton im Hintergrund bleibt technisch unmöglich (Web-App-Grenze, Constitution VIII schließt native App aus).
 - Zweiter Gerätetest (nach #8): Mit Lautlos-Schalter kein Ton; mit Ton nur sehr leise; in der 3. Nachspielminute optisches Signal ohne Ton; im Hintergrund geht der Bildschirm aus und es kommt kein Ton (erwartet).
 - Entscheidung: Signal über Audio-Element statt Web Audio (research.md R-19), lauter Pfiff-Ton.
-- Dritter Gerätetest (nach #9): Ton mit und ohne Lautlos-Schalter im Vordergrund ok, Wiederholung ok; nur zwei statt drei Pfiffe hörbar (Anfang verschluckt → 0,15 s Stille vorweg). Tor bei angehaltener Uhr möglich war unerwartet → FR-021 geändert: Tore nur bei laufender Uhr.
+- Dritter Gerätetest (nach #9): Ton mit und ohne Lautlos-Schalter im Vordergrund ok, Wiederholung ok; nur zwei statt drei Pfiffe hörbar (Anfang verschluckt → 0,15 s Stille vorweg). Tor bei angehaltener Uhr ohne Rückfrage war unerwartet → FR-021 geändert: bei angehaltener Uhr Abfrage "Tor eintragen und Uhr fortsetzen?".
 
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
@@ -247,7 +247,7 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
 - **FR-013**: Während die Uhr läuft, MUSS die App den Bildschirm wach halten, sofern das Gerät es unterstützt (Voraussetzung für Ton und Anzeige am Abschnittsende).
 - **FR-014**: Der eigene Mannschaftsname MUSS pro Spiel frei wählbar sein (1 bis 40 Zeichen, Vorgabe "Sportvg Feuerbach" bzw. der zuletzt genutzte). Zuletzt genutzte Namen (bis 5) werden als Schnellauswahl angeboten. Auf den Tor-Knöpfen steht die Kurzform ohne "Sportvg " (z. B. "Feuerbach E1").
-- **FR-021**: Die Tor-Knöpfe MÜSSEN nur bei laufender Uhr aktiv sein (einschließlich Nachspielzeit); vor dem Anpfiff, bei angehaltener Uhr, in der Halbzeitpause und nach dem Schlusspfiff sind sie deaktiviert. Nachträge und Korrekturen erfolgen über die Torliste.
+- **FR-021**: Tore MÜSSEN nur bei laufender Uhr gezählt werden (einschließlich Nachspielzeit). Vor dem Anpfiff, in der Halbzeitpause und nach dem Schlusspfiff sind die Tor-Knöpfe deaktiviert. Bei angehaltener Uhr fragt ein Tipp auf einen Tor-Knopf "Tor eintragen und Uhr fortsetzen?"; nach Bestätigung läuft die Uhr weiter und das Tor wird gezählt, sonst bleibt alles unverändert. Korrekturen erfolgen über die Torliste.
 
 ### Gestaltung (Design System der Sportvg Feuerbach, Details in `design/README.md`)
 
