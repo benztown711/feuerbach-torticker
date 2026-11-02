@@ -24,6 +24,14 @@ let unlocked = false;
 let still: HTMLAudioElement | null = null;
 let keepAliveWanted = false;
 
+// Gerätetest 02.11.: Nach Hintergrund hielt die App den Ton für freigeschaltet, iOS hatte ihn aber gesperrt.
+// Darum gilt der Ton nach jeder Rückkehr als gesperrt, bis eine Berührung ihn neu freischaltet (FR-036, R-20).
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') unlocked = false;
+  });
+}
+
 interface AudioSessionNavigator {
   audioSession?: { type: string };
 }

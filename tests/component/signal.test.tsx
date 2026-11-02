@@ -116,4 +116,16 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     expect(played.filter((p) => !p.keepAlive).at(-1)).toMatchObject({ muted: false, src: 'blob:signal' });
     expect(s.audioReady()).toBe(true);
   });
+
+  it('FR-036 nach Rückkehr aus dem Hintergrund gilt der Ton als gesperrt, bis zur nächsten Berührung', async () => {
+    const s = await load();
+    s.unlockAudio();
+    await flush();
+    expect(s.audioReady()).toBe(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(s.audioReady()).toBe(false);
+    s.unlockAudio();
+    await flush();
+    expect(s.audioReady()).toBe(true);
+  });
 });
