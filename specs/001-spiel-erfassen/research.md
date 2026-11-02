@@ -143,6 +143,14 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Rationale**: Audio-Elemente nutzen den Medien-Kanal: kein Lautlos-Schalter, Regelung über die Lautstärketasten, keine Stilllegung im Vordergrund.
 - **Prüfung**: `tests/component/signal.test.tsx` (WAV-Aufbau, Pegel, Freischaltung, Sperre); E2E `US2-S11` über gemocktes `HTMLMediaElement.play`. Echter Pegel nur auf dem Gerät.
 
+## R-20 Audio-Kanal offen halten (vierter Gerätetest 02.11.2026)
+
+- **Befund**: Nach #10 kam bei Ablauf der regulären Spielzeit kein Ton (mit und ohne Lautlos-Schalter, App im Vordergrund), obwohl dieselbe Technik im Test zuvor funktionierte.
+- **Hypothese**: iOS legt die Audio-Sitzung einer Web-App nach einigen Minuten ohne Wiedergabe still; das spätere `play()` ohne Berührung wird dann verweigert oder bleibt stumm.
+- **Decision**: Ein zweites Audio-Element spielt ab dem Anpfiff (innerhalb der Berührung gestartet) eine 1-s-Stille in Schleife, solange das Spiel läuft oder angehalten ist; beim Schlusspfiff bzw. Verlassen wird es gestoppt. Zusätzlich "Signal testen" (FR-039) zur Kontrolle vor dem Anpfiff.
+- **Nebenwirkung**: iOS kann die App in der Steuerzentrale als "Wiedergabe" anzeigen; der Akkuverbrauch einer stillen Spur ist vernachlässigbar.
+- **Ergänzung (fünfter Gerätetest)**: Nach Neuladen kam der Ton bei 00:00 und in der Nachspielzeit zuverlässig; ohne Neuladen nach längerer Nutzung/Hintergrund nicht. Daher gilt der Ton nach jeder Rückkehr aus dem Hintergrund (`visibilitychange`) als gesperrt; der Hinweis "Ton aus · tippen" erscheint, die nächste Berührung schaltet neu frei.
+
 ## R-21 Navigation, Historie, Teilen, Einstellungen (Review B Runde 4, 02.11.2026)
 
 - **Navigationsleiste (FR-037)**: feste Leiste (`position: fixed`), Höhe `--nav-h: 56px` plus `env(safe-area-inset-bottom)`; der Body reserviert diesen Platz, der Spielbildschirm zieht ihn von seiner Höhe ab. FR-033 bleibt erfüllt (E2E `nav.spec.ts` auf 375 × 667). Aktiver Eintrag mit 3-px-Linie in `ink` statt Schatten (Design System: keine Schatten).

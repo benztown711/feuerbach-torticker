@@ -6,7 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * nach einigen Minuten kein Ton mehr (FR-007, FR-036, research.md R-18).
  */
 let block = false;
-let played: { muted: boolean; src: string }[] = [];
+let played: { muted: boolean; src: string; keepAlive: boolean }[] = [];
+let paused: boolean[] = [];
 
 async function load() {
   vi.resetModules();
@@ -21,14 +22,18 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
   beforeEach(() => {
     block = false;
     played = [];
+    paused = [];
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (this: HTMLMediaElement) {
       if (block) return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
-      played.push({ muted: this.muted, src: this.src });
+      played.push({ muted: this.muted, src: this.src, keepAlive: this.hasAttribute('data-keepalive') });
       return Promise.resolve();
     });
-    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined);
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(function (this: HTMLMediaElement) {
+      paused.push(this.hasAttribute('data-keepalive'));
+    });
     (navigator as unknown as { audioSession?: { type: string } }).audioSession = { type: 'auto' };
-    URL.createObjectURL = vi.fn(() => 'blob:signal');
+    let n = 0;
+    URL.createObjectURL = vi.fn(() => (n++ === 0 ? 'blob:signal' : 'blob:still'));
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -44,7 +49,7 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     const s = await load();
     s.unlockAudio();
     await flush();
-    expect(played).toEqual([{ muted: true, src: 'blob:signal' }]);
+    expect(played.filter((p) => !p.keepAlive)).toEqual([{ muted: true, src: 'blob:signal', keepAlive: false }]);
     expect(s.audioReady()).toBe(true);
   });
 
@@ -60,7 +65,7 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     await flush();
     s.playSignal();
     await flush();
-    expect(played.at(-1)).toEqual({ muted: false, src: 'blob:signal' });
+    expect(played.filter((p) => !p.keepAlive).at(-1)).toMatchObject({ muted: false, src: 'blob:signal' });
   });
 
   it('FR-036 lehnt iOS das Abspielen ab, meldet audioReady false; die nächste Berührung schaltet wieder frei', async () => {
@@ -90,5 +95,37 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     let peak = 0;
     for (let i = 44; i < wav.byteLength; i += 2) peak = Math.max(peak, Math.abs(view.getInt16(i, true)));
     expect(peak).toBeGreaterThan(30000);
+  });
+
+  it('FR-036 Audio-Kanal offen halten: während das Spiel läuft, spielt eine stille Tonspur in Schleife', async () => {
+    const s = await load();
+    s.setKeepAlive(true);
+    s.unlockAudio();
+    await flush();
+    const loop = played.filter((p) => p.keepAlive);
+    expect(loop.length).toBeGreaterThan(0);
+    expect(document.querySelector('audio[data-keepalive]')).toBeNull();
+    s.setKeepAlive(false);
+    expect(paused).toContain(true);
+  });
+
+  it('FR-039 testSignal spielt das Signal sofort hörbar ab und schaltet den Ton frei', async () => {
+    const s = await load();
+    s.testSignal();
+    await flush();
+    expect(played.filter((p) => !p.keepAlive).at(-1)).toMatchObject({ muted: false, src: 'blob:signal' });
+    expect(s.audioReady()).toBe(true);
+  });
+
+  it('FR-036 nach Rückkehr aus dem Hintergrund gilt der Ton als gesperrt, bis zur nächsten Berührung', async () => {
+    const s = await load();
+    s.unlockAudio();
+    await flush();
+    expect(s.audioReady()).toBe(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(s.audioReady()).toBe(false);
+    s.unlockAudio();
+    await flush();
+    expect(s.audioReady()).toBe(true);
   });
 });

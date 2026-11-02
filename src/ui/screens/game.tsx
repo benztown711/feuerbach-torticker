@@ -29,7 +29,7 @@ import type { Game, Goal, Scorer, Side } from '../../domain/types';
 import { buildShareText } from '../../domain/share-text';
 import { getGame, putGame } from '../../platform/db';
 import { shareText } from '../../platform/share';
-import { audioReady, playSignal, unlockAudio } from '../../platform/signal';
+import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
@@ -100,8 +100,15 @@ export function GameScreen({ id }: { id: string }) {
   // FR-013: Bildschirm wach halten, solange die Uhr läuft oder angehalten ist.
   useEffect(() => {
     keepAwake(status === 'running' || status === 'paused');
+    setKeepAlive(status === 'running' || status === 'paused');
   }, [status]);
-  useEffect(() => () => keepAwake(false), []);
+  useEffect(
+    () => () => {
+      keepAwake(false);
+      setKeepAlive(false);
+    },
+    [],
+  );
 
   const pickerExpired = picker?.until != null && now >= picker.until;
   useEffect(() => {
@@ -168,6 +175,7 @@ export function GameScreen({ id }: { id: string }) {
   };
 
   const doKickoff = (): void => {
+    setKeepAlive(true);
     unlockAudio();
     update(kickoff(cur(), Date.now()));
   };

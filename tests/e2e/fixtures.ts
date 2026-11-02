@@ -4,6 +4,7 @@ export interface Recorded {
   shares: { text?: string; title?: string; files?: number; fileName?: string; fileText?: string }[];
   sounds: number;
   vibrations: number;
+  keepAlive: boolean;
 }
 
 /**
@@ -30,7 +31,7 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
   page: async ({ page }, use) => {
     await page.clock.install();
     await page.addInitScript(() => {
-      const rec = { shares: [] as unknown[], sounds: 0, vibrations: 0, blockAudio: false };
+      const rec = { shares: [] as unknown[], sounds: 0, vibrations: 0, blockAudio: false, keepAlive: false };
       (window as unknown as { __rec: typeof rec }).__rec = rec;
       Object.defineProperty(navigator, 'share', {
         configurable: true,
@@ -56,10 +57,13 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
       // Signal läuft über ein Audio-Element (R-18). Hörbare Starts zählen; blockAudio simuliert die iOS-Sperre.
       HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) {
         if (rec.blockAudio) return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
-        if (!this.muted) rec.sounds++;
+        if (!this.muted && !this.hasAttribute('data-keepalive')) rec.sounds++;
+        if (this.hasAttribute('data-keepalive')) rec.keepAlive = true;
         return Promise.resolve();
       };
-      HTMLMediaElement.prototype.pause = () => undefined;
+      HTMLMediaElement.prototype.pause = function (this: HTMLMediaElement) {
+        if (this.hasAttribute('data-keepalive')) rec.keepAlive = false;
+      };
     });
     await use(page);
   },

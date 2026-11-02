@@ -163,4 +163,16 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     await forward(page, 1 * MIN);
     expect((await recorded()).sounds).toBeGreaterThan(before);
   });
+
+  test('US2-S13 FR-036 Audio-Kanal wird beim Anpfiff mit Stille offen gehalten', async ({ page, recorded }) => {
+    await startGame(page);
+    expect((await recorded()).keepAlive).toBe(true);
+  });
+
+  test('US2-S14 FR-039 "Signal testen" spielt den Pfiff vor dem Anpfiff', async ({ page, recorded }) => {
+    await page.goto('./');
+    await page.getByTestId('btn-new-game').click();
+    await page.getByTestId('btn-test-signal').click();
+    expect((await recorded()).sounds).toBe(1);
+  });
 });
