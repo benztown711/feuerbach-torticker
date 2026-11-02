@@ -30,6 +30,10 @@ test.describe('US7 Kader per Liste einfügen und teilen', () => {
     await expect(nameField(page, 1)).toHaveValue('Max Mü.');
     await expect(nameField(page, 2)).toHaveValue('Max Me.');
     await expect(rows(page).first()).toContainText('Nachname gekürzt');
+    await nameField(page, 0).fill('Ben Mustermann');
+    await expect(rows(page).first()).toContainText('Bitte nur Vornamen');
+    await nameField(page, 0).fill('Ben');
+    await expect(rows(page).first()).not.toContainText('Bitte nur Vornamen');
     await page.getByTestId('paste-apply').click();
     await expect(page.getByTestId('roster-list')).toContainText('Max Mü.');
     const stored = await page.evaluate(

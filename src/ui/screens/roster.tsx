@@ -180,6 +180,7 @@ function PasteList(props: { players: Player[]; onApply: (players: Player[]) => v
                       {WARNING_TEXT[w]}
                     </span>
                   ))}
+                  {looksLikeFullName(r.name) && <span class="tag tag--warn">Bitte nur Vornamen</span>}
                 </span>
               </li>
             );

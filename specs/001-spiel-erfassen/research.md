@@ -118,3 +118,12 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Theme "Dunkel"**: `tokens-to-css` erzeugt zusätzlich `:root[data-theme="dark"]`; die Auswahl in den Einstellungen folgt mit US6 (T077).
 - **Stylelint**: `currentColor` ist als Schlüsselwort erlaubt (kein Farbwert), damit Linien-Icons die Textfarbe übernehmen.
 - **Noch nicht umgesetzt** (gehört zu späteren Stories): Torschütze ändern (`goal-edit-scorer`, US3), Löschen von Toren in den Spieldetails (dort nur Anzeige; Entfernen über den Spielbildschirm), Einstellungen-Bildschirm (US6).
+
+## R-17 Anpassungen bei der Umsetzung von Kader, Aufgebot und Torschützen (US5, US3, US7)
+
+- **Schnellauswahl nur mit Kader**: Die Torschützen-Auswahl öffnet sich nach einem eigenen Tor nur, wenn der Kader mindestens einen Spieler hat. Ohne Kader bleibt der MVP-Ablauf unverändert. Statt "Spieler anlegen" mitten im Spiel (Edge Case) bietet "Neues Spiel" bei leerem Kader den Link "Kader anlegen" an; ein Wechsel weg vom laufenden Spiel ist am Spielfeldrand riskant.
+- **Rückgängig in der Schnellauswahl**: Solange die Auswahl offen ist, liegt "Rückgängig" (`btn-undo`) in ihrem Kopf statt in der Undo-Leiste, die sonst verdeckt wäre. Nach dem Schließen gilt wieder die Undo-Leiste (10 s ab Tor).
+- **Torschütze nachtragen auf dem Spielbildschirm statt in den Spieldetails (T062)**: Das Aktionsmenü eines Tors ("Torschütze ändern") ist auch nach dem Schlusspfiff erreichbar. Die Spieldetails zeigen Torschützen nur an. Eigene Tore: Kader (inkl. "Andere …"), "Eigentor Gegner", "Ohne Torschütze"; Gegentore: Freitext "Name oder Rückennummer" (max. 30 Zeichen).
+- **Zuordnung beim Einfügen**: Gleicher Vorname mit unterschiedlicher Nummer gilt als anderes Kind (kein Überschreiben der Nummer). Steht in der Liste keine Nummer, bleibt die gespeicherte erhalten.
+- **Vorschau**: Zeilen lassen sich entfernen; jede Zeile zeigt "neu", "aktualisiert" oder "wieder sichtbar". Kopfzeilen mit Doppelpunkt (z. B. "E1:") werden übersprungen. Manuell eingetippte volle Namen bekommen den Hinweis "Bitte nur Vornamen" (FR-020).
+- **Kader teilen**: Web Share API, sonst Zwischenablage mit Hinweis (`src/platform/share.ts`, auch für US4 nutzbar).
