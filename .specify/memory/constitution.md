@@ -1,4 +1,4 @@
-# SVF Torticker Constitution
+# Feuerbach Torticker Constitution
 
 Grundsätze für den Ergebnis-Tracker der Sportvereinigung Feuerbach. Jede Spec, jeder Plan und jeder Pull Request muss diese Regeln einhalten.
 

@@ -1,4 +1,4 @@
-# SVF Torticker
+# Feuerbach Torticker
 
 Ergebnis-Tracker für Fußballspiele der Sportvereinigung Feuerbach: große Tor-Knöpfe, automatische Spielminute, Countdown, optional Torschütze, Ergebnis per WhatsApp teilen.
 
