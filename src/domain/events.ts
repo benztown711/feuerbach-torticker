@@ -134,20 +134,6 @@ export function cardText(game: Game, e: CardEvent, players: Player[]): string {
 export const subText = (e: SubEvent, players: Player[]): string =>
   `${playerName(players, e.inId)} für ${playerName(players, e.outId)}`;
 
-/** FR-E07: Zeilen "Karten: …" und "Wechsel: …" für den Teilen-Text; Lesezeichen nie. */
-export function eventsShareLines(game: Game, players: Player[]): string[] {
-  const sorted = [...gameEvents(game)].sort((a, b) => a.at - b.at);
-  const min = (e: GameEvent): string => formatMinute(e.minute, e.stoppage);
-  const cards = sorted
-    .filter((e): e is CardEvent => e.kind === 'card')
-    .map((e) => `${min(e)} ${cardText(game, e, players)}`);
-  const subs = sorted.filter((e): e is SubEvent => e.kind === 'sub').map((e) => `${min(e)} ${subText(e, players)}`);
-  return [
-    ...(cards.length ? [`Karten: ${cards.join(', ')}`] : []),
-    ...(subs.length ? [`Wechsel: ${subs.join(', ')}`] : []),
-  ];
-}
-
 /** FR-E05/US2-S6: Lesezeichen löschen (auch Rückgängig direkt nach dem Setzen). */
 export const removeEvent = (game: Game, id: string): Game => ({
   ...game,

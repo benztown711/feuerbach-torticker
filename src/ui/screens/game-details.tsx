@@ -13,6 +13,7 @@ import { deleteGame, getGame, getPlayers } from '../../platform/db';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
+import { SharePreview } from '../components/share-preview';
 import { navigate } from '../router';
 
 const eventText = (e: ClockEvent, game: Game): string => {
@@ -238,9 +239,7 @@ export function GameDetailsScreen({ id }: { id: string }) {
       )}
 
       <section class="details__share" aria-label="Ergebnis teilen">
-        <pre class="share-preview" data-testid="share-preview">
-          {text}
-        </pre>
+        <SharePreview text={text} />
         <div class="button-row">
           <button
             type="button"

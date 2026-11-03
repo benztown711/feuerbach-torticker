@@ -1367,6 +1367,21 @@
   white-space: pre-wrap;
 }
 
+/* Spec 005 FR-S07: Teilen-Text wie im Chat, Verlauf in fester Breite, damit die Spalten bündig stehen. */
+.share-preview__line {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.share-preview__mono {
+  margin: 2px 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 17px;
+  white-space: pre;
+}
+
 .details__gone {
   padding: var(--space-4);
 }

@@ -2,7 +2,7 @@ import { test, expect } from './fixtures';
 import { MIN, SEC, confirmYes, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
 
 test.describe('US4 Ergebnis teilen (FR-011)', () => {
-  test('US4-S1 Teilen-Menü mit Text nach contracts/share-text.md, auch direkt nach dem Schlusspfiff', async ({
+  test('US4-S1 005 US1-S1 Teilen-Menü mit Text nach contracts/share-text.md, auch direkt nach dem Schlusspfiff', async ({
     page,
     recorded,
   }) => {
@@ -11,11 +11,14 @@ test.describe('US4 Ergebnis teilen (FR-011)', () => {
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
     const text = (await recorded()).shares[0]?.text ?? '';
-    expect(text.split('\n')[0]).toBe('⚽ TSV Musterstadt - Sportvg Feuerbach 0:0');
-    expect(text.split('\n')[1]).toMatch(/^\d\d\.\d\d\.\d{4}, Anpfiff \d\d:\d\d$/);
+    expect(text.split('\n')[0]).toBe('*TSV Musterstadt 0:0 Sportvg Feuerbach*');
+    expect(text.split('\n')[1]).toMatch(/^\S\S, \d\d\.\d\d\.\d{4}, \d\d:\d\d Uhr$/);
   });
 
-  test('US4-S1 Torschütze erscheint im Text; Vorschau in den Spieldetails', async ({ page, recorded }) => {
+  test('US4-S1 005 US1-S2 US1-S4 US5-S1 Torschütze in Tabelle und Torschützen; Vorschau wie im Chat', async ({
+    page,
+    recorded,
+  }) => {
     await seedRoster(page, '7 Max');
     await startGame(page, { opponent: 'FC Erster', sections: 1, minutes: 12 });
     await forward(page, MIN);
@@ -25,10 +28,16 @@ test.describe('US4 Ergebnis teilen (FR-011)', () => {
     await confirmYes(page);
     await page.getByTestId('nav-history').click();
     await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
-    await expect(page.getByTestId('share-preview')).toContainText("2' 1:0 Max");
+    const preview = page.getByTestId('share-preview');
+    await expect(preview.locator('strong').first()).toHaveText('Sportvg Feuerbach 1:0 FC Erster');
+    await expect(preview.locator('pre')).toHaveText("🔴 2'  1:0  Max", { useInnerText: true });
+    await expect(preview).not.toContainText('*');
+    await expect(preview).not.toContainText('```');
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
-    expect((await recorded()).shares[0]?.text).toContain("2' 1:0 Max");
+    const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
+    expect(lines).toContain("🔴 2'  1:0  Max");
+    expect(lines.slice(-2)).toEqual(['*Torschützen*', 'Max ⚽']);
   });
 
   test('US4-S2 ohne Teilen-Funktion: Zwischenablage mit Bestätigung', async ({ page }) => {
@@ -59,7 +68,7 @@ test.describe('US4 Ergebnis teilen (FR-011)', () => {
 });
 
 test.describe('FR-042 Zwischenstand teilen', () => {
-  test('FR-042 im "…"-Menü während des Spiels, nicht vor dem Anpfiff', async ({ page, recorded }) => {
+  test('FR-042 005 US4-S1 im "…"-Menü während des Spiels, nicht vor dem Anpfiff', async ({ page, recorded }) => {
     await newGame(page, { opponent: 'TSV Musterstadt' });
     await page.getByTestId('btn-menu').click();
     await expect(page.getByTestId('game-menu')).toBeVisible();
@@ -73,8 +82,8 @@ test.describe('FR-042 Zwischenstand teilen', () => {
     await page.getByTestId('menu-share-interim').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
     const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
-    expect(lines[0]).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 1:0 · Zwischenstand 7'");
-    expect(lines[2]).toBe("7' 1:0");
+    expect(lines.slice(0, 2)).toEqual(['*Sportvg Feuerbach 1:0 TSV Musterstadt*', "Zwischenstand 7'"]);
+    expect(lines[3]).toBe("🔴 7'  1:0");
     await expect(page.getByTestId('game-menu')).toBeHidden();
   });
 });

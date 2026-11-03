@@ -114,7 +114,10 @@ describe('003 FR-E05 Lesezeichen', () => {
   it('003 US2-S4 Lesezeichen stehen nie im geteilten Text, aber in der Zeitleiste', () => {
     const g = addMark(running(), T0 + min(6), ids)!.game;
     expect(buildShareText(g, [], TZ)).not.toContain('Lesezeichen');
-    expect(buildShareText(g, [], TZ).split('\n')).toHaveLength(2);
+    expect(buildShareText(g, [], TZ).split('\n')).toEqual([
+      '*Sportvg Feuerbach U11 0:0 TSV Musterstadt*',
+      'Sa, 07.11.2026, 10:30 Uhr',
+    ]);
     const items = timeline(g);
     expect(items.map((i) => i.kind)).toEqual(['event', 'ev']);
   });
@@ -126,19 +129,19 @@ describe('003 FR-E01 Elfmeter-Kennzeichen', () => {
     return [r.game, r.goal!.id];
   };
 
-  it('003 US1-S1 eigenes Tor als Elfmeter: Zusatz in Liste und Teilen-Text', () => {
+  it('003 US1-S1 005 US1-S6 eigenes Tor als Elfmeter: Zusatz in Liste und Teilen-Text', () => {
     const [g0, id] = withGoal('own');
     const g = setPenalty(g0, id, true);
     expect(g.goals[0]?.penalty).toBe(true);
     expect(goalSuffix(g.goals[0]!)).toBe(' (Elfmeter)');
-    expect(buildShareText(g, [], TZ).split('\n')[2]).toBe("25+6' 1:0 (Elfmeter)");
+    expect(buildShareText(g, [], TZ).split('\n')[3]).toBe("🔴 25+6'  1:0  (Elfmeter)");
   });
 
   it('003 US1-S2 auch beim Gegentor, mit Freitext-Torschütze', () => {
     const [g0, id] = withGoal('opp');
     let g = setScorer(g0, id, { kind: 'text', text: 'Nr. 9' });
     g = setPenalty(g, id, true);
-    expect(buildShareText(g, [], TZ).split('\n')[2]).toBe("25+6' 0:1 Nr. 9 (Elfmeter)");
+    expect(buildShareText(g, [], TZ).split('\n')[3]).toBe("⚫ 25+6'  0:1  Nr. 9 (Elfmeter)");
   });
 
   it('003 US1-S3 abwählen; Elfmeter und Eigentor schließen sich aus', () => {

@@ -46,7 +46,7 @@ test.describe('Spec 003 Teil 3: Pokal', () => {
     await expect(page.getByTestId('btn-share')).toBeVisible();
   });
 
-  test('003 US5-S3 US5-S4 US5-S5 FR-P02 Verlängerung 2 × 5: Minute ab 13, "n. V." im Text; danach nur noch Elfmeterschießen', async ({
+  test('003 US5-S3 US5-S4 US5-S5 005 US3-S1 FR-P02 Verlängerung 2 × 5: Minute ab 13, "nach Verlängerung" im Text; danach nur noch Elfmeterschießen', async ({
     page,
     recorded,
   }) => {
@@ -76,10 +76,12 @@ test.describe('Spec 003 Teil 3: Pokal', () => {
     await page.getByTestId('draw-accept').click();
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
-    expect((await recorded()).shares[0]?.text?.split('\n')[0]).toBe('⚽ Sportvg Feuerbach - TSV Musterstadt 2:2 n. V.');
+    const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
+    expect(lines.slice(0, 2)).toEqual(['*Sportvg Feuerbach 2:2 TSV Musterstadt*', 'nach Verlängerung']);
+    expect(lines).toContain('··· Verlängerung ···');
   });
 
-  test('003 US6-S1 bis S5 FR-P03 Elfmeterschießen: Schütze antippen, Treffer/Verschossen, Rückgängig, Ergebnis i. E.', async ({
+  test('003 US6-S1 bis S5 005 US3-S2 US3-S3 FR-P03 Elfmeterschießen: Schütze antippen, Treffer/Verschossen, Rückgängig, Ergebnis i. E.', async ({
     page,
     recorded,
   }) => {
@@ -122,9 +124,14 @@ test.describe('Spec 003 Teil 3: Pokal', () => {
     await expect(page.getByTestId('shootout-result')).toHaveText('3:0 i. E.');
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
-    expect((await recorded()).shares[0]?.text?.split('\n')[0]).toBe(
-      '⚽ Sportvg Feuerbach - TSV Musterstadt 1:1, 3:0 i. E.',
-    );
+    const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
+    expect(lines.slice(0, 2)).toEqual([
+      '*Sportvg Feuerbach 1:1 TSV Musterstadt*',
+      '*Feuerbach gewinnt 3:0 im Elfmeterschießen*',
+    ]);
+    expect(lines).toContain('🔴 ✅ ✅ ✅  3');
+    expect(lines).toContain('⚫ ❌ ❌ ❌  0');
+    expect(lines).toContain('Schützen: Max, Ben, ?');
     await page.getByTestId('nav-history').click();
     await expect(page.getByTestId('history-list')).toContainText('S');
     await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
