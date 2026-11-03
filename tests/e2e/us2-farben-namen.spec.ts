@@ -8,20 +8,21 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
     await expect(page.getByTestId('btn-goal-opp')).toHaveCSS('background-color', 'rgb(35, 31, 32)');
   });
 
-  test('FR-031 nach einer Änderung gilt die eigene Farbe des letzten Spiels, Gegnerfarbe je Name', async ({ page }) => {
+  test('FR-031 Gegnerfarbe je Name gemerkt; eigene Farbe kommt aus der Mannschaft (004 FR-M03)', async ({ page }) => {
     await newGame(page, { ownColor: 'schwarz', oppColor: 'gelb', opponent: 'SV Beispiel' });
     await page.goto('./');
     await page.getByTestId('btn-new-game').click();
-    await expect(page.getByTestId('color-own-schwarz')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('kit-own-color')).toHaveText('Rot');
     await page.getByTestId('input-opponent').fill('SV Beispiel');
-    await expect(page.getByTestId('color-opp-gelb')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('kit-opp-color')).toHaveText('Gelb');
     await page.getByTestId('input-opponent').fill('FC Anders');
-    await expect(page.getByTestId('color-opp-weiss')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('kit-opp-color')).toHaveText('Schwarz');
   });
 
   test('FR-031 Hinweis bei gleicher Farbe', async ({ page }) => {
     await page.goto('./');
     await page.getByTestId('btn-new-game').click();
+    await page.getByTestId('kit-opp-change').click();
     await page.getByTestId('color-opp-rot').click();
     await expect(page.getByTestId('color-clash-hint')).toBeVisible();
   });
@@ -32,17 +33,11 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
     await expect(page.getByTestId('btn-goal-own')).not.toHaveClass(/goal-button--bordered/);
   });
 
-  test('FR-014 eigener Name pro Spiel, Kurzform auf dem Knopf, Schnellauswahl beim nächsten Spiel', async ({
-    page,
-  }) => {
+  test('FR-014 eigener Name pro Spiel aus "Meine Mannschaften", Kurzform auf dem Knopf', async ({ page }) => {
     await newGame(page, { ownTeam: 'Sportvg Feuerbach E2' });
     // FR-040: Kopfzeile in Kurzform wie der Knopf
     await expect(page.getByTestId('team-home')).toHaveText('Feuerbach E2');
     await expect(page.getByTestId('btn-goal-own')).toContainText('Feuerbach E2');
-    await page.goto('./');
-    await page.getByTestId('btn-new-game').click();
-    await expect(page.getByTestId('input-own-team')).toHaveValue('Sportvg Feuerbach E2');
-    await expect(page.getByTestId('own-team-recent-0')).toHaveText('Sportvg Feuerbach E2');
   });
 
   test('FR-035 Tauschen vor dem Anpfiff direkt, danach nur über das Menü mit Abfrage', async ({ page }) => {

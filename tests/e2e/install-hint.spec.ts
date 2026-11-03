@@ -15,7 +15,7 @@ test.describe('FR-023 Installationshinweis', () => {
   });
 });
 
-test.describe('FR-018 Darstellung und FR-014 Mannschaftsnamen', () => {
+test.describe('FR-018 Darstellung', () => {
   test('"Dunkel" fest einstellen wirkt sofort und bleibt nach Neuladen', async ({ page }) => {
     await page.goto('./#/einstellungen');
     await expect(page.getByTestId('theme-system')).toHaveAttribute('aria-pressed', 'true');
@@ -26,18 +26,5 @@ test.describe('FR-018 Darstellung und FR-014 Mannschaftsnamen', () => {
     await expect(page.getByTestId('theme-dark')).toHaveAttribute('aria-pressed', 'true');
     await page.getByTestId('theme-system').click();
     await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
-  });
-
-  test('FR-014 gespeicherte Mannschaftsnamen lassen sich entfernen', async ({ page }) => {
-    await page.goto('./#/neu');
-    await page.getByTestId('input-own-team').fill('Sportvg Feuerbach E2');
-    await page.getByTestId('input-opponent').fill('FC Erster');
-    await page.getByTestId('btn-create').click();
-    await expect(page.getByTestId('btn-kickoff')).toBeVisible();
-    await page.goto('./#/einstellungen');
-    const list = page.getByTestId('recent-own-teams');
-    await expect(list).toContainText('Sportvg Feuerbach E2');
-    await page.getByTestId('recent-own-team-remove-0').click();
-    await expect(list).not.toContainText('Sportvg Feuerbach E2');
   });
 });

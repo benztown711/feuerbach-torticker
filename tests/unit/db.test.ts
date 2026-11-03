@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
-import type { NewGameInput } from '../../src/domain/types';
+import type { NewGameInput, Settings } from '../../src/domain/types';
 import {
   closeDb,
   findOpenGame,
@@ -41,8 +41,9 @@ describe('T022 FR-010 IndexedDB', () => {
   });
 
   it('004 alte Einstellungen ohne Mannschaften werden beim Lesen migriert', async () => {
-    const { teams: _ignored, ...old } = await getSettings();
-    await putSettings({ ...old, recentOwnTeams: ['Sportvg Feuerbach D3'] } as never);
+    const old: Partial<Settings> = { ...(await getSettings()), recentOwnTeams: ['Sportvg Feuerbach D3'] };
+    delete old.teams;
+    await putSettings(old as Settings);
     expect((await getSettings()).teams.map((t) => t.name)).toEqual(['Sportvg Feuerbach D3']);
   });
 

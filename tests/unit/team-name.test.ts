@@ -23,5 +23,4 @@ describe('T095 FR-014 Kurzform und Einstellungen (Mannschaften siehe teams.test.
     expect(withSettingsDefaults({ theme: 'dark' }).theme).toBe('dark');
     expect(withSettingsDefaults(undefined).lastSchema).toEqual({ sections: 2, sectionMinutes: 25 });
   });
-
 });
