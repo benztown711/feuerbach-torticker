@@ -32,12 +32,18 @@ beforeEach(async () => {
 
 describe('T022 FR-010 IndexedDB', () => {
   it('liefert Vorgabe-Einstellungen bei leerer Datenbank', async () => {
-    expect(await getSettings()).toMatchObject({ recentOwnTeams: [], theme: 'system', lastOwnColor: null });
+    expect(await getSettings()).toMatchObject({ teams: [], theme: 'system' });
   });
 
   it('speichert und liest Einstellungen', async () => {
-    await putSettings({ ...(await getSettings()), recentOwnTeams: ['Sportvg Feuerbach D3'] });
-    expect((await getSettings()).recentOwnTeams).toEqual(['Sportvg Feuerbach D3']);
+    await putSettings({ ...(await getSettings()), theme: 'dark' });
+    expect((await getSettings()).theme).toBe('dark');
+  });
+
+  it('004 alte Einstellungen ohne Mannschaften werden beim Lesen migriert', async () => {
+    const { teams: _ignored, ...old } = await getSettings();
+    await putSettings({ ...old, recentOwnTeams: ['Sportvg Feuerbach D3'] } as never);
+    expect((await getSettings()).teams.map((t) => t.name)).toEqual(['Sportvg Feuerbach D3']);
   });
 
   it('speichert, liest und aktualisiert Spiele', async () => {
