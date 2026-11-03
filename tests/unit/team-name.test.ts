@@ -19,6 +19,7 @@ describe('T095 FR-014 Kurzform und Einstellungen (Mannschaften siehe teams.test.
       theme: 'system',
       installHintDismissedAt: null,
       teams: [],
+      features: { cards: false, subs: false, marks: false },
     });
     expect(withSettingsDefaults({ theme: 'dark' }).theme).toBe('dark');
     expect(withSettingsDefaults(undefined).lastSchema).toEqual({ sections: 2, sectionMinutes: 25 });
