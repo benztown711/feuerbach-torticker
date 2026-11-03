@@ -1,5 +1,8 @@
 import { test, expect } from './fixtures';
-import { MIN, confirmYes, forward, playFinishedGame } from './helpers';
+import { readFileSync } from 'node:fs';
+import { MIN, confirmYes, forward, newGame, playFinishedGame } from './helpers';
+
+const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string };
 
 test.describe('US6 Spielhistorie (FR-022, FR-038)', () => {
   test('US6-S1 US6-S7 neueste zuerst, Ergebnis aus Feuerbach-Sicht mit S/U/N', async ({ page }) => {
@@ -77,6 +80,8 @@ test.describe('US6 Spielhistorie (FR-022, FR-038)', () => {
     expect(share.fileName).toMatch(/^torticker-sicherung-\d{4}-\d{2}-\d{2}\.json$/);
     const backup = share.fileText ?? '';
     expect(JSON.parse(backup)).toMatchObject({ format: 'feuerbach-torticker-backup' });
+    // Feinschliff: App-Version aus package.json steht in der Sicherung
+    expect(JSON.parse(backup).appVersion).toBe(pkg.version);
 
     await page.getByTestId('nav-history').click();
     await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
@@ -100,5 +105,13 @@ test.describe('US6 Spielhistorie (FR-022, FR-038)', () => {
       .getByTestId('input-import')
       .setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"foo":1}') });
     await expect(page.getByTestId('import-result')).toContainText('keine Torticker-Sicherung');
+  });
+
+  test('FR-038 angelegtes Spiel ohne Anpfiff heißt in der Historie "nicht angepfiffen"', async ({ page }) => {
+    await newGame(page, { opponent: 'SC Später' });
+    await page.getByTestId('nav-history').click();
+    await expect(page.getByTestId('history-list').locator('[data-testid^="history-open-"]').first()).toHaveText(
+      'nicht angepfiffen',
+    );
   });
 });

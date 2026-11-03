@@ -33,13 +33,14 @@ Erwartung: alles grün. Jeder E2E-Test trägt die FR-/Szenario-ID im Namen, z. B
 | Tor-Knöpfe vor Anpfiff gesperrt | ja | `tests/e2e/us1-tor-erfassen.spec.ts` |
 | 2 × 25 mit Zeitsprung, Nachspielzeit 25+1' / 50+2' | ja (`page.clock`) | `tests/e2e/us2-uhr.spec.ts`, `tests/unit/minute.test.ts` |
 | Signal jede Nachspielminute, kein Doppelsignal nach Neuladen | ja (Signal-Overlay, Audio gemockt) | `tests/e2e/us2-uhr.spec.ts` |
-| Sicherheitsabfrage bei Pause/Abpfiff/Reset | ja | `tests/e2e/us2-uhr.spec.ts` |
+| Sicherheitsabfrage bei Uhr anhalten/Pausenpfiff/Schlusspfiff, Tor bei angehaltener Uhr | ja | `tests/e2e/us2-uhr.spec.ts` |
 | Neuladen mitten im Spiel stellt Zustand exakt her | ja | `tests/e2e/us2-uhr.spec.ts` |
 | Torschütze aus Kader, Gegner per Freitext | ja | `tests/e2e/us3-torschuetze.spec.ts` |
 | Teilen-Text | ja (Unit + E2E mit gemocktem `navigator.share`) | `tests/unit/share-text.test.ts` |
 | Historie mit Uhrzeiten, Export/Import | ja | `tests/e2e/us6-historie.spec.ts` |
 | Keine externen Requests | ja (Netzwerk-Wächter) | `tests/e2e/fixtures.ts` |
 | Offline nach erstem Laden | ja (`context.setOffline(true)`) | `tests/e2e/offline.spec.ts` |
+| Screenshot-Vergleich Spielbildschirm (hell/dunkel, Nachspielzeit, Halbzeit) | ja | `tests/e2e/visual.spec.ts` |
 
 ## Manuelle Geräteprüfung (vor jedem Release, ca. 10 Minuten)
 

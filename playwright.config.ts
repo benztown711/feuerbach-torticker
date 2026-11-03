@@ -24,7 +24,7 @@ export default defineConfig({
   projects: [
     { name: 'iphone', use: { ...devices['iPhone 15'] } },
     // T089 FR-033: kleinstes unterstütztes iPhone als Maßstab (375 × 667).
-    { name: 'iphone-se', use: { ...devices['iPhone SE'] } },
+    { name: 'iphone-se', use: { ...devices['iPhone SE (3rd gen)'] } },
     {
       name: 'android',
       use: {

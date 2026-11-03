@@ -62,20 +62,31 @@ test.describe('US1 Tor mit einem Tap erfassen', () => {
     await expect(page.getByTestId('score')).toHaveText('1 : 1');
   });
 
-  test('SC-001 Tap bis Anzeige unter 100 ms', async ({ page }) => {
+  test('SC-001 Tap bis Anzeige unter 100 ms (Median aus 10 Taps, T085)', async ({ page }) => {
     await startGame(page);
-    const ms = await page.evaluate(async () => {
-      const btn = document.querySelector('[data-testid="btn-goal-own"]') as HTMLButtonElement;
-      const score = document.querySelector('[data-testid="score"]') as HTMLElement;
-      const t0 = performance.now();
-      btn.click();
-      await new Promise<void>((resolve) => {
-        const check = () => (score.textContent === '1 : 0' ? resolve() : queueMicrotask(check));
-        check();
-      });
-      return performance.now() - t0;
-    });
-    expect(ms).toBeLessThan(100);
+    const times: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      const side = i % 2 === 0 ? 'own' : 'opp';
+      const ms = await page.evaluate(async (s) => {
+        const btn = document.querySelector(`[data-testid="btn-goal-${s}"]`) as HTMLButtonElement;
+        const score = document.querySelector('[data-testid="score"]') as HTMLElement;
+        const before = score.textContent;
+        const t0 = performance.now();
+        btn.click();
+        await new Promise<void>((resolve) => {
+          const check = (): void => (score.textContent !== before ? resolve() : queueMicrotask(check));
+          check();
+        });
+        return performance.now() - t0;
+      }, side);
+      times.push(ms);
+      // Doppeltipp-Schutz (1,5 s je Seite) und Undo-Leiste aus dem Weg
+      await forward(page, 2 * SEC);
+    }
+    const sorted = [...times].sort((a, b) => a - b);
+    const median = (sorted[4]! + sorted[5]!) / 2;
+    expect(median).toBeLessThan(100);
+    await expect(page.getByTestId('score')).toHaveText('5 : 5');
   });
 
   test('FR-021 nach dem Schlusspfiff sind die Tor-Knöpfe deaktiviert', async ({ page }) => {

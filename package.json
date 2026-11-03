@@ -20,7 +20,7 @@
     "contrast": "tsx scripts/check-contrast.ts",
     "budget": "tsx scripts/check-bundle-size.ts",
     "e2e": "playwright test",
-    "lhci": "lhci autorun",
+    "lhci": "npx --yes @lhci/cli@0.15.1 autorun",
     "icons": "pwa-assets-generator"
   },
   "dependencies": {
