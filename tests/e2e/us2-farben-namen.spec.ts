@@ -36,7 +36,8 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
     page,
   }) => {
     await newGame(page, { ownTeam: 'Sportvg Feuerbach E2' });
-    await expect(page.getByTestId('team-home')).toHaveText('Sportvg Feuerbach E2');
+    // FR-040: Kopfzeile in Kurzform wie der Knopf
+    await expect(page.getByTestId('team-home')).toHaveText('Feuerbach E2');
     await expect(page.getByTestId('btn-goal-own')).toContainText('Feuerbach E2');
     await page.goto('./');
     await page.getByTestId('btn-new-game').click();
@@ -46,7 +47,7 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
 
   test('FR-035 Tauschen vor dem Anpfiff direkt, danach nur über das Menü mit Abfrage', async ({ page }) => {
     await newGame(page);
-    await expect(page.getByTestId('team-home')).toHaveText('Sportvg Feuerbach');
+    await expect(page.getByTestId('team-home')).toHaveText('Feuerbach');
     await page.getByTestId('btn-swap-venue').click();
     await expect(page.getByTestId('team-home')).toHaveText('TSV Musterstadt');
     await page.getByTestId('btn-kickoff').click();
@@ -55,7 +56,7 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
     await page.getByTestId('btn-menu').click();
     await page.getByTestId('menu-swap-venue').click();
     await confirmYes(page);
-    await expect(page.getByTestId('team-home')).toHaveText('Sportvg Feuerbach');
+    await expect(page.getByTestId('team-home')).toHaveText('Feuerbach');
     await expect(page.getByTestId('score')).toHaveText('1 : 0');
   });
 

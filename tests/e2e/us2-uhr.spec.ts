@@ -5,7 +5,8 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
   test('US2-S1 FR-001 Auswärtsspiel: Gegner links als Heim, Feuerbach rechts als Gast', async ({ page }) => {
     await newGame(page, { opponent: 'TSV Musterstadt', away: true });
     await expect(page.getByTestId('team-home')).toHaveText('TSV Musterstadt');
-    await expect(page.getByTestId('team-away')).toHaveText('Sportvg Feuerbach');
+    // FR-040: eigene Mannschaft in Kurzform
+    await expect(page.getByTestId('team-away')).toHaveText('Feuerbach');
   });
 
   test('US2-S2 FR-006 nach dem Anpfiff läuft der Countdown ab 25:00', async ({ page }) => {
