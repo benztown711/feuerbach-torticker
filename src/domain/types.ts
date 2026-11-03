@@ -43,17 +43,43 @@ export interface Goal {
   penalty?: boolean;
 }
 
-/** Spec 003: Ereignis im Spiel. Teil 1: Lesezeichen (intern, nie im geteilten Text). */
-export interface GameEvent {
+interface EventBase {
   id: string;
-  kind: 'mark';
-  /** Uhrzeit (Zuordnung zur Videoaufnahme). */
+  /** Uhrzeit (z. B. Zuordnung zur Videoaufnahme). */
   at: number;
   section: number;
   minute: number;
   stoppage: number | null;
+}
+
+/** Spec 003 FR-E05: Lesezeichen (intern, nie im geteilten Text). */
+export interface MarkEvent extends EventBase {
+  kind: 'mark';
   comment: string;
 }
+
+export type CardColor = 'gelb' | 'gelbrot' | 'rot' | 'zeit';
+/** Spieler bei Ereignissen: eigene aus dem Kader, Gegner als Freitext. */
+export type EventPerson = { kind: 'player'; playerId: string } | { kind: 'text'; text: string } | null;
+
+/** Spec 003 FR-E03: Karte (Gelb, Gelb-Rot, Rot, Zeitstrafe). */
+export interface CardEvent extends EventBase {
+  kind: 'card';
+  side: Side;
+  card: CardColor;
+  who: EventPerson;
+  comment: string;
+}
+
+/** Spec 003 FR-E04: Wechsel der eigenen Mannschaft. */
+export interface SubEvent extends EventBase {
+  kind: 'sub';
+  outId: string;
+  inId: string;
+}
+
+/** Spec 003: Ereignis im Spiel. */
+export type GameEvent = MarkEvent | CardEvent | SubEvent;
 
 /** Spec 003 FR-E02: Schalter "Im Spiel erfassen". */
 export interface EventFeatures {

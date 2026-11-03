@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { addMark, gameEvents, marksText, MARK_COMMENT_MAX, removeEvent, setMarkComment } from '../../src/domain/events';
+import {
+  addMark,
+  gameEvents,
+  isMark,
+  marksText,
+  MARK_COMMENT_MAX,
+  removeEvent,
+  setMarkComment,
+} from '../../src/domain/events';
 import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/game';
 import { addGoal, goalSuffix, setPenalty, setScorer } from '../../src/domain/goals';
 import { timeline } from '../../src/domain/history';
@@ -56,9 +64,9 @@ describe('003 FR-E05 Lesezeichen', () => {
   it('003 US2-S3 Kommentar setzen (getrimmt, höchstens 60 Zeichen), US2-S6 löschen', () => {
     const r = addMark(running(), T0 + min(3), ids)!;
     let g = setMarkComment(r.game, r.event.id, '  Konter links  ');
-    expect(gameEvents(g)[0]?.comment).toBe('Konter links');
+    expect(gameEvents(g).filter(isMark)[0]?.comment).toBe('Konter links');
     g = setMarkComment(g, r.event.id, 'x'.repeat(80));
-    expect(gameEvents(g)[0]?.comment).toHaveLength(MARK_COMMENT_MAX);
+    expect(gameEvents(g).filter(isMark)[0]?.comment).toHaveLength(MARK_COMMENT_MAX);
     expect(setMarkComment(g, 'gibtsnicht', 'a')).toEqual(g);
     expect(gameEvents(removeEvent(g, r.event.id))).toEqual([]);
   });
@@ -68,7 +76,11 @@ describe('003 FR-E05 Lesezeichen', () => {
     const b = addMark(a.game, T0 + min(2))!;
     expect(a.event.id).not.toBe(b.event.id);
     const g = setMarkComment(b.game, b.event.id, 'Abwehr');
-    expect(gameEvents(g).map((e) => e.comment)).toEqual(['', 'Abwehr']);
+    expect(
+      gameEvents(g)
+        .filter(isMark)
+        .map((e) => e.comment),
+    ).toEqual(['', 'Abwehr']);
   });
 
   it('Auswärtsspiel: Gegner zuerst; gleiche Uhrzeit: Uhr-Ereignis, Tor, Lesezeichen', () => {
@@ -76,9 +88,9 @@ describe('003 FR-E05 Lesezeichen', () => {
     const g = addMark(away, T0 + min(1), ids)!.game;
     expect(marksText(g, TZ).split('\n')[0]).toBe('Lesezeichen TSV Musterstadt - Feuerbach U11, 07.11.2026');
     const withGoal = addGoal(g, 'own', T0 + min(1), ids).game;
-    expect(timeline(withGoal).map((i) => i.kind)).toEqual(['event', 'goal', 'mark']);
+    expect(timeline(withGoal).map((i) => i.kind)).toEqual(['event', 'goal', 'ev']);
     const sameAsKickoff = addMark(away, T0, ids)!.game;
-    expect(timeline(sameAsKickoff).map((i) => i.kind)).toEqual(['event', 'mark']);
+    expect(timeline(sameAsKickoff).map((i) => i.kind)).toEqual(['event', 'ev']);
   });
 
   it('ältere Spiele ohne Ereignisse liefern eine leere Liste', () => {
@@ -104,7 +116,7 @@ describe('003 FR-E05 Lesezeichen', () => {
     expect(buildShareText(g, [], TZ)).not.toContain('Lesezeichen');
     expect(buildShareText(g, [], TZ).split('\n')).toHaveLength(2);
     const items = timeline(g);
-    expect(items.map((i) => i.kind)).toEqual(['event', 'mark']);
+    expect(items.map((i) => i.kind)).toEqual(['event', 'ev']);
   });
 });
 

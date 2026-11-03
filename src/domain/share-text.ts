@@ -1,5 +1,6 @@
 import { clockOf } from './game';
 import { goalRows, goalSuffix, homeAway, score, scorerLabel } from './goals';
+import { eventsShareLines } from './events';
 import { startedAt } from './history';
 import { formatMinute } from './minute';
 import type { Game, Player } from './types';
@@ -45,5 +46,5 @@ export function buildShareText(game: Game, players: Player[], timeZone?: string,
     const who = scorerLabel(row.goal, players);
     lines.push((who ? `${row.label} ${row.score} ${who}` : `${row.label} ${row.score}`) + goalSuffix(row.goal));
   }
-  return lines.join('\n');
+  return [...lines, ...eventsShareLines(game, players)].join('\n');
 }

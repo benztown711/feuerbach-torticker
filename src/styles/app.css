@@ -1572,3 +1572,107 @@
   margin: var(--space-1) 0 0;
   color: var(--color-ink-muted);
 }
+
+/* Spec 003 Teil 2: Karten, Wechsel, Griff */
+.goal-row--event .goal-row__score {
+  display: flex;
+  align-self: center;
+  color: var(--color-ink-muted);
+}
+
+.card-glyph rect {
+  stroke: var(--color-ink);
+  stroke-width: 1;
+}
+
+.pick-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.pick--small {
+  min-height: 64px;
+  font-size: 13px;
+}
+
+.pick[aria-pressed='true'] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.segmented--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.scorer__grid--5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.scorer__option[aria-pressed='true'] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.scorer__option[aria-pressed='true'] .scorer__number {
+  color: var(--color-surface);
+}
+
+.sub-result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  background: var(--color-surface-alt);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.list-grip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 64px;
+  height: 18px;
+  margin: var(--space-1) 0 calc(-1 * var(--space-2));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.list-grip::before {
+  width: 40px;
+  height: 6px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface-alt);
+  content: '';
+}
+
+.list-grip[aria-expanded='true']::before {
+  border-color: var(--color-ink-muted);
+  background: var(--color-ink-muted);
+}
+
+.game--expanded .controls,
+.game--expanded .event-add {
+  display: none;
+}
+
+.sheet__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sheet__row .field__label {
+  margin: 0;
+}
+
+.sheet__row .link-btn {
+  min-height: 44px;
+  padding: 0 var(--space-1);
+}

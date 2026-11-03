@@ -318,56 +318,219 @@
             "type": "string"
           },
           "events": {
-            "description": "Spec 003: Ereignisse im Spiel (optional). Teil 1: Lesezeichen.",
+            "description": "Spec 003: Ereignisse im Spiel (optional): Lesezeichen, Karten, Wechsel.",
             "type": "array",
             "items": {
-              "type": "object",
-              "required": [
-                "id",
-                "kind",
-                "at",
-                "section",
-                "minute",
-                "stoppage",
-                "comment"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
-                },
-                "kind": {
-                  "enum": [
-                    "mark"
-                  ]
-                },
-                "at": {
-                  "type": "integer"
-                },
-                "section": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 4
-                },
-                "minute": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 240
-                },
-                "stoppage": {
-                  "type": [
-                    "integer",
-                    "null"
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kind",
+                    "at",
+                    "section",
+                    "minute",
+                    "stoppage",
+                    "comment"
                   ],
-                  "minimum": 1
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "section": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 4
+                    },
+                    "minute": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 240
+                    },
+                    "stoppage": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "kind": {
+                      "const": "mark"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "maxLength": 60
+                    }
+                  }
                 },
-                "comment": {
-                  "type": "string",
-                  "maxLength": 60
+                {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kind",
+                    "at",
+                    "section",
+                    "minute",
+                    "stoppage",
+                    "side",
+                    "card",
+                    "who",
+                    "comment"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "section": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 4
+                    },
+                    "minute": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 240
+                    },
+                    "stoppage": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "kind": {
+                      "const": "card"
+                    },
+                    "side": {
+                      "enum": [
+                        "own",
+                        "opp"
+                      ]
+                    },
+                    "card": {
+                      "enum": [
+                        "gelb",
+                        "gelbrot",
+                        "rot",
+                        "zeit"
+                      ]
+                    },
+                    "who": {
+                      "oneOf": [
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "kind",
+                            "playerId"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "player"
+                            },
+                            "playerId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "kind",
+                            "text"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "const": "text"
+                            },
+                            "text": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 30
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "comment": {
+                      "type": "string",
+                      "maxLength": 60
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kind",
+                    "at",
+                    "section",
+                    "minute",
+                    "stoppage",
+                    "outId",
+                    "inId"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "section": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 4
+                    },
+                    "minute": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 240
+                    },
+                    "stoppage": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "kind": {
+                      "const": "sub"
+                    },
+                    "outId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "inId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    }
+                  }
                 }
-              }
+              ]
             }
           }
         }
