@@ -242,6 +242,35 @@ export function SettingsScreen() {
           </button>
         </section>
 
+        <section class="settings__section" aria-labelledby="s-capture">
+          <h2 id="s-capture" class="t-label settings__heading">
+            IM SPIEL ERFASSEN
+          </h2>
+          <ul class="switch-list">
+            <li class="switch-row">
+              <div class="switch-row__text">
+                <span class="switch-row__title" id="sw-marks">
+                  Lesezeichen
+                </span>
+                <p class="switch-row__help">
+                  Nur für dich, z. B. Szenen für die Veo-Kamera merken. Erscheinen nie im geteilten Text.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="switch"
+                role="switch"
+                aria-checked={settings.features.marks}
+                aria-labelledby="sw-marks"
+                data-testid="feature-marks"
+                onClick={() =>
+                  save({ ...settings, features: { ...settings.features, marks: !settings.features.marks } })
+                }
+              />
+            </li>
+          </ul>
+        </section>
+
         <section class="settings__section" aria-labelledby="s-theme">
           <h2 id="s-theme" class="t-label settings__heading">
             DARSTELLUNG
