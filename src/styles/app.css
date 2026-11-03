@@ -555,6 +555,123 @@
   font-weight: 700;
 }
 
+/* Spec 003: Lesezeichen sind intern */
+.goal-row__tag--private {
+  flex-shrink: 0;
+  padding: 0 var(--space-1);
+  border: 1px dashed var(--color-ink-muted);
+  color: var(--color-ink-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.goal-row--mark .goal-row__score {
+  display: flex;
+  align-self: center;
+  color: var(--color-ink-muted);
+}
+
+/* Spec 003 FR-E09: Knopf "Ereignis" zwischen Uhr-Knöpfen und Torliste */
+.event-add {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.event-add__btn {
+  width: 100%;
+  min-height: 40px;
+  font-size: 15px;
+}
+
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 88px;
+  padding: var(--space-1);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Spec 003 FR-E02: Schalter "Im Spiel erfassen" */
+.switch-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-line);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 64px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.switch-row__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.switch-row__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.switch-row__help {
+  margin: 2px 0 0;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.switch::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-ink);
+  content: '';
+}
+
+.switch[aria-checked='true'] {
+  background: var(--color-ink);
+}
+
+.switch[aria-checked='true']::after {
+  background: var(--color-surface);
+  transform: translateX(24px);
+}
+
 .goal-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -3,7 +3,8 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../src/domain/export';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
-import { addGoal, setScorer } from '../../src/domain/goals';
+import { addMark, setMarkComment } from '../../src/domain/events';
+import { addGoal, setPenalty, setScorer } from '../../src/domain/goals';
 import type { Game, Player } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
@@ -53,6 +54,30 @@ describe('T072 FR-024 Sicherung', () => {
     expect(validate.errors ?? []).toEqual([]);
     expect(ok).toBe(true);
     expect(backup).toMatchObject({ format: 'feuerbach-torticker-backup', schemaVersion: 1, exportedAt: T0 + min(60) });
+  });
+
+  it('003 Sicherung enthält Lesezeichen und Elfmeter-Kennzeichen (Schema) und liest sie wieder ein', () => {
+    let g = game(G2, false);
+    g = setPenalty(g, g.goals[0]!.id, true);
+    const m = addMark(g, T0 + min(6), () => '55555555-5555-4555-8555-555555555555')!;
+    g = setMarkComment(m.game, m.event.id, 'Konter links');
+    // Lesezeichen in der Nachspielzeit (Feld stoppage gesetzt)
+    g = addMark(g, T0 + min(27), () => '66666666-6666-4666-8666-666666666666')!.game;
+    const backup = buildBackup([g], players, T0 + min(60));
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games[0]?.events?.[0]?.comment).toBe('Konter links');
+    expect(parsed.ok && parsed.backup.games[0]?.goals[0]?.penalty).toBe(true);
+    const bad = JSON.parse(JSON.stringify(backup)) as {
+      games: { events: { comment: string }[]; goals: { penalty: unknown }[] }[];
+    };
+    bad.games[0]!.events[0]!.comment = 'x'.repeat(61);
+    expect(parseBackup(JSON.stringify(bad)).ok).toBe(false);
+    const bad2 = JSON.parse(JSON.stringify(backup)) as typeof bad;
+    bad2.games[0]!.goals[0]!.penalty = 'ja';
+    expect(parseBackup(JSON.stringify(bad2)).ok).toBe(false);
   });
 
   it('ohne App-Version fehlt das Feld', () => {

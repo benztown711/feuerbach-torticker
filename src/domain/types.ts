@@ -39,6 +39,27 @@ export interface Goal {
   scorer: Scorer;
   /** Gesetzt, wenn das Tor entfernt wurde (FR-008); zählt dann nicht. */
   deletedAt: number | null;
+  /** Spec 003 FR-E01: Elfmeter (fehlt bei älteren Spielen = nein). */
+  penalty?: boolean;
+}
+
+/** Spec 003: Ereignis im Spiel. Teil 1: Lesezeichen (intern, nie im geteilten Text). */
+export interface GameEvent {
+  id: string;
+  kind: 'mark';
+  /** Uhrzeit (Zuordnung zur Videoaufnahme). */
+  at: number;
+  section: number;
+  minute: number;
+  stoppage: number | null;
+  comment: string;
+}
+
+/** Spec 003 FR-E02: Schalter "Im Spiel erfassen". */
+export interface EventFeatures {
+  cards: boolean;
+  subs: boolean;
+  marks: boolean;
 }
 
 export interface Score {
@@ -58,6 +79,8 @@ export interface Game {
   createdAt: number;
   clockEvents: ClockEvent[];
   goals: Goal[];
+  /** Spec 003; fehlt bei älteren Spielen. */
+  events?: GameEvent[];
   signalledThresholds: string[];
   squad: string[];
   status: GameStatus;
@@ -87,6 +110,8 @@ export interface Team {
 export interface Settings {
   /** Spec 004 FR-M01. */
   teams: Team[];
+  /** Spec 003 FR-E02. */
+  features: EventFeatures;
   /** Nur noch Quelle der Migration (vor Spec 004). */
   recentOwnTeams: string[];
   lastSchema: Schema;

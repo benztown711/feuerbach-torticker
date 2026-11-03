@@ -1,7 +1,8 @@
 import { clockOf } from './game';
 import { goalRows, type GoalRow } from './goals';
 import { formatMinute } from './minute';
-import type { ClockEvent, Game } from './types';
+import { gameEvents } from './events';
+import type { ClockEvent, Game, GameEvent } from './types';
 
 export type ResultLetter = 'S' | 'U' | 'N';
 
@@ -70,7 +71,10 @@ export function filterGames(games: Game[], key: string | null): Game[] {
   return key === null ? games : games.filter((g) => teamKey(g.ownTeam) === key);
 }
 
-export type TimelineItem = { kind: 'event'; at: number; event: ClockEvent } | ({ kind: 'goal'; at: number } & GoalRow);
+export type TimelineItem =
+  | { kind: 'event'; at: number; event: ClockEvent }
+  | ({ kind: 'goal'; at: number } & GoalRow)
+  | { kind: 'mark'; at: number; mark: GameEvent };
 
 /** Zeitleiste der Spieldetails: Uhr-Ereignisse und Tore chronologisch, bei gleicher Zeit Ereignis zuerst. */
 export function timeline(game: Game): TimelineItem[] {
@@ -78,8 +82,9 @@ export function timeline(game: Game): TimelineItem[] {
   const goals: TimelineItem[] = goalRows(game)
     .reverse()
     .map((row) => ({ kind: 'goal', at: row.goal.at, ...row }));
-  const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : 1);
-  return [...events, ...goals].sort((a, b) => a.at - b.at || rank(a) - rank(b));
+  const marks: TimelineItem[] = gameEvents(game).map((mark) => ({ kind: 'mark', at: mark.at, mark }));
+  const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : i.kind === 'goal' ? 1 : 2);
+  return [...events, ...goals, ...marks].sort((a, b) => a.at - b.at || rank(a) - rank(b));
 }
 
 /** Anzeige in der Navigation, solange ein Spiel läuft (FR-037). */

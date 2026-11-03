@@ -68,8 +68,20 @@ export function setScorer(game: Game, goalId: string, scorer: Scorer): Game {
     return patchGoal(game, goalId, { scorer: { kind: 'text', text } });
   }
   if (goal.side !== 'own') return game;
-  return patchGoal(game, goalId, { scorer });
+  // FR-E01: Elfmeter und Eigentor schließen sich aus.
+  return patchGoal(game, goalId, scorer.kind === 'ownGoal' ? { scorer, penalty: false } : { scorer });
 }
+
+/** Spec 003 FR-E01: Tor als Elfmeter kennzeichnen; ein Eigentor wird dabei aufgehoben. */
+export function setPenalty(game: Game, goalId: string, penalty: boolean): Game {
+  const goal = game.goals.find((g) => g.id === goalId);
+  if (!goal) return game;
+  const clearOwnGoal = penalty && goal.scorer?.kind === 'ownGoal';
+  return patchGoal(game, goalId, clearOwnGoal ? { penalty, scorer: null } : { penalty });
+}
+
+/** Zusatz hinter Torschütze bzw. Minute in Liste und Teilen-Text. */
+export const goalSuffix = (goal: Goal): string => (goal.penalty ? ' (Elfmeter)' : '');
 
 /** Anzeige des Torschützen; gelöschte Spieler bleiben lesbar (FR-029). */
 export function scorerLabel(goal: Goal, players: Player[]): string {

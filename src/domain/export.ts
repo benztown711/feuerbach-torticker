@@ -73,7 +73,19 @@ const isGoal = (v: unknown): boolean =>
   isInt(v.minute, 1, 240) &&
   nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
   nullOr(v.deletedAt, isTime) &&
+  (v.penalty === undefined || typeof v.penalty === 'boolean') &&
   isScorer(v.scorer);
+
+/** Spec 003: Lesezeichen (optional in älteren Sicherungen). */
+const isGameEvent = (v: unknown): boolean =>
+  isObj(v) &&
+  isStr(v.id, 1, 200) &&
+  v.kind === 'mark' &&
+  isTime(v.at) &&
+  isInt(v.section, 1, 4) &&
+  isInt(v.minute, 1, 240) &&
+  nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
+  isStr(v.comment, 0, 60);
 
 const isPlayer = (v: unknown): boolean =>
   isObj(v) &&
@@ -101,7 +113,8 @@ const isGame = (v: unknown): boolean =>
   nullOr(v.finalScore, isScore) &&
   nullOr(v.halfTimeScore, isScore) &&
   arrayOf(v.clockEvents, isEvent) &&
-  arrayOf(v.goals, isGoal);
+  arrayOf(v.goals, isGoal) &&
+  (v.events === undefined || arrayOf(v.events, isGameEvent));
 
 export type ParseResult = { ok: true; backup: Backup } | { ok: false; error: string };
 

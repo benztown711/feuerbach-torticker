@@ -10,6 +10,7 @@ import {
   sectionLabel,
   swapVenue,
 } from '../../domain/game';
+import { addMark, gameEvents, removeEvent, setMarkComment, MARK_COMMENT_MAX } from '../../domain/events';
 import {
   addGoal,
   homeAway,
@@ -17,6 +18,7 @@ import {
   restoreGoal,
   score,
   scorerLabel,
+  setPenalty,
   setScorer,
   undoGoal,
 } from '../../domain/goals';
@@ -25,16 +27,17 @@ import { formatMinute } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
 import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
-import type { Game, Goal, Scorer, Side } from '../../domain/types';
+import { anyEventFeature } from '../../domain/settings';
+import type { Game, Goal, Scorer, Settings, Side } from '../../domain/types';
 import { buildShareText } from '../../domain/share-text';
-import { getGame, putGame } from '../../platform/db';
+import { getGame, getSettings, putGame } from '../../platform/db';
 import { shareText } from '../../platform/share';
 import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
-import { GoalList } from '../components/goal-list';
+import { BookmarkIcon, GoalList } from '../components/goal-list';
 import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
@@ -46,6 +49,8 @@ const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
 /** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
 const PICKER_MS = 8_000;
+/** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
+const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
 
 type Ask = { kind: 'pause' | 'end' | 'swap' } | { kind: 'remove'; goalId: string } | { kind: 'goalResume'; side: Side };
 
@@ -69,6 +74,16 @@ export function GameScreen({ id }: { id: string }) {
   const [picker, setPicker] = useState<{ goalId: string; until: number | null } | null>(null);
   const [textEdit, setTextEdit] = useState<{ goalId: string; value: string } | null>(null);
   const gameRef = useRef<Game | null>(null);
+  // Spec 003: Ereignisse (Teil 1: Lesezeichen)
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [eventSheet, setEventSheet] = useState(false);
+  const [markUndo, setMarkUndo] = useState<{ id: string; until: number } | null>(null);
+  const [markSheet, setMarkSheet] = useState<string | null>(null);
+  const [markEdit, setMarkEdit] = useState<{ id: string; value: string } | null>(null);
+
+  useEffect(() => {
+    void getSettings().then(setSettings);
+  }, []);
 
   useEffect(() => {
     void getGame(id).then((g) => {
@@ -243,6 +258,21 @@ export function GameScreen({ id }: { id: string }) {
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
 
+  // Spec 003 FR-E09: Knopf "Ereignis" ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
+  const marks = gameEvents(game).filter((e) => e.kind === 'mark');
+  const eventsOpen = settings !== null && anyEventFeature(settings) && (goalsOpen || status === 'break');
+  const markUndoObj = markUndo && now < markUndo.until ? marks.find((m) => m.id === markUndo.id) : undefined;
+  const markSel = markSheet ? marks.find((m) => m.id === markSheet) : undefined;
+  const markEditObj = markEdit ? marks.find((m) => m.id === markEdit.id) : undefined;
+  const doMark = (): void => {
+    const t = Date.now();
+    const r = addMark(cur(), t);
+    setEventSheet(false);
+    if (!r) return;
+    update(r.game);
+    setMarkUndo({ id: r.event.id, until: t + UNDO_MS });
+  };
+
   // FR-007: Nach Hintergrund oder Neuladen ist der Ton auf iOS gesperrt; jede Berührung schaltet ihn wieder frei.
   const reArmAudio = (): void => {
     if (!audioReady()) unlockAudio();
@@ -372,7 +402,30 @@ export function GameScreen({ id }: { id: string }) {
         )}
       </section>
 
-      <GoalList game={game} ownName={ownShort} players={roster} onOpen={(g) => setSheetGoal(g.id)} />
+      {eventsOpen && (
+        <section class="event-add" aria-label="Ereignisse">
+          <button
+            type="button"
+            class="btn btn--quiet event-add__btn"
+            data-testid="btn-event"
+            onClick={() => setEventSheet(true)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Ereignis
+          </button>
+        </section>
+      )}
+
+      <GoalList
+        game={game}
+        ownName={ownShort}
+        players={roster}
+        onOpen={(g) => setSheetGoal(g.id)}
+        marks={marks}
+        onOpenMark={(m) => setMarkSheet(m.id)}
+      />
 
       <section class="goal-buttons" aria-label="Tore erfassen">
         {[homeSide, awaySide].map((side) => (
@@ -388,6 +441,35 @@ export function GameScreen({ id }: { id: string }) {
         ))}
       </section>
 
+      {markUndoObj && !undoGoalObj && (
+        <div class="undo-bar" data-testid="mark-toast" role="status">
+          <span class="undo-bar__text">
+            Lesezeichen {formatMinute(markUndoObj.minute, markUndoObj.stoppage)} gesetzt
+          </span>
+          <button
+            type="button"
+            class="btn btn--secondary btn--small"
+            data-testid="mark-comment"
+            onClick={() => {
+              setMarkUndo(null);
+              setMarkEdit({ id: markUndoObj.id, value: markUndoObj.comment });
+            }}
+          >
+            Kommentar
+          </button>
+          <button
+            type="button"
+            class="btn btn--secondary btn--small"
+            data-testid="mark-undo"
+            onClick={() => {
+              update(removeEvent(cur(), markUndoObj.id));
+              setMarkUndo(null);
+            }}
+          >
+            Rückgängig
+          </button>
+        </div>
+      )}
       {undoGoalObj && !pickerGoal && (
         <div class="undo-bar" data-testid="undo-bar" role="status">
           <span class="undo-bar__text">
@@ -455,6 +537,104 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
+      {eventSheet && settings && (
+        <Sheet
+          title="Ereignis"
+          subtitle={`Minute ${formatMinute(clock.minute, clock.stoppage)}`}
+          testId="event-sheet"
+          onClose={() => setEventSheet(false)}
+        >
+          <div class="pick-grid">
+            {settings.features.marks && (
+              <button type="button" class="pick" data-testid="event-mark" onClick={doMark}>
+                <BookmarkIcon />
+                <span>Lesezeichen</span>
+              </button>
+            )}
+          </div>
+        </Sheet>
+      )}
+
+      {markSel && !markEdit && (
+        <Sheet
+          title={`Lesezeichen ${formatMinute(markSel.minute, markSel.stoppage)}${markSel.comment ? `, ${markSel.comment}` : ''}`}
+          subtitle={`gesetzt um ${formatTime(markSel.at)} Uhr · nur für dich`}
+          testId="mark-actions"
+          onClose={() => setMarkSheet(null)}
+        >
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="mark-edit"
+            onClick={() => {
+              setMarkSheet(null);
+              setMarkEdit({ id: markSel.id, value: markSel.comment });
+            }}
+          >
+            Kommentar ändern
+          </button>
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="mark-delete"
+            onClick={() => {
+              update(removeEvent(cur(), markSel.id));
+              setMarkSheet(null);
+            }}
+          >
+            Lesezeichen löschen
+          </button>
+        </Sheet>
+      )}
+
+      {markEdit && markEditObj && (
+        <Sheet
+          title={`Lesezeichen ${formatMinute(markEditObj.minute, markEditObj.stoppage)}`}
+          subtitle={`gesetzt um ${formatTime(markEditObj.at)} Uhr · nur für dich, nie im geteilten Text`}
+          testId="mark-comment-sheet"
+          onClose={() => setMarkEdit(null)}
+        >
+          <label class="field__label t-label" for="mark-comment-input">
+            KOMMENTAR (FREIWILLIG)
+          </label>
+          <input
+            id="mark-comment-input"
+            class="input"
+            data-testid="input-mark-comment"
+            value={markEdit.value}
+            maxLength={MARK_COMMENT_MAX}
+            autocomplete="off"
+            placeholder="z. B. Szene ansehen"
+            onInput={(e) => setMarkEdit({ ...markEdit, value: e.currentTarget.value })}
+          />
+          <div class="chips" role="group" aria-label="Schnellwahl">
+            {QUICK_COMMENTS.map((q) => (
+              <button
+                type="button"
+                key={q}
+                class="chip"
+                aria-pressed={markEdit.value === q}
+                data-testid={`mark-quick-${q}`}
+                onClick={() => setMarkEdit({ ...markEdit, value: markEdit.value === q ? '' : q })}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="btn-save-mark"
+            onClick={() => {
+              update(setMarkComment(cur(), markEdit.id, markEdit.value));
+              setMarkEdit(null);
+            }}
+          >
+            Speichern
+          </button>
+        </Sheet>
+      )}
+
       {selected && !ask && (
         <Sheet
           title={`${formatMinute(selected.minute, selected.stoppage)} ${selected.side === 'own' ? ownShort : game.opponent}${
@@ -464,6 +644,19 @@ export function GameScreen({ id }: { id: string }) {
           testId="goal-actions"
           onClose={() => setSheetGoal(null)}
         >
+          {selected.deletedAt === null && (
+            <div class="chips" role="group" aria-label="Kennzeichen">
+              <button
+                type="button"
+                class="chip"
+                aria-pressed={!!selected.penalty}
+                data-testid="goal-penalty"
+                onClick={() => update(setPenalty(cur(), selected.id, !selected.penalty))}
+              >
+                Elfmeter
+              </button>
+            </div>
+          )}
           {selected.deletedAt === null ? (
             <button
               type="button"

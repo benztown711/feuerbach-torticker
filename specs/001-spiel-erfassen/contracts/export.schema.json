@@ -303,6 +303,10 @@
                       }
                     }
                   ]
+                },
+                "penalty": {
+                  "type": "boolean",
+                  "description": "Spec 003 FR-E01: Elfmeter (optional)"
                 }
               }
             }
@@ -312,6 +316,59 @@
           },
           "oppColor": {
             "type": "string"
+          },
+          "events": {
+            "description": "Spec 003: Ereignisse im Spiel (optional). Teil 1: Lesezeichen.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "kind",
+                "at",
+                "section",
+                "minute",
+                "stoppage",
+                "comment"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "kind": {
+                  "enum": [
+                    "mark"
+                  ]
+                },
+                "at": {
+                  "type": "integer"
+                },
+                "section": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "minute": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 240
+                },
+                "stoppage": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "comment": {
+                  "type": "string",
+                  "maxLength": 60
+                }
+              }
+            }
           }
         }
       }
