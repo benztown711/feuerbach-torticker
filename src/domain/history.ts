@@ -64,6 +64,32 @@ export function historyEntry(game: Game): HistoryEntry {
   };
 }
 
+export interface MonthGroup {
+  /** "2026-11" */
+  key: string;
+  /** "November 2026" */
+  label: string;
+  games: Game[];
+}
+
+const fmtMonth = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
+
+/**
+ * Spec 005 FR-G09: fasst aufeinanderfolgende Spiele mit gleichem Anpfiff-Monat (lokale Zeit) zusammen.
+ * Die Reihenfolge der Eingabe bleibt (Historie: neueste zuerst).
+ */
+export function groupByMonth(games: Game[]): MonthGroup[] {
+  const groups: MonthGroup[] = [];
+  for (const game of games) {
+    const d = new Date(startedAt(game));
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const last = groups.at(-1);
+    if (last?.key === key) last.games.push(game);
+    else groups.push({ key, label: fmtMonth.format(d), games: [game] });
+  }
+  return groups;
+}
+
 const teamKey = (ownTeam: string): string => ownTeam.trim().toLowerCase();
 
 export interface TeamFilter {
