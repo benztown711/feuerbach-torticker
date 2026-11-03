@@ -44,3 +44,9 @@ Während des Spiels aus dem "…"-Menü. Wie oben, die erste Zeile bekommt einen
 
 - Uhr läuft oder angehalten: " · Zwischenstand {Minute}" mit Minute wie FR-005 (z. B. "25+2'").
 - Pause zwischen Abschnitten: " · Halbzeit" bei zwei Abschnitten, sonst " · Pause"; der Halbzeitstand in Klammern entfällt, weil er dem Spielstand entspricht.
+
+## Pokal (Spec 003 FR-P02, FR-P03)
+
+- Nach Verlängerung: " n. V." direkt hinter dem Spielstand, z. B. `⚽ Sportvg Feuerbach U11 - TSV Musterstadt 3:2 n. V. (1:1)`.
+- Nach beendetem Elfmeterschießen: ", x:y i. E." hinter dem Halbzeitstand (Heim zuerst), z. B. `⚽ Sportvg Feuerbach U11 - TSV Musterstadt 2:2 n. V. (1:1), 4:3 i. E.`.
+- Zwischenstand in der Pause vor der Verlängerung: " · vor der Verlängerung"; zwischen den Hälften der Verlängerung: " · Pause" (mit Halbzeitstand).
