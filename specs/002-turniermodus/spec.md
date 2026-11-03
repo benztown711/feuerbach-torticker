@@ -18,6 +18,7 @@ Bei Turnieren (z. B. Hallenturnier der Sportvg Feuerbach) sollen auch Spiele erf
 - **FR-T02**: Im Turnierspiel MÜSSEN beide Mannschaftsnamen frei eingegeben werden; links Mannschaft A, rechts Mannschaft B.
 - **FR-T03**: Der Kader MUSS im Turnierspiel ausgeblendet sein; Torschützen beider Seiten werden als Freitext (Name oder Rückennummer) erfasst.
 - **FR-T04**: Turnierspiele MÜSSEN in der Historie als solche erkennbar sein.
+- **FR-T05** (ergänzt 03.11.2026): Spieltage im Kinderfußball (U6 bis U11, WFV 3 gegen 3 bis 5 gegen 5, viele Kurzspiele mit Feuerbach-Beteiligung): "Nächstes Spiel" mit einem Tap (gleiche Mannschaft, Spielzeit und Trikots, nur neuer Gegner) und ein gemeinsamer Teilen-Text für den Spieltag.
 
 ## Offene Fragen (vor `/speckit-clarify` für 002)
 
