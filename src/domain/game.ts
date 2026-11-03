@@ -1,5 +1,6 @@
 import { deriveClock, type ClockState } from './clock';
 import { score } from './goals';
+import { totalSections } from './minute';
 import type { ClockEvent, Game, NewGameInput } from './types';
 
 /** "reset" (Uhr zurücksetzen) ist in Runde 4 entfallen; alte reset-Ereignisse wertet deriveClock weiter aus. */
@@ -73,7 +74,7 @@ export function resumeClock(game: Game, now: number): Game {
 /** Pausenpfiff vor dem letzten Abschnitt, sonst Schlusspfiff (FR-006). */
 export function endSection(game: Game, now: number): Game {
   const c = guard(game, 'end', now);
-  if (c.section < game.schema.sections) {
+  if (c.section < totalSections(game.schema)) {
     const patch = c.section === 1 ? { halfTimeScore: score(game) } : {};
     return append(game, { type: 'sectionEnd', at: now, section: c.section }, patch);
   }
@@ -93,6 +94,7 @@ export function markSignalled(game: Game, thresholds: string[]): Game {
 
 /** "Spielzeit" bei einem Abschnitt, sonst "1. Halbzeit", "2. Drittel", "3. Viertel". */
 export function sectionLabel(section: number, sections: number): string {
+  if (section > sections) return `${section - sections}. Hälfte Verlängerung`;
   if (sections === 1) return 'Spielzeit';
   const unit = sections === 2 ? 'Halbzeit' : sections === 3 ? 'Drittel' : 'Viertel';
   return `${section}. ${unit}`;

@@ -21,4 +21,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Teil 3: Pokal
 
-- [ ] E201 Tests und Umsetzung FR-P01 (Abfrage), FR-P02 (Verlängerung), FR-P03 (Elfmeterschießen mit Schützenwahl, TV-Übersicht, Schützen aufklappbar und in den Spieldetails)
+- [x] E201 [P] `tests/unit/cup.test.ts`: Abfrage nur bei Unentschieden, "Unentschieden" beendet sie; Verlängerung (Abschnittslängen, Minuten ab Ende der regulären Spielzeit, Nachspielzeit, Bezeichnungen, "n. V." im Text, danach nur Elfmeterschießen, nur einmal, Zwischenstand vor/zwischen den Hälften); Elfmeterschießen (abwechselnd, beginnende Mannschaft, Schütze normalisiert, Rückgängig, entschieden, Sudden Death, "x:y i. E." Heim zuerst, S/N in der Historie)
+- [x] E202 `src/domain/cup.ts`, `minute.ts` (`totalSections`, `sectionMinutesOf`), `clock.ts` (Ereignis `extraTime`), `game.ts`, `history.ts`, `share-text.ts` (macht E201 grün)
+- [x] E203 [P] `tests/unit/export.test.ts` und `contracts/export.schema.json`: Verlängerung, Abfrage und Elfmeterschießen in der Sicherung
+- [x] E204 [P] E2E `tests/e2e/pokal.spec.ts`: 003 US5-S1 bis S5, US6-S1 bis S5, FR-033; Helfer `acceptDraw` für bestehende Tests mit Unentschieden
+- [x] E205 UI: `draw-dialog` (`draw-accept`, `draw-extra`, `draw-shootout`), `extra-sheet`, `first-dialog`, `ShootoutView` (`pen-*`), `shootout-result`, Spieldetails mit Schützen (macht E204 grün)

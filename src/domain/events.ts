@@ -47,7 +47,7 @@ export function setMarkComment(game: Game, id: string, comment: string): Game {
 }
 
 /** FR-E03: Spieler nur bei eigenen Karten aus dem Kader, beim Gegner Freitext (≤ 30 Zeichen, leer = ohne). */
-function normalizePerson(side: Side, who: EventPerson): EventPerson | undefined {
+export function normalizePerson(side: Side, who: EventPerson): EventPerson | undefined {
   if (who === null) return null;
   if (who.kind === 'player') return side === 'own' ? who : undefined;
   if (side !== 'opp') return undefined;

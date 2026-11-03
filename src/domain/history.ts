@@ -1,6 +1,7 @@
 import { clockOf } from './game';
 import { goalRows, type GoalRow } from './goals';
 import { formatMinute } from './minute';
+import { shootoutState } from './cup';
 import { gameEvents } from './events';
 import type { ClockEvent, Game, GameEvent } from './types';
 
@@ -37,7 +38,21 @@ export function historyEntry(game: Game): HistoryEntry {
   const own = active.filter((g) => g.side === 'own').length;
   const opp = active.length - own;
   const finished = game.status === 'finished';
-  const result: ResultLetter | null = !finished ? null : own > opp ? 'S' : own === opp ? 'U' : 'N';
+  const so = game.shootout;
+  const pens = so?.done ? shootoutState(game) : null;
+  // FR-P03: S/N nach dem Elfmeterschießen; solange es läuft, noch kein Ergebnis.
+  const result: ResultLetter | null =
+    !finished || (so && !so.done)
+      ? null
+      : pens
+        ? pens.own > pens.opp
+          ? 'S'
+          : 'N'
+        : own > opp
+          ? 'S'
+          : own === opp
+            ? 'U'
+            : 'N';
   return {
     game,
     scoreText: `${own}:${opp}`,

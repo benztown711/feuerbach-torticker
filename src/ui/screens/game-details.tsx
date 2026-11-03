@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
-import { cardText, marksText, subText } from '../../domain/events';
+import { shootoutState } from '../../domain/cup';
+import { cardText, marksText, personLabel, subText } from '../../domain/events';
 import { goalSuffix, homeAway, score, scorerLabel } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
@@ -26,7 +27,13 @@ const eventText = (e: ClockEvent, game: Game): string => {
     case 'sectionEnd':
       return `Pausenpfiff ${sec}`;
     case 'fullTime':
-      return 'Schlusspfiff';
+      return e.section > game.schema.sections
+        ? 'Schlusspfiff n. V.'
+        : game.schema.extraMinutes
+          ? 'Ende der regulären Spielzeit'
+          : 'Schlusspfiff';
+    case 'extraTime':
+      return `Verlängerung (2 × ${game.schema.extraMinutes ?? 0} Min)`;
     case 'reset':
       return `Uhr zurückgesetzt (${sec})`;
   }
@@ -58,7 +65,9 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
   const finished = game.status === 'finished';
   const half = game.schema.sections > 1 && game.halfTimeScore ? homeAway(game.venue, game.halfTimeScore) : null;
-  const fullTime = game.clockEvents.find((e) => e.type === 'fullTime');
+  const fullTime = [...game.clockEvents].reverse().find((e) => e.type === 'fullTime');
+  const pens = game.shootout?.done ? shootoutState(game) : null;
+  const pensHa = pens ? homeAway(game.venue, { own: pens.own, opp: pens.opp }) : null;
   const text = buildShareText(game, players);
   const meta = [
     teamShortLabel(game.ownTeam),
@@ -68,6 +77,10 @@ export function GameDetailsScreen({ id }: { id: string }) {
   ].join(' · ');
   const summary = [
     half ? `Halbzeit ${half.home}:${half.away}` : '',
+    game.schema.extraMinutes && fullTime && fullTime.section > game.schema.sections
+      ? `n. V. ${ha.home}:${ha.away}`
+      : '',
+    pensHa ? `i. E. ${pensHa.home}:${pensHa.away}` : '',
     fullTime ? `Schlusspfiff ${formatTime(fullTime.at, undefined, false)}` : finished ? '' : 'Spiel läuft',
   ]
     .filter(Boolean)
@@ -178,6 +191,31 @@ export function GameDetailsScreen({ id }: { id: string }) {
           ),
         )}
       </ol>
+
+      {game.shootout && game.shootout.shots.length > 0 && (
+        <section class="details__share" aria-label="Elfmeterschießen" data-testid="details-shootout">
+          <span class="t-label field__label">
+            ELFMETERSCHIESSEN · {shootoutState(game).own}:{shootoutState(game).opp}
+          </span>
+          <div class="pen-detail">
+            {(['own', 'opp'] as const).map((sd) => (
+              <div key={sd}>
+                <span class="pen-detail__head">{sd === 'own' ? shortTeamName(game.ownTeam) : game.opponent}</span>
+                <div class="pen-chips">
+                  {game
+                    .shootout!.shots.filter((sh) => sh.side === sd)
+                    .map((sh, i) => (
+                      <span key={i} class={sh.hit ? 'pen-chip' : 'pen-chip is-miss'}>
+                        {personLabel(sh.who, players)}
+                        {sh.hit ? ' ✓' : ' ✗'}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {marks && (
         <section class="details__share" aria-label="Lesezeichen">

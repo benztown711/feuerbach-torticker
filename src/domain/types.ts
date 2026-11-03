@@ -13,9 +13,11 @@ export interface Schema {
   sections: number;
   /** Dauer eines Abschnitts in Minuten, 1 bis 60. */
   sectionMinutes: number;
+  /** Spec 003 FR-P02: Verlängerung mit zwei Abschnitten dieser Länge (fehlt = keine). */
+  extraMinutes?: number;
 }
 
-export type ClockEventType = 'kickoff' | 'pause' | 'resume' | 'sectionEnd' | 'fullTime' | 'reset';
+export type ClockEventType = 'kickoff' | 'pause' | 'resume' | 'sectionEnd' | 'fullTime' | 'reset' | 'extraTime';
 
 export interface ClockEvent {
   type: ClockEventType;
@@ -81,6 +83,21 @@ export interface SubEvent extends EventBase {
 /** Spec 003: Ereignis im Spiel. */
 export type GameEvent = MarkEvent | CardEvent | SubEvent;
 
+/** Spec 003 FR-P03: ein Schuss im Elfmeterschießen. */
+export interface Shot {
+  side: Side;
+  hit: boolean;
+  who: EventPerson;
+  at: number;
+}
+
+export interface Shootout {
+  first: Side;
+  shots: Shot[];
+  /** "Elfmeterschießen beenden" bestätigt. */
+  done: boolean;
+}
+
 /** Spec 003 FR-E02: Schalter "Im Spiel erfassen". */
 export interface EventFeatures {
   cards: boolean;
@@ -107,6 +124,10 @@ export interface Game {
   goals: Goal[];
   /** Spec 003; fehlt bei älteren Spielen. */
   events?: GameEvent[];
+  /** Spec 003 FR-P01: Unentschieden bestätigt (keine Abfrage mehr). */
+  drawSettled?: boolean;
+  /** Spec 003 FR-P03: Elfmeterschießen. */
+  shootout?: Shootout;
   signalledThresholds: string[];
   squad: string[];
   status: GameStatus;

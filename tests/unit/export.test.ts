@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../src/domain/export';
+import { addShot, endShootout, startExtraTime, startShootout } from '../../src/domain/cup';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
 import { addCard, addMark, addSub, setMarkComment } from '../../src/domain/events';
 import { addGoal, setPenalty, setScorer } from '../../src/domain/goals';
@@ -119,6 +120,40 @@ describe('T072 FR-024 Sicherung', () => {
     expect(mutate((ev) => (ev[3]!.inId = ''))).toBe(false);
     expect(mutate((ev) => (ev[3]!.kind = 'tor'))).toBe(false);
     expect(mutate((ev) => (ev[0]!.section = 9))).toBe(false);
+  });
+
+  it('003 Sicherung enthält Verlängerung, Abfrage und Elfmeterschießen (Schema) und lehnt ungültige ab', () => {
+    // game(G1) endet 1:1 nach 2 × 25 (T0 + 55 min)
+    let g = startExtraTime(game(G1), 10, T0 + min(56));
+    g = kickoff(g, T0 + min(57));
+    g = endSection(kickoff(endSection(g, T0 + min(67)), T0 + min(68)), T0 + min(78));
+    g = startShootout({ ...g, drawSettled: false }, 'opp');
+    g = addShot(g, true, { kind: 'text', text: 'Nr. 7' }, T0 + min(80));
+    g = endShootout(addShot(g, false, { kind: 'player', playerId: players[0]!.id }, T0 + min(81)));
+    const backup = buildBackup([g], players, T0 + min(90));
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games[0]?.shootout?.shots).toHaveLength(2);
+    expect(parsed.ok && parsed.backup.games[0]?.schema.extraMinutes).toBe(10);
+    type Mut = {
+      schema: { extraMinutes?: unknown };
+      drawSettled?: unknown;
+      shootout: { first: unknown; done: unknown; shots: { hit: unknown }[] } | null;
+    };
+    const mutate = (f: (g: Mut) => void): boolean => {
+      const b = JSON.parse(JSON.stringify(backup)) as { games: Mut[] };
+      f(b.games[0]!);
+      return parseBackup(JSON.stringify(b)).ok;
+    };
+    expect(mutate((x) => (x.schema.extraMinutes = 0))).toBe(false);
+    expect(mutate((x) => (x.drawSettled = 'ja'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.first = 'beide'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.shots[0]!.hit = 'ja'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.done = 1))).toBe(false);
+    expect(mutate((x) => (x.shootout = null))).toBe(false);
+    expect(mutate((x) => (x.drawSettled = true))).toBe(true);
   });
 
   it('ohne App-Version fehlt das Feld', () => {
