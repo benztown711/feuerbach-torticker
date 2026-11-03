@@ -256,13 +256,13 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T082 [P] `tests/e2e/offline.spec.ts`: nach erstem Laden `context.setOffline(true)`, Neuladen, Spiel anlegen und Tor erfassen funktioniert (FR-012)
-- [ ] T083 [P] `tests/e2e/visual.spec.ts`: Screenshot-Vergleich Spielbildschirm (laufend, Nachspielzeit, Halbzeit) in hell und dunkel, iPhone-Profil; Referenzbilder im Repo
-- [ ] T084 [P] Bundle-Budget in `vite.config.ts` bzw. CI-Schritt: JS-Hauptbundle < 60 KB gzip, sonst CI rot
-- [ ] T085 [P] Performance-Check in `tests/e2e/us1-tor-erfassen.spec.ts` gegen SC-001 stabilisieren (Median aus 10 Taps)
+- [x] T082 [P] `tests/e2e/offline.spec.ts`: nach erstem Laden `context.setOffline(true)`, Neuladen, Spiel anlegen und Tor erfassen funktioniert (FR-012)
+- [x] T083 [P] `tests/e2e/visual.spec.ts`: Screenshot-Vergleich Spielbildschirm (laufend, Nachspielzeit, Halbzeit) in hell und dunkel, alle drei Profile; Referenzbilder aus der CI im Repo (R-22)
+- [x] T084 [P] Bundle-Budget in `vite.config.ts` bzw. CI-Schritt: JS-Hauptbundle < 60 KB gzip, sonst CI rot
+- [x] T085 [P] Performance-Check in `tests/e2e/us1-tor-erfassen.spec.ts` gegen SC-001 stabilisieren (Median aus 10 Taps)
 - [x] T086 [P] Hilfe-Seite `src/ui/screens/help.tsx` mit iPhone-Hinweisen: App vom Home-Bildschirm nutzen, Ton nur bei eingeschaltetem Bildschirm, Lautlos-Schalter, Sicherung exportieren
 - [ ] T087 Gerätecheck nach `specs/001-spiel-erfassen/quickstart.md` (manuell, iPhone + Android) durchführen und Ergebnis im Release-PR dokumentieren
-- [ ] T088 `/speckit-analyze` laufen lassen und Abweichungen zwischen spec.md, plan.md, tasks.md und Code beheben
+- [x] T088 `/speckit-analyze` laufen lassen und Abweichungen zwischen spec.md, plan.md, tasks.md und Code beheben (Ergebnis: research.md R-22)
 
 ---
 

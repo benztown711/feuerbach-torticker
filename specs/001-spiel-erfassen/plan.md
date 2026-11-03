@@ -10,7 +10,7 @@ Eine installierbare Web-App (PWA), die am Spielfeldrand Tore mit einem Tap erfas
 
 ## Technical Context
 
-**Language/Version**: TypeScript 7.0 (strict), Node.js 22 LTS für Build und Tests
+**Language/Version**: TypeScript 6.0 (strict; 7.0 erst, wenn typescript-eslint es unterstützt, research.md R-14), Node.js 22 LTS für Build und Tests
 
 **Primary Dependencies**: Vite 8, Preact 11 mit @preact/signals 2, vite-plugin-pwa 2 (Workbox 7), idb 8, @vite-pwa/assets-generator 2 (Icons)
 

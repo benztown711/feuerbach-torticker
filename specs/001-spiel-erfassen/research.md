@@ -159,3 +159,12 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **Historie (FR-038)**: Ergebnis aus Feuerbach-Sicht mit S/U/N, Filter-Chips nur bei mehr als einem eigenen Namen. Löschen erfolgt in den Spieldetails (Mockup 8) statt in der Liste; `history-delete-*` entfällt im UI-Vertrag.
 - **Sicherung (FR-024)**: Teilen-Menü mit Datei (`navigator.canShare({ files })`), Fallback Download. Prüfung beim Einlesen ohne Laufzeit-Abhängigkeit (eigene Prüffunktionen in `src/domain/export.ts`); `ajv` nur als Dev-Abhängigkeit, um `buildBackup` gegen `contracts/export.schema.json` zu testen. Das Schema erlaubt jetzt `finalScore: null` (offene Spiele).
 - **Gefundener Fehler bei der Selbstprüfung**: "Neues Spiel" überschrieb schnell Getipptes (Mannschaftsname, Spielzeit, Farben), wenn die Einstellungen erst danach geladen waren. Das Formular erscheint jetzt erst nach dem Laden der Einstellungen.
+
+## R-22 Feinschliff (Phase 10) und Konsistenzprüfung
+
+- **Offline (T082)**: E2E lädt die App, wartet auf den Service Worker, lädt neu (Seite wird gesteuert), schaltet den Browser-Kontext offline und legt ein Spiel mit Tor an.
+- **Screenshot-Vergleich (T083)**: Vier Zustände des Spielbildschirms (läuft hell/dunkel, Nachspielzeit, Halbzeitpause) in allen drei Profilen. Die Referenzbilder stammen aus dem CI-Lauf (Ubuntu, Playwright-Browser der CI), weil lokal nur Chromium einer anderen Version verfügbar ist; sie liegen unter `tests/e2e/visual.spec.ts-snapshots/`. Toleranz `maxDiffPixelRatio: 0.01` für Kantenglättung; Animationen aus. Bei gewollten Layoutänderungen: CI-Artefakt `playwright-report` (Ordner `test-results`, `*-actual.png`) als neue Referenz übernehmen.
+- **SC-001 (T085)**: Median aus 10 Taps (abwechselnd Heim/Gast, Doppeltipp-Schutz per Uhr-Vorlauf umgangen) statt Einzelmessung.
+- **Historie**: angelegte, nicht angepfiffene Spiele heißen "nicht angepfiffen" (FR-038), nicht "läuft".
+- **Sicherung**: `appVersion` aus `package.json`, beim Build per Vite-`define` eingesetzt (`src/version.ts`).
+- **Konsistenz (T088)**: plan.md TypeScript 6 statt 7 (R-14); CLAUDE.md drei E2E-Profile und Lighthouse ohne PWA-Kategorie; quickstart.md ohne "Reset"; `npm run lhci` nutzt `npx @lhci/cli@0.15.1` wie die CI. Anforderungen ohne eigenen Test (FR-003, FR-013, FR-019) bekommen `tests/e2e/feinschliff.spec.ts`. Offen bleibt nur T087 (manueller Gerätetest).
