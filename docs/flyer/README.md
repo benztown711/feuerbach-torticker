@@ -13,19 +13,16 @@ In einem Bild ist nichts anklickbar. Den Link deshalb immer als Text senden:
 
 Beim Weiterleiten beide Nachrichten markieren. Wer nur eine Nachricht will: Flyer-Bild senden und den Text als Bildunterschrift dazuschreiben; der Link ist dann ebenfalls anklickbar, aber ohne Vorschau-Karte.
 
+Der Text wiederholt nichts aus Flyer und Link-Karte (Funktionen, Installation, Datenschutz, Fragen fürs Feedback); er ergänzt nur Absender, Termin, Link, einen Tipp und den Weg für Rückmeldungen.
+
 ```text
 Hallo zusammen,
-für den Spielfeldrand gibt es jetzt den *Torticker*: ein Tap pro Tor, die Uhr läuft mit und pfeift zur Halbzeit. Nach dem Abpfiff ist der Spielbericht für die Elterngruppe fertig.
-
-Wer Lust hat, testet am Wochenende (7./8.11.) beim Spiel mit:
+für den Spielfeldrand habe ich eine kleine App gebaut, den *Torticker*. Wer Lust hat, testet sie am Wochenende (7./8.11.) beim Spiel:
 https://benztown711.github.io/feuerbach-torticker/
 
-iPhone: Link in Safari öffnen → Teilen → „Zum Home-Bildschirm“
-Android: Link in Chrome öffnen → Menü → „App installieren“
-Tipp: App während des Spiels offen lassen, dann kommt der Pfiff.
+Was sie kann und wie man sie installiert, steht im Flyer. Ein Tipp vorab: App während des Spiels offen lassen, nur dann kommt der Pfiff zur Halbzeit.
 
-Kostenlos, ohne Anmeldung, ohne Werbung. Alle Daten bleiben auf eurem Handy.
-Gerne an interessierte Eltern weiterleiten. Rückmeldung an mich: Was hat gefehlt, was hat gestört?
+Rückmeldung gern direkt an mich, auch als Sprachnachricht. Und gern an interessierte Eltern weiterleiten.
 ```
 
 WhatsApp merkt sich eine Vorschau pro Link. Wurde der Link vor dem Deploy des Vorschaubilds schon einmal gesendet, kann auf diesem Handy noch die alte Vorschau ohne Bild erscheinen.
