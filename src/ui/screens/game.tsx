@@ -285,7 +285,7 @@ export function GameScreen({ id }: { id: string }) {
         <div class="team">
           <TeamMark colorId={colorOf(homeSide)} />
           <span class="team__name" data-testid="team-home">
-            {teamName(homeSide)}
+            {buttonName(homeSide)}
           </span>
         </div>
         {status === 'created' ? (
@@ -305,7 +305,7 @@ export function GameScreen({ id }: { id: string }) {
         )}
         <div class="team team--away">
           <span class="team__name" data-testid="team-away">
-            {teamName(awaySide)}
+            {buttonName(awaySide)}
           </span>
           <TeamMark colorId={colorOf(awaySide)} />
         </div>
