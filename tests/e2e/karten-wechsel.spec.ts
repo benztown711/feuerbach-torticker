@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { MIN, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, acceptDraw, confirmYes, forward, seedRoster, startGame } from './helpers';
 
 async function enable(page: Page, ...keys: ('cards' | 'subs' | 'marks')[]): Promise<void> {
   await page.goto('./#/einstellungen');
@@ -113,6 +113,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await page.getByTestId('btn-save-sub').click();
     await page.getByTestId('btn-section-end').click();
     await confirmYes(page);
+    await acceptDraw(page);
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
     const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');

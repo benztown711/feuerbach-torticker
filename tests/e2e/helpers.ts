@@ -139,4 +139,14 @@ export async function playFinishedGame(page: Page, goals: ('own' | 'opp')[], o: 
   await page.getByTestId('btn-section-end').click();
   await confirmYes(page);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+  await acceptDraw(page);
+}
+
+/** Spec 003 FR-P01: Nach einem Unentschieden "Unentschieden" wählen (falls die Abfrage erscheint). */
+export async function acceptDraw(page: Page): Promise<void> {
+  const dialog = page.getByTestId('draw-dialog');
+  if (await dialog.isVisible()) {
+    await page.getByTestId('draw-accept').click();
+    await expect(dialog).toBeHidden();
+  }
 }
