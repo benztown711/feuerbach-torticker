@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-03
 
-**Status**: Entwurf. Review A im Chat erledigt (03.11.2026); Darstellung im Spiel offen bis Review B (Mockup mit Alternativen).
+**Status**: Entwurf. Review A erledigt (03.11.2026); Review B: Variante A und Abfrage bei Unentschieden entschieden, vier Mockup-Vorschläge offen.
 
 **Input**: User description: "Beim Tor kennzeichnen, dass es ein Elfmeter war. Für die höher spielenden Mannschaften gelbe, gelb-rote und rote Karten sowie Auswechslungen (wer für wen), in den Einstellungen per Schalter ein- und ausschaltbar, weil das in der E-Jugend irrelevant ist. Ein interner Vermerk wie ein Lesezeichen mit optionalem Kommentar, um Szenen später in der Veo-Aufzeichnung anzuschauen. Pokalspiele mit Verlängerung und Elfmeterschießen."
 
@@ -18,7 +18,13 @@
 - Q: Was steht im geteilten Text? → A: Elfmeter-Kennzeichen, Karten, Wechsel, Verlängerung und Elfmeterschießen ja; Lesezeichen nie.
 - Q: Pokal beim Anlegen abfragen? → A: Nein, das Formular soll schlank bleiben. Steht es nach dem Schlusspfiff unentschieden, bietet die App "Verlängerung" und "Elfmeterschießen" an; wer das nicht braucht, teilt einfach das Ergebnis.
 - Q: Kader je Mannschaft? → A: Nein, ein gemeinsamer Kader reicht (Trainer haben meist eine Mannschaft; E1/E2 teilen sich einen Pool). Ohne Aufgebot zeigt jede Auswahl den ganzen Kader.
-- Offen bis Review B: Wo im Spielbildschirm werden Ereignisse erfasst? Alternativen: A "Ereignis-Knopf" mit Auswahl-Sheet, B Symbolleiste "Lesezeichen | Karte | Wechsel" (Lesezeichen mit einem Tap), C nur über das "…"-Menü.
+
+### Session 2026-11-03 (Review B, Mockup)
+
+- Q: Wo werden Ereignisse im Spiel erfasst (A Ereignis-Knopf, B Symbolleiste, C Menü)? → A: Variante A, ein Knopf "Ereignis" zwischen Uhr-Knöpfen und Torliste; er öffnet große Kacheln für alle eingeschalteten Ereignisse (FR-E09). Lesezeichen brauchen damit zwei Taps.
+- Q: Pokal nach dem Schlusspfiff? → A: Bei Unentschieden kommt eine Abfrage mit drei Möglichkeiten: "Unentschieden", "Verlängerung", "Elfmeterschießen" (FR-P01). Endet die Verlängerung unentschieden, kommt die Abfrage erneut, ohne "Verlängerung".
+- Q: Mannschaften in den Einstellungen? → A: Wie empfohlen (Spec 004).
+- Q: Teilen-Text? → A: Bestätigt: alles außer den internen Lesezeichen.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -45,7 +51,7 @@ Der Trainer merkt sich während des Spiels Szenen, die er später in der Veo-Auf
 **Acceptance Scenarios**:
 
 1. **Given** der Schalter "Lesezeichen" ist aus, **Then** gibt es im Spiel keine Möglichkeit, Lesezeichen zu setzen.
-2. **Given** der Schalter ist an und die Uhr läuft in Minute 7, **When** der Nutzer ein Lesezeichen setzt, **Then** wird es sofort mit Minute, Abschnitt und Uhrzeit gespeichert und ein Hinweis mit "Kommentar" und "Rückgängig" erscheint.
+2. **Given** der Schalter ist an und die Uhr läuft in Minute 7, **When** der Nutzer "Ereignis" und dann "Lesezeichen" tippt, **Then** wird es sofort mit Minute, Abschnitt und Uhrzeit gespeichert und ein Hinweis mit "Kommentar" und "Rückgängig" erscheint.
 3. **Given** ein gerade gesetztes Lesezeichen, **When** der Nutzer "Kommentar" tippt und "Konter links" eingibt oder eine Schnellwahl ("Ansehen", "Torchance", "Abwehr", "Standard") antippt, **Then** wird der Kommentar am Lesezeichen gespeichert.
 4. **Given** ein Spiel mit Lesezeichen, **When** der Nutzer den Teilen-Text erzeugt, **Then** enthält er kein Lesezeichen.
 5. **Given** ein Spiel mit Lesezeichen, **When** der Nutzer in den Spieldetails "Lesezeichen kopieren" wählt, **Then** liegt eine Liste "7' · 10:37:12 · Konter links" (eine Zeile je Lesezeichen) in der Zwischenablage bzw. im Teilen-Menü.
@@ -94,10 +100,10 @@ Ein Pokalspiel steht nach dem Schlusspfiff unentschieden; es geht in die Verlän
 **Acceptance Scenarios**:
 
 1. **Given** ein beendetes Spiel mit Sieger, **Then** werden "Verlängerung" und "Elfmeterschießen" nicht angeboten.
-2. **Given** ein beendetes Spiel 2:2, **Then** werden neben "Ergebnis teilen" auch "Verlängerung" und "Elfmeterschießen" angeboten.
+2. **Given** der Nutzer pfeift beim Stand von 2:2 ab, **Then** fragt die App "Unentschieden 2:2. Wie geht es weiter?" mit "Unentschieden", "Verlängerung" und "Elfmeterschießen"; "Unentschieden" beendet das Spiel wie bisher.
 3. **Given** der Nutzer wählt "Verlängerung", **When** er 2 × 10 Minuten wählt und anpfeift, **Then** läuft die Uhr für die erste Hälfte der Verlängerung mit Minuten ab 51 (bei 2 × 25), mit Nachspielzeit wie FR-005.
 4. **Given** ein Tor in der Verlängerung zum 3:2, **When** das Spiel endet und geteilt wird, **Then** lautet die Kopfzeile "… 3:2 n. V. (1:1)".
-5. **Given** die Verlängerung endet unentschieden, **Then** wird "Elfmeterschießen" angeboten.
+5. **Given** die Verlängerung endet unentschieden, **Then** kommt die Abfrage erneut mit "Unentschieden" und "Elfmeterschießen".
 
 ---
 
@@ -132,11 +138,12 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 - **FR-E02**: Die Einstellungen MÜSSEN im Abschnitt "Im Spiel erfassen" die Schalter "Karten", "Wechsel" und "Lesezeichen" bieten, je mit einer Zeile Erklärung, Standard aus. Ist ein Schalter aus, erscheint die zugehörige Erfassung im Spiel nicht; erfasste Daten bleiben erhalten.
 - **FR-E03**: Karten MÜSSEN als Gelb, Gelb-Rot, Rot oder Zeitstrafe mit Minute (wie FR-005), Abschnitt, Uhrzeit, Mannschaft und optional Spieler (eigene: Kader; Gegner: Freitext wie FR-009) und optionalem Kommentar erfasst, bearbeitet und gelöscht werden können.
 - **FR-E04**: Wechsel MÜSSEN für die eigene Mannschaft als Paar "raus/rein" mit Minute und Uhrzeit erfasst, bearbeitet und gelöscht werden können; die Auswahl folgt FR-030 (Aufgebot, "Andere …").
-- **FR-E05**: Lesezeichen MÜSSEN mit höchstens einem Tap gesetzt werden können und Minute, Abschnitt, Uhrzeit (Sekunden) und optional einen Kommentar (bis 60 Zeichen, Schnellwahl "Ansehen", "Torchance", "Abwehr", "Standard") speichern. Rückgängig wie bei Toren (10 s).
+- **FR-E05**: Lesezeichen MÜSSEN mit zwei Taps ("Ereignis", "Lesezeichen") gesetzt werden können und Minute, Abschnitt, Uhrzeit (Sekunden) und optional einen Kommentar (bis 60 Zeichen, Schnellwahl "Ansehen", "Torchance", "Abwehr", "Standard") speichern. Rückgängig wie bei Toren (10 s).
 - **FR-E06**: Die Torliste im Spiel MUSS Tore, Karten, Wechsel und Lesezeichen gemeinsam chronologisch zeigen (neueste oben, Symbole statt Farbflächen, Lesezeichen gekennzeichnet "nur für dich"). FR-033 und FR-034 gelten weiter.
 - **FR-E07**: Der Teilen-Text (FR-011, contracts/share-text.md) MUSS Elfmeter-Kennzeichen, eine Zeile "Karten: …" und eine Zeile "Wechsel: …" enthalten, sofern vorhanden; Lesezeichen NIE.
 - **FR-E08**: Die Spieldetails MÜSSEN alle Ereignisse in der Zeitleiste zeigen und "Lesezeichen kopieren" anbieten (eine Zeile je Lesezeichen: Minute · Uhrzeit · Kommentar), wenn Lesezeichen vorhanden sind.
-- **FR-P01**: Nach dem Schlusspfiff bei Unentschieden MUSS die App "Verlängerung" und "Elfmeterschießen" anbieten, sonst nicht. Es gibt beim Anlegen des Spiels keine Pokal-Abfrage.
+- **FR-E09**: Ist mindestens ein Schalter (FR-E02) an, MUSS der Spielbildschirm zwischen Uhr-Knöpfen und Torliste einen Knopf "Ereignis" zeigen, solange das Spiel angepfiffen und nicht beendet ist. Er öffnet eine Auswahl mit großen Kacheln (mind. 64 × 64 pt) für die eingeschalteten Ereignisse: Lesezeichen, Gelb, Gelb-Rot, Rot, Zeitstrafe, Wechsel. FR-033 gilt weiter.
+- **FR-P01**: Nach dem Schlusspfiff bei Unentschieden MUSS die App fragen "Unentschieden <Stand>. Wie geht es weiter?" mit "Unentschieden" (Spiel endet), "Verlängerung" und "Elfmeterschießen"; nach einer unentschiedenen Verlängerung ohne "Verlängerung". Bei einem Sieger gibt es keine Abfrage. Beim Anlegen des Spiels gibt es keine Pokal-Abfrage.
 - **FR-P02**: Die Verlängerung MUSS aus zwei Abschnitten mit wählbarer Dauer (5, 10 oder 15 Minuten, Vorgabe 10) bestehen, mit fortlaufender Minute, Nachspielzeit und Signal wie FR-005 bis FR-007; Tore zählen zum Spielstand, der Teilen-Text kennzeichnet "n. V.".
 - **FR-P03**: Das Elfmeterschießen MUSS Schuss für Schuss (Treffer/Verschossen, abwechselnd, beginnende Mannschaft wählbar, Rückgängig, optional Schütze) erfasst werden und einen eigenen Stand "x:y i. E." führen; der reguläre Spielstand bleibt unverändert. S/U/N in der Historie richtet sich nach dem Elfmeterschießen.
 
@@ -149,8 +156,8 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 
 ## Success Criteria *(mandatory)*
 
-- **SC-E01**: Ein Lesezeichen ist in unter 1 Sekunde gesetzt (ein Tap).
-- **SC-E02**: Eine Karte mit Spieler ist in höchstens 3 Taps erfasst.
+- **SC-E01**: Ein Lesezeichen ist in unter 2 Sekunden gesetzt (zwei Taps).
+- **SC-E02**: Eine Karte mit Spieler ist in höchstens 4 Taps erfasst (Ereignis, Art, Mannschaft, Spieler).
 - **SC-E03**: Mit allen Schaltern aus sieht der Spielbildschirm aus wie vorher (kein zusätzlicher Platzbedarf).
 
 ## Assumptions
