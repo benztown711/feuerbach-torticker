@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
-import type { NewGameInput } from '../../src/domain/types';
+import type { NewGameInput, Settings } from '../../src/domain/types';
 import {
   closeDb,
   findOpenGame,
@@ -32,12 +32,19 @@ beforeEach(async () => {
 
 describe('T022 FR-010 IndexedDB', () => {
   it('liefert Vorgabe-Einstellungen bei leerer Datenbank', async () => {
-    expect(await getSettings()).toMatchObject({ recentOwnTeams: [], theme: 'system', lastOwnColor: null });
+    expect(await getSettings()).toMatchObject({ teams: [], theme: 'system' });
   });
 
   it('speichert und liest Einstellungen', async () => {
-    await putSettings({ ...(await getSettings()), recentOwnTeams: ['Sportvg Feuerbach D3'] });
-    expect((await getSettings()).recentOwnTeams).toEqual(['Sportvg Feuerbach D3']);
+    await putSettings({ ...(await getSettings()), theme: 'dark' });
+    expect((await getSettings()).theme).toBe('dark');
+  });
+
+  it('004 alte Einstellungen ohne Mannschaften werden beim Lesen migriert', async () => {
+    const old: Partial<Settings> = { ...(await getSettings()), recentOwnTeams: ['Sportvg Feuerbach D3'] };
+    delete old.teams;
+    await putSettings(old as Settings);
+    expect((await getSettings()).teams.map((t) => t.name)).toEqual(['Sportvg Feuerbach D3']);
   });
 
   it('speichert, liest und aktualisiert Spiele', async () => {

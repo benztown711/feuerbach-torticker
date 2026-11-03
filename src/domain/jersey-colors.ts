@@ -49,12 +49,6 @@ export function needsBorder(id: string, theme: 'light' | 'dark'): boolean {
   return contrastRatio(getColor(id, true).value, surface(theme)) < 3;
 }
 
-/** FR-031: Rot, sobald die eigene Farbe einmal geändert wurde, die des letzten Spiels. */
-export function defaultOwnColor(settings: Settings): string {
-  const last = settings.lastOwnColor;
-  return last !== null && isPaletteColor(last) ? last : 'rot';
-}
-
 /** FR-031: gemerkte Farbe des Gegners, sonst Schwarz; spielt Feuerbach in Schwarz, dann Weiß. */
 export function defaultOppColor(settings: Settings, opponent: string, ownColor: string): string {
   const remembered = settings.opponentColors[normalizeName(opponent)];
@@ -62,14 +56,7 @@ export function defaultOppColor(settings: Settings, opponent: string, ownColor: 
   return ownColor === 'schwarz' ? 'weiss' : 'schwarz';
 }
 
-export function rememberColors(
-  settings: Settings,
-  game: { ownColor: string; oppColor: string; opponent: string },
-): Settings {
-  const changedOnce = settings.lastOwnColor !== null || game.ownColor !== 'rot';
-  return {
-    ...settings,
-    lastOwnColor: changedOnce ? game.ownColor : null,
-    opponentColors: { ...settings.opponentColors, [normalizeName(game.opponent)]: game.oppColor },
-  };
+/** FR-031: Gegnerfarbe je Name merken; die eigene Farbe kommt aus der Mannschaft (Spec 004 FR-M03). */
+export function rememberColors(settings: Settings, game: { oppColor: string; opponent: string }): Settings {
+  return { ...settings, opponentColors: { ...settings.opponentColors, [normalizeName(game.opponent)]: game.oppColor } };
 }

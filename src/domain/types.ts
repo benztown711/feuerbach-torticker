@@ -72,11 +72,26 @@ export interface Player {
   deletedAt: number | null;
 }
 
+/** Spec 004: eigene Mannschaft mit Heim- und Auswärtstrikot. */
+export interface Team {
+  id: string;
+  name: string;
+  homeColor: string;
+  awayColor: string;
+  lastSchema: Schema | null;
+  lastSquad: string[];
+  /** 0 = noch nie genutzt. */
+  lastUsedAt: number;
+}
+
 export interface Settings {
+  /** Spec 004 FR-M01. */
+  teams: Team[];
+  /** Nur noch Quelle der Migration (vor Spec 004). */
   recentOwnTeams: string[];
   lastSchema: Schema;
   lastSquad: string[];
-  /** null = Vorgabe Rot; gesetzt, sobald die eigene Farbe einmal geändert wurde (FR-031). */
+  /** Nur noch Quelle der Migration (vor Spec 004); die eigene Farbe kommt aus der Mannschaft. */
   lastOwnColor: string | null;
   /** Zuletzt genutzte Farbe je Gegnername (normalisiert). */
   opponentColors: Record<string, string>;

@@ -4,7 +4,6 @@ import {
   PALETTE,
   contrastRatio,
   defaultOppColor,
-  defaultOwnColor,
   getColor,
   isPaletteColor,
   needsBorder,
@@ -43,13 +42,6 @@ describe('T090 FR-031 FR-032 Trikotfarben', () => {
     expect(contrastRatio('#fff', '#000')).toBeCloseTo(21, 1);
   });
 
-  it('FR-031 Vorgabe Feuerbach: Rot, nach einer Änderung die letzte Farbe', () => {
-    const s = defaultSettings();
-    expect(defaultOwnColor(s)).toBe('rot');
-    expect(defaultOwnColor({ ...s, lastOwnColor: 'schwarz' })).toBe('schwarz');
-    expect(defaultOwnColor({ ...s, lastOwnColor: 'gibtsnicht' })).toBe('rot');
-  });
-
   it('FR-031 Vorgabe Gegner: gemerkte Farbe, sonst Schwarz, bei Feuerbach in Schwarz Weiß', () => {
     const s = { ...defaultSettings(), opponentColors: { 'tsv musterstadt': 'gelb' } };
     expect(defaultOppColor(s, '  TSV  Musterstadt ', 'rot')).toBe('gelb');
@@ -57,14 +49,12 @@ describe('T090 FR-031 FR-032 Trikotfarben', () => {
     expect(defaultOppColor(s, 'SV Beispiel', 'schwarz')).toBe('weiss');
   });
 
-  it('rememberColors: lastOwnColor erst nach einer Änderung, Gegnerfarbe je Name', () => {
+  it('rememberColors merkt die Gegnerfarbe je Name; die eigene Farbe kommt aus der Mannschaft (004 FR-M03)', () => {
     const s = defaultSettings();
-    const unchanged = rememberColors(s, { ownColor: 'rot', oppColor: 'blau', opponent: 'SV Beispiel' });
-    expect(unchanged.lastOwnColor).toBeNull();
-    expect(unchanged.opponentColors).toEqual({ 'sv beispiel': 'blau' });
-    const changed = rememberColors(unchanged, { ownColor: 'schwarz', oppColor: 'weiss', opponent: 'TSV Musterstadt' });
-    expect(changed.lastOwnColor).toBe('schwarz');
-    const back = rememberColors(changed, { ownColor: 'rot', oppColor: 'weiss', opponent: 'TSV Musterstadt' });
-    expect(back.lastOwnColor).toBe('rot');
+    const next = rememberColors(s, { oppColor: 'blau', opponent: 'SV Beispiel' });
+    expect(next.opponentColors).toEqual({ 'sv beispiel': 'blau' });
+    expect(next.lastOwnColor).toBeNull();
+    const again = rememberColors(next, { oppColor: 'weiss', opponent: 'TSV Musterstadt' });
+    expect(again.opponentColors).toEqual({ 'sv beispiel': 'blau', 'tsv musterstadt': 'weiss' });
   });
 });
