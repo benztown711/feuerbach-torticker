@@ -39,7 +39,7 @@ Nach einem Tor markiert der Nutzer in der Torliste "Elfmeter", so wie heute "Eig
 
 **Acceptance Scenarios**:
 
-1. **Given** ein Feuerbach-Tor von Ben in Minute 31, **When** der Nutzer es antippt und "Elfmeter" wählt, **Then** zeigt die Torliste "31' Feuerbach, Ben (Elfmeter)" und der Teilen-Text "31' 2:1 Ben (Elfmeter)".
+1. **Given** ein Feuerbach-Tor von Ben in Minute 31, **When** der Nutzer es antippt und "Elfmeter" wählt, **Then** zeigt die Torliste "31' Feuerbach, Ben (Elfmeter)" und der Teilen-Text "Ben (Elfmeter)" in der Zeile des Tores.
 2. **Given** ein Gegentor, **When** der Nutzer "Elfmeter" wählt, **Then** gilt das Kennzeichen ebenso (mit oder ohne Torschützen-Freitext).
 3. **Given** ein als Elfmeter markiertes Tor, **When** der Nutzer die Markierung wieder abwählt, **Then** verschwindet sie aus Liste und Text.
 
@@ -74,7 +74,7 @@ Bei Spielen mit Karten erfasst der Nutzer Gelb, Gelb-Rot, Rot oder Zeitstrafe mi
 2. **Given** der Schalter ist an und die Uhr läuft in Minute 52, **When** der Nutzer "Gelb", "Feuerbach" und "Tom" wählt, **Then** zeigt die Liste "52' Gelb · Tom".
 3. **Given** eine Karte für den Gegner, **When** der Nutzer "Rot", "TSV Musterstadt" und Freitext "Nr. 9" wählt, **Then** zeigt die Liste "34' Rot · Nr. 9 (TSV Musterstadt)".
 4. **Given** eine Karte ohne Spieler, **When** der Nutzer "Ohne Spieler speichern" wählt, **Then** wird sie mit Minute und Mannschaft gespeichert.
-5. **Given** ein beendetes Spiel mit Karten, **When** der Nutzer teilt, **Then** enthält der Text eine Zeile "Karten: 34' Rot Nr. 9 (TSV Musterstadt), 52' Gelb Tom".
+5. **Given** ein beendetes Spiel mit Karten, **When** der Nutzer teilt, **Then** enthält der Text die Karten (seit Spec 005 an ihrer Stelle im Verlauf, z. B. "🟨 52' Tom", US2-S1).
 6. **Given** eine erfasste Karte, **When** der Nutzer sie antippt, **Then** kann er sie bearbeiten oder löschen (mit Bestätigung).
 
 ---
@@ -90,7 +90,7 @@ Bei Spielen mit festen Wechseln erfasst der Nutzer, wer für wen gekommen ist.
 1. **Given** der Schalter "Wechsel" ist aus, **Then** gibt es im Spiel keine Wechselerfassung.
 2. **Given** der Schalter ist an und die Uhr läuft in Minute 30, **When** der Nutzer "Ben" als "raus" und "Leo" als "rein" wählt, **Then** zeigt die Liste "30' Leo für Ben".
 3. **Given** ein Aufgebot, **Then** zeigt "raus" und "rein" das Aufgebot als große Knöpfe, "Andere …" den restlichen Kader (wie FR-030).
-4. **Given** ein beendetes Spiel mit Wechseln, **When** der Nutzer teilt, **Then** enthält der Text eine Zeile "Wechsel: 30' Leo für Ben".
+4. **Given** ein beendetes Spiel mit Wechseln, **When** der Nutzer teilt, **Then** enthält der Text den Wechsel (seit Spec 005 im Verlauf: "🔄 30' Leo für Ben").
 
 ---
 
@@ -105,7 +105,7 @@ Ein Pokalspiel steht nach dem Schlusspfiff unentschieden; es geht in die Verlän
 1. **Given** ein beendetes Spiel mit Sieger, **Then** werden "Verlängerung" und "Elfmeterschießen" nicht angeboten.
 2. **Given** der Nutzer pfeift beim Stand von 2:2 ab, **Then** fragt die App "Unentschieden 2:2. Wie geht es weiter?" mit "Unentschieden", "Verlängerung" und "Elfmeterschießen"; "Unentschieden" beendet das Spiel wie bisher.
 3. **Given** der Nutzer wählt "Verlängerung", **When** er 2 × 10 Minuten wählt und anpfeift, **Then** läuft die Uhr für die erste Hälfte der Verlängerung mit Minuten ab 51 (bei 2 × 25), mit Nachspielzeit wie FR-005.
-4. **Given** ein Tor in der Verlängerung zum 3:2, **When** das Spiel endet und geteilt wird, **Then** lautet die Kopfzeile "… 3:2 n. V. (1:1)".
+4. **Given** ein Tor in der Verlängerung zum 3:2, **When** das Spiel endet und geteilt wird, **Then** kennzeichnet der Text die Verlängerung (seit Spec 005: Infozeile "nach Verlängerung · Halbzeit 1:1", Spec 005 US3-S1).
 5. **Given** die Verlängerung endet unentschieden, **Then** kommt die Abfrage erneut mit "Unentschieden" und "Elfmeterschießen".
 
 ---
@@ -122,7 +122,7 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 2. **Given** ein Schuss, **When** der Nutzer "Rückgängig" tippt, **Then** wird der letzte Schuss entfernt.
 3. **Given** Feuerbach ist dran, **When** der Nutzer im Aufgebot "Paul" antippt und danach "Treffer", **Then** füllt sich der nächste Kreis von Feuerbach mit einem Haken, beim Aufklappen der Zeile steht "Paul ✓" als fünfter Eintrag, und die Auswahl ist für den nächsten Schützen wieder leer; Spieler, die schon geschossen haben, sind hellgrau markiert, aber wählbar.
 4. **Given** der Gegner ist dran, **When** der Nutzer optional "Nr. 4" einträgt und "Verschossen" tippt, **Then** zeigt der nächste Kreis des Gegners ein Kreuz, aufgeklappt "Nr. 4 ✗" (ohne Eintrag nur "✗").
-5. **Given** 4:3 nach Elfmeterschießen, **When** der Nutzer "Elfmeterschießen beenden" bestätigt und teilt, **Then** lautet die Kopfzeile "… 2:2 n. V. (1:1), 4:3 i. E." (ohne Verlängerung: "… 2:2 (1:1), 4:3 i. E.") und die Historie zeigt S/N nach dem Elfmeterschießen.
+5. **Given** 4:3 nach Elfmeterschießen, **When** der Nutzer "Elfmeterschießen beenden" bestätigt und teilt, **Then** nennt der Text das Elfmeterschießen (seit Spec 005: "\*Feuerbach gewinnt 4:3 im Elfmeterschießen\*", Spec 005 US3-S2) und die Historie zeigt S/N nach dem Elfmeterschießen.
 
 ---
 
@@ -144,12 +144,12 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 - **FR-E04**: Wechsel MÜSSEN für die eigene Mannschaft als Paar "raus/rein" mit Minute und Uhrzeit erfasst, bearbeitet und gelöscht werden können; die Auswahl folgt FR-030 (Aufgebot, "Andere …").
 - **FR-E05**: Lesezeichen MÜSSEN mit zwei Taps ("Ereignis", "Lesezeichen") gesetzt werden können und Minute, Abschnitt, Uhrzeit (Sekunden) und optional einen Kommentar (bis 60 Zeichen, Schnellwahl "Ansehen", "Torchance", "Abwehr", "Standard") speichern. Rückgängig wie bei Toren (10 s).
 - **FR-E06**: Die Torliste im Spiel MUSS Tore, Karten, Wechsel und Lesezeichen gemeinsam chronologisch zeigen (neueste oben, Symbole statt Farbflächen, Lesezeichen gekennzeichnet "nur für dich"). FR-033 und FR-034 gelten weiter.
-- **FR-E07**: Der Teilen-Text (FR-011, contracts/share-text.md) MUSS Elfmeter-Kennzeichen, eine Zeile "Karten: …" und eine Zeile "Wechsel: …" enthalten, sofern vorhanden; Lesezeichen NIE.
+- **FR-E07**: Der Teilen-Text (FR-011, contracts/share-text.md) MUSS Elfmeter-Kennzeichen, Karten und Wechsel enthalten, sofern vorhanden; Lesezeichen NIE. Seit Spec 005 stehen Karten und Wechsel an ihrer Stelle im Verlauf (FR-S03, FR-S04) statt in eigenen Zeilen "Karten: …" und "Wechsel: …".
 - **FR-E08**: Die Spieldetails MÜSSEN alle Ereignisse in der Zeitleiste zeigen und "Lesezeichen kopieren" anbieten (eine Zeile je Lesezeichen: Minute · Uhrzeit · Kommentar), wenn Lesezeichen vorhanden sind.
 - **FR-E09**: Ist mindestens ein Schalter (FR-E02) an, MUSS der Spielbildschirm zwischen Uhr-Knöpfen und Torliste einen Knopf "Ereignis" zeigen, solange das Spiel angepfiffen und nicht beendet ist. Er öffnet eine Auswahl mit großen Kacheln (mind. 64 × 64 pt) für die eingeschalteten Ereignisse: Lesezeichen, Gelb, Gelb-Rot, Rot, Zeitstrafe, Wechsel. FR-033 gilt weiter.
 - **FR-P01**: Nach dem Schlusspfiff bei Unentschieden MUSS die App fragen "Unentschieden <Stand>. Wie geht es weiter?" mit "Unentschieden" (Spiel endet), "Verlängerung" und "Elfmeterschießen"; nach einer unentschiedenen Verlängerung ohne "Verlängerung". Bei einem Sieger gibt es keine Abfrage. Beim Anlegen des Spiels gibt es keine Pokal-Abfrage.
-- **FR-P02**: Die Verlängerung MUSS aus zwei Abschnitten mit wählbarer Dauer (5, 10 oder 15 Minuten, Vorgabe 10) bestehen, mit fortlaufender Minute, Nachspielzeit und Signal wie FR-005 bis FR-007; Tore zählen zum Spielstand, der Teilen-Text kennzeichnet "n. V.".
-- **FR-P03**: Das Elfmeterschießen MUSS Schuss für Schuss (Treffer/Verschossen, abwechselnd, beginnende Mannschaft wählbar, Rückgängig) erfasst werden. Der eigene Schütze wird optional vor dem Schuss im Aufgebot angetippt ("Andere …" für den restlichen Kader), der gegnerische optional als Freitext. Der Treffer-Knopf trägt die Trikotfarbe der Mannschaft, die dran ist. Die Übersicht zeigt je Mannschaft mindestens fünf Kreise mit Haken/Kreuz (bei vielen Runden die letzten sechs); die Schützen erscheinen per Tipp auf die Zeile und in den Spieldetails, kompakt in Schussreihenfolge von links nach rechts. Das Elfmeterschießen führt einen eigenen Stand "x:y i. E." führen; der reguläre Spielstand bleibt unverändert. S/U/N in der Historie richtet sich nach dem Elfmeterschießen.
+- **FR-P02**: Die Verlängerung MUSS aus zwei Abschnitten mit wählbarer Dauer (5, 10 oder 15 Minuten, Vorgabe 10) bestehen, mit fortlaufender Minute, Nachspielzeit und Signal wie FR-005 bis FR-007; Tore zählen zum Spielstand, der Teilen-Text kennzeichnet die Verlängerung (seit Spec 005: "nach Verlängerung" und Trennzeile "··· Verlängerung ···").
+- **FR-P03**: Das Elfmeterschießen MUSS Schuss für Schuss (Treffer/Verschossen, abwechselnd, beginnende Mannschaft wählbar, Rückgängig) erfasst werden. Der eigene Schütze wird optional vor dem Schuss im Aufgebot angetippt ("Andere …" für den restlichen Kader), der gegnerische optional als Freitext. Der Treffer-Knopf trägt die Trikotfarbe der Mannschaft, die dran ist. Die Übersicht zeigt je Mannschaft mindestens fünf Kreise mit Haken/Kreuz (bei vielen Runden die letzten sechs); die Schützen erscheinen per Tipp auf die Zeile und in den Spieldetails, kompakt in Schussreihenfolge von links nach rechts. Das Elfmeterschießen führt einen eigenen Stand "x:y i. E." führen; der reguläre Spielstand bleibt unverändert. S/U/N in der Historie richtet sich nach dem Elfmeterschießen. Im Teilen-Text seit Spec 005: Siegerzeile und Schussreihen mit ✅/❌ (FR-S01, FR-S05).
 
 ### Key Entities
 

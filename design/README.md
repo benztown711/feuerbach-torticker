@@ -37,6 +37,8 @@ Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startb
 
 **Abweichung vom Design System (begründet):** Trikotfarben sind Spieldaten, keine Markenfarben. Sie stehen in `design/trikot-farben.json` mit geprüfter Schriftfarbe und gelten nur für die Tor-Knöpfe und kleine Farbmarken neben den Mannschaftsnamen. Keine Emojis in der Oberfläche; Symbole als einfarbige Linien-Icons.
 
+**Ausnahme Teilen-Text (Spec 005):** Die Vorschau in den Spieldetails zeigt den WhatsApp-Text wörtlich, also mit seinen Emojis, und die Verlaufstabelle in der Systemschrift mit fester Breite (`--font-mono`, keine Vereinsschrift), damit die Spalten wie im Chat bündig stehen.
+
 ### Schrift
 - Fira Sans als Ersatz für die Kaufschrift TheSans. Stile: `ergebnis` für Spielstand und Uhr, `zwischentitel` für Mannschaftsnamen, `text` für die Torliste, `label` für "1. HZ", "E1".
 - Uhr und Spielstand mit gleich breiten Ziffern (`font-variant-numeric: tabular-nums lining-nums`). Die Mediävalziffern der Marke sind dekorativ und für eine laufende Uhr ungeeignet.
