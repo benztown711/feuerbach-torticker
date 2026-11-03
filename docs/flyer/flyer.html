@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="de" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=540" />
+    <title>Torticker Flyer</title>
+    <!-- Farben, Schriften und Abstände nur aus design/ (über das generierte tokens.css, npm run tokens) -->
+    <link rel="stylesheet" href="../../src/styles/tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        background: var(--color-surface);
+      }
+
+      body {
+        width: 540px;
+        background: var(--color-surface);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .flyer {
+        width: 540px;
+        background: var(--color-surface);
+      }
+
+      /* Kopf: roter Balken wie im Fußball-Header, eckig, ohne Verlauf */
+      .kopf {
+        background: var(--color-vereinsrot);
+        color: var(--color-on-rot);
+        padding: var(--space-4) var(--space-6);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-4);
+      }
+
+      .kopf__titel {
+        font-family: var(--font-display);
+        font-weight: 900;
+        font-style: italic;
+        font-size: 76px;
+        line-height: 0.95;
+        letter-spacing: 0.01em;
+      }
+
+      .kopf__lockup {
+        height: 64px;
+        display: block;
+      }
+
+      .band {
+        background: var(--color-rot-dunkel);
+        color: var(--color-on-rot);
+        padding: 10px var(--space-6);
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .inhalt {
+        padding: var(--space-6) var(--space-6) 0;
+      }
+
+      .titel {
+        font-size: 31px;
+        line-height: 36px;
+        font-weight: 800;
+      }
+
+      .zwei {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-6);
+        margin-top: var(--space-6);
+      }
+
+      .label {
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-rot-text);
+        margin-bottom: var(--space-2);
+      }
+
+      .text {
+        font-size: 17px;
+        line-height: 23px;
+      }
+
+      .text strong {
+        font-weight: 700;
+      }
+
+      .liste {
+        list-style: none;
+        display: grid;
+        gap: 6px;
+      }
+
+      .liste li {
+        position: relative;
+        padding-left: 18px;
+        font-size: 17px;
+        line-height: 23px;
+      }
+
+      /* Marker wie die Trikot-Farbmarken in der App */
+      .liste li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 9px;
+        height: 9px;
+        background: var(--color-vereinsrot);
+      }
+
+      .liste--problem li::before {
+        background: var(--color-ink);
+      }
+
+      /* Drei echte Bildschirme der App */
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: var(--space-6);
+      }
+
+      .screen img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 393 / 793;
+        border: 2px solid var(--color-ink);
+        background: var(--color-surface);
+      }
+
+      .screen figcaption {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+        white-space: nowrap;
+        font-size: 15px;
+        line-height: 22px;
+        font-weight: 700;
+      }
+
+      .screen small {
+        display: block;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 400;
+        color: var(--color-ink-muted);
+      }
+
+      .nr {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        background: var(--color-vereinsrot);
+        color: var(--color-on-rot);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .vorteile {
+        margin-top: var(--space-6);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px var(--space-6);
+      }
+
+      /* Aufruf: dunkle Fläche wie der Hauptknopf der App */
+      .aufruf {
+        margin-top: var(--space-6);
+        background: var(--color-ink);
+        color: var(--color-surface);
+        padding: var(--space-6);
+        display: grid;
+        grid-template-columns: 1fr 128px;
+        gap: var(--space-4);
+      }
+
+      .aufruf__titel {
+        font-family: var(--font-display);
+        font-weight: 900;
+        font-style: italic;
+        font-size: 34px;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .schritte {
+        grid-column: 1 / -1;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+        counter-reset: schritt;
+      }
+
+      .schritte li {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: var(--space-2);
+        font-size: 16px;
+        line-height: 21px;
+      }
+
+      .schritte li::before {
+        counter-increment: schritt;
+        content: counter(schritt);
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        background: var(--color-vereinsrot);
+        color: var(--color-on-rot);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .schritte strong {
+        font-weight: 700;
+      }
+
+      .link {
+        margin-top: var(--space-4);
+        font-size: 20px;
+        line-height: 25px;
+        font-weight: 700;
+        color: var(--color-surface);
+      }
+
+      .qr {
+        align-self: start;
+        background: var(--color-wappenfeld);
+        /* Ruhezone von 4 Modulen um den QR-Code */
+        padding: 13px 13px 8px;
+      }
+
+      .qr img {
+        display: block;
+        width: 102px;
+        height: 102px;
+      }
+
+      .qr span {
+        display: block;
+        margin-top: 6px;
+        text-align: center;
+        font-size: 12px;
+        line-height: 14px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--color-ink);
+      }
+
+      .fuss {
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        font-size: 14px;
+        line-height: 19px;
+        color: var(--color-ink-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="flyer" id="flyer">
+      <header class="kopf">
+        <h1 class="kopf__titel">TORTICKER</h1>
+        <img
+          class="kopf__lockup"
+          src="../../design/brand/lockup-fussball.svg"
+          alt="Fußball, Sportvereinigung Feuerbach 1883 e. V."
+        />
+      </header>
+      <p class="band">Mittesten am Wochenende · 7./8. November</p>
+
+      <section class="inhalt">
+        <h2 class="titel">Ein Tap pro Tor. Den Spielbericht schreibt die App.</h2>
+
+        <div class="zwei">
+          <div>
+            <p class="label">Das Problem</p>
+            <ul class="liste liste--problem">
+              <li>Coachen und nebenbei Zeit und Tore zählen</li>
+              <li>Wer traf wann? Später weiß es keiner genau</li>
+              <li>Ergebnis mühsam in die Elterngruppe tippen</li>
+            </ul>
+          </div>
+          <div>
+            <p class="label">Wofür der Torticker da ist</p>
+            <p class="text">
+              Dein Handy wird zur <strong>Anzeigetafel</strong>: Tore, Spielzeit, Pfiff zur Halbzeit. Nach dem Abpfiff
+              ist der <strong>Spielbericht für WhatsApp</strong> fertig.
+            </p>
+          </div>
+        </div>
+
+        <div class="screens">
+          <figure class="screen">
+            <img src="screens/neues-spiel.png" alt="Neues Spiel anlegen: nur den Gegner eintragen" />
+            <figcaption><span class="nr">1</span>Spiel anlegen</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="screens/spiel.png" alt="Laufendes Spiel mit großen Tor-Knöpfen" />
+            <figcaption><span class="nr">2</span>Tor antippen</figcaption>
+          </figure>
+          <figure class="screen">
+            <img src="screens/teilen.png" alt="Spielbericht mit Torschützen zum Teilen" />
+            <figcaption><span class="nr">3</span>Ergebnis teilen</figcaption>
+          </figure>
+        </div>
+
+        <ul class="liste vorteile">
+          <li>Torschützen per Tap</li>
+          <li>Läuft offline am Platz</li>
+          <li>Kostenlos, ohne Konto</li>
+          <li>Daten bleiben bei dir</li>
+        </ul>
+
+        <section class="aufruf">
+          <div>
+            <p class="aufruf__titel">Teste am<br />Wochenende mit</p>
+            <p class="link">benztown711.github.io/<br />feuerbach-torticker</p>
+          </div>
+          <div class="qr">
+            <img src="qr.svg" alt="QR-Code zur App" />
+            <span>SCANNEN</span>
+          </div>
+          <ol class="schritte">
+            <li>
+              <span
+                >Link öffnen und auf den Home-Bildschirm legen.<br /><strong>iPhone:</strong> Safari → Teilen → „Zum
+                Home-Bildschirm“<br /><strong>Android:</strong> Chrome → Menü → „App installieren“</span
+              >
+            </li>
+            <li><span>Beim Spiel mitlaufen lassen.</span></li>
+            <li><span>Kurz sagen, was fehlt oder stört.</span></li>
+          </ol>
+        </section>
+      </section>
+
+      <p class="fuss">
+        Testversion für Trainerteams und Eltern der Sportvg Feuerbach. Gerne weiterleiten. Rückmeldung an Attila oder
+        dein Trainerteam.
+      </p>
+    </main>
+  </body>
+</html>

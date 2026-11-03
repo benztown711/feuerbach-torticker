@@ -21,7 +21,8 @@
     "budget": "tsx scripts/check-bundle-size.ts",
     "e2e": "playwright test",
     "lhci": "npx --yes @lhci/cli@0.15.1 autorun",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "flyer": "tsx scripts/flyer.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.11.4",
