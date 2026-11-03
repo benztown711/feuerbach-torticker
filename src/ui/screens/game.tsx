@@ -45,6 +45,18 @@ import { anyEventFeature } from '../../domain/settings';
 import type { CardColor, EventPerson, Game, Goal, Scorer, Settings, Side } from '../../domain/types';
 import { buildShareText } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
+import {
+  addShot,
+  canExtraTime,
+  endShootout,
+  needsDrawDecision,
+  settleDraw,
+  shootoutState,
+  startExtraTime,
+  startShootout,
+  undoShot,
+} from '../../domain/cup';
+import { totalSections } from '../../domain/minute';
 import { shareText } from '../../platform/share';
 import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
@@ -53,6 +65,7 @@ import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
+import { ShootoutView } from '../components/shootout';
 import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
@@ -71,7 +84,8 @@ type Ask =
   | { kind: 'pause' | 'end' | 'swap' }
   | { kind: 'remove'; goalId: string }
   | { kind: 'goalResume'; side: Side }
-  | { kind: 'removeEvent'; id: string };
+  | { kind: 'removeEvent'; id: string }
+  | { kind: 'endShootout' };
 
 /** Spec 003: Entwurf einer Karte bzw. eines Wechsels (neu: id = null). */
 type CardDraft = {
@@ -119,6 +133,10 @@ export function GameScreen({ id }: { id: string }) {
   const [evUndo, setEvUndo] = useState<{ id: string; until: number } | null>(null);
   const [evSheet, setEvSheet] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  // Spec 003 FR-P01 bis FR-P03: Pokal
+  const [extraOpen, setExtraOpen] = useState(false);
+  const [extraMin, setExtraMin] = useState(10);
+  const [firstAsk, setFirstAsk] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -191,15 +209,18 @@ export function GameScreen({ id }: { id: string }) {
   const buttonName = (side: Side): string => (side === 'own' ? ownShort : game.opponent);
   const colorOf = (side: Side): string => (side === 'own' ? game.ownColor : game.oppColor);
   const goalsOpen = status === 'running' || status === 'paused';
-  const lastSection = clock.section >= game.schema.sections;
+  const lastSection = clock.section >= totalSections(game.schema);
   const endLabel = lastSection ? 'Schlusspfiff' : 'Pausenpfiff';
   const overtime = clock.isOvertime && goalsOpen;
 
+  const shootoutActive = !!game.shootout && !game.shootout.done;
   const headerLabel =
     status === 'finished'
-      ? 'Schlusspfiff'
+      ? shootoutActive
+        ? 'Elfmeterschießen'
+        : 'Schlusspfiff'
       : status === 'break'
-        ? game.schema.sections === 2
+        ? game.schema.sections === 2 && clock.kickoffSection === 2
           ? 'Halbzeitpause'
           : 'Pause'
         : sectionLabel(clock.section, game.schema.sections);
@@ -261,6 +282,7 @@ export function GameScreen({ id }: { id: string }) {
       update(removeEvent(g, ask.id));
       setEvSheet(null);
     }
+    if (ask.kind === 'endShootout') update(endShootout(g));
     setAsk(null);
   };
 
@@ -275,6 +297,11 @@ export function GameScreen({ id }: { id: string }) {
       'Tor + weiter',
     ],
     removeEvent: ['Eintrag entfernen?', 'Die Karte bzw. der Wechsel wird gelöscht.', 'Entfernen'],
+    endShootout: [
+      'Elfmeterschießen beenden?',
+      'Der Stand im Elfmeterschießen wird als Ergebnis gespeichert.',
+      'Beenden',
+    ],
     swap: [
       'Heim und Gast tauschen?',
       'Die Mannschaften wechseln die Seite. Tore bleiben ihrer Mannschaft zugeordnet.',
@@ -428,113 +455,142 @@ export function GameScreen({ id }: { id: string }) {
           <TeamMark colorId={colorOf(awaySide)} />
         </div>
       </section>
-      <div class="score" data-testid="score">
-        {`${ha.home} : ${ha.away}`}
-      </div>
-
-      <ClockDisplay clock={clock} flash={flashing} />
-
-      <section class="controls">
-        {(status === 'created' || status === 'break') && (
-          <button type="button" class="btn btn--primary controls__wide" data-testid="btn-kickoff" onClick={doKickoff}>
-            {status === 'created' || clock.kickoffSection === null
-              ? 'Anpfiff'
-              : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
-          </button>
-        )}
-        {status === 'running' && (
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="btn-pause"
-            onClick={() => setAsk({ kind: 'pause' })}
-          >
-            Uhr anhalten
-          </button>
-        )}
-        {status === 'paused' && (
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="btn-resume"
-            onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
-          >
-            Uhr fortsetzen
-          </button>
-        )}
-        {goalsOpen && (
-          <button
-            type="button"
-            class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
-            data-testid="btn-section-end"
-            onClick={() => setAsk({ kind: 'end' })}
-          >
-            {endLabel}
-          </button>
-        )}
-        {status === 'finished' && (
-          <>
-            <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
-              Spieldetails
-            </button>
-            <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
-              Ergebnis teilen
-            </button>
-          </>
-        )}
-      </section>
-
-      {eventsOpen && (
-        <section class="event-add" aria-label="Ereignisse">
-          <button
-            type="button"
-            class="btn btn--quiet event-add__btn"
-            data-testid="btn-event"
-            onClick={() => {
-              setEventAt(Date.now());
-              setEventSheet(true);
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Ereignis
-          </button>
-        </section>
-      )}
-
-      {(game.goals.length > 0 || allEvents.length > 0) && (
-        <button
-          type="button"
-          class="list-grip"
-          data-testid="list-grip"
-          aria-expanded={expanded}
-          aria-label={expanded ? 'Liste einklappen' : 'Liste aufklappen'}
-          onClick={() => setExpanded(!expanded)}
+      {shootoutActive ? (
+        <ShootoutView
+          game={game}
+          players={roster}
+          ownName={ownShort}
+          dark={dark}
+          onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
+          onUndo={() => update(undoShot(cur()))}
+          onEnd={() => setAsk({ kind: 'endShootout' })}
         />
-      )}
-      <GoalList
-        game={game}
-        ownName={ownShort}
-        players={roster}
-        onOpen={(g) => setSheetGoal(g.id)}
-        events={allEvents}
-        onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
-      />
+      ) : (
+        <>
+          <div class="score" data-testid="score">
+            {`${ha.home} : ${ha.away}`}
+          </div>
+          {game.shootout?.done &&
+            (() => {
+              const st = shootoutState(game);
+              const p = homeAway(game.venue, { own: st.own, opp: st.opp });
+              return (
+                <p class="shootout-result" data-testid="shootout-result">
+                  {p.home}:{p.away} i. E.
+                </p>
+              );
+            })()}
 
-      <section class="goal-buttons" aria-label="Tore erfassen">
-        {[homeSide, awaySide].map((side) => (
-          <GoalButton
-            key={side}
-            testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-            team={buttonName(side)}
-            colorId={colorOf(side)}
-            dark={dark}
-            disabled={!goalsOpen}
-            onGoal={() => onGoal(side)}
+          <ClockDisplay clock={clock} flash={flashing} />
+
+          <section class="controls">
+            {(status === 'created' || status === 'break') && (
+              <button
+                type="button"
+                class="btn btn--primary controls__wide"
+                data-testid="btn-kickoff"
+                onClick={doKickoff}
+              >
+                {status === 'created' || clock.kickoffSection === null
+                  ? 'Anpfiff'
+                  : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
+              </button>
+            )}
+            {status === 'running' && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="btn-pause"
+                onClick={() => setAsk({ kind: 'pause' })}
+              >
+                Uhr anhalten
+              </button>
+            )}
+            {status === 'paused' && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="btn-resume"
+                onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
+              >
+                Uhr fortsetzen
+              </button>
+            )}
+            {goalsOpen && (
+              <button
+                type="button"
+                class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
+                data-testid="btn-section-end"
+                onClick={() => setAsk({ kind: 'end' })}
+              >
+                {endLabel}
+              </button>
+            )}
+            {status === 'finished' && (
+              <>
+                <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
+                  Spieldetails
+                </button>
+                <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
+                  Ergebnis teilen
+                </button>
+              </>
+            )}
+          </section>
+
+          {eventsOpen && (
+            <section class="event-add" aria-label="Ereignisse">
+              <button
+                type="button"
+                class="btn btn--quiet event-add__btn"
+                data-testid="btn-event"
+                onClick={() => {
+                  setEventAt(Date.now());
+                  setEventSheet(true);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Ereignis
+              </button>
+            </section>
+          )}
+
+          {(game.goals.length > 0 || allEvents.length > 0) && (
+            <button
+              type="button"
+              class="list-grip"
+              data-testid="list-grip"
+              aria-expanded={expanded}
+              aria-label={expanded ? 'Liste einklappen' : 'Liste aufklappen'}
+              onClick={() => setExpanded(!expanded)}
+            />
+          )}
+          <GoalList
+            game={game}
+            ownName={ownShort}
+            players={roster}
+            onOpen={(g) => setSheetGoal(g.id)}
+            events={allEvents}
+            onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
-        ))}
-      </section>
+
+          <section class="goal-buttons" aria-label="Tore erfassen">
+            {[homeSide, awaySide].map((side) => (
+              <GoalButton
+                key={side}
+                testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                team={buttonName(side)}
+                colorId={colorOf(side)}
+                dark={dark}
+                disabled={!goalsOpen}
+                onGoal={() => onGoal(side)}
+              />
+            ))}
+          </section>
+        </>
+      )}
 
       {markUndoObj && !undoGoalObj && (
         <div class="undo-bar" data-testid="mark-toast" role="status">
@@ -1150,6 +1206,123 @@ export function GameScreen({ id }: { id: string }) {
             </div>
           </form>
         </Sheet>
+      )}
+
+      {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
+        <div class="overlay overlay--center">
+          <div class="overlay__backdrop" />
+          <div
+            class="dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="draw-title"
+            data-testid="draw-dialog"
+          >
+            <h2 id="draw-title" class="dialog__title">
+              Unentschieden {ha.home}:{ha.away}
+            </h2>
+            <p class="dialog__text">Wie geht es weiter?</p>
+            <button
+              type="button"
+              class="btn btn--primary"
+              data-testid="draw-accept"
+              onClick={() => update(settleDraw(cur()))}
+            >
+              Unentschieden
+            </button>
+            {canExtraTime(game) && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="draw-extra"
+                onClick={() => setExtraOpen(true)}
+              >
+                Verlängerung
+              </button>
+            )}
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="draw-shootout"
+              onClick={() => setFirstAsk(true)}
+            >
+              Elfmeterschießen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {extraOpen && (
+        <Sheet
+          title="Verlängerung"
+          subtitle={`Es steht ${ha.home}:${ha.away}. Die Uhr zählt ab ${
+            game.schema.sections * game.schema.sectionMinutes + 1
+          }' weiter.`}
+          testId="extra-sheet"
+          onClose={() => setExtraOpen(false)}
+        >
+          <span class="field__label t-label">SPIELZEIT</span>
+          <div class="schema">
+            <span class="schema__times">2 ×</span>
+            <div class="segmented segmented--inline" role="group" aria-label="Minuten je Hälfte">
+              {[5, 10, 15].map((m) => (
+                <button
+                  type="button"
+                  key={m}
+                  class="segmented__item"
+                  aria-pressed={extraMin === m}
+                  data-testid={`extra-min-${m}`}
+                  onClick={() => setExtraMin(m)}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+            <span class="schema__unit">Minuten</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="btn-start-extra"
+            onClick={() => {
+              const t = Date.now();
+              setKeepAlive(true);
+              unlockAudio();
+              update(kickoff(startExtraTime(cur(), extraMin, t), t));
+              setExtraOpen(false);
+            }}
+          >
+            Verlängerung anpfeifen
+          </button>
+        </Sheet>
+      )}
+
+      {firstAsk && (
+        <div class="overlay overlay--center">
+          <div class="overlay__backdrop" onClick={() => setFirstAsk(false)} />
+          <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="first-title" data-testid="first-dialog">
+            <h2 id="first-title" class="dialog__title">
+              Wer schießt zuerst?
+            </h2>
+            {(['own', 'opp'] as const).map((sd) => (
+              <button
+                type="button"
+                key={sd}
+                class="btn btn--secondary"
+                data-testid={`first-${sd}`}
+                onClick={() => {
+                  update(startShootout(cur(), sd));
+                  setFirstAsk(false);
+                }}
+              >
+                {sd === 'own' ? ownShort : game.opponent}
+              </button>
+            ))}
+            <button type="button" class="btn btn--quiet" onClick={() => setFirstAsk(false)}>
+              Abbrechen
+            </button>
+          </div>
+        </div>
       )}
 
       {ask && (
