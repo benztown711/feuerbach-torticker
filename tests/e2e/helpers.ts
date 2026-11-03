@@ -33,7 +33,9 @@ export function readStored<T>(page: Page, store: 'settings' | 'games', key: stri
     ({ store, key }) =>
       new Promise<T | undefined>((resolve, reject) => {
         const open = indexedDB.open('torticker');
-        open.onerror = () => reject(open.error);
+        // Noch keine Datenbank: nicht anlegen (sonst fehlen der App später die Stores).
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => (open.error?.name === 'AbortError' ? resolve(undefined) : reject(open.error));
         open.onsuccess = () => {
           const db = open.result;
           const get = db.transaction(store).objectStore(store).get(key);
