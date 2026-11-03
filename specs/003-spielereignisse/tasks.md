@@ -13,7 +13,11 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Teil 2: Karten und Wechsel
 
-- [ ] E101 Tests und Umsetzung FR-E02 (Schalter Karten, Wechsel), FR-E03, FR-E04, FR-E06 (Griff), FR-E07 (Zeilen "Karten:" und "Wechsel:")
+- [x] E101 [P] `tests/unit/cards-subs.test.ts`: Karten (eigener Spieler, Gegner-Freitext, ohne Spieler, Kommentar, ungültige Kombinationen, angehaltene Uhr, bearbeiten, löschen), Wechsel (gleicher Spieler ungültig, nach Schlusspfiff nicht, bearbeiten), Zeilen "Karten:"/"Wechsel:" chronologisch, gelöschte Spieler lesbar, Schalter-Migration (FR-E02 bis FR-E04, FR-E07)
+- [x] E102 `src/domain/events.ts` (`addCard`, `updateCard`, `addSub`, `updateSub`, `replaceEvent`, `cardText`, `subText`, `eventsShareLines`), `types.ts` (Ereignis-Union), Teilen-Text, Zeitleiste (macht E101 grün)
+- [x] E103 [P] `tests/unit/export.test.ts` und `contracts/export.schema.json`: Karten und Wechsel in der Sicherung, ungültige abgelehnt
+- [x] E104 [P] E2E `tests/e2e/karten-wechsel.spec.ts`: 003 US3-S1 bis S6, US4-S1 bis S4, FR-E06 Griff, FR-033 mit allen Schaltern
+- [x] E105 UI: Schalter `feature-cards`/`feature-subs`, Kacheln `event-card-<art>`/`event-sub`, `card-sheet`, `sub-sheet`, `event-actions` (Ändern, Entfernen mit Abfrage), `event-toast`/`event-undo`, Griff `list-grip`, Spieldetails (macht E104 grün)
 
 ## Teil 3: Pokal
 
