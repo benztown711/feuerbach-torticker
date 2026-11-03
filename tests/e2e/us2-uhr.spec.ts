@@ -170,9 +170,10 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     expect((await recorded()).keepAlive).toBe(true);
   });
 
-  test('US2-S14 FR-039 "Signal testen" spielt den Pfiff vor dem Anpfiff', async ({ page, recorded }) => {
+  test('US2-S14 FR-039 "Ton testen" spielt den Pfiff vor dem Anpfiff', async ({ page, recorded }) => {
     await page.goto('./');
     await page.getByTestId('btn-new-game').click();
+    await expect(page.getByTestId('btn-test-signal')).toHaveText('Ton testen');
     await page.getByTestId('btn-test-signal').click();
     expect((await recorded()).sounds).toBe(1);
   });

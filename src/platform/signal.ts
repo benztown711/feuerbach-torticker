@@ -194,7 +194,7 @@ export function playSignal(): void {
   if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300]);
 }
 
-/** "Signal testen" (FR-039): innerhalb einer Berührung sofort hörbar abspielen. */
+/** "Ton testen" (FR-039): innerhalb einer Berührung sofort hörbar abspielen. */
 export function testSignal(): void {
   setPlaybackSession();
   playSignal();
