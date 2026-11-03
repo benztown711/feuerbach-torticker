@@ -65,6 +65,12 @@
 - Mockups 7 bis 9 (Historie, Spieldetails mit Teilen, Einstellungen) freigegeben.
 - Q: Uhr zurücksetzen? → A: Entfällt, wird nicht gebraucht. Das "…"-Menü im Spiel enthält danach nur noch "Heim und Gast tauschen" und "Spieldetails" ("Zur Startseite" übernimmt die Navigationsleiste). Gespeicherte Spiele mit einem alten Zurücksetzen-Ereignis werden weiterhin korrekt ausgewertet.
 
+### Session 2026-11-03 (Test für alle Mannschaften, Kopfzeile)
+
+- Befund: Die Kopfzeile über dem Spielstand kürzt den eigenen Namen auf "Sportvg Feuerbach …"; genau der unterscheidende Teil ("U11", "U15-Juniorinnen") fehlt.
+- Q: Kopfzeile kürzen oder umbrechen? → A: Variante B: eigene Mannschaft in Kurzform wie auf den Tor-Knöpfen ("Feuerbach U11"), beide Namen brechen bei Bedarf auf höchstens zwei Zeilen um, erst danach "…" (FR-040).
+- Befund (Gerätetest): Nach einem Update fehlte die Navigationsleiste, bis die App neu geladen wurde. Ursache: Die App sucht nur beim Start nach einer neuen Version, iOS hält die App aber im Speicher. → Prüfung bei jeder Rückkehr in den Vordergrund (FR-041).
+
 **Input**: User description: "Ergebnis-Tracker für unsere Fußballspiele. Sehr einfach Tore für Heim- oder Gastmannschaft mit großen Knöpfen hinzufügen, Minute wird automatisch festgehalten. Am Anfang Gegner eintragen und ob die Sportvereinigung Feuerbach daheim oder auswärts spielt. Countdown-Timer, typischerweise 25 Minuten. Optional Torschütze (Spielerliste oder Freitext)."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -99,7 +105,7 @@ Vor dem Anpfiff trägt der Nutzer den Gegner ein, wählt "Heim" oder "Auswärts"
 
 **Acceptance Scenarios**:
 
-1. **Given** der Startbildschirm, **When** der Nutzer Gegner "TSV Musterstadt" eingibt und "Auswärts" wählt, **Then** zeigt der Spielbildschirm "TSV Musterstadt" als Heim (links) und "Sportvg Feuerbach" als Gast (rechts).
+1. **Given** der Startbildschirm, **When** der Nutzer Gegner "TSV Musterstadt" eingibt und "Auswärts" wählt, **Then** zeigt der Spielbildschirm "TSV Musterstadt" als Heim (links) und "Feuerbach" (Kurzform nach FR-040) als Gast (rechts).
 2. **Given** ein angelegtes Spiel, **When** der Nutzer "Anpfiff" tippt, **Then** läuft der Countdown von 25:00 abwärts.
 3. **Given** der Countdown erreicht 00:00 in Halbzeit 1, **Then** ertönt ein Signal (Ton, Vibration wo möglich), und die Uhr läuft als Nachspielzeit aufwärts weiter ("+0:01", "+0:02" ...), rot gekennzeichnet.
 4. **Given** Halbzeit 1 ist seit 40 Sekunden in der Nachspielzeit (2 × 25 Min), **When** ein Tor erfasst wird, **Then** wird es als "25+1'" gespeichert.
@@ -263,6 +269,8 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-012**: Die App MUSS nach dem ersten Laden ohne Netzverbindung voll funktionsfähig sein und auf dem Home-Bildschirm installierbar sein.
 - **FR-013**: Während die Uhr läuft, MUSS die App den Bildschirm wach halten, sofern das Gerät es unterstützt (Voraussetzung für Ton und Anzeige am Abschnittsende).
 - **FR-014**: Der eigene Mannschaftsname MUSS pro Spiel frei wählbar sein (1 bis 40 Zeichen, Vorgabe "Sportvg Feuerbach" bzw. der zuletzt genutzte). Zuletzt genutzte Namen (bis 5) werden als Schnellauswahl angeboten. Auf den Tor-Knöpfen steht die Kurzform ohne "Sportvg " (z. B. "Feuerbach E1").
+- **FR-040**: Die Kopfzeile über dem Spielstand MUSS die eigene Mannschaft in der Kurzform der Tor-Knöpfe zeigen (FR-014, z. B. "Feuerbach U11") und den Gegner mit vollem Namen. Passt ein Name nicht in eine Zeile, bricht er auf höchstens zwei Zeilen um; erst was danach nicht passt, wird mit "…" gekürzt. FR-033 gilt weiterhin.
+- **FR-041**: Die App MUSS bei jeder Rückkehr in den Vordergrund (höchstens einmal pro Minute) nach einer neuen Version suchen, damit der Hinweis "Neue Version verfügbar" auch erscheint, wenn die App tagelang im Hintergrund geöffnet blieb. Der Hinweis erscheint wie bisher nicht auf dem Spielbildschirm; ohne Netz passiert nichts.
 - **FR-021**: Tore MÜSSEN nur bei laufender Uhr gezählt werden (einschließlich Nachspielzeit). Vor dem Anpfiff, in der Halbzeitpause und nach dem Schlusspfiff sind die Tor-Knöpfe deaktiviert. Bei angehaltener Uhr fragt ein Tipp auf einen Tor-Knopf "Tor eintragen und Uhr fortsetzen?"; nach Bestätigung läuft die Uhr weiter und das Tor wird gezählt, sonst bleibt alles unverändert. Korrekturen erfolgen über die Torliste.
 
 ### Gestaltung (Design System der Sportvg Feuerbach, Details in `design/README.md`)

@@ -277,6 +277,15 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [x] T100 [US6] Spieldetails `src/ui/screens/game-details.tsx` nach Mockup 8: Kopf "Heim : Gast" mit Halbzeit, Zeitleiste (`details-timeline`), Teilen-Vorschau (`share-preview`), `btn-share`, `btn-delete-game` mit Abfrage
 - [x] T101 Uhr zurücksetzen entfernen: `resetClock`/Aktion `reset` aus `src/domain/game.ts`, Menüpunkt und Abfrage aus `src/ui/screens/game.tsx`, E2E US2-S9; `deriveClock` wertet alte `reset`-Ereignisse weiter aus (Unit-Test bleibt), Export-Schema behält `reset`
 
+## Phase 12: Kopfzeile und Update-Prüfung (Session 2026-11-03)
+
+**Goal**: Unterscheidbare Mannschaftsnamen in der Kopfzeile (FR-040), Update-Hinweis auch nach langer Zeit im Hintergrund (FR-041).
+
+- [x] T102 [P] E2E in `tests/e2e/us2-layout-se.spec.ts`: Kopfzeile zeigt "Feuerbach U11", lange Namen ("Sportvg Feuerbach U15-Juniorinnen", "SGM SV Prag Stuttgart/TSV Weilimdorf") höchstens zwei Zeilen, ohne Seiten-Scroll auf 375 × 667 (FR-040, FR-033)
+- [x] T103 Kopfzeile in `src/ui/screens/game.tsx` (Kurzform) und `src/styles/app.css` (`.team__name` zweizeilig) (macht T102 grün)
+- [x] T104 [P] Komponententest `tests/component/update-check.test.tsx`: `update()` bei Rückkehr in den Vordergrund, höchstens einmal pro Minute, Fehler ohne Netz werden geschluckt (FR-041)
+- [x] T105 `src/platform/update-check.ts` und Anbindung in `src/ui/components/update-prompt.tsx` über `onRegisteredSW` (macht T104 grün)
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
