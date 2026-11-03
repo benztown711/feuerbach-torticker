@@ -4,7 +4,7 @@ import {
   addMark,
   addSub,
   cardLabel,
-  eventsShareLines,
+  cardText,
   gameEvents,
   isMark,
   personLabel,
@@ -14,6 +14,7 @@ import {
   updateSub,
 } from '../../src/domain/events';
 import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/game';
+import { addGoal } from '../../src/domain/goals';
 import { timeline } from '../../src/domain/history';
 import { withSettingsDefaults } from '../../src/domain/settings';
 import { buildShareText } from '../../src/domain/share-text';
@@ -140,6 +141,29 @@ describe('003 FR-E03 Karten', () => {
     expect(personLabel({ kind: 'text', text: 'Nr. 9' }, players)).toBe('Nr. 9');
     expect(personLabel(null, players)).toBe('');
   });
+
+  it('003 US3-S3 Text einer Karte in Liste und Spieldetails', () => {
+    const at = T0 + min(5);
+    const card = (side: 'own' | 'opp', c: CardEvent['card'], who: CardEvent['who']): CardEvent => ({
+      id: 'c',
+      kind: 'card',
+      at,
+      section: 1,
+      minute: 6,
+      stoppage: null,
+      side,
+      card: c,
+      who,
+      comment: '',
+    });
+    const g = running();
+    expect(cardText(g, card('opp', 'rot', { kind: 'text', text: 'Nr. 9' }), players)).toBe(
+      'Rot Nr. 9 (TSV Musterstadt)',
+    );
+    expect(cardText(g, card('opp', 'gelb', null), players)).toBe('Gelb (TSV Musterstadt)');
+    expect(cardText(g, card('own', 'gelb', { kind: 'player', playerId: 'p-tom' }), players)).toBe('Gelb Tom');
+    expect(cardText(g, card('own', 'zeit', null), players)).toBe('Zeitstrafe (Feuerbach U15)');
+  });
 });
 
 describe('003 FR-E04 Wechsel', () => {
@@ -165,31 +189,58 @@ describe('003 FR-E04 Wechsel bearbeiten', () => {
   });
 });
 
-describe('003 FR-E07 Teilen-Text und Zeitleiste', () => {
-  it('003 US3-S5 US4-S4 Zeilen "Karten:" und "Wechsel:" in zeitlicher Reihenfolge; Lesezeichen nie', () => {
+describe('005 FR-S03 FR-S04 Karten und Wechsel im Verlauf des Teilen-Texts', () => {
+  it('005 US2-S1 bis S4 an ihrer Stelle, ohne Tore ohne Stand-Spalte; Lesezeichen nie', () => {
     let g = running();
     g = addCard(g, { side: 'own', card: 'gelb', who: { kind: 'player', playerId: 'p-tom' } }, T0 + min(51), ids)!.game;
     g = addCard(g, { side: 'opp', card: 'rot', who: { kind: 'text', text: 'Nr. 9' } }, T0 + min(33), ids)!.game;
     g = addCard(g, { side: 'opp', card: 'gelb', who: null }, T0 + min(40), ids)!.game;
     g = addCard(g, { side: 'own', card: 'zeit', who: null }, T0 + min(41), ids)!.game;
+    g = addCard(
+      g,
+      { side: 'own', card: 'gelbrot', who: { kind: 'player', playerId: 'p-ben' } },
+      T0 + min(20),
+      ids,
+    )!.game;
     g = addSub(g, 'p-ben', 'p-leo', T0 + min(29) + 30_000, ids)!.game;
     g = addMark(g, T0 + min(2), ids)!.game;
-    expect(eventsShareLines(g, players)).toEqual([
-      "Karten: 34' Rot Nr. 9 (TSV Musterstadt), 35+6' Gelb (TSV Musterstadt), 35+7' Zeitstrafe (Feuerbach U15), 35+17' Gelb Tom",
-      "Wechsel: 30' Leo für Ben",
-    ]);
     const text = buildShareText(g, players, TZ);
-    expect(text.split('\n').slice(-2)).toEqual(eventsShareLines(g, players));
+    expect(text).toBe(
+      [
+        '*Sportvg Feuerbach U15 0:0 TSV Musterstadt*',
+        'Sa, 07.11.2026, 10:30 Uhr',
+        '```',
+        "🟥    21'  Ben (Gelb-Rot)",
+        "🔄    30'  Leo für Ben",
+        "🟥    34'  Nr. 9 (Gegner)",
+        "🟨  35+6'  Gegner",
+        "⏱️  35+7'  Feuerbach U15 (Zeitstrafe)",
+        "🟨 35+17'  Tom",
+        '```',
+      ].join('\n'),
+    );
     expect(text).not.toContain('Lesezeichen');
-    expect(eventsShareLines(running(), players)).toEqual([]);
     const kinds = timeline(g).map((i) => i.kind);
-    expect(kinds.filter((k) => k === 'ev')).toHaveLength(6);
+    expect(kinds.filter((k) => k === 'ev')).toHaveLength(7);
     expect(gameEvents(g).filter(isMark)).toHaveLength(1);
+  });
+
+  it('005 US2-S1 mit Toren: Karte und Wechsel lassen die Stand-Spalte leer', () => {
+    let g = running();
+    g = addGoal(g, 'own', T0 + min(3), ids).game;
+    g = addCard(g, { side: 'own', card: 'gelb', who: { kind: 'player', playerId: 'p-tom' } }, T0 + min(5), ids)!.game;
+    // gleiche Zeit wie das Tor: Tor zuerst, dann das Ereignis
+    g = addSub(g, 'p-ben', 'p-leo', T0 + min(3), ids)!.game;
+    expect(buildShareText(g, players, TZ).split('\n').slice(3, 6)).toEqual([
+      "🔴 4'  1:0",
+      "🔄 4'       Leo für Ben",
+      "🟨 6'       Tom",
+    ]);
   });
 
   it('Wechsel mit gelöschtem Spieler bleibt lesbar', () => {
     const g = addSub(running(), 'weg-1', 'p-leo', T0 + min(5), ids)!.game;
-    expect(eventsShareLines(g, players)).toEqual(["Wechsel: 6' Leo für ?"]);
+    expect(buildShareText(g, players, TZ).split('\n')[3]).toBe("🔄 6'  Leo für ?");
   });
 });
 

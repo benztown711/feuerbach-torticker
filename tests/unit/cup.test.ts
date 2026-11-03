@@ -11,15 +11,16 @@ import {
   startShootout,
   undoShot,
 } from '../../src/domain/cup';
-import { addGoal } from '../../src/domain/goals';
+import { addGoal, setScorer } from '../../src/domain/goals';
 import { historyEntry } from '../../src/domain/history';
 import { minuteFor, sectionMinutesOf, totalSections } from '../../src/domain/minute';
 import { buildShareText } from '../../src/domain/share-text';
-import type { Game, NewGameInput, Side } from '../../src/domain/types';
+import type { Game, NewGameInput, Player, Side } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
 const min = (n: number): number => n * 60_000;
 const TZ = 'Europe/Berlin';
+const players: Player[] = [{ id: 'p-max', name: 'Max', number: 7, deletedAt: null }];
 const base: NewGameInput = {
   ownTeam: 'Sportvg Feuerbach U11',
   opponent: 'TSV Musterstadt',
@@ -93,12 +94,27 @@ describe('003 FR-P02 Verlängerung', () => {
     expect(g.finalScore).toEqual({ own: 3, opp: 2 });
   });
 
-  it('003 US5-S4 Teilen-Text "n. V."; US5-S5 nach Unentschieden in der Verlängerung nur noch Elfmeterschießen', () => {
+  it('003 US5-S4 005 US3-S1 Teilen-Text "nach Verlängerung"; US5-S5 nach Unentschieden in der Verlängerung nur noch Elfmeterschießen', () => {
     let g = kickoff(startExtraTime(draw22(), 10, T0 + min(56)), T0 + min(57));
     g = goal(g, 'own', T0 + min(60));
     g = kickoff(endSection(g, T0 + min(67)), T0 + min(68));
     g = endSection(g, T0 + min(78));
-    expect(buildShareText(g, [], TZ).split('\n')[0]).toBe('⚽ Sportvg Feuerbach U11 - TSV Musterstadt 3:2 n. V. (1:1)');
+    expect(buildShareText(g, [], TZ)).toBe(
+      [
+        '*Sportvg Feuerbach U11 3:2 TSV Musterstadt*',
+        'nach Verlängerung · Halbzeit 1:1',
+        'Sa, 07.11.2026, 10:30 Uhr',
+        '```',
+        "🔴  7'  1:0",
+        "⚫ 18'  1:1",
+        '··· Halbzeit ···',
+        "🔴 32'  2:1",
+        "⚫ 45'  2:2",
+        '··· Verlängerung ···',
+        "🔴 54'  3:2",
+        '```',
+      ].join('\n'),
+    );
     let d = kickoff(startExtraTime(draw22(), 5, T0 + min(56)), T0 + min(57));
     d = kickoff(endSection(d, T0 + min(62)), T0 + min(63));
     d = endSection(d, T0 + min(68));
@@ -110,13 +126,13 @@ describe('003 FR-P02 Verlängerung', () => {
     expect(() => startExtraTime(kickoff(createGame(base, { id: 'x', now: T0 }), T0), 10, T0)).toThrow();
     const g = startExtraTime(draw22(), 15, T0 + min(56));
     expect(() => startExtraTime(g, 10, T0 + min(57))).toThrow();
-    expect(buildShareText(g, [], TZ, T0 + min(57)).split('\n')[0]).toBe(
-      '⚽ Sportvg Feuerbach U11 - TSV Musterstadt 2:2 (1:1) · vor der Verlängerung',
-    );
+    expect(
+      buildShareText(g, [], TZ, T0 + min(57))
+        .split('\n')
+        .slice(0, 2),
+    ).toEqual(['*Sportvg Feuerbach U11 2:2 TSV Musterstadt*', 'vor der Verlängerung · Halbzeit 1:1']);
     const brk = endSection(kickoff(g, T0 + min(57)), T0 + min(72));
-    expect(buildShareText(brk, [], TZ, T0 + min(73)).split('\n')[0]).toBe(
-      '⚽ Sportvg Feuerbach U11 - TSV Musterstadt 2:2 (1:1) · Pause',
-    );
+    expect(buildShareText(brk, [], TZ, T0 + min(73)).split('\n')[1]).toBe('Pause · Halbzeit 1:1');
   });
 });
 
@@ -172,29 +188,75 @@ describe('003 FR-P03 Elfmeterschießen', () => {
     expect(shootoutState(g)).toMatchObject({ own: 6, opp: 5, decided: true, winner: 'own' });
   });
 
-  it('003 US6-S4 Ergebnis "4:3 i. E." im Teilen-Text, S/N in der Historie; Start nur bei Unentschieden', () => {
+  it('003 US6-S4 005 US3-S2 Siegerzeile und Schussreihen im Teilen-Text, S/N in der Historie; Start nur bei Unentschieden', () => {
     let g = startShootout(draw22(), 'own');
     const seq: boolean[] = [true, true, false, true, true, false, true, true, true, false];
     for (const hit of seq) g = addShot(g, hit, null, T0);
     expect(shootoutState(g)).toMatchObject({ own: 4, opp: 3, decided: true });
     expect(historyEntry(g).result).toBeNull();
     g = endShootout(g);
-    expect(buildShareText(g, [], TZ).split('\n')[0]).toBe(
-      '⚽ Sportvg Feuerbach U11 - TSV Musterstadt 2:2 (1:1), 4:3 i. E.',
-    );
+    const text = buildShareText(g, [], TZ);
+    expect(text.split('\n').slice(0, 3)).toEqual([
+      '*Sportvg Feuerbach U11 2:2 TSV Musterstadt*',
+      '*Feuerbach U11 gewinnt 4:3 im Elfmeterschießen*',
+      'Halbzeit 1:1',
+    ]);
+    expect(text.split('\n').slice(-4)).toEqual([
+      '··· Elfmeterschießen ···',
+      '🔴 ✅ ❌ ✅ ✅ ✅  4',
+      '⚫ ✅ ✅ ❌ ✅ ❌  3',
+      '```',
+    ]);
+    expect(text).not.toContain('Schützen');
     expect(historyEntry(g).result).toBe('S');
     expect(needsDrawDecision(g)).toBe(false);
     const away = { ...g, venue: 'away' as const };
-    expect(buildShareText(away, [], TZ).split('\n')[0]).toBe(
-      '⚽ TSV Musterstadt - Sportvg Feuerbach U11 2:2 (1:1), 3:4 i. E.',
-    );
+    const awayLines = buildShareText(away, [], TZ).split('\n');
+    expect(awayLines.slice(0, 2)).toEqual([
+      '*TSV Musterstadt 2:2 Sportvg Feuerbach U11*',
+      '*Feuerbach U11 gewinnt 4:3 im Elfmeterschießen*',
+    ]);
+    expect(awayLines.slice(-3, -1)).toEqual(['⚫ ✅ ✅ ❌ ✅ ❌  3', '🔴 ✅ ❌ ✅ ✅ ✅  4']);
     const lost = endShootout(addShot(addShot(startShootout(draw22(), 'own'), false, null, T0), true, null, T0));
     expect(historyEntry(lost).result).toBe('N');
+    expect(buildShareText(lost, [], TZ).split('\n')[1]).toBe('*TSV Musterstadt gewinnt 1:0 im Elfmeterschießen*');
     expect(() => startShootout(g, 'own')).toThrow();
     expect(() => startShootout(kickoff(createGame(base, { id: 'y', now: T0 }), T0), 'own')).toThrow();
     const d = draw22();
     expect(addShot(d, true, null, T0)).toEqual(d);
     expect(undoShot(d)).toEqual(d);
     expect(endShootout(d)).toEqual(d);
+  });
+
+  it('005 US3-S3 Schützen unter der Tabelle ("?" ohne Namen), danach Torschützen mit Leerzeile', () => {
+    let d = draw22();
+    d = setScorer(d, d.goals.find((x) => x.side === 'own')!.id, { kind: 'player', playerId: 'p-max' });
+    let g = startShootout(d, 'own');
+    g = addShot(g, true, { kind: 'player', playerId: 'p-max' }, T0);
+    g = addShot(g, false, { kind: 'text', text: 'Nr. 7' }, T0);
+    g = addShot(g, true, null, T0);
+    g = endShootout(g);
+    const lines = buildShareText(g, players, TZ).split('\n');
+    expect(lines[1]).toBe('*Feuerbach U11 gewinnt 2:0 im Elfmeterschießen*');
+    expect(lines.slice(-8)).toEqual([
+      '··· Elfmeterschießen ···',
+      '🔴 ✅ ✅  2',
+      '⚫ ❌  0',
+      '```',
+      'Schützen: Max, ?',
+      '',
+      '*Torschützen*',
+      'Max ⚽',
+    ]);
+  });
+
+  it('005 US4-S3 laufendes Elfmeterschießen; ohne Entscheidung beendet', () => {
+    const running = addShot(startShootout(draw22(), 'own'), true, null, T0);
+    const lines = buildShareText(running, [], TZ).split('\n');
+    expect(lines[1]).toBe('Halbzeit 1:1 · Elfmeterschießen läuft');
+    expect(lines.slice(-4)).toEqual(['··· Elfmeterschießen ···', '🔴 ✅  1', '⚫  0', '```']);
+    const undecided = buildShareText(endShootout(startShootout(draw22(), 'own')), [], TZ);
+    expect(undecided.split('\n')[1]).toBe('*Elfmeterschießen 0:0*');
+    expect(undecided).not.toContain('··· Elfmeterschießen');
   });
 });

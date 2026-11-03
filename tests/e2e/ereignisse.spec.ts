@@ -98,7 +98,10 @@ test.describe('Spec 003 Teil 1: Lesezeichen und Elfmeter', () => {
     expect((await recorded()).shares[1]?.text).toMatch(/^Lesezeichen Feuerbach - TSV Musterstadt, /);
   });
 
-  test('003 US1-S1 US1-S3 FR-E01 Tor als Elfmeter kennzeichnen und wieder abwählen', async ({ page, recorded }) => {
+  test('003 US1-S1 US1-S3 005 US1-S6 FR-E01 Tor als Elfmeter kennzeichnen und wieder abwählen', async ({
+    page,
+    recorded,
+  }) => {
     await startGame(page, { sections: 1, minutes: 12 });
     await forward(page, 4 * MIN);
     await page.getByTestId('btn-goal-opp').click();
@@ -120,7 +123,7 @@ test.describe('Spec 003 Teil 1: Lesezeichen und Elfmeter', () => {
     await confirmYes(page);
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
-    expect((await recorded()).shares[0]?.text).toContain("5' 0:1 (Elfmeter)");
+    expect(((await recorded()).shares[0]?.text ?? '').split('\n')).toContain("⚫ 5'  0:1  (Elfmeter)");
   });
 
   test('003 SC-E03 FR-033 mit Knopf "Ereignis" passt der Spielbildschirm weiter auf das iPhone SE', async ({

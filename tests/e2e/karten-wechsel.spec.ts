@@ -97,7 +97,10 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await expect(page.getByTestId('event-toast')).toContainText('Wechsel');
   });
 
-  test('003 US3-S5 US4-S4 FR-E07 Teilen-Text mit Zeilen "Karten:" und "Wechsel:"', async ({ page, recorded }) => {
+  test('003 US3-S5 US4-S4 005 US2-S1 US2-S3 Karten und Wechsel im Verlauf des Teilen-Texts', async ({
+    page,
+    recorded,
+  }) => {
     await seedRoster(page, ['2 Ben', '3 Tom', '4 Leo'].join('\n'));
     await enable(page, 'cards', 'subs');
     await startGame(page, { sections: 1, minutes: 12 });
@@ -117,8 +120,8 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await page.getByTestId('btn-share').click();
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
     const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
-    expect(lines).toContain("Karten: 4' Gelb Tom");
-    expect(lines).toContain("Wechsel: 6' Leo für Ben");
+    expect(lines).toContain("🟨 4'  Tom");
+    expect(lines).toContain("🔄 6'  Leo für Ben");
     await page.getByTestId('btn-menu').click();
     await page.getByTestId('menu-details').click();
     await expect(page.getByTestId('details-timeline')).toContainText('Gelb Tom');
