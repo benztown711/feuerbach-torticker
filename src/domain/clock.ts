@@ -1,4 +1,4 @@
-import { minuteFor } from './minute';
+import { minuteFor, sectionMinutesOf } from './minute';
 import type { ClockEvent, GameStatus, Schema } from './types';
 
 export interface ClockState {
@@ -73,6 +73,11 @@ export function deriveClock(events: ClockEvent[], nowMs: number, schema: Schema,
         status = 'finished';
         kickoffSection = null;
         break;
+      case 'extraTime':
+        // FR-P02: nach dem Schlusspfiff geht es in die Verlängerung
+        status = 'break';
+        kickoffSection = e.section + 1;
+        break;
       case 'reset':
         played = 0;
         since = null;
@@ -84,7 +89,7 @@ export function deriveClock(events: ClockEvent[], nowMs: number, schema: Schema,
   }
 
   const playedMs = played + (since !== null ? Math.max(0, nowMs - since) : 0);
-  const sectionMs = schema.sectionMinutes * MINUTE_MS;
+  const sectionMs = sectionMinutesOf(schema, section) * MINUTE_MS;
   const overtimeMs = Math.max(0, playedMs - sectionMs);
   const { minute, stoppage, label } = minuteFor(section, playedMs, schema);
 

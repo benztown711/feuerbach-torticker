@@ -10,7 +10,21 @@ import {
   sectionLabel,
   swapVenue,
 } from '../../domain/game';
-import { addMark, gameEvents, removeEvent, setMarkComment, MARK_COMMENT_MAX } from '../../domain/events';
+import {
+  addCard,
+  addMark,
+  addSub,
+  cardLabel,
+  cardText,
+  gameEvents,
+  isMark,
+  MARK_COMMENT_MAX,
+  removeEvent,
+  setMarkComment,
+  subText,
+  updateCard,
+  updateSub,
+} from '../../domain/events';
 import {
   addGoal,
   homeAway,
@@ -28,16 +42,30 @@ import { formatTime } from '../../domain/format';
 import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
-import type { Game, Goal, Scorer, Settings, Side } from '../../domain/types';
+import type { CardColor, EventPerson, Game, Goal, Scorer, Settings, Side } from '../../domain/types';
 import { buildShareText } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
+import {
+  addShot,
+  canExtraTime,
+  endShootout,
+  needsDrawDecision,
+  settleDraw,
+  shootoutState,
+  startExtraTime,
+  startShootout,
+  undoShot,
+} from '../../domain/cup';
+import { totalSections } from '../../domain/minute';
 import { shareText } from '../../platform/share';
 import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
-import { BookmarkIcon, GoalList } from '../components/goal-list';
+import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
+import { GoalList } from '../components/goal-list';
+import { ShootoutView } from '../components/shootout';
 import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
@@ -52,7 +80,26 @@ const PICKER_MS = 8_000;
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
 
-type Ask = { kind: 'pause' | 'end' | 'swap' } | { kind: 'remove'; goalId: string } | { kind: 'goalResume'; side: Side };
+type Ask =
+  | { kind: 'pause' | 'end' | 'swap' }
+  | { kind: 'remove'; goalId: string }
+  | { kind: 'goalResume'; side: Side }
+  | { kind: 'removeEvent'; id: string }
+  | { kind: 'endShootout' };
+
+/** Spec 003: Entwurf einer Karte bzw. eines Wechsels (neu: id = null). */
+type CardDraft = {
+  id: string | null;
+  at: number;
+  card: CardColor;
+  side: Side;
+  oppText: string;
+  comment: string;
+  showNote: boolean;
+  others: boolean;
+};
+type SubDraft = { id: string | null; at: number; out: string | null; inn: string | null; others: boolean };
+const CARDS: CardColor[] = ['gelb', 'gelbrot', 'rot', 'zeit'];
 
 function TeamMark({ colorId }: { colorId: string }) {
   return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
@@ -80,6 +127,16 @@ export function GameScreen({ id }: { id: string }) {
   const [markUndo, setMarkUndo] = useState<{ id: string; until: number } | null>(null);
   const [markSheet, setMarkSheet] = useState<string | null>(null);
   const [markEdit, setMarkEdit] = useState<{ id: string; value: string } | null>(null);
+  const [eventAt, setEventAt] = useState(0);
+  const [cardDraft, setCardDraft] = useState<CardDraft | null>(null);
+  const [subDraft, setSubDraft] = useState<SubDraft | null>(null);
+  const [evUndo, setEvUndo] = useState<{ id: string; until: number } | null>(null);
+  const [evSheet, setEvSheet] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  // Spec 003 FR-P01 bis FR-P03: Pokal
+  const [extraOpen, setExtraOpen] = useState(false);
+  const [extraMin, setExtraMin] = useState(10);
+  const [firstAsk, setFirstAsk] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -152,15 +209,18 @@ export function GameScreen({ id }: { id: string }) {
   const buttonName = (side: Side): string => (side === 'own' ? ownShort : game.opponent);
   const colorOf = (side: Side): string => (side === 'own' ? game.ownColor : game.oppColor);
   const goalsOpen = status === 'running' || status === 'paused';
-  const lastSection = clock.section >= game.schema.sections;
+  const lastSection = clock.section >= totalSections(game.schema);
   const endLabel = lastSection ? 'Schlusspfiff' : 'Pausenpfiff';
   const overtime = clock.isOvertime && goalsOpen;
 
+  const shootoutActive = !!game.shootout && !game.shootout.done;
   const headerLabel =
     status === 'finished'
-      ? 'Schlusspfiff'
+      ? shootoutActive
+        ? 'Elfmeterschießen'
+        : 'Schlusspfiff'
       : status === 'break'
-        ? game.schema.sections === 2
+        ? game.schema.sections === 2 && clock.kickoffSection === 2
           ? 'Halbzeitpause'
           : 'Pause'
         : sectionLabel(clock.section, game.schema.sections);
@@ -218,6 +278,11 @@ export function GameScreen({ id }: { id: string }) {
       update(removeGoal(g, ask.goalId, t));
       setSheetGoal(null);
     }
+    if (ask.kind === 'removeEvent') {
+      update(removeEvent(g, ask.id));
+      setEvSheet(null);
+    }
+    if (ask.kind === 'endShootout') update(endShootout(g));
     setAsk(null);
   };
 
@@ -230,6 +295,12 @@ export function GameScreen({ id }: { id: string }) {
       'Tor eintragen und Uhr fortsetzen?',
       'Die Uhr ist angehalten. Mit „Tor + weiter“ läuft sie wieder und das Tor wird gezählt.',
       'Tor + weiter',
+    ],
+    removeEvent: ['Eintrag entfernen?', 'Die Karte bzw. der Wechsel wird gelöscht.', 'Entfernen'],
+    endShootout: [
+      'Elfmeterschießen beenden?',
+      'Der Stand im Elfmeterschießen wird als Ergebnis gespeichert.',
+      'Beenden',
     ],
     swap: [
       'Heim und Gast tauschen?',
@@ -259,7 +330,45 @@ export function GameScreen({ id }: { id: string }) {
   const flashing = now < flashUntil;
 
   // Spec 003 FR-E09: Knopf "Ereignis" ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
-  const marks = gameEvents(game).filter((e) => e.kind === 'mark');
+  const allEvents = gameEvents(game);
+  const marks = allEvents.filter(isMark);
+  const minuteAt = (at: number): string => {
+    const c = clockOf(game, at);
+    return formatMinute(c.minute, c.stoppage);
+  };
+  const squadPl = squadPlayers(roster, game.squad);
+  const otherPl = otherPlayers(roster, game.squad);
+  const evUndoObj = evUndo && now < evUndo.until ? allEvents.find((e) => e.id === evUndo.id) : undefined;
+  const evSel = evSheet ? allEvents.find((e) => e.id === evSheet) : undefined;
+  const saveCard = (who: EventPerson): void => {
+    const d = cardDraft;
+    if (!d) return;
+    const input = { side: d.side, card: d.card, who, comment: d.comment };
+    setCardDraft(null);
+    if (d.id) {
+      update(updateCard(cur(), d.id, input));
+      return;
+    }
+    const r = addCard(cur(), input, d.at);
+    if (r) {
+      update(r.game);
+      setEvUndo({ id: r.event.id, until: Date.now() + UNDO_MS });
+    }
+  };
+  const saveSub = (): void => {
+    const d = subDraft;
+    if (!d?.out || !d.inn) return;
+    setSubDraft(null);
+    if (d.id) {
+      update(updateSub(cur(), d.id, d.out, d.inn));
+      return;
+    }
+    const r = addSub(cur(), d.out, d.inn, d.at);
+    if (r) {
+      update(r.game);
+      setEvUndo({ id: r.event.id, until: Date.now() + UNDO_MS });
+    }
+  };
   const eventsOpen = settings !== null && anyEventFeature(settings) && (goalsOpen || status === 'break');
   const markUndoObj = markUndo && now < markUndo.until ? marks.find((m) => m.id === markUndo.id) : undefined;
   const markSel = markSheet ? marks.find((m) => m.id === markSheet) : undefined;
@@ -280,7 +389,7 @@ export function GameScreen({ id }: { id: string }) {
   const showAudioHint = (status === 'running' || status === 'paused') && !audioReady();
 
   return (
-    <main class="game" onPointerDown={reArmAudio}>
+    <main class={expanded ? 'game game--expanded' : 'game'} onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>
@@ -346,100 +455,142 @@ export function GameScreen({ id }: { id: string }) {
           <TeamMark colorId={colorOf(awaySide)} />
         </div>
       </section>
-      <div class="score" data-testid="score">
-        {`${ha.home} : ${ha.away}`}
-      </div>
+      {shootoutActive ? (
+        <ShootoutView
+          game={game}
+          players={roster}
+          ownName={ownShort}
+          dark={dark}
+          onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
+          onUndo={() => update(undoShot(cur()))}
+          onEnd={() => setAsk({ kind: 'endShootout' })}
+        />
+      ) : (
+        <>
+          <div class="score" data-testid="score">
+            {`${ha.home} : ${ha.away}`}
+          </div>
+          {game.shootout?.done &&
+            (() => {
+              const st = shootoutState(game);
+              const p = homeAway(game.venue, { own: st.own, opp: st.opp });
+              return (
+                <p class="shootout-result" data-testid="shootout-result">
+                  {p.home}:{p.away} i. E.
+                </p>
+              );
+            })()}
 
-      <ClockDisplay clock={clock} flash={flashing} />
+          <ClockDisplay clock={clock} flash={flashing} />
 
-      <section class="controls">
-        {(status === 'created' || status === 'break') && (
-          <button type="button" class="btn btn--primary controls__wide" data-testid="btn-kickoff" onClick={doKickoff}>
-            {status === 'created' || clock.kickoffSection === null
-              ? 'Anpfiff'
-              : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
-          </button>
-        )}
-        {status === 'running' && (
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="btn-pause"
-            onClick={() => setAsk({ kind: 'pause' })}
-          >
-            Uhr anhalten
-          </button>
-        )}
-        {status === 'paused' && (
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="btn-resume"
-            onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
-          >
-            Uhr fortsetzen
-          </button>
-        )}
-        {goalsOpen && (
-          <button
-            type="button"
-            class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
-            data-testid="btn-section-end"
-            onClick={() => setAsk({ kind: 'end' })}
-          >
-            {endLabel}
-          </button>
-        )}
-        {status === 'finished' && (
-          <>
-            <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
-              Spieldetails
-            </button>
-            <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
-              Ergebnis teilen
-            </button>
-          </>
-        )}
-      </section>
+          <section class="controls">
+            {(status === 'created' || status === 'break') && (
+              <button
+                type="button"
+                class="btn btn--primary controls__wide"
+                data-testid="btn-kickoff"
+                onClick={doKickoff}
+              >
+                {status === 'created' || clock.kickoffSection === null
+                  ? 'Anpfiff'
+                  : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
+              </button>
+            )}
+            {status === 'running' && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="btn-pause"
+                onClick={() => setAsk({ kind: 'pause' })}
+              >
+                Uhr anhalten
+              </button>
+            )}
+            {status === 'paused' && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="btn-resume"
+                onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
+              >
+                Uhr fortsetzen
+              </button>
+            )}
+            {goalsOpen && (
+              <button
+                type="button"
+                class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
+                data-testid="btn-section-end"
+                onClick={() => setAsk({ kind: 'end' })}
+              >
+                {endLabel}
+              </button>
+            )}
+            {status === 'finished' && (
+              <>
+                <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
+                  Spieldetails
+                </button>
+                <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
+                  Ergebnis teilen
+                </button>
+              </>
+            )}
+          </section>
 
-      {eventsOpen && (
-        <section class="event-add" aria-label="Ereignisse">
-          <button
-            type="button"
-            class="btn btn--quiet event-add__btn"
-            data-testid="btn-event"
-            onClick={() => setEventSheet(true)}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Ereignis
-          </button>
-        </section>
-      )}
+          {eventsOpen && (
+            <section class="event-add" aria-label="Ereignisse">
+              <button
+                type="button"
+                class="btn btn--quiet event-add__btn"
+                data-testid="btn-event"
+                onClick={() => {
+                  setEventAt(Date.now());
+                  setEventSheet(true);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Ereignis
+              </button>
+            </section>
+          )}
 
-      <GoalList
-        game={game}
-        ownName={ownShort}
-        players={roster}
-        onOpen={(g) => setSheetGoal(g.id)}
-        marks={marks}
-        onOpenMark={(m) => setMarkSheet(m.id)}
-      />
-
-      <section class="goal-buttons" aria-label="Tore erfassen">
-        {[homeSide, awaySide].map((side) => (
-          <GoalButton
-            key={side}
-            testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-            team={buttonName(side)}
-            colorId={colorOf(side)}
-            dark={dark}
-            disabled={!goalsOpen}
-            onGoal={() => onGoal(side)}
+          {(game.goals.length > 0 || allEvents.length > 0) && (
+            <button
+              type="button"
+              class="list-grip"
+              data-testid="list-grip"
+              aria-expanded={expanded}
+              aria-label={expanded ? 'Liste einklappen' : 'Liste aufklappen'}
+              onClick={() => setExpanded(!expanded)}
+            />
+          )}
+          <GoalList
+            game={game}
+            ownName={ownShort}
+            players={roster}
+            onOpen={(g) => setSheetGoal(g.id)}
+            events={allEvents}
+            onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
-        ))}
-      </section>
+
+          <section class="goal-buttons" aria-label="Tore erfassen">
+            {[homeSide, awaySide].map((side) => (
+              <GoalButton
+                key={side}
+                testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                team={buttonName(side)}
+                colorId={colorOf(side)}
+                dark={dark}
+                disabled={!goalsOpen}
+                onGoal={() => onGoal(side)}
+              />
+            ))}
+          </section>
+        </>
+      )}
 
       {markUndoObj && !undoGoalObj && (
         <div class="undo-bar" data-testid="mark-toast" role="status">
@@ -464,6 +615,25 @@ export function GameScreen({ id }: { id: string }) {
             onClick={() => {
               update(removeEvent(cur(), markUndoObj.id));
               setMarkUndo(null);
+            }}
+          >
+            Rückgängig
+          </button>
+        </div>
+      )}
+      {evUndoObj && !undoGoalObj && !markUndoObj && (
+        <div class="undo-bar" data-testid="event-toast" role="status">
+          <span class="undo-bar__text">
+            {evUndoObj.kind === 'card' ? cardLabel(evUndoObj.card) : 'Wechsel'}{' '}
+            {formatMinute(evUndoObj.minute, evUndoObj.stoppage)} erfasst
+          </span>
+          <button
+            type="button"
+            class="btn btn--secondary btn--small"
+            data-testid="event-undo"
+            onClick={() => {
+              update(removeEvent(cur(), evUndoObj.id));
+              setEvUndo(null);
             }}
           >
             Rückgängig
@@ -547,11 +717,291 @@ export function GameScreen({ id }: { id: string }) {
           <div class="pick-grid">
             {settings.features.marks && (
               <button type="button" class="pick" data-testid="event-mark" onClick={doMark}>
-                <BookmarkIcon />
+                <BookmarkIcon size={24} />
                 <span>Lesezeichen</span>
               </button>
             )}
+            {settings.features.cards &&
+              CARDS.map((c) => (
+                <button
+                  type="button"
+                  key={c}
+                  class="pick"
+                  data-testid={`event-card-${c}`}
+                  onClick={() => {
+                    setEventSheet(false);
+                    setCardDraft({
+                      id: null,
+                      at: eventAt,
+                      card: c,
+                      side: 'own',
+                      oppText: '',
+                      comment: '',
+                      showNote: false,
+                      others: false,
+                    });
+                  }}
+                >
+                  <CardGlyph card={c} size={24} />
+                  <span>{cardLabel(c)}</span>
+                </button>
+              ))}
+            {settings.features.subs && (
+              <button
+                type="button"
+                class="pick"
+                data-testid="event-sub"
+                onClick={() => {
+                  setEventSheet(false);
+                  setSubDraft({ id: null, at: eventAt, out: null, inn: null, others: false });
+                }}
+              >
+                <SubIcon size={24} />
+                <span>Wechsel</span>
+              </button>
+            )}
           </div>
+        </Sheet>
+      )}
+
+      {cardDraft && (
+        <Sheet
+          title={cardDraft.id ? 'Karte ändern' : 'Karte'}
+          subtitle={`Minute ${minuteAt(cardDraft.at)}`}
+          testId="card-sheet"
+          onClose={() => setCardDraft(null)}
+        >
+          <span class="field__label t-label">ART</span>
+          <div class="pick-grid pick-grid--4" role="group" aria-label="Art der Karte">
+            {CARDS.map((c) => (
+              <button
+                type="button"
+                key={c}
+                class="pick pick--small"
+                aria-pressed={cardDraft.card === c}
+                data-testid={`card-kind-${c}`}
+                onClick={() => setCardDraft({ ...cardDraft, card: c })}
+              >
+                <CardGlyph card={c} size={20} />
+                <span>{cardLabel(c)}</span>
+              </button>
+            ))}
+          </div>
+          <span class="field__label t-label">MANNSCHAFT</span>
+          <div class="segmented segmented--2" role="group" aria-label="Mannschaft">
+            {(['own', 'opp'] as const).map((sd) => (
+              <button
+                type="button"
+                key={sd}
+                class="segmented__item"
+                aria-pressed={cardDraft.side === sd}
+                data-testid={`card-side-${sd}`}
+                onClick={() => setCardDraft({ ...cardDraft, side: sd })}
+              >
+                {sd === 'own' ? ownShort : game.opponent}
+              </button>
+            ))}
+          </div>
+          <div class="sheet__row">
+            <span class="field__label t-label">SPIELER</span>
+            {!cardDraft.showNote && (
+              <button
+                type="button"
+                class="link-btn"
+                data-testid="card-note"
+                onClick={() => setCardDraft({ ...cardDraft, showNote: true })}
+              >
+                Kommentar
+              </button>
+            )}
+          </div>
+          {cardDraft.showNote && (
+            <input
+              class="input"
+              data-testid="input-card-comment"
+              value={cardDraft.comment}
+              maxLength={MARK_COMMENT_MAX}
+              autocomplete="off"
+              placeholder="Kommentar (freiwillig)"
+              aria-label="Kommentar"
+              onInput={(e) => setCardDraft({ ...cardDraft, comment: e.currentTarget.value })}
+            />
+          )}
+          {cardDraft.side === 'own' ? (
+            <>
+              <div class="scorer__grid">
+                {(cardDraft.others ? visiblePlayers(roster) : squadPl).map((pl) => (
+                  <button
+                    type="button"
+                    key={pl.id}
+                    class="scorer__option"
+                    data-testid={`card-player-${pl.id}`}
+                    onClick={() => saveCard({ kind: 'player', playerId: pl.id })}
+                  >
+                    {pl.number !== null && <span class="scorer__number">{pl.number}</span>}
+                    {pl.name}
+                  </button>
+                ))}
+              </div>
+              {!cardDraft.others && otherPl.length > 0 && (
+                <button
+                  type="button"
+                  class="btn btn--quiet btn--small"
+                  data-testid="card-others"
+                  onClick={() => setCardDraft({ ...cardDraft, others: true })}
+                >
+                  Andere …
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <input
+                class="input"
+                data-testid="input-card-opp"
+                value={cardDraft.oppText}
+                maxLength={30}
+                autocomplete="off"
+                placeholder="Name oder Nr., z. B. Nr. 9"
+                aria-label="Spieler des Gegners"
+                onInput={(e) => setCardDraft({ ...cardDraft, oppText: e.currentTarget.value })}
+              />
+              <button
+                type="button"
+                class="btn btn--primary"
+                data-testid="btn-save-card"
+                onClick={() => saveCard({ kind: 'text', text: cardDraft.oppText })}
+              >
+                Speichern
+              </button>
+            </>
+          )}
+          <button type="button" class="btn btn--secondary" data-testid="card-no-player" onClick={() => saveCard(null)}>
+            Ohne Spieler speichern
+          </button>
+        </Sheet>
+      )}
+
+      {subDraft && (
+        <Sheet
+          title={subDraft.id ? 'Wechsel ändern' : 'Wechsel'}
+          subtitle={`Minute ${minuteAt(subDraft.at)}`}
+          testId="sub-sheet"
+          onClose={() => setSubDraft(null)}
+        >
+          {(() => {
+            const pool = subDraft.others ? visiblePlayers(roster) : squadPl;
+            const name = (id: string | null): string => roster.find((pl) => pl.id === id)?.name ?? '…';
+            const ready = subDraft.out !== null && subDraft.inn !== null;
+            return (
+              <>
+                <span class="field__label t-label">WER GEHT RAUS?</span>
+                <div class="scorer__grid scorer__grid--5">
+                  {pool.map((pl) => (
+                    <button
+                      type="button"
+                      key={pl.id}
+                      class="scorer__option"
+                      aria-pressed={subDraft.out === pl.id}
+                      data-testid={`sub-out-${pl.id}`}
+                      onClick={() =>
+                        setSubDraft({ ...subDraft, out: pl.id, inn: subDraft.inn === pl.id ? null : subDraft.inn })
+                      }
+                    >
+                      {pl.number !== null && <span class="scorer__number">{pl.number}</span>}
+                      {pl.name}
+                    </button>
+                  ))}
+                </div>
+                <span class="field__label t-label">WER KOMMT REIN?</span>
+                <div class="scorer__grid scorer__grid--5">
+                  {pool
+                    .filter((pl) => pl.id !== subDraft.out)
+                    .map((pl) => (
+                      <button
+                        type="button"
+                        key={pl.id}
+                        class="scorer__option"
+                        aria-pressed={subDraft.inn === pl.id}
+                        data-testid={`sub-in-${pl.id}`}
+                        onClick={() => setSubDraft({ ...subDraft, inn: pl.id })}
+                      >
+                        {pl.number !== null && <span class="scorer__number">{pl.number}</span>}
+                        {pl.name}
+                      </button>
+                    ))}
+                </div>
+                {!subDraft.others && otherPl.length > 0 && (
+                  <button
+                    type="button"
+                    class="btn btn--quiet btn--small"
+                    data-testid="sub-others"
+                    onClick={() => setSubDraft({ ...subDraft, others: true })}
+                  >
+                    Andere …
+                  </button>
+                )}
+                <div class="sub-result" role="status" data-testid="sub-result">
+                  <SubIcon />
+                  {`${minuteAt(subDraft.at)} ${name(subDraft.inn)} für ${name(subDraft.out)}`}
+                </div>
+                <button
+                  type="button"
+                  class="btn btn--primary"
+                  data-testid="btn-save-sub"
+                  disabled={!ready}
+                  onClick={saveSub}
+                >
+                  Wechsel speichern
+                </button>
+              </>
+            );
+          })()}
+        </Sheet>
+      )}
+
+      {evSel && evSel.kind !== 'mark' && !ask && (
+        <Sheet
+          title={`${formatMinute(evSel.minute, evSel.stoppage)} ${
+            evSel.kind === 'card' ? cardText(game, evSel, roster) : subText(evSel, roster)
+          }`}
+          subtitle={`erfasst um ${formatTime(evSel.at)} Uhr${evSel.kind === 'card' && evSel.comment ? ` · ${evSel.comment}` : ''}`}
+          testId="event-actions"
+          onClose={() => setEvSheet(null)}
+        >
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="event-edit"
+            onClick={() => {
+              setEvSheet(null);
+              if (evSel.kind === 'card')
+                setCardDraft({
+                  id: evSel.id,
+                  at: evSel.at,
+                  card: evSel.card,
+                  side: evSel.side,
+                  oppText: evSel.who?.kind === 'text' ? evSel.who.text : '',
+                  comment: evSel.comment,
+                  showNote: evSel.comment !== '',
+                  others: (() => {
+                    const who = evSel.who;
+                    return who?.kind === 'player' && !squadPl.some((pl) => pl.id === who.playerId);
+                  })(),
+                });
+              else setSubDraft({ id: evSel.id, at: evSel.at, out: evSel.outId, inn: evSel.inId, others: true });
+            }}
+          >
+            Ändern
+          </button>
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="event-delete"
+            onClick={() => setAsk({ kind: 'removeEvent', id: evSel.id })}
+          >
+            {evSel.kind === 'card' ? 'Karte entfernen' : 'Wechsel entfernen'}
+          </button>
         </Sheet>
       )}
 
@@ -756,6 +1206,123 @@ export function GameScreen({ id }: { id: string }) {
             </div>
           </form>
         </Sheet>
+      )}
+
+      {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
+        <div class="overlay overlay--center">
+          <div class="overlay__backdrop" />
+          <div
+            class="dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="draw-title"
+            data-testid="draw-dialog"
+          >
+            <h2 id="draw-title" class="dialog__title">
+              Unentschieden {ha.home}:{ha.away}
+            </h2>
+            <p class="dialog__text">Wie geht es weiter?</p>
+            <button
+              type="button"
+              class="btn btn--primary"
+              data-testid="draw-accept"
+              onClick={() => update(settleDraw(cur()))}
+            >
+              Unentschieden
+            </button>
+            {canExtraTime(game) && (
+              <button
+                type="button"
+                class="btn btn--secondary"
+                data-testid="draw-extra"
+                onClick={() => setExtraOpen(true)}
+              >
+                Verlängerung
+              </button>
+            )}
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="draw-shootout"
+              onClick={() => setFirstAsk(true)}
+            >
+              Elfmeterschießen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {extraOpen && (
+        <Sheet
+          title="Verlängerung"
+          subtitle={`Es steht ${ha.home}:${ha.away}. Die Uhr zählt ab ${
+            game.schema.sections * game.schema.sectionMinutes + 1
+          }' weiter.`}
+          testId="extra-sheet"
+          onClose={() => setExtraOpen(false)}
+        >
+          <span class="field__label t-label">SPIELZEIT</span>
+          <div class="schema">
+            <span class="schema__times">2 ×</span>
+            <div class="segmented segmented--inline" role="group" aria-label="Minuten je Hälfte">
+              {[5, 10, 15].map((m) => (
+                <button
+                  type="button"
+                  key={m}
+                  class="segmented__item"
+                  aria-pressed={extraMin === m}
+                  data-testid={`extra-min-${m}`}
+                  onClick={() => setExtraMin(m)}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+            <span class="schema__unit">Minuten</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="btn-start-extra"
+            onClick={() => {
+              const t = Date.now();
+              setKeepAlive(true);
+              unlockAudio();
+              update(kickoff(startExtraTime(cur(), extraMin, t), t));
+              setExtraOpen(false);
+            }}
+          >
+            Verlängerung anpfeifen
+          </button>
+        </Sheet>
+      )}
+
+      {firstAsk && (
+        <div class="overlay overlay--center">
+          <div class="overlay__backdrop" onClick={() => setFirstAsk(false)} />
+          <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="first-title" data-testid="first-dialog">
+            <h2 id="first-title" class="dialog__title">
+              Wer schießt zuerst?
+            </h2>
+            {(['own', 'opp'] as const).map((sd) => (
+              <button
+                type="button"
+                key={sd}
+                class="btn btn--secondary"
+                data-testid={`first-${sd}`}
+                onClick={() => {
+                  update(startShootout(cur(), sd));
+                  setFirstAsk(false);
+                }}
+              >
+                {sd === 'own' ? ownShort : game.opponent}
+              </button>
+            ))}
+            <button type="button" class="btn btn--quiet" onClick={() => setFirstAsk(false)}>
+              Abbrechen
+            </button>
+          </div>
+        </div>
       )}
 
       {ask && (

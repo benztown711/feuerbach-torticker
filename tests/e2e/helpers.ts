@@ -23,6 +23,33 @@ export function chipLabel(name: string): string {
   return rest === '' ? 'Feuerbach' : rest;
 }
 
+/**
+ * Liest einen Datensatz direkt aus IndexedDB (Datenbank der App). Die App speichert, ohne auf das Ende
+ * des Schreibvorgangs zu warten; Tests, die danach neu laden oder wegnavigieren, warten damit, bis die
+ * Daten wirklich gespeichert sind.
+ */
+export function readStored<T>(page: Page, store: 'settings' | 'games', key: string): Promise<T | undefined> {
+  return page.evaluate(
+    ({ store, key }) =>
+      new Promise<T | undefined>((resolve, reject) => {
+        const open = indexedDB.open('torticker');
+        // Noch keine Datenbank: nicht anlegen (sonst fehlen der App später die Stores).
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => (open.error?.name === 'AbortError' ? resolve(undefined) : reject(open.error));
+        open.onsuccess = () => {
+          const db = open.result;
+          const get = db.transaction(store).objectStore(store).get(key);
+          get.onsuccess = () => {
+            resolve(get.result as T | undefined);
+            db.close();
+          };
+          get.onerror = () => reject(get.error);
+        };
+      }),
+    { store, key },
+  );
+}
+
 /** Spec 004: Mannschaft über die Einstellungen anlegen (ohne Farbe: Heim Rot, Auswärts Schwarz). */
 export async function addTeam(page: Page, name: string, colors: { home?: string; away?: string } = {}): Promise<void> {
   await page.goto('./#/einstellungen');
@@ -37,6 +64,11 @@ export async function addTeam(page: Page, name: string, colors: { home?: string;
   }
   await page.getByTestId('btn-save-team').click();
   await expect(page.getByTestId('team-sheet')).toBeHidden();
+  await expect
+    .poll(async () =>
+      (await readStored<{ teams: { name: string }[] }>(page, 'settings', 'app'))?.teams.map((t) => t.name),
+    )
+    .toContain(name.trim().replace(/\s+/g, ' '));
 }
 
 /** Legt die Mannschaft an, falls es sie noch nicht gibt. */
@@ -139,4 +171,14 @@ export async function playFinishedGame(page: Page, goals: ('own' | 'opp')[], o: 
   await page.getByTestId('btn-section-end').click();
   await confirmYes(page);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+  await acceptDraw(page);
+}
+
+/** Spec 003 FR-P01: Nach einem Unentschieden "Unentschieden" wählen (falls die Abfrage erscheint). */
+export async function acceptDraw(page: Page): Promise<void> {
+  const dialog = page.getByTestId('draw-dialog');
+  if (await dialog.isVisible()) {
+    await page.getByTestId('draw-accept').click();
+    await expect(dialog).toBeHidden();
+  }
 }

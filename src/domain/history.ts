@@ -1,6 +1,7 @@
 import { clockOf } from './game';
 import { goalRows, type GoalRow } from './goals';
 import { formatMinute } from './minute';
+import { shootoutState } from './cup';
 import { gameEvents } from './events';
 import type { ClockEvent, Game, GameEvent } from './types';
 
@@ -37,7 +38,21 @@ export function historyEntry(game: Game): HistoryEntry {
   const own = active.filter((g) => g.side === 'own').length;
   const opp = active.length - own;
   const finished = game.status === 'finished';
-  const result: ResultLetter | null = !finished ? null : own > opp ? 'S' : own === opp ? 'U' : 'N';
+  const so = game.shootout;
+  const pens = so?.done ? shootoutState(game) : null;
+  // FR-P03: S/N nach dem Elfmeterschießen; solange es läuft, noch kein Ergebnis.
+  const result: ResultLetter | null =
+    !finished || (so && !so.done)
+      ? null
+      : pens
+        ? pens.own > pens.opp
+          ? 'S'
+          : 'N'
+        : own > opp
+          ? 'S'
+          : own === opp
+            ? 'U'
+            : 'N';
   return {
     game,
     scoreText: `${own}:${opp}`,
@@ -74,7 +89,7 @@ export function filterGames(games: Game[], key: string | null): Game[] {
 export type TimelineItem =
   | { kind: 'event'; at: number; event: ClockEvent }
   | ({ kind: 'goal'; at: number } & GoalRow)
-  | { kind: 'mark'; at: number; mark: GameEvent };
+  | { kind: 'ev'; at: number; ev: GameEvent };
 
 /** Zeitleiste der Spieldetails: Uhr-Ereignisse und Tore chronologisch, bei gleicher Zeit Ereignis zuerst. */
 export function timeline(game: Game): TimelineItem[] {
@@ -82,7 +97,7 @@ export function timeline(game: Game): TimelineItem[] {
   const goals: TimelineItem[] = goalRows(game)
     .reverse()
     .map((row) => ({ kind: 'goal', at: row.goal.at, ...row }));
-  const marks: TimelineItem[] = gameEvents(game).map((mark) => ({ kind: 'mark', at: mark.at, mark }));
+  const marks: TimelineItem[] = gameEvents(game).map((ev) => ({ kind: 'ev', at: ev.at, ev }));
   const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : i.kind === 'goal' ? 1 : 2);
   return [...events, ...goals, ...marks].sort((a, b) => a.at - b.at || rank(a) - rank(b));
 }

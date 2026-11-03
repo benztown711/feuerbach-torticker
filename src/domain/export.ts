@@ -48,7 +48,7 @@ const arrayOf = (v: unknown, check: (x: unknown) => boolean): boolean => Array.i
 const oneOf = (v: unknown, values: readonly string[]): boolean => typeof v === 'string' && values.includes(v);
 
 const BIG = Number.MAX_SAFE_INTEGER;
-const EVENT_TYPES = ['kickoff', 'pause', 'resume', 'sectionEnd', 'fullTime', 'reset'] as const;
+const EVENT_TYPES = ['kickoff', 'pause', 'resume', 'sectionEnd', 'fullTime', 'reset', 'extraTime'] as const;
 const STATUS = ['created', 'running', 'paused', 'break', 'finished'] as const;
 
 const isScore = (v: unknown): boolean => isObj(v) && isInt(v.own, 0, BIG) && isInt(v.opp, 0, BIG);
@@ -76,16 +76,37 @@ const isGoal = (v: unknown): boolean =>
   (v.penalty === undefined || typeof v.penalty === 'boolean') &&
   isScorer(v.scorer);
 
-/** Spec 003: Lesezeichen (optional in älteren Sicherungen). */
-const isGameEvent = (v: unknown): boolean =>
-  isObj(v) &&
-  isStr(v.id, 1, 200) &&
-  v.kind === 'mark' &&
-  isTime(v.at) &&
-  isInt(v.section, 1, 4) &&
-  isInt(v.minute, 1, 240) &&
-  nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
-  isStr(v.comment, 0, 60);
+/** Spec 003: Lesezeichen, Karten und Wechsel (optional in älteren Sicherungen). */
+const isPerson = (v: unknown): boolean =>
+  v === null ||
+  (isObj(v) && ((v.kind === 'player' && isStr(v.playerId, 1, 200)) || (v.kind === 'text' && isStr(v.text, 1, 30))));
+
+const isGameEvent = (v: unknown): boolean => {
+  if (
+    !isObj(v) ||
+    !isStr(v.id, 1, 200) ||
+    !isTime(v.at) ||
+    !isInt(v.section, 1, 4) ||
+    !isInt(v.minute, 1, 240) ||
+    !nullOr(v.stoppage, (x) => isInt(x, 1, BIG))
+  )
+    return false;
+  if (v.kind === 'mark') return isStr(v.comment, 0, 60);
+  if (v.kind === 'card')
+    return (
+      oneOf(v.side, ['own', 'opp']) &&
+      oneOf(v.card, ['gelb', 'gelbrot', 'rot', 'zeit']) &&
+      isPerson(v.who) &&
+      isStr(v.comment, 0, 60)
+    );
+  return v.kind === 'sub' && isStr(v.outId, 1, 200) && isStr(v.inId, 1, 200);
+};
+
+/** Spec 003 FR-P03: Elfmeterschießen (optional). */
+const isShot = (v: unknown): boolean =>
+  isObj(v) && oneOf(v.side, ['own', 'opp']) && typeof v.hit === 'boolean' && isPerson(v.who) && isTime(v.at);
+const isShootout = (v: unknown): boolean =>
+  isObj(v) && oneOf(v.first, ['own', 'opp']) && typeof v.done === 'boolean' && arrayOf(v.shots, isShot);
 
 const isPlayer = (v: unknown): boolean =>
   isObj(v) &&
@@ -104,6 +125,9 @@ const isGame = (v: unknown): boolean =>
   isObj(v.schema) &&
   isInt(v.schema.sections, 1, 4) &&
   isInt(v.schema.sectionMinutes, 1, 60) &&
+  (v.schema.extraMinutes === undefined || isInt(v.schema.extraMinutes, 1, 30)) &&
+  (v.drawSettled === undefined || typeof v.drawSettled === 'boolean') &&
+  (v.shootout === undefined || isShootout(v.shootout)) &&
   isStr(v.ownColor, 1, 40) &&
   isStr(v.oppColor, 1, 40) &&
   isTime(v.createdAt) &&

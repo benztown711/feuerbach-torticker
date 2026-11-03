@@ -2,10 +2,11 @@ import { readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../src/domain/export';
+import { addShot, endShootout, startExtraTime, startShootout } from '../../src/domain/cup';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
-import { addMark, setMarkComment } from '../../src/domain/events';
+import { addCard, addMark, addSub, setMarkComment } from '../../src/domain/events';
 import { addGoal, setPenalty, setScorer } from '../../src/domain/goals';
-import type { Game, Player } from '../../src/domain/types';
+import type { Game, MarkEvent, Player } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
 const min = (n: number): number => n * 60_000;
@@ -68,7 +69,7 @@ describe('T072 FR-024 Sicherung', () => {
     expect(validate.errors ?? []).toEqual([]);
     expect(ok).toBe(true);
     const parsed = parseBackup(JSON.stringify(backup));
-    expect(parsed.ok && parsed.backup.games[0]?.events?.[0]?.comment).toBe('Konter links');
+    expect(parsed.ok && (parsed.backup.games[0]?.events?.[0] as MarkEvent | undefined)?.comment).toBe('Konter links');
     expect(parsed.ok && parsed.backup.games[0]?.goals[0]?.penalty).toBe(true);
     const bad = JSON.parse(JSON.stringify(backup)) as {
       games: { events: { comment: string }[]; goals: { penalty: unknown }[] }[];
@@ -78,6 +79,81 @@ describe('T072 FR-024 Sicherung', () => {
     const bad2 = JSON.parse(JSON.stringify(backup)) as typeof bad;
     bad2.games[0]!.goals[0]!.penalty = 'ja';
     expect(parseBackup(JSON.stringify(bad2)).ok).toBe(false);
+  });
+
+  it('003 Sicherung enthält Karten und Wechsel (Schema) und lehnt ungültige ab', () => {
+    let g = game(G2, false);
+    g = addCard(
+      g,
+      { side: 'opp', card: 'rot', who: { kind: 'text', text: 'Nr. 9' }, comment: 'Foul' },
+      T0 + min(7),
+      () => '77777777-7777-4777-8777-777777777777',
+    )!.game;
+    g = addCard(
+      g,
+      { side: 'own', card: 'zeit', who: { kind: 'player', playerId: players[0]!.id } },
+      T0 + min(8),
+      () => '88888888-8888-4888-8888-888888888888',
+    )!.game;
+    g = addCard(
+      g,
+      { side: 'own', card: 'gelb', who: null },
+      T0 + min(8),
+      () => 'aaaaaaaa-0000-4000-8000-000000000000',
+    )!.game;
+    g = addSub(g, players[0]!.id, players[1]!.id, T0 + min(9), () => '99999999-9999-4999-8999-999999999999')!.game;
+    const backup = buildBackup([g], players, T0 + min(60));
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games[0]?.events?.map((e) => e.kind)).toEqual(['card', 'card', 'card', 'sub']);
+    const mutate = (f: (ev: Record<string, unknown>[]) => void): boolean => {
+      const b = JSON.parse(JSON.stringify(backup)) as { games: { events: Record<string, unknown>[] }[] };
+      f(b.games[0]!.events);
+      return parseBackup(JSON.stringify(b)).ok;
+    };
+    expect(mutate((ev) => (ev[0]!.card = 'blau'))).toBe(false);
+    expect(mutate((ev) => (ev[0]!.who = { kind: 'player' }))).toBe(false);
+    expect(mutate((ev) => (ev[0]!.who = { kind: 'sonst' }))).toBe(false);
+    expect(mutate((ev) => (ev[0]!.side = 'egal'))).toBe(false);
+    expect(mutate((ev) => (ev[3]!.inId = ''))).toBe(false);
+    expect(mutate((ev) => (ev[3]!.kind = 'tor'))).toBe(false);
+    expect(mutate((ev) => (ev[0]!.section = 9))).toBe(false);
+  });
+
+  it('003 Sicherung enthält Verlängerung, Abfrage und Elfmeterschießen (Schema) und lehnt ungültige ab', () => {
+    // game(G1) endet 1:1 nach 2 × 25 (T0 + 55 min)
+    let g = startExtraTime(game(G1), 10, T0 + min(56));
+    g = kickoff(g, T0 + min(57));
+    g = endSection(kickoff(endSection(g, T0 + min(67)), T0 + min(68)), T0 + min(78));
+    g = startShootout({ ...g, drawSettled: false }, 'opp');
+    g = addShot(g, true, { kind: 'text', text: 'Nr. 7' }, T0 + min(80));
+    g = endShootout(addShot(g, false, { kind: 'player', playerId: players[0]!.id }, T0 + min(81)));
+    const backup = buildBackup([g], players, T0 + min(90));
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games[0]?.shootout?.shots).toHaveLength(2);
+    expect(parsed.ok && parsed.backup.games[0]?.schema.extraMinutes).toBe(10);
+    type Mut = {
+      schema: { extraMinutes?: unknown };
+      drawSettled?: unknown;
+      shootout: { first: unknown; done: unknown; shots: { hit: unknown }[] } | null;
+    };
+    const mutate = (f: (g: Mut) => void): boolean => {
+      const b = JSON.parse(JSON.stringify(backup)) as { games: Mut[] };
+      f(b.games[0]!);
+      return parseBackup(JSON.stringify(b)).ok;
+    };
+    expect(mutate((x) => (x.schema.extraMinutes = 0))).toBe(false);
+    expect(mutate((x) => (x.drawSettled = 'ja'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.first = 'beide'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.shots[0]!.hit = 'ja'))).toBe(false);
+    expect(mutate((x) => (x.shootout!.done = 1))).toBe(false);
+    expect(mutate((x) => (x.shootout = null))).toBe(false);
+    expect(mutate((x) => (x.drawSettled = true))).toBe(true);
   });
 
   it('ohne App-Version fehlt das Feld', () => {

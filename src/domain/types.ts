@@ -13,9 +13,11 @@ export interface Schema {
   sections: number;
   /** Dauer eines Abschnitts in Minuten, 1 bis 60. */
   sectionMinutes: number;
+  /** Spec 003 FR-P02: Verlängerung mit zwei Abschnitten dieser Länge (fehlt = keine). */
+  extraMinutes?: number;
 }
 
-export type ClockEventType = 'kickoff' | 'pause' | 'resume' | 'sectionEnd' | 'fullTime' | 'reset';
+export type ClockEventType = 'kickoff' | 'pause' | 'resume' | 'sectionEnd' | 'fullTime' | 'reset' | 'extraTime';
 
 export interface ClockEvent {
   type: ClockEventType;
@@ -43,16 +45,57 @@ export interface Goal {
   penalty?: boolean;
 }
 
-/** Spec 003: Ereignis im Spiel. Teil 1: Lesezeichen (intern, nie im geteilten Text). */
-export interface GameEvent {
+interface EventBase {
   id: string;
-  kind: 'mark';
-  /** Uhrzeit (Zuordnung zur Videoaufnahme). */
+  /** Uhrzeit (z. B. Zuordnung zur Videoaufnahme). */
   at: number;
   section: number;
   minute: number;
   stoppage: number | null;
+}
+
+/** Spec 003 FR-E05: Lesezeichen (intern, nie im geteilten Text). */
+export interface MarkEvent extends EventBase {
+  kind: 'mark';
   comment: string;
+}
+
+export type CardColor = 'gelb' | 'gelbrot' | 'rot' | 'zeit';
+/** Spieler bei Ereignissen: eigene aus dem Kader, Gegner als Freitext. */
+export type EventPerson = { kind: 'player'; playerId: string } | { kind: 'text'; text: string } | null;
+
+/** Spec 003 FR-E03: Karte (Gelb, Gelb-Rot, Rot, Zeitstrafe). */
+export interface CardEvent extends EventBase {
+  kind: 'card';
+  side: Side;
+  card: CardColor;
+  who: EventPerson;
+  comment: string;
+}
+
+/** Spec 003 FR-E04: Wechsel der eigenen Mannschaft. */
+export interface SubEvent extends EventBase {
+  kind: 'sub';
+  outId: string;
+  inId: string;
+}
+
+/** Spec 003: Ereignis im Spiel. */
+export type GameEvent = MarkEvent | CardEvent | SubEvent;
+
+/** Spec 003 FR-P03: ein Schuss im Elfmeterschießen. */
+export interface Shot {
+  side: Side;
+  hit: boolean;
+  who: EventPerson;
+  at: number;
+}
+
+export interface Shootout {
+  first: Side;
+  shots: Shot[];
+  /** "Elfmeterschießen beenden" bestätigt. */
+  done: boolean;
 }
 
 /** Spec 003 FR-E02: Schalter "Im Spiel erfassen". */
@@ -81,6 +124,10 @@ export interface Game {
   goals: Goal[];
   /** Spec 003; fehlt bei älteren Spielen. */
   events?: GameEvent[];
+  /** Spec 003 FR-P01: Unentschieden bestätigt (keine Abfrage mehr). */
+  drawSettled?: boolean;
+  /** Spec 003 FR-P03: Elfmeterschießen. */
+  shootout?: Shootout;
   signalledThresholds: string[];
   squad: string[];
   status: GameStatus;

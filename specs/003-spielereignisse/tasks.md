@@ -13,8 +13,16 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Teil 2: Karten und Wechsel
 
-- [ ] E101 Tests und Umsetzung FR-E02 (Schalter Karten, Wechsel), FR-E03, FR-E04, FR-E06 (Griff), FR-E07 (Zeilen "Karten:" und "Wechsel:")
+- [x] E101 [P] `tests/unit/cards-subs.test.ts`: Karten (eigener Spieler, Gegner-Freitext, ohne Spieler, Kommentar, ungültige Kombinationen, angehaltene Uhr, bearbeiten, löschen), Wechsel (gleicher Spieler ungültig, nach Schlusspfiff nicht, bearbeiten), Zeilen "Karten:"/"Wechsel:" chronologisch, gelöschte Spieler lesbar, Schalter-Migration (FR-E02 bis FR-E04, FR-E07)
+- [x] E102 `src/domain/events.ts` (`addCard`, `updateCard`, `addSub`, `updateSub`, `replaceEvent`, `cardText`, `subText`, `eventsShareLines`), `types.ts` (Ereignis-Union), Teilen-Text, Zeitleiste (macht E101 grün)
+- [x] E103 [P] `tests/unit/export.test.ts` und `contracts/export.schema.json`: Karten und Wechsel in der Sicherung, ungültige abgelehnt
+- [x] E104 [P] E2E `tests/e2e/karten-wechsel.spec.ts`: 003 US3-S1 bis S6, US4-S1 bis S4, FR-E06 Griff, FR-033 mit allen Schaltern
+- [x] E105 UI: Schalter `feature-cards`/`feature-subs`, Kacheln `event-card-<art>`/`event-sub`, `card-sheet`, `sub-sheet`, `event-actions` (Ändern, Entfernen mit Abfrage), `event-toast`/`event-undo`, Griff `list-grip`, Spieldetails (macht E104 grün)
 
 ## Teil 3: Pokal
 
-- [ ] E201 Tests und Umsetzung FR-P01 (Abfrage), FR-P02 (Verlängerung), FR-P03 (Elfmeterschießen mit Schützenwahl, TV-Übersicht, Schützen aufklappbar und in den Spieldetails)
+- [x] E201 [P] `tests/unit/cup.test.ts`: Abfrage nur bei Unentschieden, "Unentschieden" beendet sie; Verlängerung (Abschnittslängen, Minuten ab Ende der regulären Spielzeit, Nachspielzeit, Bezeichnungen, "n. V." im Text, danach nur Elfmeterschießen, nur einmal, Zwischenstand vor/zwischen den Hälften); Elfmeterschießen (abwechselnd, beginnende Mannschaft, Schütze normalisiert, Rückgängig, entschieden, Sudden Death, "x:y i. E." Heim zuerst, S/N in der Historie)
+- [x] E202 `src/domain/cup.ts`, `minute.ts` (`totalSections`, `sectionMinutesOf`), `clock.ts` (Ereignis `extraTime`), `game.ts`, `history.ts`, `share-text.ts` (macht E201 grün)
+- [x] E203 [P] `tests/unit/export.test.ts` und `contracts/export.schema.json`: Verlängerung, Abfrage und Elfmeterschießen in der Sicherung
+- [x] E204 [P] E2E `tests/e2e/pokal.spec.ts`: 003 US5-S1 bis S5, US6-S1 bis S5, FR-033; Helfer `acceptDraw` für bestehende Tests mit Unentschieden
+- [x] E205 UI: `draw-dialog` (`draw-accept`, `draw-extra`, `draw-shootout`), `extra-sheet`, `first-dialog`, `ShootoutView` (`pen-*`), `shootout-result`, Spieldetails mit Schützen (macht E204 grün)
