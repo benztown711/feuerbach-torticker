@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { MIN, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, confirmYes, forward, readStored, seedRoster, startGame } from './helpers';
 
 /** 1 × 12 Minuten, 1:1, Schlusspfiff; die Abfrage bei Unentschieden ist offen. */
 async function drawnGame(page: Page): Promise<void> {
@@ -36,6 +36,10 @@ test.describe('Spec 003 Teil 3: Pokal', () => {
     await expect(page.getByTestId('draw-shootout')).toBeVisible();
     await page.getByTestId('draw-accept').click();
     await expect(page.getByTestId('draw-dialog')).toHaveCount(0);
+    const id = new URL(page.url()).hash.replace('#/spiel/', '');
+    await expect
+      .poll(async () => (await readStored<{ drawSettled?: boolean }>(page, 'games', id))?.drawSettled)
+      .toBe(true);
     await page.reload();
     await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
     await expect(page.getByTestId('draw-dialog')).toHaveCount(0);
