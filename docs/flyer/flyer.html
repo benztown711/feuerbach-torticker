@@ -194,7 +194,6 @@
         color: var(--color-surface);
         padding: var(--space-6);
         display: grid;
-        grid-template-columns: 1fr 128px;
         gap: var(--space-4);
       }
 
@@ -208,7 +207,6 @@
       }
 
       .schritte {
-        grid-column: 1 / -1;
         list-style: none;
         display: grid;
         gap: 10px;
@@ -241,36 +239,19 @@
         font-weight: 700;
       }
 
+      /* Im Bild ist nichts anklickbar: der Link steht im Text der Nachricht (FR-043) */
       .link {
-        margin-top: var(--space-4);
-        font-size: 20px;
-        line-height: 25px;
-        font-weight: 700;
+        margin-top: -6px;
+        font-size: 16px;
+        line-height: 22px;
         color: var(--color-surface);
       }
 
-      .qr {
-        align-self: start;
-        background: var(--color-wappenfeld);
-        /* Ruhezone von 4 Modulen um den QR-Code */
-        padding: 13px 13px 8px;
-      }
-
-      .qr img {
+      .link strong {
         display: block;
-        width: 102px;
-        height: 102px;
-      }
-
-      .qr span {
-        display: block;
-        margin-top: 6px;
-        text-align: center;
-        font-size: 12px;
-        line-height: 14px;
+        font-size: 20px;
+        line-height: 26px;
         font-weight: 700;
-        letter-spacing: 0.08em;
-        color: var(--color-ink);
       }
 
       .fuss {
@@ -339,18 +320,15 @@
         </ul>
 
         <section class="aufruf">
-          <div>
-            <p class="aufruf__titel">Teste am<br />Wochenende mit</p>
-            <p class="link">benztown711.github.io/<br />feuerbach-torticker</p>
-          </div>
-          <div class="qr">
-            <img src="qr.svg" alt="QR-Code zur App" />
-            <span>SCANNEN</span>
-          </div>
+          <p class="aufruf__titel">Teste am Wochenende mit</p>
+          <p class="link">
+            Link in der Nachricht antippen oder eingeben:
+            <strong>benztown711.github.io/feuerbach-torticker</strong>
+          </p>
           <ol class="schritte">
             <li>
               <span
-                >Link öffnen und auf den Home-Bildschirm legen.<br /><strong>iPhone:</strong> Safari → Teilen → „Zum
+                >App auf den Home-Bildschirm legen.<br /><strong>iPhone:</strong> Safari → Teilen → „Zum
                 Home-Bildschirm“<br /><strong>Android:</strong> Chrome → Menü → „App installieren“</span
               >
             </li>
