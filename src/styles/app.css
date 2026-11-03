@@ -192,6 +192,14 @@
   cursor: pointer;
 }
 
+.chip--wide {
+  min-width: 76px;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .chip[aria-pressed='true'] {
   border-color: var(--color-ink);
   background: var(--color-ink);
@@ -199,39 +207,73 @@
   font-weight: 700;
 }
 
-.matchup {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
-}
-
-.matchup__team {
-  display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  min-width: 0;
-  padding: var(--space-1) var(--space-2);
+/* Spec 004: Begegnung wie die Kopfzeile im Spiel, Trikots mit "Ändern" */
+.matchup-preview {
+  padding-bottom: var(--space-2);
   border: 1px solid var(--color-line);
 }
 
-.matchup__team--away {
-  text-align: right;
-}
-
-.matchup__role {
+.matchup-preview__roles {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-2) 0;
   color: var(--color-ink-muted);
 }
 
-.matchup__name {
-  font-weight: 700;
-  overflow-wrap: anywhere;
+.teams--preview {
+  padding: var(--space-1) var(--space-2) 0;
 }
 
-.matchup__swap {
-  width: 48px;
-  height: auto;
-  min-height: 48px;
-  border: 2px solid var(--color-ink);
+.kit-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-line);
+}
+
+.kit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 52px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.kit-row__label {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.kit-row__color,
+.kit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.kit-row__mark {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-ink);
+}
+
+.kit-row__change {
+  min-height: 44px;
+  padding: 0 var(--space-1);
+}
+
+.kit-palette {
+  padding: var(--space-2) var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .schema {
@@ -276,28 +318,6 @@
   background: var(--color-rot-hell);
   color: var(--color-ink);
   font-size: 14px;
-}
-
-.preview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.preview__tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 56px;
-  padding: var(--space-1);
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.preview__tile--bordered {
-  border: 2px solid var(--color-ink);
 }
 
 /* ---------- Spielbildschirm ---------- */
@@ -1355,6 +1375,50 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-row__name {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+}
+
+.team-row__kits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--space-4);
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.add-btn {
+  align-self: flex-start;
 }
 
 .team-list__item {
