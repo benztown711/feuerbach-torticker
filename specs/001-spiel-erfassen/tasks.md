@@ -286,6 +286,15 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [x] T104 [P] Komponententest `tests/component/update-check.test.tsx`: `update()` bei Rückkehr in den Vordergrund, höchstens einmal pro Minute, Fehler ohne Netz werden geschluckt (FR-041)
 - [x] T105 `src/platform/update-check.ts` und Anbindung in `src/ui/components/update-prompt.tsx` über `onRegisteredSW` (macht T104 grün)
 
+## Phase 13: Zwischenstand teilen (Session 2026-11-03)
+
+**Goal**: Leute, die nicht am Platz sind, per WhatsApp auf dem Laufenden halten, ohne Server (FR-042).
+
+- [x] T106 [P] `tests/unit/share-text.test.ts`: Zusatz "Zwischenstand <Minute>" (laufend, angehalten, Nachspielzeit), "Halbzeit"/"Pause" ohne Halbzeitstand, kein Zusatz vor Anpfiff und nach Schlusspfiff (FR-042)
+- [x] T107 `src/domain/share-text.ts`: optionaler Zeitpunkt `now` für den Zwischenstand (macht T106 grün)
+- [x] T108 [P] E2E `tests/e2e/us4-teilen.spec.ts`: "Zwischenstand teilen" im "…"-Menü während des Spiels, nicht vor dem Anpfiff (FR-042)
+- [x] T109 Menüeintrag `menu-share-interim` in `src/ui/screens/game.tsx` (macht T108 grün)
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
