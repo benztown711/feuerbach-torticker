@@ -34,11 +34,23 @@
       .kopf {
         background: var(--color-vereinsrot);
         color: var(--color-on-rot);
-        padding: var(--space-4) var(--space-6);
+        padding: var(--space-4) var(--space-6) 20px;
+      }
+
+      .kopf__zeile {
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
         gap: var(--space-4);
+      }
+
+      /* Weiß auf Vereinsrot nur ab 24px fett (design/README.md) */
+      .kopf__slogan {
+        margin-top: 10px;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 28px;
+        line-height: 32px;
       }
 
       .kopf__titel {
@@ -53,17 +65,6 @@
       .kopf__lockup {
         height: 64px;
         display: block;
-      }
-
-      .band {
-        background: var(--color-rot-dunkel);
-        color: var(--color-on-rot);
-        padding: 10px var(--space-6);
-        font-size: 14px;
-        line-height: 18px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
       }
 
       .inhalt {
@@ -283,14 +284,16 @@
   <body>
     <main class="flyer" id="flyer">
       <header class="kopf">
-        <h1 class="kopf__titel">TORTICKER</h1>
-        <img
-          class="kopf__lockup"
-          src="../../design/brand/lockup-fussball.svg"
-          alt="Fußball, Sportvereinigung Feuerbach 1883 e. V."
-        />
+        <div class="kopf__zeile">
+          <h1 class="kopf__titel">TORTICKER</h1>
+          <img
+            class="kopf__lockup"
+            src="../../design/brand/lockup-fussball.svg"
+            alt="Fußball, Sportvereinigung Feuerbach 1883 e. V."
+          />
+        </div>
+        <p class="kopf__slogan">Vom Spielfeldrand, für den Spielfeldrand.</p>
       </header>
-      <p class="band">Mittesten am Wochenende · 7./8. November</p>
 
       <section class="inhalt">
         <h2 class="titel">Ein Tap pro Tor. Den Spielbericht schreibt die App.</h2>
