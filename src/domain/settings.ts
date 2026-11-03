@@ -1,3 +1,4 @@
+import { migrateTeams } from './teams';
 import type { Settings } from './types';
 
 export function defaultSettings(): Settings {
@@ -9,10 +10,12 @@ export function defaultSettings(): Settings {
     opponentColors: {},
     theme: 'system',
     installHintDismissedAt: null,
+    teams: [],
   };
 }
 
-/** Ergänzt gespeicherte (ältere) Einstellungen um neue Felder. */
+/** Ergänzt gespeicherte (ältere) Einstellungen um neue Felder; vor Spec 004 gespeicherte bekommen Mannschaften. */
 export function withSettingsDefaults(stored: Partial<Settings> | undefined): Settings {
-  return { ...defaultSettings(), ...stored };
+  const s = { ...defaultSettings(), ...stored };
+  return stored?.teams === undefined ? { ...s, teams: migrateTeams(s) } : s;
 }
