@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-03
 
-**Status**: Entwurf. Review A erledigt (03.11.2026); Review B: Variante A und Abfrage bei Unentschieden entschieden, vier Mockup-Vorschläge offen.
+**Status**: Entwurf. Review A und Review B erledigt (03.11.2026).
 
 **Input**: User description: "Beim Tor kennzeichnen, dass es ein Elfmeter war. Für die höher spielenden Mannschaften gelbe, gelb-rote und rote Karten sowie Auswechslungen (wer für wen), in den Einstellungen per Schalter ein- und ausschaltbar, weil das in der E-Jugend irrelevant ist. Ein interner Vermerk wie ein Lesezeichen mit optionalem Kommentar, um Szenen später in der Veo-Aufzeichnung anzuschauen. Pokalspiele mit Verlängerung und Elfmeterschießen."
 
@@ -25,6 +25,8 @@
 - Q: Pokal nach dem Schlusspfiff? → A: Bei Unentschieden kommt eine Abfrage mit drei Möglichkeiten: "Unentschieden", "Verlängerung", "Elfmeterschießen" (FR-P01). Endet die Verlängerung unentschieden, kommt die Abfrage erneut, ohne "Verlängerung".
 - Q: Mannschaften in den Einstellungen? → A: Wie empfohlen (Spec 004).
 - Q: Teilen-Text? → A: Bestätigt: alles außer den internen Lesezeichen.
+- Q: Vier Vorschläge aus dem Mockup? → A: Alle übernommen: Griff klappt die Torliste über die Uhr-Knöpfe auf (FR-E06), Wechsel-Raster mit 5 Spalten (FR-E04), "Elfmeter" und "Eigentor" schließen sich aus (FR-E01), Treffer-Knopf in der Trikotfarbe der Mannschaft, die dran ist (FR-P03).
+- Q: Woher kommen im Elfmeterschießen die Namen? → A: Wie am Platz: Legt sich der eigene Schütze den Ball hin, wird er im Aufgebot angetippt, danach "Treffer" oder "Verschossen". Wer schon geschossen hat, ist hellgrau markiert, bleibt aber wählbar. Ohne Auswahl wird der Schuss ohne Namen gespeichert. Beim Gegner optional Freitext (Name oder Nummer).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -115,10 +117,11 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 
 **Acceptance Scenarios**:
 
-1. **Given** das Elfmeterschießen läuft, **Then** zeigt die App, welche Mannschaft dran ist, sowie große Knöpfe "Treffer" und "Verschossen"; die Reihenfolge wechselt automatisch, die beginnende Mannschaft ist wählbar.
+1. **Given** das Elfmeterschießen läuft, **Then** zeigt die App, welche Mannschaft dran ist, beide Schussreihen kompakt (Name und Treffer/Verschossen) sowie große Knöpfe "Treffer" (in der Trikotfarbe der Mannschaft, die dran ist) und "Verschossen"; die Reihenfolge wechselt automatisch, die beginnende Mannschaft ist wählbar.
 2. **Given** ein Schuss, **When** der Nutzer "Rückgängig" tippt, **Then** wird der letzte Schuss entfernt.
-3. **Given** ein Schütze von Feuerbach, **Then** kann optional ein Spieler aus dem Kader gewählt werden; beim Gegner Freitext.
-4. **Given** 4:3 nach Elfmeterschießen, **When** der Nutzer "Elfmeterschießen beenden" bestätigt und teilt, **Then** lautet die Kopfzeile "… 2:2 n. V. (1:1), 4:3 i. E." (ohne Verlängerung: "… 2:2 (1:1), 4:3 i. E.") und die Historie zeigt S/N nach dem Elfmeterschießen.
+3. **Given** Feuerbach ist dran, **When** der Nutzer im Aufgebot "Paul" antippt und danach "Treffer", **Then** steht "Paul ✓" in der Reihe von Feuerbach und die Auswahl ist für den nächsten Schützen wieder leer; Spieler, die schon geschossen haben, sind hellgrau markiert, aber wählbar.
+4. **Given** der Gegner ist dran, **When** der Nutzer optional "Nr. 4" einträgt und "Verschossen" tippt, **Then** steht "Nr. 4 ✗" in der Reihe des Gegners; ohne Eintrag nur "✗".
+5. **Given** 4:3 nach Elfmeterschießen, **When** der Nutzer "Elfmeterschießen beenden" bestätigt und teilt, **Then** lautet die Kopfzeile "… 2:2 n. V. (1:1), 4:3 i. E." (ohne Verlängerung: "… 2:2 (1:1), 4:3 i. E.") und die Historie zeigt S/N nach dem Elfmeterschießen.
 
 ---
 
@@ -145,7 +148,7 @@ Nach Unentschieden (mit oder ohne Verlängerung) erfasst der Nutzer das Elfmeter
 - **FR-E09**: Ist mindestens ein Schalter (FR-E02) an, MUSS der Spielbildschirm zwischen Uhr-Knöpfen und Torliste einen Knopf "Ereignis" zeigen, solange das Spiel angepfiffen und nicht beendet ist. Er öffnet eine Auswahl mit großen Kacheln (mind. 64 × 64 pt) für die eingeschalteten Ereignisse: Lesezeichen, Gelb, Gelb-Rot, Rot, Zeitstrafe, Wechsel. FR-033 gilt weiter.
 - **FR-P01**: Nach dem Schlusspfiff bei Unentschieden MUSS die App fragen "Unentschieden <Stand>. Wie geht es weiter?" mit "Unentschieden" (Spiel endet), "Verlängerung" und "Elfmeterschießen"; nach einer unentschiedenen Verlängerung ohne "Verlängerung". Bei einem Sieger gibt es keine Abfrage. Beim Anlegen des Spiels gibt es keine Pokal-Abfrage.
 - **FR-P02**: Die Verlängerung MUSS aus zwei Abschnitten mit wählbarer Dauer (5, 10 oder 15 Minuten, Vorgabe 10) bestehen, mit fortlaufender Minute, Nachspielzeit und Signal wie FR-005 bis FR-007; Tore zählen zum Spielstand, der Teilen-Text kennzeichnet "n. V.".
-- **FR-P03**: Das Elfmeterschießen MUSS Schuss für Schuss (Treffer/Verschossen, abwechselnd, beginnende Mannschaft wählbar, Rückgängig, optional Schütze) erfasst werden und einen eigenen Stand "x:y i. E." führen; der reguläre Spielstand bleibt unverändert. S/U/N in der Historie richtet sich nach dem Elfmeterschießen.
+- **FR-P03**: Das Elfmeterschießen MUSS Schuss für Schuss (Treffer/Verschossen, abwechselnd, beginnende Mannschaft wählbar, Rückgängig) erfasst werden. Der eigene Schütze wird optional vor dem Schuss im Aufgebot angetippt ("Andere …" für den restlichen Kader), der gegnerische optional als Freitext. Der Treffer-Knopf trägt die Trikotfarbe der Mannschaft, die dran ist. Das Elfmeterschießen führt einen eigenen Stand "x:y i. E." führen; der reguläre Spielstand bleibt unverändert. S/U/N in der Historie richtet sich nach dem Elfmeterschießen.
 
 ### Key Entities
 
