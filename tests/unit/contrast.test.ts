@@ -25,6 +25,22 @@ describe('T011 SC-006 Kontrastmatrix', () => {
     );
   });
 
+  it('Spec 005 SC-G01 enthält die Paare der Karten, Grundfläche, ruhigen Knöpfe und Felder', () => {
+    const names = PAIRS.map((p) => `${p.fg}/${p.bg}`);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'ink/card',
+        'ink-muted/card',
+        'rot-text/card',
+        'ink/canvas',
+        'ink-muted/canvas',
+        'ink/tonal',
+        'ink/field',
+        'ink-muted/field',
+      ]),
+    );
+  });
+
   for (const theme of ['light', 'dark'] as const) {
     it(`SC-006 alle Paare erfüllen ihre Schwelle im Theme ${theme}`, () => {
       const results = checkContrast(tokens as DesignTokens, theme);
