@@ -6,7 +6,6 @@ import {
   kickoff,
   markSignalled,
   pauseClock,
-  resetClock,
   resumeClock,
   sectionLabel,
   swapVenue,
@@ -27,7 +26,9 @@ import { formatTime } from '../../domain/format';
 import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import type { Game, Goal, Scorer, Side } from '../../domain/types';
+import { buildShareText } from '../../domain/share-text';
 import { getGame, putGame } from '../../platform/db';
+import { shareText } from '../../platform/share';
 import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
@@ -46,10 +47,7 @@ const HINT_MS = 1_500;
 /** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
 const PICKER_MS = 8_000;
 
-type Ask =
-  | { kind: 'pause' | 'end' | 'reset' | 'swap' }
-  | { kind: 'remove'; goalId: string }
-  | { kind: 'goalResume'; side: Side };
+type Ask = { kind: 'pause' | 'end' | 'swap' } | { kind: 'remove'; goalId: string } | { kind: 'goalResume'; side: Side };
 
 function TeamMark({ colorId }: { colorId: string }) {
   return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
@@ -66,6 +64,7 @@ export function GameScreen({ id }: { id: string }) {
   const [flashUntil, setFlashUntil] = useState(0);
   const [hintUntil, setHintUntil] = useState(0);
   const [players] = usePlayers();
+  const [shareMsg, setShareMsg] = useState('');
   /** Torschützen-Auswahl: `until` gesetzt = direkt nach dem Tor (mit Auto-Schließen), null = Nachtragen. */
   const [picker, setPicker] = useState<{ goalId: string; until: number | null } | null>(null);
   const [textEdit, setTextEdit] = useState<{ goalId: string; value: string } | null>(null);
@@ -169,6 +168,12 @@ export function GameScreen({ id }: { id: string }) {
     }
   };
 
+  /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage). */
+  const doShare = async (): Promise<void> => {
+    const r = await shareText(buildShareText(cur(), players ?? []));
+    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+  };
+
   const doKickoff = (): void => {
     setKeepAlive(true);
     unlockAudio();
@@ -181,7 +186,6 @@ export function GameScreen({ id }: { id: string }) {
     const g = cur();
     if (ask.kind === 'pause' && canAct(g, 'pause', t)) update(pauseClock(g, t));
     if (ask.kind === 'end' && canAct(g, 'end', t)) update(endSection(g, t));
-    if (ask.kind === 'reset' && canAct(g, 'reset', t)) update(resetClock(g, t));
     if (ask.kind === 'swap') update(swapVenue(g));
     if (ask.kind === 'goalResume' && canAct(g, 'resume', t)) {
       update(resumeClock(g, t));
@@ -201,11 +205,6 @@ export function GameScreen({ id }: { id: string }) {
     end: lastSection
       ? ['Schlusspfiff?', 'Das Spiel wird beendet und gespeichert.', 'Schlusspfiff']
       : ['Pausenpfiff?', `Die ${sectionLabel(clock.section, game.schema.sections)} endet.`, 'Pausenpfiff'],
-    reset: [
-      'Uhr wirklich zurücksetzen?',
-      'Die Uhr dieses Abschnitts beginnt von vorn. Tore bleiben erhalten.',
-      'Zurücksetzen',
-    ],
     goalResume: [
       'Tor eintragen und Uhr fortsetzen?',
       'Die Uhr ist angehalten. Mit „Tor + weiter“ läuft sie wieder und das Tor wird gezählt.',
@@ -360,8 +359,8 @@ export function GameScreen({ id }: { id: string }) {
             <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
               Spieldetails
             </button>
-            <button type="button" class="btn btn--primary" onClick={() => navigate('/neu')}>
-              Neues Spiel
+            <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
+              Ergebnis teilen
             </button>
           </>
         )}
@@ -399,6 +398,11 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
+      {shareMsg && (
+        <div class="toast" data-testid="share-result" role="status">
+          {shareMsg}
+        </div>
+      )}
       {now < hintUntil && (
         <div class="toast" data-testid="double-tap-hint" role="status">
           Schon gezählt
@@ -421,19 +425,6 @@ export function GameScreen({ id }: { id: string }) {
               Heim und Gast tauschen
             </button>
           )}
-          {goalsOpen && (
-            <button
-              type="button"
-              class="btn btn--secondary"
-              data-testid="btn-reset"
-              onClick={() => {
-                setMenu(false);
-                setAsk({ kind: 'reset' });
-              }}
-            >
-              Uhr zurücksetzen
-            </button>
-          )}
           <button
             type="button"
             class="btn btn--secondary"
@@ -441,9 +432,6 @@ export function GameScreen({ id }: { id: string }) {
             onClick={() => navigate(`/spiel/${game.id}/details`)}
           >
             Spieldetails
-          </button>
-          <button type="button" class="btn btn--secondary" data-testid="menu-home" onClick={() => navigate('/')}>
-            Zur Startseite
           </button>
         </Sheet>
       )}

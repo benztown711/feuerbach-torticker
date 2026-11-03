@@ -6,7 +6,6 @@ import {
   kickoff,
   markSignalled,
   pauseClock,
-  resetClock,
   resumeClock,
   sectionLabel,
   swapVenue,
@@ -95,7 +94,6 @@ describe('T031 FR-006 Spiel-Reducer', () => {
     expect(() => pauseClock(g, T0)).toThrow('Aktion nicht erlaubt: pause');
     expect(() => resumeClock(g, T0)).toThrow('Aktion nicht erlaubt: resume');
     expect(() => endSection(g, T0)).toThrow('Aktion nicht erlaubt: end');
-    expect(() => resetClock(g, T0)).toThrow('Aktion nicht erlaubt: reset');
     const running = kickoff(g, T0);
     expect(() => kickoff(running, T0)).toThrow('Aktion nicht erlaubt: kickoff');
     const finished = endSection(kickoff(endSection(running, T0 + min(25)), T0 + min(30)), T0 + min(55));
@@ -114,18 +112,11 @@ describe('T031 FR-006 Spiel-Reducer', () => {
     expect(canAct(g, 'kickoff', T0)).toBe(true);
     expect(canAct(g, 'pause', T0)).toBe(false);
     const r = kickoff(g, T0);
-    expect(['pause', 'end', 'reset'].map((a) => canAct(r, a as never, T0))).toEqual([true, true, true]);
+    expect(['pause', 'end'].map((a) => canAct(r, a as never, T0))).toEqual([true, true]);
     expect(canAct(r, 'resume', T0)).toBe(false);
     const p = pauseClock(r, T0 + 1000);
     expect(canAct(p, 'resume', T0 + 2000)).toBe(true);
     expect(canAct(p, 'end', T0 + 2000)).toBe(true);
-  });
-
-  it('US2-S9 Zurücksetzen setzt die Uhr auf Anfang, Tore bleiben', () => {
-    let g = addGoal(kickoff(fresh(), T0), 'own', T0 + min(1)).game;
-    g = resetClock(g, T0 + min(2));
-    expect(g.status).toBe('created');
-    expect(g.goals).toHaveLength(1);
   });
 
   it('FR-035 swapVenue tauscht Heim und Gast, Tore und Farben bleiben ihrer Mannschaft', () => {

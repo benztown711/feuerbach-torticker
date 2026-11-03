@@ -1,0 +1,161 @@
+import { readFileSync } from 'node:fs';
+import Ajv2020 from 'ajv/dist/2020.js';
+import { describe, expect, it } from 'vitest';
+import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../src/domain/export';
+import { createGame, endSection, kickoff } from '../../src/domain/game';
+import { addGoal, setScorer } from '../../src/domain/goals';
+import type { Game, Player } from '../../src/domain/types';
+
+const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
+const min = (n: number): number => n * 60_000;
+const schema = JSON.parse(
+  readFileSync(new URL('../../specs/001-spiel-erfassen/contracts/export.schema.json', import.meta.url), 'utf8'),
+) as object;
+const ajv = new Ajv2020({ allErrors: true, strict: false });
+const validate = ajv.compile(schema);
+
+const players: Player[] = [
+  { id: '11111111-1111-4111-8111-111111111111', name: 'Max', number: 7, deletedAt: null },
+  { id: '22222222-2222-4222-8222-222222222222', name: 'Ben', number: null, deletedAt: T0 },
+];
+
+function game(id: string, finishedGame = true): Game {
+  let g = kickoff(
+    createGame(
+      {
+        ownTeam: 'Sportvg Feuerbach E1',
+        opponent: 'TSV Musterstadt',
+        venue: 'home',
+        schema: { sections: 2, sectionMinutes: 25 },
+        ownColor: 'rot',
+        oppColor: 'schwarz',
+        squad: [players[0]!.id],
+      },
+      { id, now: T0 },
+    ),
+    T0,
+  );
+  const a = addGoal(g, 'own', T0 + min(3), () => `${id.slice(0, 8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`);
+  g = setScorer(a.game, a.goal!.id, { kind: 'player', playerId: players[0]!.id });
+  const b = addGoal(g, 'opp', T0 + min(5), () => `${id.slice(0, 8)}-bbbb-4bbb-8bbb-bbbbbbbbbbbb`);
+  g = setScorer(b.game, b.goal!.id, { kind: 'text', text: 'Nr. 9' });
+  if (finishedGame) g = endSection(kickoff(endSection(g, T0 + min(25)), T0 + min(30)), T0 + min(55));
+  return g;
+}
+
+const G1 = '33333333-3333-4333-8333-333333333333';
+const G2 = '44444444-4444-4444-8444-444444444444';
+
+describe('T072 FR-024 Sicherung', () => {
+  it('buildBackup erzeugt JSON gemäß contracts/export.schema.json (auch offene Spiele)', () => {
+    const backup = buildBackup([game(G1), game(G2, false)], players, T0 + min(60), '0.4.0');
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    expect(backup).toMatchObject({ format: 'feuerbach-torticker-backup', schemaVersion: 1, exportedAt: T0 + min(60) });
+  });
+
+  it('ohne App-Version fehlt das Feld', () => {
+    expect(buildBackup([], [], T0)).not.toHaveProperty('appVersion');
+  });
+
+  it('backupFileName: torticker-sicherung-JJJJ-MM-TT.json in Ortszeit', () => {
+    expect(backupFileName(Date.UTC(2026, 10, 7, 23, 30), 'Europe/Berlin')).toBe('torticker-sicherung-2026-11-08.json');
+    expect(backupFileName(T0)).toMatch(/^torticker-sicherung-\d{4}-\d{2}-\d{2}\.json$/);
+  });
+
+  it('parseBackup liest eine eigene Sicherung wieder ein', () => {
+    const text = JSON.stringify(buildBackup([game(G1)], players, T0));
+    const r = parseBackup(text);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.backup.games[0]?.id).toBe(G1);
+  });
+
+  it('parseBackup lehnt kein JSON, fremde Formate und kaputte Einträge ab', () => {
+    const good = JSON.parse(JSON.stringify(buildBackup([game(G1)], players, T0))) as Record<string, unknown>;
+    const g0 = (good.games as Record<string, unknown>[])[0]!;
+    const p0 = (good.players as Record<string, unknown>[])[0]!;
+    const goal0 = (g0.goals as Record<string, unknown>[])[0]!;
+    const ev0 = (g0.clockEvents as Record<string, unknown>[])[0]!;
+    const with_ = (path: (o: Record<string, unknown>) => void): string => {
+      const copy = JSON.parse(JSON.stringify(good)) as Record<string, unknown>;
+      path(copy);
+      return JSON.stringify(copy);
+    };
+    const game0 = (o: Record<string, unknown>) => (o.games as Record<string, unknown>[])[0]!;
+    const cases: string[] = [
+      'kein json',
+      '[]',
+      'null',
+      with_((o) => (o.format = 'anderes-format')),
+      with_((o) => (o.schemaVersion = 2)),
+      with_((o) => (o.exportedAt = 'gestern')),
+      with_((o) => (o.games = {})),
+      with_((o) => (o.players = null)),
+      with_((o) => ((o.players as unknown[])[0] = 'Max')),
+      with_((o) => ((o.players as Record<string, unknown>[])[0]!.id = 5)),
+      with_((o) => ((o.players as Record<string, unknown>[])[0]!.name = '')),
+      with_((o) => ((o.players as Record<string, unknown>[])[0]!.number = 100)),
+      with_((o) => ((o.players as Record<string, unknown>[])[0]!.deletedAt = 'nie')),
+      with_((o) => ((o.games as unknown[])[0] = 7)),
+      with_((o) => (game0(o).id = '')),
+      with_((o) => (game0(o).schemaVersion = 0)),
+      with_((o) => (game0(o).ownTeam = 'x'.repeat(41))),
+      with_((o) => (game0(o).opponent = 3)),
+      with_((o) => (game0(o).venue = 'neutral')),
+      with_((o) => (game0(o).schema = { sections: 5, sectionMinutes: 25 })),
+      with_((o) => (game0(o).schema = { sections: 2, sectionMinutes: 0 })),
+      with_((o) => (game0(o).schema = null)),
+      with_((o) => (game0(o).ownColor = 1)),
+      with_((o) => (game0(o).oppColor = null)),
+      with_((o) => (game0(o).createdAt = 'heute')),
+      with_((o) => (game0(o).status = 'abgebrochen')),
+      with_((o) => (game0(o).signalledThresholds = [1])),
+      with_((o) => (game0(o).squad = 'alle')),
+      with_((o) => (game0(o).finalScore = { own: -1, opp: 0 })),
+      with_((o) => (game0(o).halfTimeScore = { own: 1 })),
+      with_((o) => (game0(o).clockEvents = [{ ...ev0, type: 'jubel' }])),
+      with_((o) => (game0(o).clockEvents = [{ ...ev0, at: null }])),
+      with_((o) => (game0(o).clockEvents = [{ ...ev0, section: 5 }])),
+      with_((o) => (game0(o).clockEvents = [null])),
+      with_((o) => (game0(o).goals = [{ ...goal0, side: 'beide' }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, minute: 0 }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, stoppage: 0 }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, deletedAt: 'jetzt' }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, id: '' }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, at: 'x' }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, section: 0 }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, scorer: { kind: 'player' } }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, scorer: { kind: 'text', text: '' } }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, scorer: { kind: 'magie' } }])),
+      with_((o) => (game0(o).goals = [{ ...goal0, scorer: 'Max' }])),
+      with_((o) => (game0(o).goals = 'keine')),
+      with_((o) => (game0(o).clockEvents = 'keine')),
+    ];
+    for (const text of cases) {
+      const r = parseBackup(text);
+      expect(r.ok, text.slice(0, 80)).toBe(false);
+      if (!r.ok) expect(r.error.length).toBeGreaterThan(0);
+    }
+    void p0;
+  });
+
+  it('parseBackup akzeptiert Eigentor, null-Torschützen und ältere "reset"-Ereignisse', () => {
+    const b = JSON.parse(JSON.stringify(buildBackup([game(G1)], players, T0))) as {
+      games: { goals: { scorer: unknown }[]; clockEvents: unknown[] }[];
+    };
+    b.games[0]!.goals[0]!.scorer = { kind: 'ownGoal' };
+    b.games[0]!.goals[1]!.scorer = null;
+    b.games[0]!.clockEvents.push({ type: 'reset', at: T0 + min(56), section: 2 });
+    expect(parseBackup(JSON.stringify(b)).ok).toBe(true);
+  });
+
+  it('mergeBackup überspringt vorhandene Spiele und führt Spieler per ID zusammen (lokal gewinnt)', () => {
+    const local: Player[] = [{ id: players[0]!.id, name: 'Max L.', number: 7, deletedAt: null }];
+    const backup = buildBackup([game(G1), game(G2)], players, T0);
+    const r = mergeBackup({ games: [game(G1)], players: local }, backup);
+    expect(r.newGames.map((g) => g.id)).toEqual([G2]);
+    expect(r.skippedGames).toBe(1);
+    expect(r.newPlayers.map((p) => p.id)).toEqual([players[1]!.id]);
+  });
+});

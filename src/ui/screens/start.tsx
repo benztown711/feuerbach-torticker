@@ -40,14 +40,6 @@ export function StartScreen() {
         >
           Neues Spiel
         </button>
-        <button
-          type="button"
-          class="btn btn--secondary btn--large"
-          data-testid="btn-roster"
-          onClick={() => navigate('/kader')}
-        >
-          Kader
-        </button>
       </div>
     </main>
   );

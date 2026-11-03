@@ -110,7 +110,7 @@ describe('T029 FR-006 FR-007 SC-003 deriveClock', () => {
     expect(deriveClock(events, T0 + min(7), { sections: 1, sectionMinutes: 12 }).playedMs).toBe(min(5));
   });
 
-  it('US2-S9 Zurücksetzen in Abschnitt 1: zurück auf created', () => {
+  it('Abwärtskompatibel: altes reset-Ereignis (Runde 4 entfallen) in Abschnitt 1 führt zurück auf created', () => {
     const events = [ev('kickoff', T0), ev('reset', T0 + min(2))];
     expect(deriveClock(events, T0 + min(3), two25)).toMatchObject({
       status: 'created',
@@ -119,7 +119,7 @@ describe('T029 FR-006 FR-007 SC-003 deriveClock', () => {
     });
   });
 
-  it('Zurücksetzen in Abschnitt 2: Pause vor dem erneuten Anpfiff von Abschnitt 2', () => {
+  it('Abwärtskompatibel: altes reset-Ereignis in Abschnitt 2 führt in die Pause vor dem erneuten Anpfiff', () => {
     const events = [
       ev('kickoff', T0),
       ev('sectionEnd', T0 + min(25)),

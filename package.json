@@ -37,6 +37,7 @@
     "@types/node": "^26.6.6",
     "@vite-pwa/assets-generator": "^2.0.0",
     "@vitest/coverage-v8": "^5.1.0",
+    "ajv": "^8.20.0",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "fake-indexeddb": "^6.2.7",

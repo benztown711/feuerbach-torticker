@@ -2,7 +2,8 @@ import { deriveClock, type ClockState } from './clock';
 import { score } from './goals';
 import type { ClockEvent, Game, NewGameInput } from './types';
 
-export type ClockAction = 'kickoff' | 'pause' | 'resume' | 'end' | 'reset';
+/** "reset" (Uhr zurücksetzen) ist in Runde 4 entfallen; alte reset-Ereignisse wertet deriveClock weiter aus. */
+export type ClockAction = 'kickoff' | 'pause' | 'resume' | 'end';
 
 export function createGame(input: NewGameInput, opts: { id: string; now: number }): Game {
   return {
@@ -39,7 +40,6 @@ export function canAct(game: Game, action: ClockAction, now: number): boolean {
     case 'resume':
       return c.status === 'paused';
     case 'end':
-    case 'reset':
       return c.status === 'running' || c.status === 'paused';
   }
 }
@@ -78,11 +78,6 @@ export function endSection(game: Game, now: number): Game {
     return append(game, { type: 'sectionEnd', at: now, section: c.section }, patch);
   }
   return append(game, { type: 'fullTime', at: now, section: c.section }, { finalScore: score(game) });
-}
-
-export function resetClock(game: Game, now: number): Game {
-  const c = guard(game, 'reset', now);
-  return append(game, { type: 'reset', at: now, section: c.section });
 }
 
 /** FR-035: Heim und Gast tauschen; Tore, Minuten und Farben bleiben ihrer Mannschaft. */

@@ -220,15 +220,15 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ### Tests für User Story 6 ⚠️ zuerst schreiben
 
-- [ ] T072 [P] [US6] `tests/unit/export.test.ts`: Export erzeugt JSON gemäß `contracts/export.schema.json` (Validierung mit `ajv` als Dev-Abhängigkeit); Import lehnt fremde Formate ab, überspringt vorhandene Spiel-IDs, führt Spieler per ID zusammen (FR-024)
-- [ ] T073 [P] [US6] `tests/e2e/us6-historie.spec.ts`: US6-S1 bis US6-S5 (Liste neueste zuerst mit Anpfiff-Uhrzeit, Details mit "25+1'" und `HH:MM:SS`, Persistenz nach Kontext-Neustart, Löschen mit Abfrage, Export über gemocktes Teilen-Menü und Re-Import) (FR-022)
-- [ ] T074 [P] [US6] `tests/e2e/install-hint.spec.ts`: außerhalb Standalone erscheint `install-hint`, wegklickbar, kommt nicht wieder (FR-023)
+- [x] T072 [P] [US6] `tests/unit/export.test.ts`: Export erzeugt JSON gemäß `contracts/export.schema.json` (Validierung mit `ajv` als Dev-Abhängigkeit); Import lehnt fremde Formate ab, überspringt vorhandene Spiel-IDs, führt Spieler per ID zusammen (FR-024)
+- [x] T073 [P] [US6] `tests/e2e/us6-historie.spec.ts`: US6-S1 bis US6-S5 (Liste neueste zuerst mit Anpfiff-Uhrzeit, Details mit "25+1'" und `HH:MM:SS`, Persistenz nach Kontext-Neustart, Löschen mit Abfrage, Export über gemocktes Teilen-Menü und Re-Import) (FR-022)
+- [x] T074 [P] [US6] `tests/e2e/install-hint.spec.ts`: außerhalb Standalone erscheint `install-hint`, wegklickbar, kommt nicht wieder (FR-023)
 
 ### Implementierung für User Story 6
 
-- [ ] T075 [US6] `src/domain/export.ts` (`buildBackup`, `parseBackup`, `mergeBackup`) implementieren (macht T072 grün)
-- [ ] T076 [US6] Historie `src/ui/screens/history.tsx` (`history-list`, `history-item-<id>`, `history-delete-<id>` mit Abfrage), Öffnen führt zu `src/ui/screens/game-details.tsx`
-- [ ] T077 [US6] Einstellungen `src/ui/screens/settings.tsx`: `recent-own-teams` (FR-014), `theme-system`/`theme-light`/`theme-dark` (FR-018), `btn-export` (Datei `torticker-sicherung-JJJJ-MM-TT.json` über Teilen-Menü mit Dateien, Fallback Download), `input-import`, `install-hint` (FR-023, FR-024)
+- [x] T075 [US6] `src/domain/export.ts` (`buildBackup`, `parseBackup`, `mergeBackup`) implementieren (macht T072 grün)
+- [x] T076 [US6] Historie `src/ui/screens/history.tsx` (`history-list`, `history-item-<id>`, Filter `history-filter-*`), Öffnen führt zu `src/ui/screens/game-details.tsx`; Löschen dort (`btn-delete-game`, Runde 4)
+- [x] T077 [US6] Einstellungen `src/ui/screens/settings.tsx`: `recent-own-teams` (FR-014), `theme-system`/`theme-light`/`theme-dark` (FR-018), `btn-export` (Datei `torticker-sicherung-JJJJ-MM-TT.json` über Teilen-Menü mit Dateien, Fallback Download), `input-import`, `install-hint` (FR-023, FR-024)
 
 **Checkpoint**: Historie dauerhaft und sicherbar.
 
@@ -242,13 +242,13 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 
 ### Tests für User Story 4 ⚠️ zuerst schreiben
 
-- [ ] T078 [P] [US4] `tests/unit/share-text.test.ts`: Beispiel aus `contracts/share-text.md` exakt; Heim zuerst; Halbzeitstand nur bei mehr als einem Abschnitt; gelöschte Tore fehlen; Spiel ohne Tore nur zwei Zeilen; Eigentor; Gegner-Freitext; nur Anzeigenamen aus dem Kader (FR-011, FR-020)
-- [ ] T079 [P] [US4] `tests/e2e/us4-teilen.spec.ts`: US4-S1 (Teilen-Menü mit Text), US4-S2 (Fallback Zwischenablage mit Bestätigung)
+- [x] T078 [P] [US4] `tests/unit/share-text.test.ts`: Beispiel aus `contracts/share-text.md` exakt; Heim zuerst; Halbzeitstand nur bei mehr als einem Abschnitt; gelöschte Tore fehlen; Spiel ohne Tore nur zwei Zeilen; Eigentor; Gegner-Freitext; nur Anzeigenamen aus dem Kader (FR-011, FR-020)
+- [x] T079 [P] [US4] `tests/e2e/us4-teilen.spec.ts`: US4-S1 (Teilen-Menü mit Text), US4-S2 (Fallback Zwischenablage mit Bestätigung)
 
 ### Implementierung für User Story 4
 
-- [ ] T080 [US4] `src/domain/share-text.ts` implementieren (macht T078 grün)
-- [ ] T081 [US4] `btn-share` in `src/ui/screens/game-details.tsx` und nach Abpfiff auf `src/ui/screens/game.tsx` (nutzt `src/platform/share.ts`)
+- [x] T080 [US4] `src/domain/share-text.ts` implementieren (macht T078 grün)
+- [x] T081 [US4] `btn-share` in `src/ui/screens/game-details.tsx` und nach Abpfiff auf `src/ui/screens/game.tsx` (nutzt `src/platform/share.ts`)
 
 **Checkpoint**: Alle User Stories funktionsfähig und unabhängig getestet.
 
@@ -260,11 +260,22 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [ ] T083 [P] `tests/e2e/visual.spec.ts`: Screenshot-Vergleich Spielbildschirm (laufend, Nachspielzeit, Halbzeit) in hell und dunkel, iPhone-Profil; Referenzbilder im Repo
 - [ ] T084 [P] Bundle-Budget in `vite.config.ts` bzw. CI-Schritt: JS-Hauptbundle < 60 KB gzip, sonst CI rot
 - [ ] T085 [P] Performance-Check in `tests/e2e/us1-tor-erfassen.spec.ts` gegen SC-001 stabilisieren (Median aus 10 Taps)
-- [ ] T086 [P] Hilfe-Seite `src/ui/screens/help.tsx` mit iPhone-Hinweisen: App vom Home-Bildschirm nutzen, Ton nur bei eingeschaltetem Bildschirm, Lautlos-Schalter, Sicherung exportieren
+- [x] T086 [P] Hilfe-Seite `src/ui/screens/help.tsx` mit iPhone-Hinweisen: App vom Home-Bildschirm nutzen, Ton nur bei eingeschaltetem Bildschirm, Lautlos-Schalter, Sicherung exportieren
 - [ ] T087 Gerätecheck nach `specs/001-spiel-erfassen/quickstart.md` (manuell, iPhone + Android) durchführen und Ergebnis im Release-PR dokumentieren
 - [ ] T088 `/speckit-analyze` laufen lassen und Abweichungen zwischen spec.md, plan.md, tasks.md und Code beheben
 
 ---
+
+## Phase 11: Review B Runde 4 (Navigation, Historie, Uhr zurücksetzen entfällt)
+
+**Goal**: Navigationsleiste unten (FR-037), Historie mit Feuerbach-Sicht und Filter (FR-038), Spieldetails mit Zeitleiste und Teilen, "Uhr zurücksetzen" entfernt.
+
+- [x] T096 [P] [US6] `tests/unit/history.test.ts`: Ergebnis aus Feuerbach-Sicht, S/U/N, "läuft" bei offenen Spielen, Filter-Chips aus Mannschaftsnamen (Kurzform E1/E2/D3, nur bei mehr als einem Namen), Filtern, Zeitleiste der Spieldetails (Ereignisse und Tore chronologisch, entfernte markiert), Live-Anzeige "Läuft <Minute>"/"Pause" (FR-037, FR-038)
+- [x] T097 [US6] `src/domain/history.ts` implementieren (macht T096 grün)
+- [x] T098 [P] `tests/e2e/nav.spec.ts`: Leiste mit drei Einträgen auf allen Bildschirmen, aktiver Eintrag, "Läuft <Minute>" bei laufendem Spiel auf anderer Seite und Rückweg, Tipp auf "Spiel" im Spiel führt zur Startseite, Spiel läuft nach Navigation weiter; FR-033 mit Leiste auf 375 × 667 (FR-037)
+- [x] T099 Komponente `src/ui/components/nav-bar.tsx` und App-Rahmen in `src/ui/app.tsx` (fixe Leiste, Spielbildschirm-Höhe ohne Leiste), Seite "Mehr" `src/ui/screens/more.tsx` (`more-roster`, `more-settings`, `more-help`), Startseite ohne Kader-Knopf (macht T098 grün)
+- [x] T100 [US6] Spieldetails `src/ui/screens/game-details.tsx` nach Mockup 8: Kopf "Heim : Gast" mit Halbzeit, Zeitleiste (`details-timeline`), Teilen-Vorschau (`share-preview`), `btn-share`, `btn-delete-game` mit Abfrage
+- [x] T101 Uhr zurücksetzen entfernen: `resetClock`/Aktion `reset` aus `src/domain/game.ts`, Menüpunkt und Abfrage aus `src/ui/screens/game.tsx`, E2E US2-S9; `deriveClock` wertet alte `reset`-Ereignisse weiter aus (Unit-Test bleibt), Export-Schema behält `reset`
 
 ## Dependencies & Execution Order
 

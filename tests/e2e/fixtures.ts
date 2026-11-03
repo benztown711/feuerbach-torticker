@@ -1,7 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 
 export interface Recorded {
-  shares: { text?: string; title?: string; files?: number }[];
+  shares: { text?: string; title?: string; files?: number; fileName?: string; fileText?: string }[];
   sounds: number;
   vibrations: number;
   keepAlive: boolean;
@@ -36,9 +36,17 @@ export const test = base.extend<{ foreignRequests: string[]; recorded: () => Pro
       Object.defineProperty(navigator, 'share', {
         configurable: true,
         value: async (data: { text?: string; title?: string; files?: File[] }) => {
-          rec.shares.push({ text: data.text, title: data.title, files: data.files?.length });
+          const file = data.files?.[0];
+          rec.shares.push({
+            text: data.text,
+            title: data.title,
+            files: data.files?.length,
+            fileName: file?.name,
+            fileText: file ? await file.text() : undefined,
+          });
         },
       });
+      Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
       Object.defineProperty(navigator, 'vibrate', {
         configurable: true,
         value: () => {

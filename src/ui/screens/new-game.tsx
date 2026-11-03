@@ -127,6 +127,9 @@ export function NewGameScreen() {
     navigate(`/spiel/${game.id}`, true);
   };
 
+  // Formular erst nach dem Laden der Einstellungen zeigen, sonst überschreiben die Vorgaben bereits Getipptes.
+  if (!settings) return <main class="page" aria-busy="true" />;
+
   return (
     <main class="page">
       <header class="topbar">

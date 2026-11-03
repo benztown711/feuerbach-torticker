@@ -28,7 +28,7 @@ Indizes: `by-createdAt` (Historie, neueste zuerst), `by-status` (laufendes Spiel
 
 | Feld | Typ |
 |---|---|
-| `type` | `"kickoff"` \| `"pause"` \| `"resume"` \| `"sectionEnd"` \| `"fullTime"` \| `"reset"` |
+| `type` | `"kickoff"` \| `"pause"` \| `"resume"` \| `"sectionEnd"` \| `"fullTime"` \| `"reset"` (nur noch in älteren gespeicherten Spielen, wird weiterhin ausgewertet) |
 | `at` | number |
 | `section` | number (1-basiert) |
 
@@ -75,7 +75,7 @@ created ──kickoff──▶ running ──pause*──▶ paused ──resume
                        ├──(Zeit ≥ Abschnittsdauer)──▶ running/overtime   (abgeleitet, kein Ereignis)
                        ├──sectionEnd* (Abschnitt < n)──▶ break ──kickoff──▶ running (Abschnitt+1)
                        └──fullTime*  (oder sectionEnd im letzten Abschnitt)──▶ finished
-running|paused ──reset*──▶ vor Anpfiff des aktuellen Abschnitts (Uhr auf Anfang; bereits erfasste Tore bleiben und sind über die Torliste korrigierbar)
+(reset: entfallen in Runde 4; vorhandene "reset"-Ereignisse älterer Spiele setzen beim Auswerten weiterhin auf den Zustand vor Anpfiff des aktuellen Abschnitts zurück)
 ```
 
 `*` = Sicherheitsabfrage (FR-006). Tor-Knöpfe aktiv nur in `running`, `running/overtime` und `paused` (FR-021).
