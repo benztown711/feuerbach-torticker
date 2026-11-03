@@ -106,7 +106,7 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 
 ## R-15 Review B (Mockups, 02.11.2026)
 
-- **Kleinstes Gerät als Maßstab**: Playwright-Projekt `iphone-se` (WebKit, `devices['iPhone SE']`, 375 × 667) ergänzt; E2E-Kernszenarien und Screenshot-Vergleich laufen dort. Layout-Test: Spielbildschirm ohne Seiten-Scroll (`document.scrollingElement.scrollHeight <= innerHeight`).
+- **Kleinstes Gerät als Maßstab**: Playwright-Projekt `iphone-se` (WebKit, `devices['iPhone SE (3rd gen)']`, 375 × 667) ergänzt; E2E-Kernszenarien und Screenshot-Vergleich laufen dort. Layout-Test: Spielbildschirm ohne Seiten-Scroll (`document.scrollingElement.scrollHeight <= innerHeight`).
 - **Trikotfarben**: feste Palette `design/trikot-farben.json` (12 Farben) statt freier Farbwahl: garantiert geprüfte Kontraste, schnelle Auswahl am Spielfeldrand, keine Farbwerte im Code. Kontraste werden im Unit-Test geprüft (Schrift auf Knopf; Rahmen bei < 3:1 zum Hintergrund).
 - **Kostenfreiheit (Constitution VIII)**: Native Hülle, Apple Developer Account, kostenpflichtige KI-Review-Dienste und bezahlte Hosting-Pläne sind ausgeschlossen. Für release-please-PRs, die CI auslösen sollen, wird ein kostenloses Fine-grained Personal Access Token als Repository-Secret genutzt.
 
@@ -167,4 +167,4 @@ Stand 2026-11-02. Jede Entscheidung im Format Decision / Rationale / Alternative
 - **SC-001 (T085)**: Median aus 10 Taps (abwechselnd Heim/Gast, Doppeltipp-Schutz per Uhr-Vorlauf umgangen) statt Einzelmessung.
 - **Historie**: angelegte, nicht angepfiffene Spiele heißen "nicht angepfiffen" (FR-038), nicht "läuft".
 - **Sicherung**: `appVersion` aus `package.json`, beim Build per Vite-`define` eingesetzt (`src/version.ts`).
-- **Konsistenz (T088)**: plan.md TypeScript 6 statt 7 (R-14); CLAUDE.md drei E2E-Profile und Lighthouse ohne PWA-Kategorie; quickstart.md ohne "Reset"; `npm run lhci` nutzt `npx @lhci/cli@0.15.1` wie die CI. Anforderungen ohne eigenen Test (FR-003, FR-013, FR-019) bekommen `tests/e2e/feinschliff.spec.ts`. Offen bleibt nur T087 (manueller Gerätetest).
+- **Konsistenz (T088)**: plan.md TypeScript 6 statt 7 (R-14); CLAUDE.md drei E2E-Profile und Lighthouse ohne PWA-Kategorie; quickstart.md ohne "Reset"; `npm run lhci` nutzt `npx @lhci/cli@0.15.1` wie die CI. Anforderungen ohne eigenen Test (FR-003, FR-013, FR-019) bekommen `tests/e2e/feinschliff.spec.ts`. Befund beim Screenshot-Vergleich: Das Projekt `iphone-se` emulierte mit `devices['iPhone SE']` das SE der 1. Generation (320 × 568) statt der spezifizierten 375 × 667; korrigiert auf `devices['iPhone SE (3rd gen)']`. (Bei 320 pt Breite bricht ein langer Gegnername auf dem Tor-Knopf mitten im Wort; 320-pt-iPhones laufen nicht mit iOS 17 und sind nicht Ziel.) Offen bleibt nur T087 (manueller Gerätetest).
