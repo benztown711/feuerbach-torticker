@@ -11,6 +11,8 @@ export interface HistoryEntry {
   scoreText: string;
   result: ResultLetter | null;
   finished: boolean;
+  /** Anzeige statt S/U/N bei offenen Spielen (FR-038). */
+  openLabel: 'läuft' | 'nicht angepfiffen' | null;
   teamShort: string;
   venueLabel: 'heim' | 'auswärts';
 }
@@ -40,6 +42,7 @@ export function historyEntry(game: Game): HistoryEntry {
     scoreText: `${own}:${opp}`,
     result,
     finished,
+    openLabel: finished ? null : game.status === 'created' ? 'nicht angepfiffen' : 'läuft',
     teamShort: teamShortLabel(game.ownTeam),
     venueLabel: game.venue === 'home' ? 'heim' : 'auswärts',
   };

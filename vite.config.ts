@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import tokens from './design/tokens.json' with { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 
 const color = (name: string, theme: 'light' | 'dark' = 'light'): string => {
   const token = tokens.color.tokens.find((t) => t.name === name);
@@ -13,6 +14,8 @@ export const BASE = '/feuerbach-torticker/';
 
 export default defineConfig({
   base: BASE,
+  // App-Version für die Sicherung (FR-024, Feinschliff)
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     preact(),
     VitePWA({

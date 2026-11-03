@@ -49,7 +49,16 @@ describe('T096 FR-038 Historie aus Feuerbach-Sicht', () => {
 
   it('offenes Spiel: kein S/U/N, "läuft"', () => {
     const g = kickoff(createGame(input, { id: 'o', now: T0 }), T0);
-    expect(historyEntry(g)).toMatchObject({ finished: false, result: null });
+    expect(historyEntry(g)).toMatchObject({ finished: false, result: null, openLabel: 'läuft' });
+  });
+
+  it('FR-038 angelegtes, nicht angepfiffenes Spiel heißt "nicht angepfiffen", nicht "läuft"', () => {
+    const g = createGame(input, { id: 'n', now: T0 });
+    expect(historyEntry(g)).toMatchObject({ finished: false, result: null, openLabel: 'nicht angepfiffen' });
+  });
+
+  it('beendetes Spiel hat kein openLabel', () => {
+    expect(historyEntry(finished(['own']))).toMatchObject({ openLabel: null });
   });
 
   it('startedAt: erster Anpfiff, sonst Anlegezeit', () => {

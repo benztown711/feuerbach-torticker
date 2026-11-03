@@ -6,6 +6,7 @@ import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings }
 import { shareFile } from '../../platform/share';
 import { applyTheme, isStandalone } from '../../platform/storage';
 import { navigate } from '../router';
+import { APP_VERSION } from '../../version';
 
 const THEMES: { id: Theme; label: string }[] = [
   { id: 'system', label: 'Wie iPhone' },
@@ -33,7 +34,7 @@ export function SettingsScreen() {
 
   const doExport = async (): Promise<void> => {
     const now = Date.now();
-    const backup = buildBackup(await listGames(), await getPlayers(), now);
+    const backup = buildBackup(await listGames(), await getPlayers(), now, APP_VERSION);
     const r = await shareFile(JSON.stringify(backup, null, 1), backupFileName(now));
     setExportMsg(
       r === 'shared'

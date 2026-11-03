@@ -1152,6 +1152,12 @@
   color: var(--color-rot-text);
 }
 
+.history__live--created {
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+  font-weight: 400;
+}
+
 .history__empty,
 .history__legend {
   margin: 0;

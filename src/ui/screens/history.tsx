@@ -81,7 +81,12 @@ export function HistoryScreen() {
                       {e.result}
                     </span>
                   ) : (
-                    <span class="history__live">läuft</span>
+                    <span
+                      class={e.openLabel === 'läuft' ? 'history__live' : 'history__live history__live--created'}
+                      data-testid={`history-open-${game.id}`}
+                    >
+                      {e.openLabel}
+                    </span>
                   )}
                 </a>
               </li>
