@@ -15,12 +15,17 @@ export function MoreScreen() {
       <header class="topbar">
         <h1 class="topbar__title t-zwischentitel">Mehr</h1>
       </header>
-      <ul class="menu-list">
+      <ul class="menu-list card card--list" data-testid="more-menu">
         {items.map((i) => (
           <li key={i.href}>
             <a class="menu-list__item" href={i.href} data-testid={i.testId}>
-              <span class="menu-list__title">{i.title}</span>
-              <span class="menu-list__text">{i.text}</span>
+              <span class="menu-list__text-group">
+                <span class="menu-list__title">{i.title}</span>
+                <span class="menu-list__text">{i.text}</span>
+              </span>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon menu-list__chevron">
+                <path d="M9 5l7 7-7 7" />
+              </svg>
             </a>
           </li>
         ))}

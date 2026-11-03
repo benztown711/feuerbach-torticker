@@ -207,8 +207,8 @@ export function SettingsScreen() {
           </div>
         )}
 
-        <section class="settings__section" aria-labelledby="s-teams">
-          <h2 id="s-teams" class="t-label settings__heading">
+        <section class="settings__section card" aria-labelledby="s-teams">
+          <h2 id="s-teams" class="t-label card__title">
             MEINE MANNSCHAFTEN
           </h2>
           <ul class="team-list" data-testid="settings-teams">
@@ -253,8 +253,8 @@ export function SettingsScreen() {
           </button>
         </section>
 
-        <section class="settings__section" aria-labelledby="s-capture">
-          <h2 id="s-capture" class="t-label settings__heading">
+        <section class="settings__section card" aria-labelledby="s-capture">
+          <h2 id="s-capture" class="t-label card__title">
             IM SPIEL ERFASSEN
           </h2>
           <ul class="switch-list">
@@ -282,8 +282,8 @@ export function SettingsScreen() {
           </ul>
         </section>
 
-        <section class="settings__section" aria-labelledby="s-theme">
-          <h2 id="s-theme" class="t-label settings__heading">
+        <section class="settings__section card" aria-labelledby="s-theme">
+          <h2 id="s-theme" class="t-label card__title">
             DARSTELLUNG
           </h2>
           <div class="segmented" role="group" aria-labelledby="s-theme">
@@ -306,8 +306,8 @@ export function SettingsScreen() {
           <p class="field__help">In der Sonne ist „Hell“ am besten lesbar.</p>
         </section>
 
-        <section class="settings__section" aria-labelledby="s-backup">
-          <h2 id="s-backup" class="t-label settings__heading">
+        <section class="settings__section card" aria-labelledby="s-backup">
+          <h2 id="s-backup" class="t-label card__title">
             SICHERUNG
           </h2>
           <div class="button-row">

@@ -117,7 +117,7 @@ export function GameDetailsScreen({ id }: { id: string }) {
         <h1 class="topbar__title t-zwischentitel">Spiel vom {fmtDay.format(startedAt(game))}</h1>
       </header>
 
-      <section class="details__head" data-testid="details-score">
+      <section class="details__head card" data-testid="details-score">
         <p class="details__meta">{meta}</p>
         <div class="details__line">
           <p class="details__match">
@@ -128,73 +128,80 @@ export function GameDetailsScreen({ id }: { id: string }) {
         {summary && <p class="details__meta">{summary}</p>}
       </section>
 
-      <ol class="details__list" data-testid="details-timeline" aria-label="Spielverlauf">
-        {timeline(game).map((item, i) =>
-          item.kind === 'ev' ? (
-            <li
-              key={item.ev.id}
-              class={
-                item.ev.kind === 'mark' ? 'details__item details__item--private' : 'details__item details__item--extra'
-              }
-              data-testid={`${item.ev.kind === 'mark' ? 'mark' : 'event'}-${item.ev.id}`}
-            >
-              <span class="details__minute">{formatMinute(item.ev.minute, item.ev.stoppage)}</span>
-              <span class="details__score-cell">
-                {item.ev.kind === 'mark' ? (
-                  <BookmarkIcon />
-                ) : item.ev.kind === 'card' ? (
-                  <CardGlyph card={item.ev.card} />
-                ) : (
-                  <SubIcon />
-                )}
-              </span>
-              <span class="details__what">
-                {item.ev.kind === 'mark' ? (
-                  <>
-                    {item.ev.comment || 'Lesezeichen'}{' '}
-                    <span class="goal-row__tag goal-row__tag--private">nur für dich</span>
-                  </>
-                ) : item.ev.kind === 'card' ? (
-                  `${cardText(game, item.ev, players)}${item.ev.comment ? ` · ${item.ev.comment}` : ''}`
-                ) : (
-                  subText(item.ev, players)
-                )}
-              </span>
-              <span class="details__time">{formatTime(item.at)}</span>
-            </li>
-          ) : item.kind === 'event' ? (
-            <li key={`e${i}`} class="details__item details__item--event">
-              <span class="details__minute" />
-              <span class="details__score-cell" />
-              <span class="details__what">{eventText(item.event, game)}</span>
-              <span class="details__time">{formatTime(item.at)}</span>
-            </li>
-          ) : (
-            <li
-              key={item.goal.id}
-              class={item.removed ? 'details__item details__item--removed' : 'details__item'}
-              data-testid={`goal-${item.goal.id}`}
-            >
-              <span class="details__minute">{item.label}</span>
-              <span class="details__score-cell">{item.score}</span>
-              <span class="details__what">
-                {item.goal.scorer
-                  ? `${scorerLabel(item.goal, players)}${item.goal.side === 'opp' ? ` (${game.opponent})` : ''}`
-                  : item.goal.side === 'own'
-                    ? shortTeamName(game.ownTeam)
-                    : game.opponent}
-                {goalSuffix(item.goal)}
-              </span>
-              <span class="details__time">{formatTime(item.at)}</span>
-              {item.removed && <span class="goal-row__tag">entfernt</span>}
-            </li>
-          ),
-        )}
-      </ol>
+      <section class="card card--list" aria-labelledby="timeline-title" data-testid="card-timeline">
+        <h2 id="timeline-title" class="t-label card__title">
+          SPIELVERLAUF
+        </h2>
+        <ol class="details__list" data-testid="details-timeline" aria-label="Spielverlauf">
+          {timeline(game).map((item, i) =>
+            item.kind === 'ev' ? (
+              <li
+                key={item.ev.id}
+                class={
+                  item.ev.kind === 'mark'
+                    ? 'details__item details__item--private'
+                    : 'details__item details__item--extra'
+                }
+                data-testid={`${item.ev.kind === 'mark' ? 'mark' : 'event'}-${item.ev.id}`}
+              >
+                <span class="details__minute">{formatMinute(item.ev.minute, item.ev.stoppage)}</span>
+                <span class="details__score-cell">
+                  {item.ev.kind === 'mark' ? (
+                    <BookmarkIcon />
+                  ) : item.ev.kind === 'card' ? (
+                    <CardGlyph card={item.ev.card} />
+                  ) : (
+                    <SubIcon />
+                  )}
+                </span>
+                <span class="details__what">
+                  {item.ev.kind === 'mark' ? (
+                    <>
+                      {item.ev.comment || 'Lesezeichen'}{' '}
+                      <span class="goal-row__tag goal-row__tag--private">nur für dich</span>
+                    </>
+                  ) : item.ev.kind === 'card' ? (
+                    `${cardText(game, item.ev, players)}${item.ev.comment ? ` · ${item.ev.comment}` : ''}`
+                  ) : (
+                    subText(item.ev, players)
+                  )}
+                </span>
+                <span class="details__time">{formatTime(item.at)}</span>
+              </li>
+            ) : item.kind === 'event' ? (
+              <li key={`e${i}`} class="details__item details__item--event">
+                <span class="details__minute" />
+                <span class="details__score-cell" />
+                <span class="details__what">{eventText(item.event, game)}</span>
+                <span class="details__time">{formatTime(item.at)}</span>
+              </li>
+            ) : (
+              <li
+                key={item.goal.id}
+                class={item.removed ? 'details__item details__item--removed' : 'details__item'}
+                data-testid={`goal-${item.goal.id}`}
+              >
+                <span class="details__minute">{item.label}</span>
+                <span class="details__score-cell">{item.score}</span>
+                <span class="details__what">
+                  {item.goal.scorer
+                    ? `${scorerLabel(item.goal, players)}${item.goal.side === 'opp' ? ` (${game.opponent})` : ''}`
+                    : item.goal.side === 'own'
+                      ? shortTeamName(game.ownTeam)
+                      : game.opponent}
+                  {goalSuffix(item.goal)}
+                </span>
+                <span class="details__time">{formatTime(item.at)}</span>
+                {item.removed && <span class="goal-row__tag">entfernt</span>}
+              </li>
+            ),
+          )}
+        </ol>
+      </section>
 
       {game.shootout && game.shootout.shots.length > 0 && (
-        <section class="details__share" aria-label="Elfmeterschießen" data-testid="details-shootout">
-          <span class="t-label field__label">
+        <section class="details__share card" aria-label="Elfmeterschießen" data-testid="details-shootout">
+          <span class="t-label card__title">
             ELFMETERSCHIESSEN · {shootoutState(game).own}:{shootoutState(game).opp}
           </span>
           <div class="pen-detail">
@@ -218,8 +225,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
       )}
 
       {marks && (
-        <section class="details__share" aria-label="Lesezeichen">
-          <span class="t-label field__label">LESEZEICHEN · NUR FÜR DICH</span>
+        <section class="details__share card" aria-label="Lesezeichen">
+          <span class="t-label card__title">LESEZEICHEN · NUR FÜR DICH</span>
           <pre class="share-preview" data-testid="marks-preview">
             {marks}
           </pre>
@@ -237,7 +244,10 @@ export function GameDetailsScreen({ id }: { id: string }) {
         </section>
       )}
 
-      <section class="details__share" aria-label="Ergebnis teilen">
+      <section class="details__share card" aria-labelledby="share-title" data-testid="card-share">
+        <h2 id="share-title" class="t-label card__title">
+          ERGEBNIS TEILEN
+        </h2>
         <pre class="share-preview" data-testid="share-preview">
           {text}
         </pre>

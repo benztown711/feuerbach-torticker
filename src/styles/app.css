@@ -52,7 +52,7 @@
 
 .btn--quiet {
   border-color: transparent;
-  background: var(--color-surface-alt);
+  background: var(--color-tonal);
 }
 
 .btn--small {
@@ -113,15 +113,20 @@
 .page {
   max-width: 480px;
   margin: 0 auto;
+  padding-bottom: var(--space-4);
+}
+
+/* Spec 005 FR-G01: Seiten außerhalb von Start und Spiel liegen auf der getönten Grundfläche. */
+body:has(.page) {
+  background: var(--color-canvas);
 }
 
 .topbar {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 52px;
-  padding: 0 var(--space-2);
-  border-bottom: 1px solid var(--color-line);
+  height: 56px;
+  padding: 0 var(--space-4);
 }
 
 .topbar__title {
@@ -163,7 +168,7 @@
   padding: 0 var(--space-2);
   border: 2px solid var(--color-ink);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: var(--color-field);
   color: var(--color-ink);
   font: inherit;
   font-size: 17px;
@@ -208,15 +213,9 @@
 }
 
 /* Spec 004: Begegnung wie die Kopfzeile im Spiel, Trikots mit "Ändern" */
-.matchup-preview {
-  padding-bottom: var(--space-2);
-  border: 1px solid var(--color-line);
-}
-
 .matchup-preview__roles {
   display: flex;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-2) 0;
   color: var(--color-ink-muted);
 }
 
@@ -486,17 +485,20 @@
   grid-column: 1 / -1;
 }
 
+/* Spec 005 FR-G07: Torliste auf abgesetzter Fläche (design/README.md) */
 .goal-list {
   flex: 1 1 auto;
   min-height: 0;
   margin: var(--space-2) var(--space-4) 0;
+  padding: 0 var(--space-2);
   overflow-y: auto;
   overscroll-behavior: contain;
-  border-top: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
 }
 
 .goal-list__empty {
-  margin: var(--space-2) 0;
+  margin: var(--space-2) var(--space-1);
   color: var(--color-ink-muted);
   font-size: 14px;
 }
@@ -511,7 +513,7 @@
   border: 0;
   border-bottom: 1px solid var(--color-line);
   border-radius: var(--radius-0);
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-ink);
   font-size: 15px;
   line-height: 22px;
@@ -541,7 +543,7 @@
 }
 
 .goal-row--removed {
-  background: var(--color-surface-alt);
+  background: var(--color-surface);
 }
 
 .goal-row--removed .goal-row__minute,
@@ -794,11 +796,12 @@
   align-items: flex-end;
 }
 
+/* Spec 005 FR-G04: dunkelt in beiden Themes ab (vorher im dunklen Theme mit ink aufgehellt) */
 .overlay__backdrop {
   position: absolute;
   inset: 0;
-  background: var(--color-ink);
-  opacity: 0.55;
+  background: var(--color-scrim);
+  opacity: 0.6;
 }
 
 .dialog,
@@ -807,13 +810,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  background: var(--color-surface);
+  background: var(--color-card);
   color: var(--color-ink);
 }
 
 .dialog {
   width: min(100%, 420px);
   padding: var(--space-6);
+  border-radius: var(--radius-md);
 }
 
 .sheet {
@@ -821,6 +825,7 @@
   max-width: 600px;
   margin: 0 auto;
   gap: var(--space-2);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   padding: var(--space-4) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
 }
 
@@ -872,7 +877,7 @@
 
 .details__list {
   margin: 0;
-  padding: 0 var(--space-4);
+  padding: 0;
   list-style: none;
 }
 
@@ -1168,16 +1173,24 @@
   touch-action: manipulation;
 }
 
+/* Spec 005 FR-G06: aktiver Reiter mit vereinsroter Marke und getönter Fläche hinter dem Symbol */
 .nav__item[aria-current='page'] {
-  border-top-color: var(--color-ink);
+  border-top-color: var(--color-vereinsrot);
   color: var(--color-ink);
   font-weight: 700;
 }
 
 .nav__icon {
+  box-sizing: content-box;
+  padding: 2px 14px;
+  border-radius: var(--radius-md);
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
+}
+
+.nav__item[aria-current='page'] .nav__icon {
+  background: var(--color-rot-hell);
 }
 
 .nav__dots {
@@ -1204,9 +1217,16 @@
   padding: var(--space-2) var(--space-4) 0;
 }
 
+.history-months {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4) 0;
+}
+
 .history {
   margin: 0;
-  padding: 0 var(--space-4);
+  padding: 0;
   list-style: none;
 }
 
@@ -1315,8 +1335,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-line);
 }
 
 .details__line {
@@ -1353,13 +1371,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-4);
 }
 
 .share-preview {
   margin: 0;
   padding: var(--space-2);
-  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 13px;
@@ -1375,19 +1393,34 @@
 
 .menu-list {
   margin: 0;
-  padding: 0 var(--space-4);
   list-style: none;
+}
+
+.page > .menu-list.card {
+  padding: 0 var(--space-4);
 }
 
 .menu-list__item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--space-2);
   min-height: 64px;
-  justify-content: center;
   border-bottom: 1px solid var(--color-line);
   color: var(--color-ink);
   text-decoration: none;
+}
+
+.menu-list__text-group {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.menu-list__chevron {
+  flex-shrink: 0;
+  color: var(--color-ink-muted);
 }
 
 .menu-list__title {
@@ -1400,13 +1433,12 @@
   font-size: 13px;
 }
 
-.prose {
-  padding: var(--space-2) var(--space-4) var(--space-6);
-}
-
 .prose h2 {
   margin: var(--space-4) 0 var(--space-1);
-  color: var(--color-ink-muted);
+}
+
+.prose h2:first-child {
+  margin-top: 0;
 }
 
 .prose p {
@@ -1418,19 +1450,8 @@
 .settings {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-4);
-}
-
-.settings__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.settings__heading {
-  margin: 0;
-  color: var(--color-ink-muted);
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4) var(--space-4);
 }
 
 .settings__result {
@@ -1451,7 +1472,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
   background: var(--color-rot-hell);
   color: var(--color-ink);
 }
@@ -1898,4 +1920,88 @@
   font-size: 13px;
   line-height: 18px;
   text-align: center;
+}
+
+/* ---------- Spec 005: Karten, Hauptknopf ---------- */
+
+/*
+ * Karte: ein Abschnitt, der zusammengehört (FR-G01). Innerhalb von Karten, Blättern und Abfragen gilt die
+ * Kartenfläche als "surface", damit Knöpfe, Chips und Zeilen ohne Einzelregeln auf der Karte liegen.
+ * Hell sind beide #ffffff; dunkel liegen sie auf #1f1f1f statt #141414.
+ */
+.card,
+.sheet,
+.dialog {
+  --color-surface: var(--color-card);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+}
+
+.card--list {
+  padding-bottom: var(--space-1);
+}
+
+/* FR-G02: Abschnittsüberschrift der Karte */
+.card__title {
+  margin: 0;
+  color: var(--color-rot-text);
+}
+
+.card > .field + .field {
+  margin-top: var(--space-2);
+}
+
+.page > .card {
+  margin: var(--space-4) var(--space-4) 0;
+}
+
+.page > .topbar + .card {
+  margin-top: var(--space-2);
+}
+
+.form.card {
+  padding: var(--space-4);
+}
+
+/* Listen in Karten: keine Linie oben, keine unter der letzten Zeile */
+.card > :is(ul, ol) {
+  border-top: 0;
+}
+
+.card > li:last-child > *,
+.card > :is(ul, ol) > li:last-child,
+.card > :is(ul, ol) > li:last-child > * {
+  border-bottom: 0;
+}
+
+/* FR-G06a: Hauptknopf außerhalb des Spielbildschirms vereinsrot; im Spiel bleibt er neutral (design/README.md) */
+.page .btn--primary,
+.start .btn--primary {
+  border-color: var(--color-rot-tief);
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+}
+
+/*
+ * Begegnung als Vorschau der Kopfzeile (Spec 004 FR-M05): als vertieftes Band über die volle Kartenbreite,
+ * damit die Namen dieselbe Breite haben wie vorher und wie im Spiel umbrechen.
+ */
+.card .matchup-preview {
+  margin: 0 calc(-1 * var(--space-4));
+  padding: var(--space-2) 0;
+  background: var(--color-canvas);
+}
+
+.card .matchup-preview__roles {
+  padding: 0 var(--space-4);
 }
