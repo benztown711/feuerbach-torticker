@@ -20,6 +20,7 @@ export function defaultSettings(): Settings {
 
 /** Ergänzt gespeicherte (ältere) Einstellungen um neue Felder; vor Spec 004 gespeicherte bekommen Mannschaften. */
 export function withSettingsDefaults(stored: Partial<Settings> | undefined): Settings {
-  const s = { ...defaultSettings(), ...stored };
+  const d = defaultSettings();
+  const s = { ...d, ...stored, features: { ...d.features, ...stored?.features } };
   return stored?.teams === undefined ? { ...s, teams: migrateTeams(s) } : s;
 }

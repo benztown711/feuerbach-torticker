@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
-import { marksText } from '../../domain/events';
+import { cardText, marksText, subText } from '../../domain/events';
 import { goalSuffix, homeAway, score, scorerLabel } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
@@ -11,7 +11,7 @@ import type { ClockEvent, Game, Player } from '../../domain/types';
 import { deleteGame, getGame, getPlayers } from '../../platform/db';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
-import { BookmarkIcon } from '../components/goal-list';
+import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { navigate } from '../router';
 
 const eventText = (e: ClockEvent, game: Game): string => {
@@ -117,15 +117,35 @@ export function GameDetailsScreen({ id }: { id: string }) {
 
       <ol class="details__list" data-testid="details-timeline" aria-label="Spielverlauf">
         {timeline(game).map((item, i) =>
-          item.kind === 'mark' ? (
-            <li key={item.mark.id} class="details__item details__item--private" data-testid={`mark-${item.mark.id}`}>
-              <span class="details__minute">{formatMinute(item.mark.minute, item.mark.stoppage)}</span>
+          item.kind === 'ev' ? (
+            <li
+              key={item.ev.id}
+              class={
+                item.ev.kind === 'mark' ? 'details__item details__item--private' : 'details__item details__item--extra'
+              }
+              data-testid={`${item.ev.kind === 'mark' ? 'mark' : 'event'}-${item.ev.id}`}
+            >
+              <span class="details__minute">{formatMinute(item.ev.minute, item.ev.stoppage)}</span>
               <span class="details__score-cell">
-                <BookmarkIcon />
+                {item.ev.kind === 'mark' ? (
+                  <BookmarkIcon />
+                ) : item.ev.kind === 'card' ? (
+                  <CardGlyph card={item.ev.card} />
+                ) : (
+                  <SubIcon />
+                )}
               </span>
               <span class="details__what">
-                {item.mark.comment || 'Lesezeichen'}{' '}
-                <span class="goal-row__tag goal-row__tag--private">nur für dich</span>
+                {item.ev.kind === 'mark' ? (
+                  <>
+                    {item.ev.comment || 'Lesezeichen'}{' '}
+                    <span class="goal-row__tag goal-row__tag--private">nur für dich</span>
+                  </>
+                ) : item.ev.kind === 'card' ? (
+                  `${cardText(game, item.ev, players)}${item.ev.comment ? ` · ${item.ev.comment}` : ''}`
+                ) : (
+                  subText(item.ev, players)
+                )}
               </span>
               <span class="details__time">{formatTime(item.at)}</span>
             </li>

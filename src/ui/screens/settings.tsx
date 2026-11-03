@@ -3,7 +3,7 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../dom
 import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
-import type { Settings, Team, Theme } from '../../domain/types';
+import type { EventFeatures, Settings, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
 import { applyTheme, isStandalone } from '../../platform/storage';
@@ -18,6 +18,17 @@ const THEMES: { id: Theme; label: string }[] = [
   { id: 'system', label: 'Wie iPhone' },
   { id: 'light', label: 'Hell' },
   { id: 'dark', label: 'Dunkel' },
+];
+
+/** Spec 003 FR-E02: Schalter "Im Spiel erfassen". */
+const FEATURE_SWITCHES: { key: keyof EventFeatures; title: string; help: string }[] = [
+  { key: 'cards', title: 'Karten', help: 'Gelb, Gelb-Rot, Rot und Zeitstrafe, mit Spieler.' },
+  { key: 'subs', title: 'Wechsel', help: 'Wer für wen, nur eigene Mannschaft.' },
+  {
+    key: 'marks',
+    title: 'Lesezeichen',
+    help: 'Nur für dich, z. B. Szenen für die Veo-Kamera merken. Erscheinen nie im geteilten Text.',
+  },
 ];
 
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
@@ -247,27 +258,27 @@ export function SettingsScreen() {
             IM SPIEL ERFASSEN
           </h2>
           <ul class="switch-list">
-            <li class="switch-row">
-              <div class="switch-row__text">
-                <span class="switch-row__title" id="sw-marks">
-                  Lesezeichen
-                </span>
-                <p class="switch-row__help">
-                  Nur für dich, z. B. Szenen für die Veo-Kamera merken. Erscheinen nie im geteilten Text.
-                </p>
-              </div>
-              <button
-                type="button"
-                class="switch"
-                role="switch"
-                aria-checked={settings.features.marks}
-                aria-labelledby="sw-marks"
-                data-testid="feature-marks"
-                onClick={() =>
-                  save({ ...settings, features: { ...settings.features, marks: !settings.features.marks } })
-                }
-              />
-            </li>
+            {FEATURE_SWITCHES.map((f) => (
+              <li key={f.key} class="switch-row">
+                <div class="switch-row__text">
+                  <span class="switch-row__title" id={`sw-${f.key}`}>
+                    {f.title}
+                  </span>
+                  <p class="switch-row__help">{f.help}</p>
+                </div>
+                <button
+                  type="button"
+                  class="switch"
+                  role="switch"
+                  aria-checked={settings.features[f.key]}
+                  aria-labelledby={`sw-${f.key}`}
+                  data-testid={`feature-${f.key}`}
+                  onClick={() =>
+                    save({ ...settings, features: { ...settings.features, [f.key]: !settings.features[f.key] } })
+                  }
+                />
+              </li>
+            ))}
           </ul>
         </section>
 

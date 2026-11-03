@@ -76,16 +76,31 @@ const isGoal = (v: unknown): boolean =>
   (v.penalty === undefined || typeof v.penalty === 'boolean') &&
   isScorer(v.scorer);
 
-/** Spec 003: Lesezeichen (optional in älteren Sicherungen). */
-const isGameEvent = (v: unknown): boolean =>
-  isObj(v) &&
-  isStr(v.id, 1, 200) &&
-  v.kind === 'mark' &&
-  isTime(v.at) &&
-  isInt(v.section, 1, 4) &&
-  isInt(v.minute, 1, 240) &&
-  nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
-  isStr(v.comment, 0, 60);
+/** Spec 003: Lesezeichen, Karten und Wechsel (optional in älteren Sicherungen). */
+const isPerson = (v: unknown): boolean =>
+  v === null ||
+  (isObj(v) && ((v.kind === 'player' && isStr(v.playerId, 1, 200)) || (v.kind === 'text' && isStr(v.text, 1, 30))));
+
+const isGameEvent = (v: unknown): boolean => {
+  if (
+    !isObj(v) ||
+    !isStr(v.id, 1, 200) ||
+    !isTime(v.at) ||
+    !isInt(v.section, 1, 4) ||
+    !isInt(v.minute, 1, 240) ||
+    !nullOr(v.stoppage, (x) => isInt(x, 1, BIG))
+  )
+    return false;
+  if (v.kind === 'mark') return isStr(v.comment, 0, 60);
+  if (v.kind === 'card')
+    return (
+      oneOf(v.side, ['own', 'opp']) &&
+      oneOf(v.card, ['gelb', 'gelbrot', 'rot', 'zeit']) &&
+      isPerson(v.who) &&
+      isStr(v.comment, 0, 60)
+    );
+  return v.kind === 'sub' && isStr(v.outId, 1, 200) && isStr(v.inId, 1, 200);
+};
 
 const isPlayer = (v: unknown): boolean =>
   isObj(v) &&

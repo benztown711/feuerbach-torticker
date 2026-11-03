@@ -74,7 +74,7 @@ export function filterGames(games: Game[], key: string | null): Game[] {
 export type TimelineItem =
   | { kind: 'event'; at: number; event: ClockEvent }
   | ({ kind: 'goal'; at: number } & GoalRow)
-  | { kind: 'mark'; at: number; mark: GameEvent };
+  | { kind: 'ev'; at: number; ev: GameEvent };
 
 /** Zeitleiste der Spieldetails: Uhr-Ereignisse und Tore chronologisch, bei gleicher Zeit Ereignis zuerst. */
 export function timeline(game: Game): TimelineItem[] {
@@ -82,7 +82,7 @@ export function timeline(game: Game): TimelineItem[] {
   const goals: TimelineItem[] = goalRows(game)
     .reverse()
     .map((row) => ({ kind: 'goal', at: row.goal.at, ...row }));
-  const marks: TimelineItem[] = gameEvents(game).map((mark) => ({ kind: 'mark', at: mark.at, mark }));
+  const marks: TimelineItem[] = gameEvents(game).map((ev) => ({ kind: 'ev', at: ev.at, ev }));
   const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : i.kind === 'goal' ? 1 : 2);
   return [...events, ...goals, ...marks].sort((a, b) => a.at - b.at || rank(a) - rank(b));
 }
