@@ -43,6 +43,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt}'],
+        // Vorschaubild nur für WhatsApp & Co. (FR-043), nicht offline nötig
+        globIgnores: ['**/link-vorschau.png'],
         navigateFallback: `${BASE}index.html`,
       },
     }),

@@ -31,6 +31,26 @@ test.describe('Smoke: Startbildschirm', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('FR-043 Link-Vorschau: Open-Graph-Angaben und Vorschaubild 1200 × 630 unter 300 KB', async ({
+    page,
+    request,
+  }) => {
+    await page.goto('./');
+    const og = async (p: string) => page.locator(`meta[property="og:${p}"]`).getAttribute('content');
+    expect(await og('title')).toContain('Torticker');
+    expect(await og('description')).toBeTruthy();
+    expect(await og('url')).toBe('https://benztown711.github.io/feuerbach-torticker/');
+    const image = await og('image');
+    expect(image).toBe('https://benztown711.github.io/feuerbach-torticker/link-vorschau.png');
+    // Das Bild liegt im eigenen Build (lokal unter derselben Adresse wie auf GitHub Pages)
+    const res = await request.get(new URL('link-vorschau.png', page.url()).toString());
+    expect(res.status()).toBe(200);
+    expect(res.headers()['content-type']).toContain('image/png');
+    const png = await res.body();
+    expect(png.length).toBeLessThan(300_000);
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+  });
+
   test('Manifest ist verlinkt und installierbar beschrieben', async ({ page, request }) => {
     await page.goto('./');
     const href = await page.locator('link[rel="manifest"]').getAttribute('href');

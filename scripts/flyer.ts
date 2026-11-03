@@ -4,6 +4,8 @@
  * 1. Startet die gebaute App (vite preview, vorher `npm run build`).
  * 2. Spielt ein Beispielspiel mit fiktiven Namen durch und speichert drei Bildschirme (iPhone 15, 3x).
  * 3. Rendert docs/flyer/flyer.html als PNG (1080 px breit, für WhatsApp).
+ * 4. Rendert docs/flyer/link-vorschau.html als public/link-vorschau.png (1200 × 630, Link-Vorschau FR-043).
+ *    Danach erneut `npm run build`, damit das Bild in dist/ landet.
  *
  * Aufruf: npm run build && npm run flyer
  * Lokal im Cloud-Container: PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npm run flyer
@@ -135,6 +137,17 @@ async function render(browser: Browser): Promise<void> {
   const box = await page.locator('#flyer').boundingBox();
   console.log(`Flyer ${OUT}/flyer.png (${(box?.width ?? 0) * 2} × ${Math.round((box?.height ?? 0) * 2)} px)`);
   await page.close();
+
+  // Link-Vorschau (FR-043): genau 1200 × 630 px
+  const og = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+  await og.goto(pathToFileURL(resolve(OUT, 'link-vorschau.html')).href);
+  await og.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(Array.from(document.images, (img) => img.decode()));
+  });
+  await og.locator('#vorschau').screenshot({ path: resolve(ROOT, 'public/link-vorschau.png') });
+  console.log(`Link-Vorschau ${ROOT}/public/link-vorschau.png (1200 × 630 px)`);
+  await og.close();
 }
 
 if (!existsSync(resolve(ROOT, 'dist/index.html'))) throw new Error('dist/ fehlt: zuerst npm run build');
