@@ -174,6 +174,12 @@ export function GameScreen({ id }: { id: string }) {
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
 
+  /** FR-042: Zwischenstand während des Spiels teilen (Fallback Zwischenablage). */
+  const doShareInterim = async (): Promise<void> => {
+    const r = await shareText(buildShareText(cur(), players ?? [], undefined, Date.now()));
+    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+  };
+
   const doKickoff = (): void => {
     setKeepAlive(true);
     unlockAudio();
@@ -412,6 +418,19 @@ export function GameScreen({ id }: { id: string }) {
 
       {menu && (
         <Sheet title="Spiel" testId="game-menu" onClose={() => setMenu(false)}>
+          {goalsOpen || status === 'break' ? (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-share-interim"
+              onClick={() => {
+                setMenu(false);
+                void doShareInterim();
+              }}
+            >
+              Zwischenstand teilen
+            </button>
+          ) : null}
           {status !== 'created' && (
             <button
               type="button"

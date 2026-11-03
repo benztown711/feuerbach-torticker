@@ -29,3 +29,18 @@ Regeln:
 31' 1:2 Ben
 50+2' 1:3 Eigentor
 ```
+
+## Zwischenstand (FR-042)
+
+Während des Spiels aus dem "…"-Menü. Wie oben, die erste Zeile bekommt einen Zusatz:
+
+```text
+⚽ Sportvg Feuerbach U11 - TSV Musterstadt 2:1 (1:1) · Zwischenstand 37'
+07.11.2026, Anpfiff 10:30
+7' 1:0 Max
+18' 1:1
+31' 2:1 Ben
+```
+
+- Uhr läuft oder angehalten: " · Zwischenstand {Minute}" mit Minute wie FR-005 (z. B. "25+2'").
+- Pause zwischen Abschnitten: " · Halbzeit" bei zwei Abschnitten, sonst " · Pause"; der Halbzeitstand in Klammern entfällt, weil er dem Spielstand entspricht.

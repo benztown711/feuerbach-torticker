@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures';
-import { MIN, confirmYes, forward, playFinishedGame, seedRoster, startGame } from './helpers';
+import { MIN, SEC, confirmYes, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
 
 test.describe('US4 Ergebnis teilen (FR-011)', () => {
   test('US4-S1 Teilen-Menü mit Text nach contracts/share-text.md, auch direkt nach dem Schlusspfiff', async ({
@@ -55,5 +55,26 @@ test.describe('US4 Ergebnis teilen (FR-011)', () => {
     await expect(page.getByTestId('btn-share')).toHaveCount(0);
     await page.getByTestId('btn-back-to-game').click();
     await expect(page.getByTestId('btn-pause')).toBeVisible();
+  });
+});
+
+test.describe('FR-042 Zwischenstand teilen', () => {
+  test('FR-042 im "…"-Menü während des Spiels, nicht vor dem Anpfiff', async ({ page, recorded }) => {
+    await newGame(page, { opponent: 'TSV Musterstadt' });
+    await page.getByTestId('btn-menu').click();
+    await expect(page.getByTestId('game-menu')).toBeVisible();
+    await expect(page.getByTestId('menu-share-interim')).toHaveCount(0);
+    await page.getByTestId('game-menu').getByRole('button', { name: 'Schließen' }).click();
+    await page.getByTestId('btn-kickoff').click();
+    await forward(page, 6 * MIN);
+    await page.getByTestId('btn-goal-own').click();
+    await forward(page, 11 * SEC);
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-share-interim').click();
+    await expect.poll(async () => (await recorded()).shares.length).toBe(1);
+    const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
+    expect(lines[0]).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 1:0 · Zwischenstand 7'");
+    expect(lines[2]).toBe("7' 1:0");
+    await expect(page.getByTestId('game-menu')).toBeHidden();
   });
 });

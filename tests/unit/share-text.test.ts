@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGame, endSection, kickoff } from '../../src/domain/game';
+import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/game';
 import { addGoal, removeGoal, setScorer } from '../../src/domain/goals';
 import { buildShareText } from '../../src/domain/share-text';
 import type { Game, NewGameInput, Player, Side } from '../../src/domain/types';
@@ -97,5 +97,48 @@ describe('T078 FR-011 Teilen-Text (contracts/share-text.md)', () => {
     const g = createGame(base, { id: 'n', now: T0 });
     expect(buildShareText(g, players, TZ).split('\n')[1]).toBe('07.11.2026');
     expect(buildShareText(g, players).split('\n')[1]).toMatch(/^\d\d\.\d\d\.2026$/);
+  });
+});
+
+describe('T106 FR-042 Zwischenstand teilen', () => {
+  const home = { ...base, venue: 'home' as const };
+  const first = (g: Game, now?: number): string => buildShareText(g, players, TZ, now).split('\n')[0] ?? '';
+
+  it('FR-042 laufend: Zusatz mit angefangener Minute, Torzeilen wie beim Ergebnis', () => {
+    let g = kickoff(createGame(home, { id: 'z1', now: T0 }), T0);
+    [g] = goal(g, 'own', T0 + min(6) + sec(10));
+    const text = buildShareText(g, players, TZ, T0 + min(16) + sec(5));
+    expect(text.split('\n')[0]).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 1:0 · Zwischenstand 17'");
+    expect(text.split('\n')[2]).toBe("7' 1:0");
+  });
+
+  it('FR-042 Nachspielzeit und angehaltene Uhr', () => {
+    let g = kickoff(createGame(home, { id: 'z2', now: T0 }), T0);
+    expect(first(g, T0 + min(26) + sec(30))).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 0:0 · Zwischenstand 25+2'");
+    g = pauseClock(g, T0 + min(10) + sec(30));
+    expect(first(g, T0 + min(20))).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 0:0 · Zwischenstand 11'");
+  });
+
+  it('FR-042 Halbzeit ohne Halbzeitstand; 2. Halbzeit mit Halbzeitstand', () => {
+    let g = kickoff(createGame(home, { id: 'z3', now: T0 }), T0);
+    [g] = goal(g, 'opp', T0 + min(3));
+    g = endSection(g, T0 + min(25));
+    expect(first(g, T0 + min(30))).toBe('⚽ Sportvg Feuerbach - TSV Musterstadt 0:1 · Halbzeit');
+    g = kickoff(g, T0 + min(35));
+    expect(first(g, T0 + min(40))).toBe("⚽ Sportvg Feuerbach - TSV Musterstadt 0:1 (0:1) · Zwischenstand 31'");
+  });
+
+  it('FR-042 Pause bei mehr als zwei Abschnitten', () => {
+    let g = kickoff(createGame({ ...home, schema: { sections: 3, sectionMinutes: 20 } }, { id: 'z4', now: T0 }), T0);
+    g = endSection(g, T0 + min(20));
+    expect(first(g, T0 + min(22))).toBe('⚽ Sportvg Feuerbach - TSV Musterstadt 0:0 · Pause');
+  });
+
+  it('FR-042 kein Zusatz vor dem Anpfiff und nach dem Schlusspfiff', () => {
+    const created = createGame(home, { id: 'z5', now: T0 });
+    expect(first(created, T0 + min(1))).toBe('⚽ Sportvg Feuerbach - TSV Musterstadt 0:0');
+    let g = kickoff(createGame({ ...home, schema: { sections: 1, sectionMinutes: 12 } }, { id: 'z6', now: T0 }), T0);
+    g = endSection(g, T0 + min(12));
+    expect(first(g, T0 + min(15))).toBe('⚽ Sportvg Feuerbach - TSV Musterstadt 0:0');
   });
 });
