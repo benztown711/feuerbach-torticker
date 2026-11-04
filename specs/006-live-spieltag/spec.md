@@ -1,0 +1,190 @@
+# Feature Specification: Live-Spieltag (Dashboard für Eltern, Lead-Handys senden automatisch)
+
+**Feature Branch**: `006-live-spieltag`
+
+**Created**: 2026-11-04
+
+**Status**: Entwurf, Review A offen. Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+
+**Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
+
+## Clarifications
+
+### Session 2026-11-04
+
+- Q: Live-Stände nur per Tap (Zwischenstand teilen), per Link mit laufender Minute oder automatisch? → A: Automatisch (Option C), und zwar als gemeinsames Dashboard für alle Eltern statt nur zwischen zwei Trainerhandys.
+- Q: Constitution Prinzip II ("kein Server") lockern? → A: Ja, für eine vom Nutzer aktivierte, Ende-zu-Ende verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst ohne Konto (Constitution 2.0.0).
+- Q: Wie viele Mannschaften? → A: Mindestens zwei (E1, E2), weitere möglich (E3).
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Live-Spieltag anlegen und Lead-Handys festlegen (Priority: P1)
+
+Atti legt auf seinem Handy einen Live-Spieltag "Unser Spieltag" mit den Mannschaften E1 und E2 an. Er bekommt einen Zuschauer-Link für die Elterngruppe und je Mannschaft einen Lead-Link. Den Lead-Link für E2 schickt er an das Handy, das beim E2-Spiel den Torticker bedient. Dort öffnet man den Link einmal, und das Handy ist ab dann Lead-Handy für E2.
+
+**Why this priority**: Ohne festgelegte Lead-Handys gibt es keine Daten für das Dashboard; die Kopplung ist der bewusste Schritt, mit dem Daten das Gerät verlassen dürfen (Constitution II).
+
+**Independent Test**: Auf Gerät A Live-Spieltag mit E1 und E2 anlegen, Lead-Link E2 auf Gerät B öffnen und bestätigen; Gerät B zeigt "Lead für Feuerbach E2".
+
+**Acceptance Scenarios**:
+
+1. **Given** "Meine Mannschaften" enthält E1, E2 und E3, **When** der Nutzer unter "Mehr" → "Live-Spieltag" mit Titel "Unser Spieltag" die Mannschaften E1 und E2 wählt und anlegt, **Then** zeigt die App "Zuschauer-Link teilen" sowie je Mannschaft "Lead-Link teilen" (E1, E2) und die Frage, ob dieses Handy selbst Lead für eine der Mannschaften ist.
+2. **Given** ein Lead-Link für E2, **When** er auf einem anderen Handy im Torticker geöffnet wird, **Then** fragt die App "Dieses Handy sendet ab jetzt live für Feuerbach E2 an 'Unser Spieltag'?"; nach "Ja" zeigt "Mehr" → "Live-Spieltag" den Eintrag "Lead für Feuerbach E2".
+3. **Given** das Handy hat die Mannschaft E2 noch nicht in "Meine Mannschaften", **When** der Lead-Link bestätigt wird, **Then** wird E2 mit Name, Heim- und Auswärtstrikot aus dem Link übernommen.
+4. **Given** ein Handy ohne Kopplung, **Then** sendet es nichts und verbindet sich mit keinem Vermittlungsdienst.
+5. **Given** der Zuschauer-Link wird im Torticker geöffnet, **Then** wird das Handy nicht zum Lead-Handy, sondern zeigt nur das Dashboard.
+
+---
+
+### User Story 2 - Lead-Handy sendet automatisch (Priority: P1)
+
+Am Spielfeldrand wird wie gewohnt erfasst: Anpfiff, Tore, Pausenpfiff, Schlusspfiff. Ohne weiteren Tap erscheint alles auf dem Dashboard. Fehlt das Netz, läuft die Erfassung ungestört weiter und der Stand wird nachgereicht.
+
+**Why this priority**: Kern des Wunsches: Live ohne Zutun der Person am Spielfeldrand.
+
+**Independent Test**: Gerät B (Lead für E2) legt ein E2-Spiel an, pfeift an, erfasst ein Tor; Gerät C mit Zuschauer-Link zeigt Anpfiff und Tor ohne Neuladen.
+
+**Acceptance Scenarios**:
+
+1. **Given** Gerät B ist Lead für E2 und hat Netz, **When** ein Spiel von E2 angepfiffen wird, **Then** erscheint es innerhalb von 10 Sekunden auf dem Dashboard mit Gegner, Trikotfarben, 0:0 und laufender Minute.
+2. **Given** ein laufendes E2-Spiel, **When** ein Tor erfasst, rückgängig gemacht, entfernt oder wiederhergestellt wird, **Then** zeigt das Dashboard innerhalb von 10 Sekunden den korrigierten Stand.
+3. **Given** Pausenpfiff, Uhr angehalten, Fortsetzen, Schlusspfiff, Verlängerung oder Elfmeterschießen (Spec 003), **Then** zeigt das Dashboard die passende Phase (siehe FR-L12).
+4. **Given** kein Netz, **When** ein Tor erfasst wird, **Then** wird es so schnell wie ohne Kopplung gezählt; die Kopfzeile zeigt "Live: wartet auf Netz"; sobald wieder Netz da ist, kommt der aktuelle Stand auf dem Dashboard an.
+5. **Given** Gerät B ist nur Lead für E2, **When** dort ein Spiel einer anderen Mannschaft (z. B. E3) erfasst wird, **Then** wird dieses Spiel nicht gesendet.
+6. **Given** ein E2-Spiel, **When** der Nutzer im "…"-Menü "Nicht live senden" wählt (z. B. Testspiel), **Then** verschwindet das Spiel vom Dashboard und wird nicht mehr gesendet, bis "Live senden" wieder gewählt wird.
+7. **Given** ein Spiel wird auf dem Lead-Handy gelöscht, **Then** verschwindet es vom Dashboard.
+
+---
+
+### User Story 3 - Eltern schauen zu (Priority: P1)
+
+Eltern öffnen den Zuschauer-Link aus der WhatsApp-Gruppe im Browser, ohne Installation und ohne Konto, und sehen alle Spiele des Spieltags mit Stand und laufender Minute.
+
+**Why this priority**: Das ist der sichtbare Nutzen für alle, die nicht am Platz sind oder beim anderen Spiel stehen.
+
+**Independent Test**: E1 läuft 2:1 in Minute 37, E2 ist in der Halbzeitpause 0:0; Zuschauer-Link auf einem dritten Gerät öffnen.
+
+**Acceptance Scenarios**:
+
+1. **Given** E1 führt 2:1 in Minute 37 und E2 ist in der Halbzeitpause 0:0, **When** ein Elternteil den Zuschauer-Link öffnet, **Then** sieht es innerhalb von 5 Sekunden "Unser Spieltag" mit zwei Karten: "Feuerbach E1 2:1 TSV Musterstadt · 37'" und "Feuerbach E2 0:0 SV Beispielhausen · Halbzeit".
+2. **Given** ein laufendes Spiel, **Then** zählt die Minute auf dem Dashboard ohne neue Meldung weiter, einschließlich Nachspielzeit ("25+2'").
+3. **Given** ein neues Tor, **Then** hebt sich die Karte für einige Sekunden hervor (ohne Ton) und der Torverlauf zeigt Minute und Stand.
+4. **Given** heute läuft noch kein Spiel, **Then** zeigt das Dashboard "Heute noch kein Spiel live" und die Mannschaften des Spieltags.
+5. **Given** das Gerät des Zuschauers verliert die Verbindung, **Then** zeigt das Dashboard "Keine Verbindung · Stand von 10:42 Uhr" und aktualisiert sich selbst, sobald die Verbindung zurück ist.
+6. **Given** ein laufendes Spiel, von dessen Lead-Handy seit mehr als 5 Minuten keine Meldung kam, **Then** zeigt die Karte "Letzte Meldung vor 7 Min" (die Minute läuft weiter).
+7. **Given** ein Spiel ist beendet, **Then** steht es mit "Endstand" unter den laufenden Spielen und bleibt bis zum Abend des Spieltags sichtbar.
+8. **Given** der Zuschauer-Link, **Then** gibt es auf dem Dashboard keine Bedienelemente zum Ändern; Meldungen, die nicht von einem festgelegten Lead-Handy stammen, werden ignoriert.
+
+---
+
+### User Story 4 - Blick auf das andere Spiel (Priority: P2)
+
+Wer am Spielfeldrand von E1 steht, will kurz sehen, wie es bei E2 steht, ohne die Erfassung zu verlassen.
+
+**Why this priority**: Ursprünglicher Auslöser des Wunsches; das Dashboard allein deckt es schon mit einem Tap ab, die Anzeige im Spielbildschirm ist Komfort.
+
+**Independent Test**: Gerät A (Lead E1) im laufenden Spiel; Gerät B (Lead E2) erfasst ein Tor; Gerät A zeigt den neuen E2-Stand.
+
+**Acceptance Scenarios**:
+
+1. **Given** ein laufendes Spiel auf einem Lead-Handy, **When** der Nutzer auf das Kennzeichen "Live" in der Kopfzeile tippt, **Then** öffnet sich das Dashboard; "Spiel" in der Navigationsleiste führt zurück, die Uhr läuft unverändert weiter.
+2. **Given** ein laufendes Spiel auf dem Lead-Handy von E1 und ein laufendes Spiel von E2, **Then** zeigt der Spielbildschirm den Stand von E2 [NEEDS CLARIFICATION: Andere Spiele dauerhaft als kleine Zeile im Spielbildschirm (z. B. "E2 2:1 · 31'") oder nur per Tap auf "Live"? Die Zeile kostet Platz auf dem iPhone SE (FR-033).].
+
+---
+
+### User Story 5 - Live-Spieltag verwalten (Priority: P3)
+
+Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle Links neu aus, falls ein Lead-Link in falsche Hände geraten ist.
+
+**Why this priority**: Wird selten gebraucht, ist aber nötig, damit der Live-Spieltag über längere Zeit benutzbar bleibt.
+
+**Independent Test**: E3 hinzufügen, Lead-Link E3 auf Gerät D öffnen; der bestehende Zuschauer-Link zeigt E3-Spiele ohne neuen Link.
+
+**Acceptance Scenarios**:
+
+1. **Given** ein Live-Spieltag mit E1 und E2, **When** der Organisator E3 hinzufügt, **Then** gibt es einen neuen Lead-Link für E3 und der bisherige Zuschauer-Link zeigt künftig auch E3.
+2. **Given** ein Lead-Handy, **When** dort "Kopplung beenden" bestätigt wird, **Then** sendet es nichts mehr; seine Spiele bleiben lokal erhalten.
+3. **Given** der Organisator wählt "Alle Links neu ausstellen" und bestätigt, **Then** erzeugt die App einen neuen Zuschauer-Link und neue Lead-Links; Meldungen über die alten Links erscheinen nicht mehr auf dem neuen Dashboard.
+4. **Given** der Organisator ändert den Titel in "Unser Spieltag E1 & E2", **Then** zeigt das Dashboard den neuen Titel.
+5. **Given** ein zweites Handy öffnet den Lead-Link für E2 (z. B. Ersatzhandy, weil der Akku leer ist), **Then** sind beide Lead für E2; erfassen beide ein Spiel, zeigt das Dashboard beide Spiele als eigene Karten.
+
+### Edge Cases
+
+- **Uhr falsch gestellt**: Weicht die Uhrzeit des Lead-Handys oder des Zuschauers ab, muss die Minute auf dem Dashboard trotzdem stimmen (berechnet aus dem Spielverlauf, nicht aus der Uhrzeit des Geräts).
+- **Lead-Handy im Hintergrund oder gesperrt**: iOS sendet aus Web-Apps im Hintergrund nichts. Im Spiel bleibt der Bildschirm ohnehin an (FR-013). Kehrt die App zurück, sendet sie sofort den aktuellen Stand. Das Dashboard zeigt bis dahin die weiterlaufende Minute und "Letzte Meldung vor X Min".
+- **Mehrere Spiele einer Mannschaft am Tag** (Spieltage im Kinderfußball, Spec 002 FR-T05): Alle erscheinen, das laufende oben, beendete darunter.
+- **Angepfiffenes Spiel vom Vortag** ohne Schlusspfiff: erscheint nicht auf dem Dashboard des neuen Tages.
+- **Vermittlungsdienst nicht erreichbar**: Verhalten wie ohne Netz; die Erfassung ist nie betroffen.
+- **Lead-Link weitergeleitet**: Nur wer den Lead-Link hat, kann für diese Mannschaft senden. Gerät er in falsche Hände, hilft "Alle Links neu ausstellen" (US5).
+- **Organisator-Handy verloren**: Die Sicherung (FR-024) enthält den Live-Spieltag; ohne Sicherung legt man einen neuen Live-Spieltag an und verschickt neue Links.
+- **Viele Zuschauer im selben WLAN** (z. B. Vereinsheim): kann Grenzen des Vermittlungsdienstes erreichen; im Plan zu prüfen (research.md).
+- **Pokalspiel**: Verlängerung und Elfmeterschießen erscheinen als eigene Phase; der Endstand zeigt "n. V." bzw. "i. E." wie im Teilen-Text (Spec 005).
+- **Heim/Gast getauscht oder Gegner umbenannt**: Das Dashboard übernimmt die Änderung mit der nächsten Meldung.
+- **Turnierspiele ohne Feuerbach** (Spec 002): nicht Teil dieser Spec.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+**Live-Spieltag und Kopplung**
+
+- **FR-L01**: Unter "Mehr" MUSS es den Eintrag "Live-Spieltag" geben. Dort kann ein Live-Spieltag angelegt werden: Titel (1 bis 40 Zeichen, Vorgabe "Unser Spieltag") und 1 bis 6 Mannschaften aus "Meine Mannschaften" (Spec 004). Das anlegende Handy ist der Organisator.
+- **FR-L02**: Zu jedem Live-Spieltag MUSS es genau einen Zuschauer-Link und je Mannschaft einen Lead-Link geben, beide über das System-Teilen-Menü versendbar (Fallback: Zwischenablage). Der Organisator kann sein eigenes Handy direkt als Lead für eine Mannschaft festlegen.
+- **FR-L03**: Ein im Torticker geöffneter Lead-Link MUSS vor der Kopplung nachfragen (Mannschaft und Titel nennen). Nach Bestätigung ist das Handy Lead für diese Mannschaft; fehlt die Mannschaft in "Meine Mannschaften", wird sie mit Name und Trikots übernommen.
+- **FR-L04**: Ein Handy KANN für mehrere Mannschaften Lead sein (z. B. wenn E1 und E2 nacheinander spielen). Ein Handy ist höchstens mit einem Live-Spieltag gekoppelt; ein neuer Lead-Link eines anderen Live-Spieltags ersetzt die alte Kopplung nach Rückfrage.
+- **FR-L05**: Ohne Kopplung DARF die App keine Verbindung zu einem Vermittlungsdienst aufbauen. Mit Kopplung DARF sie ausschließlich mit dem einen Vermittlungsdienst kommunizieren (Netzwerk-Wächter, Constitution II und III).
+
+**Senden (Lead-Handy)**
+
+- **FR-L06**: Ein Lead-Handy MUSS jedes Spiel seiner Mannschaft(en) ab dem Anlegen automatisch senden, bei jeder Änderung: Anpfiff, Tor (auch Rückgängig, Entfernen, Wiederherstellen, Bearbeiten), Uhr angehalten/fortgesetzt, Pausenpfiff, Schlusspfiff, Verlängerung, Elfmeterschießen (jeder Schuss), Gegnername, Trikotfarben, Heim/Gast, Löschen des Spiels.
+- **FR-L07**: Senden DARF die Erfassung nie verzögern oder blockieren (SC-001 aus Spec 001 gilt unverändert, auch ohne Netz). Ohne Netz wird nur der jeweils aktuelle Stand nachgereicht, sobald wieder Netz da ist; es entsteht kein Rückstau einzelner Meldungen.
+- **FR-L08**: Der Spielbildschirm eines Lead-Handys MUSS in der Kopfzeile ein Kennzeichen zeigen: "Live" (Stand übertragen) oder "Live: wartet auf Netz" (letzte Änderung noch nicht übertragen, länger als 30 Sekunden). Ein Tipp öffnet das Dashboard (US4). FR-033 (iPhone SE ohne Scrollen) gilt weiter.
+- **FR-L09**: Das "…"-Menü im Spiel MUSS auf einem Lead-Handy "Nicht live senden" bzw. "Live senden" anbieten (nur für dieses Spiel). "Nicht live senden" entfernt das Spiel vom Dashboard.
+- **FR-L10**: Übertragen werden ausschließlich: Kurzform der eigenen Mannschaft, Gegnername, Trikotfarben, Heim/Gast, Spielzeit-Schema, Spielverlauf (Anpfiff, Pausen, Abschnitte, Schlusspfiff, Verlängerung, Elfmeterschießen), Tore mit Minute und Mannschaft sowie Elfmeter- und Eigentor-Kennzeichen, [NEEDS CLARIFICATION: Torschützen (Vornamen) ja oder nein?]. Nicht übertragen werden Kader, Aufgebot, Karten, Wechsel und Lesezeichen.
+
+**Sicherheit und Datenschutz**
+
+- **FR-L11**: Alle Meldungen MÜSSEN Ende-zu-Ende verschlüsselt sein: Der Vermittlungsdienst und jeder ohne Zuschauer-Link sehen weder Namen noch Spielstände. Nur Inhaber eines Lead-Links können Meldungen erzeugen, die das Dashboard anzeigt; der Zuschauer-Link erlaubt nur Lesen. Gefälschte oder veränderte Meldungen werden verworfen.
+
+**Dashboard (Zuschauer)**
+
+- **FR-L12**: Das Dashboard MUSS im Browser ohne Installation und ohne Konto funktionieren und zeigt den Titel sowie je Spiel des Tages eine Karte: Kurzform der eigenen Mannschaft, Gegner, Trikotfarben, Stand Heim:Gast (Heim zuerst wie im Spielbildschirm), Phase ("noch nicht angepfiffen", Minute wie "37'" bzw. "25+2'", "Uhr angehalten", "Halbzeit" bzw. "Pause", "Verlängerung", "Elfmeterschießen", "Endstand" mit "n. V."/"i. E."), Halbzeitstand und Torverlauf (Minute, Stand, ggf. "Elfmeter"/"Eigentor").
+- **FR-L13**: Die Minute auf dem Dashboard MUSS aus dem übertragenen Spielverlauf berechnet werden und ohne neue Meldung weiterlaufen (Constitution V); die Abweichung zur Anzeige auf dem Lead-Handy beträgt höchstens 1 Minute.
+- **FR-L14**: Reihenfolge der Karten: laufende Spiele in der Reihenfolge der Mannschaften des Live-Spieltags, darunter angelegte, darunter beendete. Ohne Spiele: "Heute noch kein Spiel live" mit den Mannschaften.
+- **FR-L15**: Das Dashboard MUSS sich ohne Neuladen aktualisieren, neue Tore für einige Sekunden hervorheben (ohne Ton) und den Verbindungsstatus zeigen: bei eigener fehlender Verbindung "Keine Verbindung · Stand von <Uhrzeit>", bei laufendem Spiel ohne Meldung seit mehr als 5 Minuten "Letzte Meldung vor <n> Min" auf der Karte.
+- **FR-L16**: Spiele MÜSSEN bis zum Abend des Spieltags sichtbar bleiben, mindestens 8 Stunden nach ihrer letzten Meldung. [NEEDS CLARIFICATION: Gilt der Zuschauer-Link dauerhaft (ganze Saison, Eltern speichern ihn einmal) oder wird je Spieltag ein neuer Live-Spieltag angelegt?]
+- **FR-L17**: Im Torticker MUSS das Dashboard eines gekoppelten Live-Spieltags unter "Mehr" → "Live-Spieltag" erreichbar sein, auf Lead-Handys zusätzlich per Tipp auf das Kennzeichen "Live" (FR-L08).
+- **FR-L18**: Das Dashboard MUSS dem Vereinsdesign folgen (Constitution VII, `design/`), hell und dunkel nach Systemeinstellung, im Hochformat ab 375 pt Breite ohne waagrechtes Scrollen, Kontrast wie SC-006 aus Spec 001; Trikotfarben als Farbpunkte wie im Teilen-Text (Spec 005).
+
+**Verwalten (Organisator)**
+
+- **FR-L19**: Der Organisator MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Hinzufügen und Entfernen ändern den Zuschauer-Link nicht; Neuausstellen macht alle bisherigen Links wirkungslos.
+- **FR-L20**: Ein Lead-Handy MUSS die Kopplung beenden können (mit Bestätigung); lokal gespeicherte Spiele bleiben unverändert.
+- **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten, damit ein Handywechsel ohne neue Links möglich ist.
+
+### Key Entities
+
+- **Live-Spieltag**: Titel, Liste der Mannschaften (Kurzform, Trikots), Zuschauer-Berechtigung (nur lesen), Organisator-Berechtigung (verwalten), je Mannschaft eine Sende-Berechtigung.
+- **Kopplung**: auf einem Lead-Handy; Live-Spieltag, Mannschaft(en), Sende-Berechtigung, aktiv/beendet.
+- **Live-Stand**: die jeweils letzte Meldung je Spiel; Spiel-Kennung, Mannschaft, Gegner, Trikotfarben, Heim/Gast, Spielzeit-Schema, Spielverlauf, Tore, Zeitpunkt der Meldung, Kennzeichen "gelöscht" bzw. "nicht live".
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-L01**: Bei Netz auf beiden Seiten erscheint ein erfasstes Tor in 95 % der Fälle innerhalb von 10 Sekunden auf dem Dashboard.
+- **SC-L02**: Ein Elternteil sieht nach dem Öffnen des Zuschauer-Links innerhalb von 5 Sekunden (Mobilfunk) die aktuellen Stände.
+- **SC-L03**: Die Erfassung auf dem Lead-Handy bleibt mit und ohne Netz so schnell wie ohne Kopplung (Tor bis Anzeige unter 100 ms, SC-001).
+- **SC-L04**: Die Minute auf dem Dashboard weicht höchstens 1 Minute von der Anzeige auf dem Lead-Handy ab, auch bei falsch gestellter Geräteuhr.
+- **SC-L05**: Der Organisator legt einen Live-Spieltag mit zwei Mannschaften an und verschickt alle Links in unter 2 Minuten; ein Lead-Handy ist in unter 30 Sekunden gekoppelt.
+- **SC-L06**: Keine Meldung enthält Namen oder Spielstände im Klartext (automatisch geprüft); ohne Kopplung verlässt keine Anfrage das Gerät außer der Update-Prüfung.
+- **SC-L07**: Betrieb und Nutzung kosten nichts und brauchen kein Konto (Constitution VIII).
+
+## Assumptions
+
+- Am Platz gibt es meistens mobiles Netz; Funklöcher verzögern die Anzeige, verhindern aber nie die Erfassung.
+- Vermittlungsdienst: kostenlos, ohne Konto, aus dem Browser nutzbar; Kandidat ntfy.sh (erreichbar, Browser-Zugriff erlaubt, Meldungen werden rund 12 Stunden vorgehalten). Auswahl, Grenzen und Ausfallverhalten klärt `research.md`. Fällt der Dienst aus, fehlt nur die Live-Anzeige.
+- Zuschauer sehen Stände nur bei geöffnetem Dashboard. Eine Benachrichtigung auf dem Sperrbildschirm bräuchte einen eigenen Server und ist nicht Teil dieser Spec.
+- Lead-Handys sind während des Spiels im Vordergrund (Bildschirm bleibt an, FR-013).
+- Die Constitution wird auf Version 2.0.0 angehoben (Prinzip II erlaubt die Live-Kopplung); das Qualitätstor "Netzwerk-Wächter" lässt genau den Vermittlungsdienst und nur bei aktiver Kopplung zu.
+- Spiele werden nicht zwischen Geräten übernommen: Das Dashboard ist eine Anzeige, die Historie bleibt auf dem Lead-Handy.
