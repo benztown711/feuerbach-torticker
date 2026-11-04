@@ -9,11 +9,11 @@ Ergänzt `specs/001-spiel-erfassen/contracts/ui-contract.md`. Test-IDs sind Vert
 | `#/live-spieltag` | "Mehr" → "Live-Spieltag": leer, anlegen, Übersicht (Organisator), Lead-Ansicht | ja, "Mehr" aktiv |
 | `#/live-spieltag/dashboard` | Dashboard in der App | ja, "Mehr" aktiv |
 | `#/live/<Daten>` | Dashboard für Zuschauer (Zuschauer-Link) | nein |
-| `#/lead/<Daten>` | Lead-Link im Browser: Anleitung, kopieren, hier koppeln | nein |
+| `#/trainer/<Daten>`, `#/lead/<Daten>` | Trainer- bzw. Lead-Link im Browser: Anleitung, kopieren, hier koppeln | nein |
 
 ## Mehr
 
-`more-live` ("Live-Spieltag", Untertitel "Dashboard für Eltern, Lead-Handys").
+`more-live` ("Live-Spieltag", Untertitel "Dashboard für Eltern, Trainer-Link").
 
 ## Live-Spieltag (`#/live-spieltag`)
 
@@ -21,24 +21,23 @@ Ergänzt `specs/001-spiel-erfassen/contracts/ui-contract.md`. Test-IDs sind Vert
 |---|---|---|
 | Leerzustand | `live-empty` | Erklärung, Kasten "Was das Handy verlässt" |
 | Anlegen | `btn-live-create` | öffnet das Formular |
-| Lead-Link einfügen | `btn-paste-link`, `paste-link-input`, `paste-link-apply` | nimmt Lead- oder Zuschauer-Link an (`contracts/live-link.md`); Fehlermeldung `paste-link-error` |
+| Link einfügen | `btn-paste-link`, `paste-link-input`, `paste-link-apply` | nimmt Trainer-, Zuschauer- oder Lead-Link an (`contracts/live-link.md`); Fehlermeldung `paste-link-error` |
 | Titel | `input-live-title` | 1 bis 40 Zeichen, Vorgabe "Unser Spieltag" |
 | Mannschaften | `live-team-chip-<key>` | Mehrfachauswahl aus "Meine Mannschaften", 1 bis 6 |
-| Dieses Handy sendet für | `live-self-chip-<key>`, `live-self-chip-none` | Einfachauswahl |
 | Anlegen bestätigen | `btn-live-save` | legt an, zeigt Übersicht |
 | Zuschauer-Link teilen | `btn-share-viewer` | System-Teilen-Menü, Rückfall Zwischenablage |
-| Lead-Zeile | `live-lead-row-<key>` | Name, "dieses Handy" oder "zuletzt gesendet <Uhrzeit>" bzw. "noch nicht gekoppelt" |
-| Lead-Link teilen | `btn-share-lead-<key>` | System-Teilen-Menü |
+| Trainer-Link teilen | `btn-share-trainer` | System-Teilen-Menü; auf jedem Trainer-Handy |
+| Mannschaft | `live-team-row-<key>` | Farbmarke und Name |
 | Dashboard ansehen | `btn-live-dashboard` | `#/live-spieltag/dashboard`; im Leerzustand, wenn ein Zuschauer-Link gemerkt ist ("Dashboard „<Titel>“ ansehen") |
 | Titel ändern | `btn-live-title` | US5 |
 | Mannschaft hinzufügen | `btn-live-add-team` | US5 |
 | Alle Links neu ausstellen | `btn-live-reissue` | US5, mit Bestätigung |
-| Lead-Ansicht | `live-lead-info` | "Dieses Handy sendet live für <Mannschaft>" und Titel |
+| Lead-Ansicht (erste Version) | `live-lead-info` | "Dieses Handy sendet live für <Mannschaft>" und Titel |
 | Kopplung beenden | `btn-live-end` | US5, mit Bestätigung |
 
-Kopplungsfrage (Sheet `couple-dialog`): `couple-yes` ("Ja, live senden"), `couple-no` ("Abbrechen"). Bei bestehender anderer Kopplung zusätzlich der Hinweis `couple-replace`.
+Kopplungsfrage (Sheet `couple-dialog`): "Live senden für <Mannschaften>?", `couple-yes` ("Ja, live senden"), `couple-no` ("Abbrechen"). Bei bestehender anderer Kopplung zusätzlich der Hinweis `couple-replace`.
 
-## Lead-Link im Browser (`#/lead/<Daten>`)
+## Trainer- oder Lead-Link im Browser (`#/trainer/<Daten>`, `#/lead/<Daten>`)
 
 `lead-link-page`, `btn-copy-lead-link`, `btn-couple-here` (öffnet die Kopplungsfrage), Fehlerzustand `lead-link-invalid`.
 
@@ -65,3 +64,10 @@ Kopplungsfrage (Sheet `couple-dialog`): `couple-yes` ("Ja, live senden"), `coupl
 | Kennzeichen | `live-pill` | `data-state="on"` ("Live"), `"wait"` ("Live: wartet auf Netz"), `"off"` ("Nicht live"); Tipp öffnet das Dashboard |
 | Andere Spiele | `live-others` | eine Zeile, je Spiel `live-other-<key>`; Tipp öffnet das Dashboard; Hervorhebung bei neuem Tor |
 | Menü | `menu-live-toggle` | "Nicht live senden" bzw. "Live senden" |
+
+## Neues Spiel (Trainer-Handy)
+
+| Element | Test-ID | Verhalten |
+|---|---|---|
+| Zeile | `new-live-row` | nur, wenn die gewählte Mannschaft zum Live-Spieltag gehört |
+| Schalter "Live aufs Dashboard" | `new-live-switch` | `role="switch"`, Vorgabe an; aus → Spiel mit "Nicht live senden" angelegt |

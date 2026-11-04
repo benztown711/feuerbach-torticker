@@ -58,6 +58,15 @@
 - [x] L032 [US3] `src/ui/screens/live-dashboard.tsx` nach Mockup "Eltern" (Entwurf 2) mit Test-IDs aus `contracts/ui-contract.md`, Stile mit Tokens; `src/ui/screens/start.tsx` öffnet gemerktes Dashboard ohne eigene Daten (R-L6) (macht L031 grün)
 - [x] L033 [US3] `tests/e2e/a11y.spec.ts` und `tests/e2e/visual.spec.ts` um das Dashboard (hell/dunkel, auf- und zugeklappt) erweitern; Qualitätstore lokal; Screenshots an Atti
 
+## Phase 5b: Änderung Trainergruppe (P1, PR 4, Clarifications 04.11.2026, research.md R-L13)
+
+- [x] L043 [P] (FR-L02 bis FR-L04) `tests/unit/live-link.test.ts`, `tests/unit/live-spieltag.test.ts`: Trainer-Link kodieren, dekodieren, finden, ungültige Felder; Anlegen ohne "Dieses Handy sendet für" (Trainer-Handy sendet für alle); `trainerLinkFor`; `applyTrainerLink` (eigener Lead-Schlüssel, Zertifikate je Mannschaft, Mannschaften übernehmen, gleicher Live-Spieltag behält Anlegezeit und jüngere Konfiguration, anderer ersetzt); `sendsFor`, `liveTeamFor`
+- [x] L044 Domäne in `src/domain/live-link.ts`, `src/domain/live-spieltag.ts` (macht L043 grün, 100 % Branch-Coverage)
+- [x] L045 [P] `tests/unit/live-setup.test.ts` (`verifyTrainerLink`), `tests/unit/live-sender.test.ts` (Trainer-Handy sendet je Spiel; beim Anlegen "Live" aus sendet nichts); `src/platform/live-setup.ts` (`verifyTrainerLink`, `coupleTrainer`, `shareTrainerLink`), `src/platform/live-sender.ts`
+- [x] L046 Oberfläche: `src/ui/screens/live.tsx` (Formular ohne Auswahl, Übersicht mit Trainer-Link und Mannschaften, "Link einfügen"), `src/ui/components/couple-dialog.tsx` (mehrere Mannschaften), `src/ui/screens/lead-link.tsx` und Route `#/trainer/<Daten>`, `src/ui/screens/new-game.tsx` (Schalter "Live aufs Dashboard")
+- [x] L047 E2E: `live-us1.spec.ts` auf Trainer-Link umgestellt (US1-S1 bis S7), `live-us2.spec.ts` um US2-S8 und US2-S9 ergänzt, `live-us3.spec.ts` sendet wie Trainer-Handys
+- [ ] L048 Verträge, research.md R-L13, Gerätetest G-1/G-2; `/code-review`, `/security-review`; Screenshots iPhone SE hell/dunkel an Atti
+
 ## Phase 6: US4 Blick auf das andere Spiel (P2, PR 4)
 
 **Ziel**: Lead-Handy sieht die anderen Spiele im Spielbildschirm. **Unabhängiger Test**: Gerät A (Lead E1) im Spiel, Gerät B (Lead E2) erfasst ein Tor, A zeigt den neuen Stand.
