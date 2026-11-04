@@ -23,14 +23,16 @@ https://benztown711.github.io/feuerbach-torticker/#/lead/<Daten>
 {
   "v": 1, "t": "…", "k": "…", "o": "…", "n": "Unser Spieltag",
   "c": { "d": "<JSON LeadCert>", "s": "<Signatur>" },
-  "p": { "d": "…", "x": "…", "y": "…" }
+  "p": { "d": "…", "x": "…", "y": "…" },
+  "g": { "d": "<JSON LiveConfig>", "s": "<Signatur>" }
 }
 ```
 
 - `c`: vom Organisator signiertes Lead-Zertifikat (Mannschaft, Kurzlabel, Trikots, öffentlicher Lead-Schlüssel).
 - `p`: privater Lead-Schlüssel als JWK-Teile (P-256).
+- `g`: jüngste Konfiguration (Titel, Mannschaften), signiert vom Organisator; das Lead-Handy hängt sie an seine Meldungen.
 - Beim Einfügen prüft die App die Signatur von `c` mit `o`; ungültig → "Dieser Lead-Link ist nicht gültig."
-- Länge etwa 900 Zeichen.
+- Länge etwa 1.100 Zeichen.
 
 ## Erkennen beim Einfügen
 

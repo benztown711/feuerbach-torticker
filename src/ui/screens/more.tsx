@@ -8,6 +8,12 @@ export function MoreScreen() {
       title: 'Einstellungen',
       text: 'Darstellung, Mannschaftsnamen, Sicherung',
     },
+    {
+      href: '#/live-spieltag',
+      testId: 'more-live',
+      title: 'Live-Spieltag',
+      text: 'Dashboard für Eltern, Lead-Handys',
+    },
     { href: '#/hilfe', testId: 'more-help', title: 'Hilfe', text: 'Tipps für das iPhone am Spielfeldrand' },
   ];
   return (

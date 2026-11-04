@@ -5,13 +5,16 @@ import { createGame, endSection, kickoff } from '../../src/domain/game';
 import type { NewGameInput, Settings } from '../../src/domain/types';
 import {
   closeDb,
+  deleteGame,
   findOpenGame,
+  putGames,
   getGame,
   getPlayers,
   getSettings,
   listGames,
   putGame,
   putPlayers,
+  onGameWrite,
   putSettings,
 } from '../../src/platform/db';
 
@@ -80,5 +83,35 @@ describe('T022 FR-010 IndexedDB', () => {
     await putPlayers([{ id: 'a', name: 'Maxi', number: 1, deletedAt: null }]);
     const all = await getPlayers();
     expect(all.map((x) => x.name).sort()).toEqual(['Ben', 'Maxi']);
+  });
+});
+
+describe('006 FR-L06 Beobachter für Spieländerungen', () => {
+  it('meldet nach putGame das Spiel und nach deleteGame die ID; Abmelden wirkt', async () => {
+    const seen: string[] = [];
+    const off = onGameWrite((change) => {
+      seen.push(change.kind === 'put' ? `put:${change.game.id}:${change.game.status}` : `delete:${change.id}`);
+    });
+    const g = createGame(input, { id: 'a', now: T0 });
+    await putGame(g);
+    await putGame(kickoff(g, T0 + 1000));
+    await deleteGame('a');
+    await putGames([createGame(input, { id: 'r', now: T0 })]);
+    off();
+    await putGame(g);
+    expect(seen).toEqual(['put:a:created', 'put:a:running', 'delete:a', 'put:r:created']);
+  });
+
+  it('ein fehlerhafter Beobachter stört weder das Speichern noch andere Beobachter', async () => {
+    const seen: string[] = [];
+    const off1 = onGameWrite(() => {
+      throw new Error('kaputt');
+    });
+    const off2 = onGameWrite((c) => seen.push(c.kind));
+    await putGame(createGame(input, { id: 'b', now: T0 }));
+    off1();
+    off2();
+    expect(seen).toEqual(['put']);
+    expect(await getGame('b')).toBeDefined();
   });
 });

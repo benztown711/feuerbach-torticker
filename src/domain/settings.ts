@@ -15,6 +15,8 @@ export function defaultSettings(): Settings {
     installHintDismissedAt: null,
     teams: [],
     features: { cards: false, subs: false, marks: false },
+    live: null,
+    liveView: null,
   };
 }
 

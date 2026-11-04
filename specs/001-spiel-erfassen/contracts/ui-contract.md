@@ -15,6 +15,7 @@ Navigation per URL-Hash, damit Zurück-Geste und Neuladen funktionieren.
 | `#/kader` | Kader |
 | `#/einstellungen` | Einstellungen inkl. Sicherung |
 | `#/hilfe` | Hilfe (iPhone-Hinweise) |
+| `#/live-spieltag`, `#/live/…`, `#/lead/…` | Live-Spieltag (Spec 006), siehe `specs/006-live-spieltag/contracts/ui-contract.md` |
 
 Startseite: `btn-continue`, `btn-new-game`.
 
@@ -29,7 +30,7 @@ Startseite: `btn-continue`, `btn-new-game`.
 
 ## Mehr (`#/mehr`)
 
-`more-roster`, `more-settings`, `more-help`
+`more-roster`, `more-settings`, `more-live` (Spec 006), `more-help`
 
 ## Neues Spiel (`#/neu`)
 

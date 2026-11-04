@@ -8,6 +8,8 @@ export type Route =
   | { name: 'more' }
   | { name: 'settings' }
   | { name: 'help' }
+  | { name: 'live' }
+  | { name: 'leadLink'; data: string }
   | { name: 'game'; id: string }
   | { name: 'details'; id: string };
 
@@ -20,6 +22,9 @@ export function parseHash(hash: string): Route {
   if (path === '/mehr') return { name: 'more' };
   if (path === '/einstellungen') return { name: 'settings' };
   if (path === '/hilfe') return { name: 'help' };
+  if (path === '/live-spieltag') return { name: 'live' };
+  const lead = /^\/lead\/([A-Za-z0-9_-]+)$/.exec(path);
+  if (lead?.[1]) return { name: 'leadLink', data: lead[1] };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);
   if (details?.[1]) return { name: 'details', id: details[1] };
   const game = /^\/spiel\/([\w-]+)$/.exec(path);

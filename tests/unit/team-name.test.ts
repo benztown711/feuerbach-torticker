@@ -20,8 +20,12 @@ describe('T095 FR-014 Kurzform und Einstellungen (Mannschaften siehe teams.test.
       installHintDismissedAt: null,
       teams: [],
       features: { cards: false, subs: false, marks: false },
+      live: null,
+      liveView: null,
     });
     expect(withSettingsDefaults({ theme: 'dark' }).theme).toBe('dark');
+    // Spec 006: ältere Einstellungen ohne Live-Felder bekommen null
+    expect(withSettingsDefaults({ theme: 'dark' })).toMatchObject({ live: null, liveView: null });
     expect(withSettingsDefaults(undefined).lastSchema).toEqual({ sections: 2, sectionMinutes: 25 });
   });
 });
