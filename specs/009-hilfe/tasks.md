@@ -34,6 +34,6 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 5: Abschluss
 
-- [ ] H017 Spec 001 `tasks.md` T086 und Spec 006 `tasks.md` L040 mit Verweis auf 009; `README.md` Hinweis auf Hilfe
-- [ ] H018 `a11y.spec.ts`: Trefferliste und Eintrag zusätzlich prüfen
+- [x] H017 Spec 001 `tasks.md` T086 und Spec 006 `tasks.md` L040 mit Verweis auf 009; `README.md` Hinweis auf Hilfe
+- [x] H018 `a11y.spec.ts`: Trefferliste und Eintrag zusätzlich prüfen
 - [ ] H019 Lint, Typen, Unit mit Coverage, Kontrast, Budget, E2E lokal (Android), `/code-review`, `/security-review`; Screenshots iPhone hell/dunkel (Übersicht, Suche, Eintrag, Eltern-Leiste) an Atti

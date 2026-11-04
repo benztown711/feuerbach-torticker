@@ -38,6 +38,10 @@ Die aktuelle Version läuft unter **https://benztown711.github.io/feuerbach-tort
 
 Neue Versionen kommen automatisch nach jedem Merge auf `main`; die App zeigt dann einen Update-Hinweis.
 
+## Hilfe
+
+In der App unter **Mehr → Hilfe**: rund 40 kurze Fragen und Antworten zu allen Funktionen, mit Suche. Eltern erreichen ihre Einträge über die Leiste im Dashboard. Die Inhalte stehen in `src/domain/help-entries.ts`; jede neue Funktion bringt ihren Eintrag im selben Pull Request mit, die Prüfung „Hilfe-Abdeckung“ (`scripts/check-help.ts`) hält sonst den Merge auf (Constitution IX, Spec 009).
+
 ## Entwicklung
 
 Voraussetzung: Node.js 22.
