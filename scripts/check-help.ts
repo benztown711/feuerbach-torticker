@@ -1,5 +1,5 @@
 /**
- * Prüfung "Hilfe-Abdeckung" (Spec 009 FR-H21, FR-H22, Constitution IX).
+ * Prüfung "Hilfe-Abdeckung" (Spec 010 FR-H21, FR-H22, Constitution IX).
  *
  * Schlägt fehl, wenn
  * (a) eine umgesetzte User Story (es gibt einen Test mit ihrer Szenario-ID, z. B. "006 US3-S1";
@@ -22,6 +22,8 @@ export interface HelpCheckInput {
   tests: string[];
   entries: readonly HelpEntry[];
   topics: readonly { id: string }[];
+  /** Ordnernamen unter specs/; eine doppelt vergebene Nummer würde eine Spec still überdecken. */
+  specDirs?: string[];
 }
 
 export interface Source {
@@ -65,8 +67,16 @@ export function parseSource(src: string): Source | null {
   return null;
 }
 
-export function checkHelp({ specs, tests, entries, topics }: HelpCheckInput): string[] {
+export function checkHelp({ specs, tests, entries, topics, specDirs = [] }: HelpCheckInput): string[] {
   const errors: string[] = [];
+  const byNumber = new Map<string, string[]>();
+  for (const dir of specDirs) {
+    const nr = /^(\d{3})-/.exec(dir)?.[1];
+    if (nr) byNumber.set(nr, [...(byNumber.get(nr) ?? []), dir]);
+  }
+  for (const [nr, dirs] of byNumber)
+    if (dirs.length > 1) errors.push(`Spec-Nummer ${nr} ist doppelt vergeben: ${dirs.join(', ')}`);
+
   const topicIds = new Set(topics.map((t) => t.id));
   const ids = new Set(entries.map((e) => e.id));
   const seen = new Set<string>();
@@ -119,7 +129,8 @@ function files(dir: string, re: RegExp): string[] {
 /** Liest Specs und Tests des Repositorys (für den Unit-Test und den Aufruf über die Kommandozeile). */
 export function repoInput(root: string): HelpCheckInput {
   const specs = new Map<string, string>();
-  for (const dir of readdirSync(join(root, 'specs'))) {
+  const specDirs = readdirSync(join(root, 'specs')).sort();
+  for (const dir of specDirs) {
     const nr = /^(\d{3})-/.exec(dir)?.[1];
     const file = join(root, 'specs', dir, 'spec.md');
     if (nr && statSync(join(root, 'specs', dir)).isDirectory()) {
@@ -131,7 +142,7 @@ export function repoInput(root: string): HelpCheckInput {
     }
   }
   const tests = files(join(root, 'tests'), /\.(test|spec)\.tsx?$/).map((f) => readFileSync(f, 'utf8'));
-  return { specs, tests, entries: HELP_ENTRIES, topics: HELP_TOPICS };
+  return { specs, tests, entries: HELP_ENTRIES, topics: HELP_TOPICS, specDirs };
 }
 
 function main(): void {

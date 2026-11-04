@@ -42,7 +42,7 @@ const input = (entries: HelpEntry[], tests: string[] = []): HelpCheckInput => ({
   topics: [{ id: 'spiel' }],
 });
 
-describe('009 FR-H21 Bausteine', () => {
+describe('010 FR-H21 Bausteine', () => {
   it('liest User Stories und Anforderungen aus der Spec', () => {
     expect([...specStories(SPEC_003)]).toEqual([1, 2]);
     expect([...specRequirements(SPEC_003)]).toEqual(['FR-E01']);
@@ -77,13 +77,13 @@ describe('009 FR-H21 Bausteine', () => {
   });
 });
 
-describe('009 US3 Die Hilfe bleibt automatisch aktuell', () => {
-  it('009 US3-S1 umgesetzte User Story ohne Eintrag: Prüfung nennt "006 US3 ohne Hilfe-Eintrag"', () => {
+describe('010 US3 Die Hilfe bleibt automatisch aktuell', () => {
+  it('010 US3-S1 umgesetzte User Story ohne Eintrag: Prüfung nennt "006 US3 ohne Hilfe-Eintrag"', () => {
     const errors = checkHelp(input([entry('tor', ['001 US1'])], ["test('006 US3-S1 …')", "test('US1-S1 …')"]));
     expect(errors).toEqual(['006 US3 ohne Hilfe-Eintrag']);
   });
 
-  it('009 US3-S2 Quelle zu einer User Story, Anforderung oder Spec, die es nicht gibt', () => {
+  it('010 US3-S2 Quelle zu einer User Story, Anforderung oder Spec, die es nicht gibt', () => {
     const errors = checkHelp(
       input([entry('karten', ['003 US9']), entry('ton', ['001 FR-999']), entry('push', ['007 US1'])]),
     );
@@ -94,7 +94,7 @@ describe('009 US3 Die Hilfe bleibt automatisch aktuell', () => {
     ]);
   });
 
-  it('009 US3-S3 doppelte ID, fehlende Felder, unbekanntes Thema, falsche Quelle, unbekanntes "Siehe auch"', () => {
+  it('010 US3-S3 doppelte ID, fehlende Felder, unbekanntes Thema, falsche Quelle, unbekanntes "Siehe auch"', () => {
     const errors = checkHelp(
       input([
         entry('tor', ['001 US1']),
@@ -116,7 +116,15 @@ describe('009 US3 Die Hilfe bleibt automatisch aktuell', () => {
     ]);
   });
 
-  it('009 US3-S4 alles abgedeckt und alle Quellen vorhanden: grün', () => {
+  it('010 FR-H21 doppelt vergebene Spec-Nummer fällt auf, statt eine Spec zu überdecken', () => {
+    const errors = checkHelp({
+      ...input([entry('tor', ['001 US1'])]),
+      specDirs: ['001-spiel-erfassen', '009-hilfe', '009-vorlagen', 'README.md'],
+    });
+    expect(errors).toEqual(['Spec-Nummer 009 ist doppelt vergeben: 009-hilfe, 009-vorlagen']);
+  });
+
+  it('010 US3-S4 alles abgedeckt und alle Quellen vorhanden: grün', () => {
     const errors = checkHelp(
       input(
         [entry('tor', ['001 US1', '001 FR-036']), entry('eltern', ['006 US3'], { related: ['tor'] })],

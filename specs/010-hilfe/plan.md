@@ -1,6 +1,6 @@
 # Implementation Plan: Hilfe mit Suche
 
-**Branch**: `009-hilfe` (umgesetzt auf `claude/dreamy-brown-r90cgx`) | **Date**: 2026-11-04 | **Spec**: [spec.md](spec.md) | **Mockup**: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j (Runde 2, freigegeben)
+**Branch**: `010-hilfe` (umgesetzt auf `claude/dreamy-brown-r90cgx`) | **Date**: 2026-11-04 | **Spec**: [spec.md](spec.md) | **Mockup**: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j (Runde 2, freigegeben)
 
 ## Summary
 
@@ -17,12 +17,12 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 | I. Spielfeldrand zuerst | Suchfeld oben, Treffer beim Tippen, Zeilen mindestens 52 pt hoch, Knöpfe 48 pt; Hilfe auch während eines Spiels erreichbar (FR-037) | erfüllt |
 | II. Offline-first und lokal | Inhalte werden mit der App ausgeliefert und vom Service Worker vorgehalten; Suche ohne Netzanfrage (FR-H14, Offline-Test) | erfüllt |
 | III. Datensparsamkeit | Suchbegriff wird weder gespeichert noch übertragen; Inhalte nur mit fiktiven Namen; Teilen gibt nur den vorhandenen Zuschauer-Link weiter (FR-H17) | erfüllt |
-| IV. Spec-first und Test-first | Domäne `help-search.ts`, `help-entries.ts` mit 100 % Branch-Coverage, E2E je Akzeptanzszenario ("009 USx-Sy"), Prüfung `check-help.ts` mit eigenen Tests | erfüllt |
+| IV. Spec-first und Test-first | Domäne `help-search.ts`, `help-entries.ts` mit 100 % Branch-Coverage, E2E je Akzeptanzszenario ("010 USx-Sy"), Prüfung `check-help.ts` mit eigenen Tests | erfüllt |
 | V. Zeit ist eine Berechnung | nicht berührt | – |
 | VI. Einfachheit | Keine Bibliothek, keine Screenshots in der Hilfe, keine Kontext-Hilfe (Backlog) | erfüllt |
 | VII. Vereinsdesign | Nur Tokens; Hervorhebung hell `rot-hell`/`ink`, dunkel `rot-tief`/`on-rot` (Kontrastmatrix ergänzt) | erfüllt |
 | VIII. Kostenfrei | keine Dienste | erfüllt |
-| IX. Hilfe ist Teil jeder Funktion | Diese Spec liefert die Hilfe und die Prüfung selbst; 009 US1 bis US3 haben eigene Einträge | erfüllt |
+| IX. Hilfe ist Teil jeder Funktion | Diese Spec liefert die Hilfe und die Prüfung selbst; 010 US1 bis US3 haben eigene Einträge | erfüllt |
 
 ## Design
 
@@ -46,7 +46,7 @@ HELP_TOPICS: { id: HelpTopic; name: string }[]   // Reihenfolge laut FR-H08
 HELP_ENTRIES: HelpEntry[]                        // Grundbestand aus dem Mockup, gegen die App geprüft
 ```
 
-Die Texte aus dem Mockup werden bei der Übernahme gegen die Bezeichnungen der App geprüft (FR-H09). Zusätzlich je ein Eintrag für 009 US1 ("Wie finde ich etwas in der Hilfe?") und 009 US3 ("Ist die Hilfe auf dem neuesten Stand?"), damit die Prüfung auch diese Spec abdeckt.
+Die Texte aus dem Mockup werden bei der Übernahme gegen die Bezeichnungen der App geprüft (FR-H09). Zusätzlich je ein Eintrag für 010 US1 ("Wie finde ich etwas in der Hilfe?") und 010 US3 ("Ist die Hilfe auf dem neuesten Stand?"), damit die Prüfung auch diese Spec abdeckt.
 
 ### Suche (`src/domain/help-search.ts`)
 
@@ -93,7 +93,7 @@ Reine Funktionen, getestet in `tests/unit/check-help.test.ts` mit kleinen Beispi
 
 ## Testplan
 
-- Unit: `help-search.test.ts` (FR-H02 bis FR-H06, Edge Cases, SC-H01 Fragenkatalog mit mindestens 15 Alltagsformulierungen, SC-H02 Laufzeit), `help-entries.test.ts` (FR-H08 Reihenfolge, FR-H09 Länge und Frageform, eindeutige IDs, Eltern-Einträge vorhanden), `live-link.test.ts` (Teilen-Text), `check-help.test.ts` (009 US3-S1 bis S4), `help-coverage.test.ts` (FR-H21 am echten Repository).
-- E2E `tests/e2e/hilfe.spec.ts`: 009 US1-S1 bis S9, 009 US2-S1 bis S5, FR-H15.
-- E2E `tests/e2e/hilfe-eltern.spec.ts`: 009 US2-S6 bis S8 mit Relay-Fixture aus Spec 006.
+- Unit: `help-search.test.ts` (FR-H02 bis FR-H06, Edge Cases, SC-H01 Fragenkatalog mit mindestens 15 Alltagsformulierungen, SC-H02 Laufzeit), `help-entries.test.ts` (FR-H08 Reihenfolge, FR-H09 Länge und Frageform, eindeutige IDs, Eltern-Einträge vorhanden), `live-link.test.ts` (Teilen-Text), `check-help.test.ts` (010 US3-S1 bis S4), `help-coverage.test.ts` (FR-H21 am echten Repository).
+- E2E `tests/e2e/hilfe.spec.ts`: 010 US1-S1 bis S9, 010 US2-S1 bis S5, FR-H15.
+- E2E `tests/e2e/hilfe-eltern.spec.ts`: 010 US2-S6 bis S8 mit Relay-Fixture aus Spec 006.
 - Bestehend: `a11y.spec.ts` prüft die Hilfe (Trefferliste und Eintrag zusätzlich), `nav.spec.ts` unverändert; Screenshot-Vergleich Dashboard neu.

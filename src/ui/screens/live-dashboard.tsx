@@ -181,7 +181,7 @@ export function Dashboard({
   view: View;
   inApp: boolean;
   config?: LiveConfig | null;
-  /** Spec 009: bleibt beim Wechsel zur Eltern-Hilfe eingehängt, damit die Verbindung bestehen bleibt. */
+  /** Spec 010: bleibt beim Wechsel zur Eltern-Hilfe eingehängt, damit die Verbindung bestehen bleibt. */
   hidden?: boolean;
   /** Titel und Mannschaften für "Teilen" in der Eltern-Leiste (FR-H17). */
   onInfo?: (info: { title: string; teams: string[] }) => void;
@@ -296,7 +296,7 @@ const sameView = (a: ViewerLink | null, b: ViewerLink): boolean =>
 
 /**
  * `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6).
- * Spec 009: Eltern-Leiste mit "Spieltag", "Teilen" und Eltern-Hilfe unter `#/live/<Daten>/hilfe[/<id>]`.
+ * Spec 010: Eltern-Leiste mit "Spieltag", "Teilen" und Eltern-Hilfe unter `#/live/<Daten>/hilfe[/<id>]`.
  */
 export function ViewerScreen({
   data,

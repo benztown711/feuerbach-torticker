@@ -85,7 +85,7 @@
 
 ## Phase 8: Abschluss
 
-- [x] L040 [P] Hilfe-Text "Live-Spieltag" (erledigt mit Spec 009: Einträge im Thema "Live-Spieltag" in `src/domain/help-entries.ts`, Eltern-Hilfe über die Eltern-Leiste)
+- [x] L040 [P] Hilfe-Text "Live-Spieltag" (erledigt mit Spec 010: Einträge im Thema "Live-Spieltag" in `src/domain/help-entries.ts`, Eltern-Hilfe über die Eltern-Leiste)
 - [ ] L041 `/code-review` und `/security-review` je PR (Eingaben aus Links und Meldungen, keine HTML-Einschleusung, Schlüssel nur im Fragment); `/speckit-analyze` nach jeder Phase ohne kritische Befunde
 - [ ] L042 Gerätetest G-1 bis G-7 aus `quickstart.md` mit Atti (Review C); Ergebnis von G-3 in research.md R-L6 nachtragen
 

@@ -2,14 +2,14 @@ import type { Page } from '@playwright/test';
 import { expect, test, type Recorded } from './fixtures';
 import { createLive, e1At37, onMatchday, openViewer, sendAs } from './live-helpers';
 
-/** Spec 009 US2-S6 bis S8: Eltern-Leiste "Spieltag · Teilen · Hilfe" in der Ansicht über den Zuschauer-Link. */
+/** Spec 010 US2-S6 bis S8: Eltern-Leiste "Spieltag · Teilen · Hilfe" in der Ansicht über den Zuschauer-Link. */
 
 // Relay-Nachbau aus Spec 006 (fixtures.ts) braucht blockierte Service Worker.
 test.use({ serviceWorkers: 'block' });
 
 const rec = (v: Page): Promise<Recorded> => v.evaluate(() => (window as unknown as { __rec: Recorded }).__rec);
 
-test('009 US2-S6 FR-H16 Eltern-Leiste mit "Spieltag", "Teilen" und "Hilfe", auch ohne Spiel', async ({
+test('010 US2-S6 FR-H16 Eltern-Leiste mit "Spieltag", "Teilen" und "Hilfe", auch ohne Spiel', async ({
   page,
   recorded,
   relay,
@@ -30,7 +30,7 @@ test('009 US2-S6 FR-H16 Eltern-Leiste mit "Spieltag", "Teilen" und "Hilfe", auch
   await expect(v.getByRole('link', { name: 'Zum Torticker' })).toBeVisible();
 });
 
-test('009 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück zum Spieltag ohne Neuladen', async ({
+test('010 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück zum Spieltag ohne Neuladen', async ({
   page,
   recorded,
   relay,
@@ -75,7 +75,7 @@ test('009 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück z
   expect(await v.evaluate(() => (window as unknown as { __same?: boolean }).__same)).toBe(true);
 });
 
-test('009 US2-S8 FR-H17 "Teilen" öffnet das Teilen-Menü mit dem Zuschauer-Link, sonst Zwischenablage', async ({
+test('010 US2-S8 FR-H17 "Teilen" öffnet das Teilen-Menü mit dem Zuschauer-Link, sonst Zwischenablage', async ({
   page,
   recorded,
   relay,

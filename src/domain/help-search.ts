@@ -1,7 +1,7 @@
 import type { HelpEntry } from './help-entries';
 
 /**
- * Suche in der Hilfe (Spec 009 FR-H01 bis FR-H06). Reine Funktionen ohne Netz und ohne Speicher:
+ * Suche in der Hilfe (Spec 010 FR-H01 bis FR-H06). Reine Funktionen ohne Netz und ohne Speicher:
  * Der Suchbegriff verlässt das Gerät nie (FR-H14, Constitution III).
  */
 

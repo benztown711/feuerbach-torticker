@@ -5,7 +5,7 @@ import { APP_VERSION } from '../../version';
 import { navigate } from '../router';
 
 /**
- * Spec 009: Hilfe mit Suche. `HelpScreen` ist die Hilfe unter "Mehr", `HelpView` wird auch in der
+ * Spec 010: Hilfe mit Suche. `HelpScreen` ist die Hilfe unter "Mehr", `HelpView` wird auch in der
  * Eltern-Ansicht genutzt (nur Einträge für Eltern, FR-H16).
  */
 

@@ -39,7 +39,7 @@ function Lazy<P extends object>({ load, props }: { load: () => Promise<FunctionC
 }
 
 const loadLive = () => import('./screens/live').then((m) => m.LiveScreen);
-/** Spec 009: Hilfe mit rund 40 Einträgen wird nachgeladen (Bundle-Budget), offline aus dem Service Worker. */
+/** Spec 010: Hilfe mit rund 40 Einträgen wird nachgeladen (Bundle-Budget), offline aus dem Service Worker. */
 const loadHelp = () => import('./screens/help').then((m) => m.HelpScreen);
 const loadLeadLink = () => import('./screens/lead-link').then((m) => m.LeadLinkScreen);
 const loadViewer = () => import('./screens/live-dashboard').then((m) => m.ViewerScreen);

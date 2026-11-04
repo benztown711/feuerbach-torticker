@@ -175,7 +175,7 @@ describe('006 FR-L02 FR-L03 Zuschauer- und Lead-Link (contracts/live-link.md)', 
   });
 });
 
-describe('009 FR-H17 Teilen-Text der Eltern-Leiste', () => {
+describe('010 FR-H17 Teilen-Text der Eltern-Leiste', () => {
   const url = 'https://benztown711.github.io/feuerbach-torticker/#/live/abc';
   it('nennt Titel, Mannschaften und den Link', () => {
     expect(viewerShareText('Unser Spieltag', ['E1', 'E2'], url)).toBe(

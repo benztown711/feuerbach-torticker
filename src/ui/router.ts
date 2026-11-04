@@ -24,12 +24,12 @@ export function parseHash(hash: string): Route {
   if (path === '/mehr') return { name: 'more' };
   if (path === '/einstellungen') return { name: 'settings' };
   if (path === '/hilfe') return { name: 'help', entry: null };
-  // Spec 009 FR-H12: jeder Hilfe-Eintrag hat eine eigene Adresse.
+  // Spec 010 FR-H12: jeder Hilfe-Eintrag hat eine eigene Adresse.
   const help = /^\/hilfe\/([a-z0-9-]+)$/.exec(path);
   if (help?.[1]) return { name: 'help', entry: help[1] };
   if (path === '/live-spieltag') return { name: 'live' };
   if (path === '/live-spieltag/dashboard') return { name: 'liveDash' };
-  // Zuschauer-Link, mit Eltern-Hilfe unter `/hilfe[/<id>]` (Spec 009 FR-H16).
+  // Zuschauer-Link, mit Eltern-Hilfe unter `/hilfe[/<id>]` (Spec 010 FR-H16).
   const view = /^\/live\/([A-Za-z0-9_-]+)(\/hilfe(?:\/([a-z0-9-]+))?)?$/.exec(path);
   if (view?.[1]) return { name: 'liveView', data: view[1], help: !!view[2], entry: view[3] ?? null };
   const lead = /^\/(lead|trainer)\/([A-Za-z0-9_-]+)$/.exec(path);

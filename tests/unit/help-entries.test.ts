@@ -4,7 +4,7 @@ import { searchHelp } from '../../src/domain/help-search';
 
 const byId = new Map(HELP_ENTRIES.map((e) => [e.id, e]));
 
-describe('009 FR-H08 FR-H09 Inhalte', () => {
+describe('010 FR-H08 FR-H09 Inhalte', () => {
   it('Themen in der Reihenfolge aus FR-H08, jedes Thema hat Einträge', () => {
     expect(HELP_TOPICS.map((t) => t.name)).toEqual([
       'Erste Schritte',
@@ -101,10 +101,12 @@ const CATALOG: [string, string][] = [
   ['halbzeit beenden', 'pausenpfiff'],
   ['tor', 'tor'],
   ['glocke', 'signalton'],
+  ['vorlage', 'vorlage'],
+  ['assist ändern', 'vorlage-aendern'],
   ['ton ändern', 'signalton'],
 ];
 
-describe('009 SC-H01 Fragenkatalog', () => {
+describe('010 SC-H01 Fragenkatalog', () => {
   it.each(CATALOG)('„%s“ findet %s unter den ersten drei', (query, id) => {
     const top = (searchHelp(query, HELP_ENTRIES)?.entries ?? []).slice(0, 3).map((e) => e.id);
     expect(top).toContain(id);
@@ -115,7 +117,7 @@ describe('009 SC-H01 Fragenkatalog', () => {
   });
 });
 
-describe('009 SC-H02 Geschwindigkeit', () => {
+describe('010 SC-H02 Geschwindigkeit', () => {
   it('eine Suche über alle Einträge dauert deutlich unter 100 ms', () => {
     const queries = ['p', 'pf', 'pfi', 'pfif', 'pfiff', 'tor l', 'tor lö', 'tor lös', 'tor lösch', 'tor löschen'];
     const t0 = performance.now();

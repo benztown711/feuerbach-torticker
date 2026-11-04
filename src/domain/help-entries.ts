@@ -1,5 +1,5 @@
 /**
- * Inhalte der Hilfe (Spec 009). Jeder Eintrag nennt seine Quellen (FR-H20); die Prüfung
+ * Inhalte der Hilfe (Spec 010). Jeder Eintrag nennt seine Quellen (FR-H20); die Prüfung
  * `scripts/check-help.ts` stellt sicher, dass jede umgesetzte User Story abgedeckt ist (Constitution IX).
  */
 
@@ -85,7 +85,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Tippe oben ins Suchfeld. Die Treffer erscheinen schon beim Tippen. Groß- und Kleinschreibung sind egal, ein Wortanfang genügt, und Alltagswörter wie „Backup“ oder „löschen“ funktionieren auch. Mit „Alle Themen anzeigen“ kommst du zurück zur Übersicht.',
     keywords: 'suchen suche finden hilfe',
-    sources: ['009 US1'],
+    sources: ['010 US1'],
     related: ['hilfe-aktuell', 'navigation'],
   },
   {
@@ -95,7 +95,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Ja. Jede neue Funktion bringt ihren Hilfe-Eintrag mit, sonst wird sie nicht veröffentlicht. Ganz unten in der Hilfe steht die Version, die du gerade nutzt.',
     keywords: 'aktuell version neu stand veraltet',
-    sources: ['009 US3', '009 FR-H13'],
+    sources: ['010 US3', '010 FR-H13'],
     related: ['update', 'hilfe-suche'],
   },
   {
@@ -200,6 +200,27 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
+    id: 'vorlage',
+    topic: 'ereignisse',
+    title: 'Wie erfasse ich, wer das Tor vorgelegt hat?',
+    answer:
+      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Vorlagen“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
+    keywords: 'vorlage vorlagen assist vorgelegt pass zuspiel vorlagengeber',
+    sources: ['009 US1', '009 US4'],
+    open: { label: 'Einstellungen', path: '/einstellungen' },
+    related: ['vorlage-aendern', 'torschuetze', 'vorlage-teilen'],
+  },
+  {
+    id: 'vorlage-aendern',
+    topic: 'ereignisse',
+    title: 'Wie ändere oder entferne ich eine Vorlage?',
+    answer:
+      'Tippe das Tor in der Torliste an und wähle „Vorlage ändern“. Dort wählst du einen anderen Spieler oder „Ohne Vorlage“. Bei Gegentoren, Eigentoren und Elfmetern gibt es keine Vorlage.',
+    keywords: 'vorlage ändern entfernen falsch assist korrigieren',
+    sources: ['009 US2'],
+    related: ['vorlage', 'tor-entfernen'],
+  },
+  {
     id: 'elfmeter',
     topic: 'ereignisse',
     title: 'Wie kennzeichne ich ein Tor als Elfmeter?',
@@ -214,7 +235,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie erfasse ich eine gelbe oder rote Karte?',
     answer:
-      'Schalte zuerst in den Einstellungen unter „Im Spiel erfassen“ die „Karten“ ein. Im Spiel tippst du dann auf „Ereignis“ und „Karte“ und wählst Mannschaft, Art und Spieler. Möglich sind Gelb, Gelb-Rot, Rot und Zeitstrafe.',
+      'Schalte zuerst in den Einstellungen unter „Im Spiel erfassen“ die „Karten“ ein. Im Spiel tippst du dann auf „Karte“, wählst die Art (Gelb, Gelb-Rot, Rot oder Zeitstrafe), danach Mannschaft und Spieler.',
     keywords: 'gelb rot gelbrot zeitstrafe karte verwarnung platzverweis',
     sources: ['003 US3'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
@@ -225,7 +246,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie erfasse ich einen Wechsel?',
     answer:
-      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Wechsel“ ein. Im Spiel tippst du auf „Ereignis“ und „Wechsel“ und wählst, wer rausgeht und wer reinkommt. Im geteilten Text steht dann zum Beispiel „Leo für Paul“.',
+      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Wechsel“ ein. Im Spiel tippst du auf „Wechsel“ und wählst direkt, wer rausgeht und wer reinkommt. Im geteilten Text steht dann zum Beispiel „Leo für Paul“.',
     keywords: 'auswechseln einwechseln wechsel spieler raus rein',
     sources: ['003 US4'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
@@ -236,7 +257,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wofür sind Lesezeichen?',
     answer:
-      'Mit einem Lesezeichen merkst du dir eine Szene samt Minute, zum Beispiel für die Videoauswertung mit der Veo-Kamera. Schalte sie in den Einstellungen unter „Im Spiel erfassen“ ein und tippe im Spiel auf „Ereignis“ und „Lesezeichen“. Lesezeichen sind nur für dich und erscheinen nie im geteilten Text.',
+      'Mit einem Lesezeichen merkst du dir eine Szene samt Minute, zum Beispiel für die Videoauswertung mit der Veo-Kamera. Schalte sie in den Einstellungen unter „Im Spiel erfassen“ ein; im Spiel genügt ein Tipp auf „Lesezeichen“. Danach kannst du einen Kommentar ergänzen. Lesezeichen sind nur für dich und erscheinen nie im geteilten Text.',
     keywords: 'lesezeichen szene video veo kamera merken markieren',
     sources: ['003 US2'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
@@ -285,6 +306,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     keywords: 'zwischenstand halbzeitstand whatsapp teilen während',
     sources: ['005 US4'],
     related: ['ergebnis-teilen', 'live-anlegen'],
+  },
+  {
+    id: 'vorlage-teilen',
+    topic: 'teilen',
+    title: 'Wo erscheinen Vorlagen?',
+    answer:
+      'In der Torliste, in den Spieldetails, im geteilten Text und im Dashboard für Eltern steht die Vorlage beim Tor, zum Beispiel „Max (Vorlage: Ben)“. Die Zeile mit den Torschützen am Ende des Textes bleibt, wie sie ist.',
+    keywords: 'vorlage teilen whatsapp dashboard text assist',
+    sources: ['009 US3'],
+    related: ['vorlage', 'ergebnis-teilen'],
   },
   {
     id: 'sternchen',
@@ -454,7 +485,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Tippe unten auf „Teilen“ und wähle zum Beispiel WhatsApp. Der Link gilt die ganze Saison und zeigt nur Spielstände und Torschützen mit Vornamen. Gib ihn nur an Menschen weiter, die die Kinder kennen.',
     keywords: 'teilen weiterleiten oma opa großeltern familie freunde link schicken',
-    sources: ['009 US2'],
+    sources: ['010 US2'],
     parents: true,
     related: ['eltern-dashboard', 'datenschutz'],
   },

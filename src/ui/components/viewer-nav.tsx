@@ -1,5 +1,5 @@
 /**
- * Spec 009 FR-H16: Leiste der Eltern-Ansicht (Zuschauer-Link), gebaut wie die Leiste der App (FR-037):
+ * Spec 010 FR-H16: Leiste der Eltern-Ansicht (Zuschauer-Link), gebaut wie die Leiste der App (FR-037):
  * "Spieltag" (Dashboard), "Teilen" (Zuschauer-Link, FR-H17) und "Hilfe" (nur Einträge für Eltern).
  */
 export function ViewerNav({

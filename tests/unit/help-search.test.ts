@@ -29,7 +29,7 @@ const E: HelpEntry[] = [
 const ids = (q: string): string[] | null => searchHelp(q, E)?.entries.map((e) => e.id) ?? null;
 const marked = (segs: Segment[]): string => segs.map((s) => (s.hit ? `[${s.text}]` : s.text)).join('');
 
-describe('009 FR-H02 Normalisierung', () => {
+describe('010 FR-H02 Normalisierung', () => {
   it('Kleinschreibung, Umlaute und ß werden vereinheitlicht, mit Zuordnung zum Original', () => {
     const n = normalize('Torschütze ÄÖß');
     expect(n.text).toBe('torschuetze aeoess');
@@ -39,7 +39,7 @@ describe('009 FR-H02 Normalisierung', () => {
   });
 });
 
-describe('009 FR-H02 FR-H03 Suchwörter', () => {
+describe('010 FR-H02 FR-H03 Suchwörter', () => {
   it('unter zwei Zeichen wird nicht gesucht', () => {
     expect(queryTokens('')).toEqual([]);
     expect(queryTokens('e')).toEqual([]);
@@ -62,7 +62,7 @@ describe('009 FR-H02 FR-H03 Suchwörter', () => {
   });
 });
 
-describe('009 FR-H02 bis FR-H05 Treffer und Reihenfolge', () => {
+describe('010 FR-H02 bis FR-H05 Treffer und Reihenfolge', () => {
   it('Groß- und Kleinschreibung egal, Wortanfang genügt (US1-S2)', () => {
     expect(ids('ELFMETER')).toEqual(ids('elfmeter'));
     expect(ids('Elf')).toEqual(['elfmeter', 'schiessen']);
@@ -117,7 +117,7 @@ describe('009 FR-H02 bis FR-H05 Treffer und Reihenfolge', () => {
   });
 });
 
-describe('009 FR-H06 Hervorhebung und Auszug', () => {
+describe('010 FR-H06 Hervorhebung und Auszug', () => {
   it('markiert Fundstellen im Original, auch bei Umlauten', () => {
     expect(marked(highlight('Wie trage ich den Torschützen nach?', ['torschuetze']))).toBe(
       'Wie trage ich den [Torschütze]n nach?',

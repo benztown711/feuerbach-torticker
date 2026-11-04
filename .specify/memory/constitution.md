@@ -55,7 +55,7 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 
 ### IX. Hilfe ist Teil jeder Funktion
 
-- Die App enthält eine durchsuchbare Hilfe, die jede umgesetzte Funktion in kurzen Fragen und Antworten erklärt (Spec 009).
+- Die App enthält eine durchsuchbare Hilfe, die jede umgesetzte Funktion in kurzen Fragen und Antworten erklärt (Spec 010).
 - Jede für Nutzer sichtbare Funktion oder Verhaltensänderung aktualisiert die Hilfe **im selben Pull Request**. Das gilt auch für kleine Änderungen (Fehlerbehebung, Text), sobald sich Bedienung oder Wortlaut in der App ändern.
 - Jede Spec nennt im Abschnitt "Hilfe", welche Einträge neu dazukommen, sich ändern oder entfallen; `tasks.md` enthält dafür je User Story eine Aufgabe.
 - Jeder Hilfe-Eintrag nennt seine Quellen (Spec und User Story bzw. Anforderung). Eine automatische Prüfung blockiert den Merge, wenn eine umgesetzte User Story keinen Eintrag hat oder ein Eintrag auf etwas verweist, das es nicht mehr gibt.
@@ -83,4 +83,4 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 
 **Version**: 2.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-04
 
-Änderungshistorie: 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 009). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
+Änderungshistorie: 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 010). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".

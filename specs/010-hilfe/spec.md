@@ -1,6 +1,6 @@
 # Feature Specification: Hilfe mit Suche
 
-**Feature Branch**: `009-hilfe`
+**Feature Branch**: `010-hilfe`
 
 **Created**: 2026-11-04
 
@@ -22,6 +22,11 @@
 - Q: Themenübersicht mit allen Fragen oder erst nur Themen zum Aufklappen? → A: So lassen (alle Fragen sichtbar).
 - Q: Hervorhebung der Fundstellen lesbar? → A: Hell gut, dunkel nicht besonders. → Dunkel kräftiger: Fundstelle auf `rot-tief` mit `on-rot`, hell bleibt `rot-hell` mit `ink` (FR-H06).
 - Q: Fällt der Link "Hilfe" im Eltern-Dashboard genug auf? → A: Nein. Lieber eine Navigationsleiste wie in der App, z. B. mit "Link zum Dashboard teilen" und "Hilfe". → Eltern-Leiste "Spieltag", "Teilen", "Hilfe" (FR-H16, FR-H17).
+
+### Session 2026-11-04 (Umsetzung)
+
+- Befund: Während der Umsetzung wurde parallel Spec 009 "Vorlagen" gemergt; die Hilfe-Spec wurde deshalb von 009 auf 010 umbenannt. Die Prüfung hatte die doppelte Nummer nur indirekt gezeigt (eine Spec überdeckte die andere). → FR-H21 (d): doppelt vergebene Spec-Nummern fallen direkt auf.
+- Befund: Spec 003 Teil 4 ("ein Knopf je Schalter") und Spec 008 (Signalton) kamen parallel auf `main`; die betroffenen Einträge (Karten, Wechsel, Lesezeichen, Signalton) und die neuen Einträge zu Vorlagen (Spec 009) sind im selben PR nachgezogen (Prinzip IX).
 
 ## Ausgangslage
 
@@ -134,7 +139,8 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 - **FR-H21**: Eine automatische Prüfung "Hilfe-Abdeckung" MUSS bei jedem Pull Request laufen und den Merge blockieren, wenn
   (a) eine umgesetzte User Story von keinem Eintrag als Quelle genannt wird. Als umgesetzt gilt eine User Story, sobald es einen Akzeptanztest mit ihrer ID gibt (Tests ohne Spec-Nummer gehören zu Spec 001);
   (b) eine Quelle auf eine User Story oder Anforderung verweist, die es in der Spec nicht (mehr) gibt;
-  (c) eine Eintrags-ID doppelt vorkommt oder Titel, Antwort, Thema oder Quelle fehlen.
+  (c) eine Eintrags-ID doppelt vorkommt oder Titel, Antwort, Thema oder Quelle fehlen;
+  (d) eine Spec-Nummer doppelt vergeben ist (zwei Ordner `specs/NNN-…`).
 - **FR-H22**: Die Meldung der Prüfung MUSS jede Lücke einzeln mit Spec-Nummer und User Story bzw. Eintrags-ID nennen.
 
 ### Key Entities
@@ -146,7 +152,7 @@ Keine Spieldaten betroffen; die Einträge werden mit der App ausgeliefert und ni
 
 ## Hilfe *(mandatory)*
 
-Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, mit Familie und Freunden teilen (Quelle 009 FR-H16), "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
+Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3), nachgezogen beim Merge: 008 US1 (Signalton), 009 US1 bis US4 (Vorlagen), 003 Teil 4 (ein Knopf je Schalter) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, mit Familie und Freunden teilen (Quelle 010 FR-H16), "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
 
 ## Verankerung im Vorgehensmodell
 

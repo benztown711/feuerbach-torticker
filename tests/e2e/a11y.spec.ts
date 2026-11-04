@@ -68,7 +68,7 @@ for (const scheme of ['light', 'dark'] as const) {
       }
     });
 
-    test('009 Hilfe: Übersicht, Treffer mit Hervorhebung und Eintrag ohne axe-Verstöße', async ({ page }) => {
+    test('010 Hilfe: Übersicht, Treffer mit Hervorhebung und Eintrag ohne axe-Verstöße', async ({ page }) => {
       await page.goto('./#/hilfe');
       await expect(page.getByTestId('help-topic-start')).toBeVisible();
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -100,7 +100,7 @@ test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
       await v.getByTestId('dash-toggle-E3').click();
       await expect(v.getByTestId('dash-details-E3')).toBeVisible();
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
-      // Spec 009: Eltern-Hilfe mit Leiste
+      // Spec 010: Eltern-Hilfe mit Leiste
       await v.getByTestId('viewer-nav-help').click();
       await v.getByTestId('help-search').fill('teilen');
       await expect(v.getByTestId('help-count')).toBeVisible();

@@ -106,7 +106,7 @@
 ## Hilfe *(mandatory)*
 
 <!--
-  Projektregel (Constitution IX, Spec 009): Jede für Nutzer sichtbare Funktion oder
+  Projektregel (Constitution IX, Spec 010): Jede für Nutzer sichtbare Funktion oder
   Verhaltensänderung aktualisiert die In-App-Hilfe im selben Pull Request.
   Nenne hier je User Story, welche Hilfe-Einträge neu dazukommen, sich ändern oder entfallen.
   Titel als Frage, Quelle als "<Spec-Nr> US<n>" oder "<Spec-Nr> FR-<id>".
