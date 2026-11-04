@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Entwurf. Review A erledigt (04.11.2026, im Chat). Mockup für Review B: https://claude.ai/artifact/D7nnJDsmPzC2rGDxsyp9NK
+**Status**: Entwurf. Review A erledigt (04.11.2026, im Chat). Review B: Feedback zu Entwurf 1 eingearbeitet, Mockup Entwurf 2: https://claude.ai/artifact/D7nnJDsmPzC2rGDxsyp9NK
 
 **Input**: User description: "Ein Trainer hat gefragt, ob wir in der App beim Liveticker auch den Assist erfassen können." Ergänzt im Chat: "Ich würde die Namen sowohl bei den Toren als auch bei den Vorlagen (in der Anzeige) ohne Rückennummer anzeigen, auch wenn diese eingetragen sind. Bei den Buttons können die Rückennummern bleiben."
 
@@ -20,6 +20,11 @@
 - Q: Live-Dashboard (Spec 006)? → A: Ja, im aufgeklappten Torverlauf.
 - Q: Rückennummern? → A: In jeder Anzeige stehen Torschütze und Vorlage nur mit Namen, nie mit Rückennummer, auch wenn eine eingetragen ist. Auf den Auswahlknöpfen bleiben die Nummern.
 
+### Session 2026-11-04 (Review B, Mockup Entwurf 1)
+
+- Q: Braucht die Torliste den Mannschaftsnamen ("Feuerbach E1, Moritz (Vorlage Anton)"), wenn der Stand schon zeigt, wer getroffen hat? → A: Nein. Steht ein Torschütze da, entfällt der Mannschaftsname, z. B. "8' 1:1 Moritz (Vorlage Anton)". Ohne Torschützen bleibt der Mannschaftsname stehen (FR-V11).
+- Q: Schreibweise im Dashboard? → A: Mit Doppelpunkt: "Max (Vorlage: Ben)" (FR-V08).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Vorlage direkt nach dem Tor erfassen (Priority: P1)
@@ -34,7 +39,7 @@ Am Spielfeldrand tippt der Nutzer nach einem Feuerbach-Tor wie gewohnt den Torsc
 
 1. **Given** der Schalter "Vorlagen" ist aus, **When** der Nutzer nach einem Feuerbach-Tor Max als Torschützen wählt, **Then** schließt sich das Fenster sofort wie bisher, ohne Frage nach der Vorlage.
 2. **Given** der Schalter ist an und die Uhr läuft in Minute 12, **When** der Nutzer ein Feuerbach-Tor erfasst und "7 Max" antippt, **Then** wechselt dasselbe Fenster zu "Vorlage von?" mit dem Untertitel "Tor in Minute 12' · Max" und zeigt das Aufgebot als Knöpfe mit Nummer und Name, ohne Max.
-3. **Given** die Frage "Vorlage von?" ist offen, **When** der Nutzer "9 Ben" antippt, **Then** schließt sich das Fenster und die Torliste zeigt "12' 1:0 Feuerbach, Max (Vorlage Ben)".
+3. **Given** die Frage "Vorlage von?" ist offen, **When** der Nutzer "9 Ben" antippt, **Then** schließt sich das Fenster und die Torliste zeigt "12' 1:0 Max (Vorlage Ben)".
 4. **Given** die Frage "Vorlage von?" ist offen, **When** der Nutzer nichts tut, **Then** zählt der Knopf "Ohne Vorlage (5 s)" herunter, das Fenster schließt sich nach 5 Sekunden und das Tor steht mit Torschütze, ohne Vorlage in der Liste.
 5. **Given** die Frage "Vorlage von?" ist offen, **When** der Nutzer "Ohne Vorlage" tippt, **Then** schließt sich das Fenster sofort ohne Vorlage.
 6. **Given** ein Aufgebot von 10 aus 21 Spielern, **When** der Nutzer in "Vorlage von?" "Andere …" tippt, **Then** erscheint zusätzlich der restliche Kader (ohne den Torschützen).
@@ -73,23 +78,26 @@ Eltern sehen in der WhatsApp-Gruppe und auf dem Dashboard "Unser Spieltag", wer 
 
 1. **Given** ein Tor von Max mit Vorlage Ben in Minute 12 zum 1:0, **When** der Nutzer teilt, **Then** steht in der Zeile des Tores im Verlauf "Max (Vorlage Ben)".
 2. **Given** dasselbe Spiel, **Then** lautet die Zeile "\*Torschützen\*" unverändert "Max ⚽"; es gibt keine eigene Zeile für Vorlagen, und Ben zählt dort nicht.
-3. **Given** eine aktive Live-Kopplung (Spec 006), **When** ein Tor mit Vorlage erfasst wird und ein Elternteil die Karte aufklappt, **Then** zeigt der Torverlauf "12' 1:0 Max (Vorlage Ben)".
+3. **Given** eine aktive Live-Kopplung (Spec 006), **When** ein Tor mit Vorlage erfasst wird und ein Elternteil die Karte aufklappt, **Then** zeigt der Torverlauf "12' 1:0 Max (Vorlage: Ben)".
 4. **Given** ein Dashboard, das noch nicht neu geladen wurde (älterer Stand der App), **When** es einen Stand mit Vorlage empfängt, **Then** zeigt es das Spiel weiterhin korrekt, nur ohne Vorlage.
 
 ---
 
-### User Story 4 - Namen ohne Rückennummer anzeigen (Priority: P1)
+### User Story 4 - Schlanke Anzeige: nur Namen (Priority: P1)
 
-Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer hilft nur beim schnellen Finden auf den Knöpfen.
+Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer hilft nur beim schnellen Finden auf den Knöpfen. In der Torliste entfällt der Mannschaftsname, sobald ein Torschütze dasteht, weil der Stand schon zeigt, wer getroffen hat.
 
-**Why this priority**: Gilt für alle Anzeigen aus US1 bis US3 und ist mit wenig Aufwand sicherzustellen.
+**Why this priority**: Gilt für alle Anzeigen aus US1 bis US3. Ohne Mannschaftsnamen passen Torschütze und Vorlage auch auf dem iPhone SE in eine Zeile.
 
-**Independent Test**: Spieler "Max" mit Nummer 7 und "Ben" mit Nummer 9 anlegen, Tor mit Vorlage erfassen, Torliste, Tor-Fenster, Spieldetails, Teilen-Text und Dashboard prüfen.
+**Independent Test**: Spieler "Max" mit Nummer 7 und "Ben" mit Nummer 9 anlegen, Tor mit Vorlage erfassen, Torliste, Tor-Fenster, Spieldetails, Teilen-Text und Dashboard prüfen; dazu ein Tor ohne Torschützen und ein Gegentor.
 
 **Acceptance Scenarios**:
 
 1. **Given** Max hat die Nummer 7 und Ben die Nummer 9, **When** ein Tor "Max, Vorlage Ben" erfasst ist, **Then** stehen in Torliste, Titel des Tor-Fensters, Spieldetails, Teilen-Text und Dashboard nur "Max" und "Ben", nirgends "7" oder "9".
 2. **Given** dieselben Spieler, **Then** zeigen die Knöpfe in "Wer hat getroffen?" und "Vorlage von?" "7 Max" und "9 Ben".
+3. **Given** ein Tor von Max ohne Vorlage zum 1:0, **Then** zeigt die Torliste "12' 1:0 Max", ohne "Feuerbach E1"; mit Schalter "Vorlagen" aus ebenso.
+4. **Given** ein Feuerbach-Tor ohne Torschützen, **Then** zeigt die Torliste wie bisher "12' 1:0 Feuerbach E1"; ein Gegentor ohne Torschützen "4' 0:1 TSV Musterstadt".
+5. **Given** ein Gegentor mit Freitext "Nr. 9", **Then** zeigt die Torliste "4' 0:1 Nr. 9 (TSV Musterstadt)" (wie die Spieldetails), ein "Eigentor Gegner" "Eigentor".
 
 ---
 
@@ -115,11 +123,12 @@ Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer h
 - **FR-V03**: Bei "Eigentor Gegner", "Ohne Torschütze", abgelaufener Schnellauswahl, Gegentoren und ausgeschaltetem Schalter DARF keine Frage nach der Vorlage erscheinen.
 - **FR-V04**: Ist der Schalter an, MUSS das Fenster eines Feuerbach-Tores mit Spieler als Torschütze und ohne Elfmeter-Kennzeichen den Knopf "Vorlage ändern" bieten. Er öffnet "Vorlage von?" wie FR-V02, jedoch ohne Countdown, mit "Ohne Vorlage" (entfernt die Vorlage) und "Abbrechen".
 - **FR-V05**: Eine Vorlage DARF nur an einem Feuerbach-Tor mit Spieler als Torschützen und ohne Elfmeter-Kennzeichen hängen, und der Vorlagengeber DARF nicht der Torschütze sein. Ändert sich das Tor so, dass eine Bedingung verletzt ist (anderer Torschütze gleich Vorlagengeber, "Ohne Torschütze", "Eigentor Gegner", "Elfmeter"), MUSS die Vorlage entfernt werden.
-- **FR-V06**: Torliste im Spiel (FR-034), Titel des Tor-Fensters und Spieldetails MÜSSEN ein Tor mit Vorlage als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen, z. B. "12' 1:0 Feuerbach, Max (Vorlage Ben)".
+- **FR-V06**: Torliste im Spiel (FR-034), Titel des Tor-Fensters und Spieldetails MÜSSEN ein Tor mit Vorlage als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen, z. B. "12' 1:0 Max (Vorlage Ben)".
 - **FR-V07**: Der Teilen-Text (Spec 005, FR-S03) MUSS die Vorlage in der Zeile des Tores als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen. Es gibt keine eigene Zeile für Vorlagen; die Zeile "\*Torschützen\*" (FR-S06) bleibt unverändert.
-- **FR-V08**: Die Live-Kopplung (Spec 006) MUSS den Anzeigenamen des Vorlagengebers mit übertragen (Ergänzung zu FR-L10), und das Dashboard MUSS ihn im aufgeklappten Torverlauf (FR-L12) als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen. Ein Dashboard mit älterem Stand der App MUSS solche Stände weiterhin anzeigen (ohne Vorlage), und ein neues Dashboard MUSS Stände ohne Vorlage von Trainer-Handys mit älterem Stand der App anzeigen.
+- **FR-V08**: Die Live-Kopplung (Spec 006) MUSS den Anzeigenamen des Vorlagengebers mit übertragen (Ergänzung zu FR-L10), und das Dashboard MUSS ihn im aufgeklappten Torverlauf (FR-L12) als "{Torschütze} (Vorlage: {Vorlagengeber})" zeigen, z. B. "Max (Vorlage: Ben)". Ein Dashboard mit älterem Stand der App MUSS solche Stände weiterhin anzeigen (ohne Vorlage), und ein neues Dashboard MUSS Stände ohne Vorlage von Trainer-Handys mit älterem Stand der App anzeigen.
 - **FR-V09**: In allen Anzeigen (Torliste, Tor-Fenster, Spieldetails, Teilen-Text, Dashboard) MÜSSEN Torschütze und Vorlagengeber nur mit Anzeigenamen (FR-020) erscheinen, nie mit Rückennummer, auch wenn eine eingetragen ist. Die Auswahlknöpfe in "Wer hat getroffen?" und "Vorlage von?" MÜSSEN Nummer und Name zeigen.
 - **FR-V10**: Vorlagen MÜSSEN in der Sicherung (FR-024) enthalten sein; Sicherungen ohne Vorlagen MÜSSEN weiterhin importiert werden können.
+- **FR-V11**: Torliste im Spiel und Titel des Tor-Fensters MÜSSEN bei Toren mit Torschützen auf den Mannschaftsnamen verzichten: eigene Tore "{Name}", "Eigentor Gegner" als "Eigentor", Gegentore mit Freitext "{Freitext} ({Gegner})" wie in den Spieldetails; Zusätze "(Vorlage …)" und "(Elfmeter)" folgen dahinter. Ohne Torschützen MUSS wie bisher der Mannschaftsname stehen (Kurzform der eigenen Mannschaft bzw. Gegner). Gilt unabhängig vom Schalter "Vorlagen" und ändert 001 US3-S1 und 003 US1-S1.
 
 ### Key Entities
 
@@ -135,6 +144,7 @@ Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer h
 - **SC-V02**: Mit ausgeschaltetem Schalter braucht ein Tor mit Torschützen genau so viele Taps wie vorher, und kein Bildschirm ändert sich.
 - **SC-V03**: Ohne weiteren Tipp ist das Fenster spätestens 5 Sekunden nach der Wahl des Torschützen wieder zu; das Tor und der Torschütze bleiben in jedem Fall gespeichert.
 - **SC-V04**: In keiner Anzeige erscheint eine Rückennummer neben einem Torschützen oder Vorlagengeber (geprüft mit Spielern, die Nummern haben).
+- **SC-V05**: Auf dem iPhone SE steht "Moritz (Vorlage Anton)" in der Torliste ungekürzt in einer Zeile.
 
 ## Assumptions
 
@@ -143,4 +153,5 @@ Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer h
 - Der Schalter gilt wie die anderen Schalter aus 003 für das ganze Gerät.
 - Die Tor-Erfassung selbst bleibt ein Tap (Constitution I); die Vorlage ist optional und nachträglich möglich.
 - Die Anzeige ohne Rückennummer entspricht dem heutigen Verhalten bei Torschützen; FR-V09 schreibt es fest und dehnt es auf Vorlagen aus.
+- Ohne Mannschaftsnamen ist in der Torliste genug Platz (gemessen im Mockup auf dem iPhone SE); ein Zeilenumbruch für Zeilen mit Vorlage ist deshalb nicht vorgesehen. Sehr lange Namen kürzt die Torliste wie bisher mit "…"; Tor-Fenster, Spieldetails, Teilen-Text und Dashboard zeigen sie vollständig.
 - Abhängigkeiten: Spec 001 (Torschützen, Aufgebot), 003 (Schalter, Elfmeter), 005 (Teilen-Text), 006 (Live-Dashboard).

@@ -39,7 +39,7 @@ Nach einem Tor markiert der Nutzer in der Torliste "Elfmeter", so wie heute "Eig
 
 **Acceptance Scenarios**:
 
-1. **Given** ein Feuerbach-Tor von Ben in Minute 31, **When** der Nutzer es antippt und "Elfmeter" wählt, **Then** zeigt die Torliste "31' Feuerbach, Ben (Elfmeter)" und der Teilen-Text "Ben (Elfmeter)" in der Zeile des Tores.
+1. **Given** ein Feuerbach-Tor von Ben in Minute 31, **When** der Nutzer es antippt und "Elfmeter" wählt, **Then** zeigt die Torliste "31' Feuerbach, Ben (Elfmeter)" (seit Spec 009 FR-V11: "31' Ben (Elfmeter)") und der Teilen-Text "Ben (Elfmeter)" in der Zeile des Tores.
 2. **Given** ein Gegentor, **When** der Nutzer "Elfmeter" wählt, **Then** gilt das Kennzeichen ebenso (mit oder ohne Torschützen-Freitext).
 3. **Given** ein als Elfmeter markiertes Tor, **When** der Nutzer die Markierung wieder abwählt, **Then** verschwindet sie aus Liste und Text.
 
