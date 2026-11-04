@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deriveClock } from '../../src/domain/clock';
+import { addGoal, DOUBLE_TAP_MS } from '../../src/domain/goals';
 import { applySnapshot, boardView, emptyBoard, type BoardEntry } from '../../src/domain/live-board';
 import { MAX_TAKEOVER, type LiveGameSnapshot, type LiveGoal } from '../../src/domain/live-snapshot';
 import { handOver, takenOver, takeoverGame } from '../../src/domain/live-takeover';
@@ -117,6 +118,17 @@ describe('006 US6-S2 FR-L23 Spiel aus dem letzten Live-Stand übernehmen', () =>
       newId,
     });
     expect(t.goals[0]?.at).toBe(T0 + min(3) + 5000);
+    // Übernahme direkt nach der Meldung: Tor liegt trotzdem außerhalb des Doppeltipp-Schutzes.
+    const quick = takeoverGame({
+      entry: entry(fresh, T0 + min(3) + 5000),
+      ownTeam: 'E2',
+      players,
+      skew: 0,
+      now: T0 + min(3) + 5500,
+      newId,
+    });
+    expect(quick.goals[0]?.at).toBe(T0 + min(3) + 5500 - DOUBLE_TAP_MS);
+    expect(addGoal(quick, 'own', T0 + min(3) + 5500).added).toBe(true);
   });
 
   it('Tore mit Torschützen: eigene über den Namen dem Kader zugeordnet, Gegner als Text', () => {

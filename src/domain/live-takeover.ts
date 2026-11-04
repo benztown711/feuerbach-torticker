@@ -1,5 +1,5 @@
 import { deriveClock } from './clock';
-import { score } from './goals';
+import { DOUBLE_TAP_MS, score } from './goals';
 import type { Board, BoardEntry } from './live-board';
 import { MAX_TAKEOVER, type LiveGameSnapshot, type LiveGoal } from './live-snapshot';
 import { sectionMinutesOf, sectionOffset } from './minute';
@@ -76,8 +76,9 @@ export function takeoverGame(i: TakeoverInput): Game {
   // Uhr des alten Handys → Serverzeit → eigene Uhr (R-L4)
   const local = (t: number): number => t - (s.sentAt - i.entry.at) - i.skew;
   const clockEvents: ClockEvent[] = s.clock.map(([type, at, section]) => ({ type, at: local(at), section }));
-  // Die Tore fielen vor der Meldung (Serverzeit der Meldung auf der eigenen Uhr).
-  const latest = Math.min(i.now, i.entry.at - i.skew);
+  // Die Tore fielen vor der Meldung (Serverzeit der Meldung auf der eigenen Uhr) und gelten nie als gerade eben
+  // erfasst: sonst wiese der Doppeltipp-Schutz ein sofortiges eigenes Tor ab.
+  const latest = Math.min(i.now - DOUBLE_TAP_MS, i.entry.at - i.skew);
   const goals = s.goals.map((g) => goalOf(g, goalAt(g, clockEvents, s, latest), i.players, i.newId()));
   const clock = deriveClock(clockEvents, i.now, s.schema);
   const firstHalfDone = clockEvents.some((e) => e.type === 'sectionEnd' && e.section === 1);
