@@ -74,6 +74,8 @@ export async function addTeam(page: Page, name: string, colors: { home?: string;
 /** Legt die Mannschaft an, falls es sie noch nicht gibt. */
 export async function ensureTeam(page: Page, name: string): Promise<void> {
   await page.goto('./#/einstellungen');
+  // Erst lesen, wenn die Einstellungen geladen sind (sonst ist die Liste leer und die Mannschaft doppelt).
+  await expect(page.getByTestId('btn-add-team')).toBeVisible();
   const names = await page.locator('.team-row__name').allTextContents();
   if (!names.includes(name)) await addTeam(page, name);
 }
