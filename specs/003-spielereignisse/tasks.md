@@ -26,3 +26,10 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 - [x] E203 [P] `tests/unit/export.test.ts` und `contracts/export.schema.json`: Verlängerung, Abfrage und Elfmeterschießen in der Sicherung
 - [x] E204 [P] E2E `tests/e2e/pokal.spec.ts`: 003 US5-S1 bis S5, US6-S1 bis S5, FR-033; Helfer `acceptDraw` für bestehende Tests mit Unentschieden
 - [x] E205 UI: `draw-dialog` (`draw-accept`, `draw-extra`, `draw-shootout`), `extra-sheet`, `first-dialog`, `ShootoutView` (`pen-*`), `shootout-result`, Spieldetails mit Schützen (macht E204 grün)
+
+## Teil 4: Ein Knopf je Schalter (Änderung 04.11.2026)
+
+- [ ] E301 E2E `tests/e2e/ereignisse.spec.ts`: 003 US2-S1 (Zeile erst ab Anpfiff), US2-S2 mit einem Tap, neu US2-S7 (nur "Lesezeichen") und US2-S8 (alle drei in einer Zeile, Reihenfolge, kein Umbruch auf 375 × 667 pt, FR-033); SC-E03 auf die Zeile umgestellt
+- [ ] E302 [P] E2E `tests/e2e/karten-wechsel.spec.ts`: Abläufe auf `btn-event-card`/`btn-event-sub` umgestellt, neu US3-S7 (genau vier Kacheln) und US4-S5 (Wechsel ohne Zwischenschritt); US3-S1/US4-S1 und FR-E06 auf die Zeile umgestellt
+- [ ] E303 UI `src/ui/screens/game.tsx` und `src/styles/app.css`: Zeile `event-row` mit `btn-event-card`, `btn-event-sub`, `btn-event-mark`, `card-pick-sheet`; `event-sheet` entfällt (macht E301 und E302 grün)
+- [ ] E304 Selbstprüfung: Screenshots iPhone hell/dunkel mit allen drei Knöpfen, `/code-review`, `/security-review`

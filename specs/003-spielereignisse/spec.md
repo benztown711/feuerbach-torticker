@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-03
 
-**Status**: Entwurf. Review A und Review B erledigt (03.11.2026). Änderung "Ein Knopf je Schalter" (04.11.2026, siehe Clarifications): Review A erledigt, Review B offen. Mockup: https://claude.ai/artifact/Qji7cxYPwgjJqEHAEwRnvx
+**Status**: Entwurf. Review A und Review B erledigt (03.11.2026). Änderung "Ein Knopf je Schalter" (04.11.2026, siehe Clarifications): Review A und Review B erledigt. Mockup: https://claude.ai/artifact/Qji7cxYPwgjJqEHAEwRnvx
 
 **Input**: User description: "Beim Tor kennzeichnen, dass es ein Elfmeter war. Für die höher spielenden Mannschaften gelbe, gelb-rote und rote Karten sowie Auswechslungen (wer für wen), in den Einstellungen per Schalter ein- und ausschaltbar, weil das in der E-Jugend irrelevant ist. Ein interner Vermerk wie ein Lesezeichen mit optionalem Kommentar, um Szenen später in der Veo-Aufzeichnung anzuschauen. Pokalspiele mit Verlängerung und Elfmeterschießen."
 
