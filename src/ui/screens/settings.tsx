@@ -3,9 +3,11 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../dom
 import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
+import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
 import type { EventFeatures, Settings, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
+import { previewSignal } from '../../platform/signal';
 import { applyTheme, isStandalone } from '../../platform/storage';
 import { Confirm } from '../components/confirm';
 import { KitRow } from '../components/kit-row';
@@ -130,7 +132,10 @@ function TeamSheet(props: {
   );
 }
 
-/** Einstellungen: Meine Mannschaften (Spec 004), Darstellung (FR-018), Sicherung (FR-024), Installationshinweis (FR-023). */
+/**
+ * Einstellungen: Meine Mannschaften (Spec 004), Im Spiel erfassen (Spec 003), Signalton (Spec 008),
+ * Darstellung (FR-018), Sicherung (FR-024), Installationshinweis (FR-023).
+ */
 export function SettingsScreen() {
   const [settings, setSettings] = useState<Settings | undefined>(undefined);
   const [exportMsg, setExportMsg] = useState('');
@@ -280,6 +285,51 @@ export function SettingsScreen() {
               </li>
             ))}
           </ul>
+        </section>
+
+        <section class="settings__section" aria-labelledby="s-sound">
+          <h2 id="s-sound" class="t-label settings__heading">
+            SIGNALTON
+          </h2>
+          <div class="sound-list" role="radiogroup" aria-labelledby="s-sound" data-testid="signal-sounds">
+            {SIGNAL_SOUNDS.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                class="sound-row"
+                role="radio"
+                aria-checked={settings.signalSound === o.id}
+                aria-labelledby={`sound-${o.id}-name`}
+                aria-describedby={`sound-${o.id}-help`}
+                data-testid={`signal-sound-${o.id}`}
+                onClick={() => {
+                  // Spec 008 FR-K02: sofort hören (innerhalb der Berührung) und speichern.
+                  previewSignal(o.id);
+                  save({ ...settings, signalSound: o.id });
+                }}
+              >
+                <span class="sound-row__check" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" class="icon">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                </span>
+                <span class="sound-row__text">
+                  <span class="sound-row__title" id={`sound-${o.id}-name`}>
+                    {o.name}
+                  </span>
+                  <span class="sound-row__help" id={`sound-${o.id}-help`}>
+                    {o.description}
+                  </span>
+                </span>
+                <span class="sound-row__play" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M7 4.5v15l12.5-7.5z" />
+                  </svg>
+                </span>
+              </button>
+            ))}
+          </div>
+          <p class="field__help">Antippen spielt den Ton ab. Lautstärke mit den Tasten am Handy einstellen.</p>
         </section>
 
         <section class="settings__section" aria-labelledby="s-theme">
