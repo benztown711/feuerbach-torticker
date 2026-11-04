@@ -11,6 +11,7 @@ import {
   linkUrl,
   parseLinkPath,
   trainerLinkPath,
+  viewerShareText,
   viewerLinkPath,
   type LeadLinkData,
   type TrainerLinkData,
@@ -171,5 +172,20 @@ describe('006 FR-L02 FR-L03 Zuschauer- und Lead-Link (contracts/live-link.md)', 
     expect(parseLinkPath(`/live/${textToBase64Url('{kein json')}`).kind).toBe('invalid');
     expect(parseLinkPath('/spiel/abc').kind).toBe('invalid');
     expect(parseLinkPath('').kind).toBe('invalid');
+  });
+});
+
+describe('009 FR-H17 Teilen-Text der Eltern-Leiste', () => {
+  const url = 'https://benztown711.github.io/feuerbach-torticker/#/live/abc';
+  it('nennt Titel, Mannschaften und den Link', () => {
+    expect(viewerShareText('Unser Spieltag', ['E1', 'E2'], url)).toBe(
+      `Unser Spieltag live (Sportvg Feuerbach E1 und E2). Der Link gilt die ganze Saison: ${url}`,
+    );
+    expect(viewerShareText('Unser Spieltag', ['E1', 'E2', 'E3'], url)).toContain('(Sportvg Feuerbach E1, E2 und E3)');
+  });
+  it('ohne Mannschaften ohne Klammer', () => {
+    expect(viewerShareText('Unser Spieltag', [], url)).toBe(
+      `Unser Spieltag live. Der Link gilt die ganze Saison: ${url}`,
+    );
   });
 });

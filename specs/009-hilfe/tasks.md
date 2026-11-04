@@ -6,12 +6,12 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 1: Domäne Suche und Inhalte (US1, US2)
 
-- [ ] H001 [P] [US1] `tests/unit/help-search.test.ts`: Normalisierung (ä/ae, ß/ss, Groß/Klein), Wortanfang und Teilwort ab vier Zeichen, unter zwei Zeichen keine Suche, Satzzeichen/Emojis ignoriert, 60 Zeichen, Füllwörter (nur Füllwörter: zählen doch), alle Wörter müssen passen, Sortierung Titel vor Suchbegriffen vor Text, ganzes Wort vor Wortanfang, Hervorhebung und Auszug als Abschnitte (FR-H01 bis FR-H06)
-- [ ] H002 [US1] `src/domain/help-search.ts` (macht H001 grün)
-- [ ] H003 [P] [US2] `tests/unit/help-entries.test.ts`: Themen in Reihenfolge FR-H08, jedes Thema hat Einträge, IDs eindeutig und adressierbar, Titel endet mit "?", Antwort höchstens 600 Zeichen, höchstens drei verwandte Einträge, Eltern-Einträge vorhanden; SC-H01 Fragenkatalog (mindestens 15 Alltagsformulierungen, passender Eintrag unter den ersten drei); SC-H02 Laufzeit
-- [ ] H004 [US2] `src/domain/help-entries.ts` mit dem Grundbestand (Texte aus dem Mockup, gegen die App geprüft; Einträge für 009 US1 und US3) (macht H003 grün)
-- [ ] H005 [P] [US2] `tests/unit/live-link.test.ts`: `viewerShareText` mit und ohne Mannschaften (FR-H17)
-- [ ] H006 [US2] `viewerShareText` in `src/domain/live-link.ts` (macht H005 grün)
+- [x] H001 [P] [US1] `tests/unit/help-search.test.ts`: Normalisierung (ä/ae, ß/ss, Groß/Klein), Wortanfang und Teilwort ab vier Zeichen, unter zwei Zeichen keine Suche, Satzzeichen/Emojis ignoriert, 60 Zeichen, Füllwörter (nur Füllwörter: zählen doch), alle Wörter müssen passen, Sortierung Titel vor Suchbegriffen vor Text, ganzes Wort vor Wortanfang, Hervorhebung und Auszug als Abschnitte (FR-H01 bis FR-H06)
+- [x] H002 [US1] `src/domain/help-search.ts` (macht H001 grün)
+- [x] H003 [P] [US2] `tests/unit/help-entries.test.ts`: Themen in Reihenfolge FR-H08, jedes Thema hat Einträge, IDs eindeutig und adressierbar, Titel endet mit "?", Antwort höchstens 600 Zeichen, höchstens drei verwandte Einträge, Eltern-Einträge vorhanden; SC-H01 Fragenkatalog (mindestens 15 Alltagsformulierungen, passender Eintrag unter den ersten drei); SC-H02 Laufzeit
+- [x] H004 [US2] `src/domain/help-entries.ts` mit dem Grundbestand (Texte aus dem Mockup, gegen die App geprüft; Einträge für 009 US1 und US3) (macht H003 grün)
+- [x] H005 [P] [US2] `tests/unit/live-link.test.ts`: `viewerShareText` mit und ohne Mannschaften (FR-H17)
+- [x] H006 [US2] `viewerShareText` in `src/domain/live-link.ts` (macht H005 grün)
 
 ## Phase 2: Hilfe-Seite (US1, US2)
 
