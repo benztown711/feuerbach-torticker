@@ -1,12 +1,13 @@
-import { boardView, runningElsewhere, type BoardEntry } from '../domain/live-board';
+import { boardView, otherGames, runningElsewhere, type BoardCard, type BoardEntry } from '../domain/live-board';
 import { configOf, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
 
 /**
- * Spec 006 US6: Trainer-Handys hören beim Anlegen und während eines Live-Spiels mit, ob ein anderes Handy
- * dasselbe Spiel überträgt bzw. das eigene übernommen hat (FR-L22 bis FR-L24). Wird nachgeladen.
+ * Spec 006 US4 und US6: Trainer-Handys hören beim Anlegen und im Spielbildschirm mit: Läuft dasselbe Spiel
+ * schon auf einem anderen Handy, wurde das eigene übernommen (FR-L22 bis FR-L24), wie stehen die anderen
+ * Spiele (US4)? Wird nachgeladen.
  */
 
 export { handOver };
@@ -48,30 +49,42 @@ export function watchSpieltag(live: LiveSpieltag, deps: Partial<ReceiverDeps> = 
   };
 }
 
-/**
- * FR-L24: meldet einmal, sobald ein anderes Handy das Spiel übernommen hat (größerer Übergabezähler).
- * `current` liefert den aktuellen Stand des Spiels auf diesem Handy.
- */
-export function watchTakeover(
-  live: LiveSpieltag,
-  team: string,
-  current: () => Game | null,
-  onTakenOver: () => void,
-  deps: Partial<ReceiverDeps> = {},
-): () => void {
+export interface GameWatch {
+  /** US4: heutige Spiele ohne das Spiel `gameId` dieses Handys, Stand und Minute jetzt. */
+  others(gameId: string): BoardCard[];
+  /** Jetzt in Serverzeit (R-L4). */
+  serverNow(): number;
+  onChange(cb: () => void): () => void;
+  stop(): void;
+}
+
+export interface GameWatchHooks {
+  /** Mannschaft, für die dieses Handy das Spiel sendet; null: sendet nicht, keine Prüfung auf Übernahme. */
+  team(): string | null;
+  /** Aktueller Stand des Spiels auf diesem Handy. */
+  current(): Game | null;
+  /** FR-L24: einmal, sobald ein anderes Handy das Spiel übernommen hat (größerer Übergabezähler). */
+  onTakenOver(): void;
+}
+
+/** Eine Verbindung je Spielbildschirm, solange er offen und das Handy gekoppelt ist (US4, FR-L24). */
+export function watchGame(live: LiveSpieltag, hooks: GameWatchHooks, deps: Partial<ReceiverDeps> = {}): GameWatch {
   const r = receiverFor(live, deps);
   let done = false;
   const check = (): void => {
-    const g = current();
-    if (done || !g || !takenOver(r.get().board, g, team)) return;
+    const g = hooks.current();
+    const team = hooks.team();
+    if (done || !g || !team || !takenOver(r.get().board, g, team)) return;
     done = true;
-    onTakenOver();
+    hooks.onTakenOver();
   };
-  const off = r.onChange(check);
+  r.onChange(check);
   r.start();
   check();
-  return () => {
-    off();
-    r.stop();
+  return {
+    others: (gameId) => otherGames(r.get().board, gameId, r.serverNow(), deps.timeZone),
+    serverNow: () => r.serverNow(),
+    onChange: (cb) => r.onChange(cb),
+    stop: () => r.stop(),
   };
 }

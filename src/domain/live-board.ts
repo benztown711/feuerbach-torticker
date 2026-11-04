@@ -358,6 +358,14 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
   return { title: board.config?.title ?? null, teams, cards, today: cards.some((c) => c.today) };
 }
 
+/**
+ * Spec 006 US4: die heutigen Karten ohne das Spiel `gameId` dieses Handys, für die Zeile im Spielbildschirm.
+ * Reihenfolge wie auf dem Dashboard (laufende zuerst).
+ */
+export function otherGames(board: Board, gameId: string, serverNow: number, timeZone?: string): BoardCard[] {
+  return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId);
+}
+
 /** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */
 export const ACTIVE_MS = 30 * 60_000;
 
