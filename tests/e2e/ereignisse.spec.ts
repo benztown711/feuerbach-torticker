@@ -10,27 +10,70 @@ async function enableMarks(page: Page): Promise<void> {
   await expect(sw).toHaveAttribute('aria-checked', 'true');
 }
 
+async function enable(page: Page, ...keys: ('cards' | 'subs' | 'marks')[]): Promise<void> {
+  await page.goto('./#/einstellungen');
+  for (const k of keys) {
+    await page.getByTestId(`feature-${k}`).click();
+    await expect(page.getByTestId(`feature-${k}`)).toHaveAttribute('aria-checked', 'true');
+  }
+}
+
+/** FR-E05: ein Tap auf "Lesezeichen" setzt es sofort, ohne Auswahl dazwischen. */
 async function setMark(page: Page): Promise<void> {
-  await page.getByTestId('btn-event').click();
-  await expect(page.getByTestId('event-sheet')).toBeVisible();
-  await page.getByTestId('event-mark').click();
-  await expect(page.getByTestId('event-sheet')).toBeHidden();
+  await page.getByTestId('btn-event-mark').click();
+  await expect(page.getByTestId('mark-toast')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 }
 
 test.describe('Spec 003 Teil 1: Lesezeichen und Elfmeter', () => {
-  test('003 US2-S1 FR-E02 FR-E09 ohne Schalter kein Knopf "Ereignis"; mit Schalter erst ab Anpfiff', async ({
-    page,
-  }) => {
+  test('003 US2-S1 FR-E02 FR-E09 ohne Schalter keine Knopfzeile; mit Schalter erst ab Anpfiff', async ({ page }) => {
     await startGame(page);
-    await expect(page.getByTestId('btn-event')).toHaveCount(0);
+    await expect(page.getByTestId('event-row')).toHaveCount(0);
     await enableMarks(page);
     await newGame(page, { opponent: 'FC Erster' });
-    await expect(page.getByTestId('btn-event')).toHaveCount(0);
+    await expect(page.getByTestId('event-row')).toHaveCount(0);
     await page.getByTestId('btn-kickoff').click();
-    await expect(page.getByTestId('btn-event')).toBeVisible();
+    await expect(page.getByTestId('btn-event-mark')).toBeVisible();
   });
 
-  test('003 US2-S2 US2-S3 Lesezeichen mit zwei Taps, Kommentar per Schnellwahl, "nur für dich" in der Liste', async ({
+  test('003 US2-S7 FR-E09 nur "Lesezeichen" an: genau ein Knopf "Lesezeichen", kein "Ereignis"', async ({ page }) => {
+    await enableMarks(page);
+    await startGame(page);
+    const buttons = page.getByTestId('event-row').getByRole('button');
+    await expect(buttons).toHaveCount(1);
+    await expect(buttons).toHaveText('Lesezeichen');
+    for (const id of ['btn-event', 'btn-event-card', 'btn-event-sub']) {
+      await expect(page.getByTestId(id)).toHaveCount(0);
+    }
+  });
+
+  test('003 US2-S8 FR-E09 FR-033 alle drei an: Karte, Wechsel, Lesezeichen in einer Zeile auf dem iPhone SE', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await enable(page, 'cards', 'subs', 'marks');
+    await startGame(page);
+    const buttons = page.getByTestId('event-row').getByRole('button');
+    await expect(buttons).toHaveText(['Karte', 'Wechsel', 'Lesezeichen']);
+    const boxes = await Promise.all([0, 1, 2].map(async (i) => buttons.nth(i).boundingBox()));
+    const [first] = boxes;
+    for (const box of boxes) {
+      expect(box?.y).toBe(first?.y);
+      expect(box?.height).toBe(first?.height);
+      expect(box?.height).toBeGreaterThanOrEqual(40);
+    }
+    expect((boxes[2]?.x ?? 0) + (boxes[2]?.width ?? 0)).toBeLessThanOrEqual(375 - 16);
+    const clipped = await buttons.evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth).length);
+    expect(clipped).toBe(0);
+    const scroll = await page.evaluate(() => {
+      const el = document.scrollingElement as HTMLElement;
+      return { sh: el.scrollHeight, ih: window.innerHeight, sw: el.scrollWidth, iw: window.innerWidth };
+    });
+    expect(scroll.sh).toBeLessThanOrEqual(scroll.ih);
+    expect(scroll.sw).toBeLessThanOrEqual(scroll.iw);
+  });
+
+  test('003 US2-S2 US2-S3 SC-E01 Lesezeichen mit einem Tap, Kommentar per Schnellwahl, "nur für dich" in der Liste', async ({
     page,
   }) => {
     await enableMarks(page);
@@ -126,13 +169,11 @@ test.describe('Spec 003 Teil 1: Lesezeichen und Elfmeter', () => {
     expect(((await recorded()).shares[0]?.text ?? '').split('\n')).toContain("⚫ 5'  0:1  (Elfmeter)");
   });
 
-  test('003 SC-E03 FR-033 mit Knopf "Ereignis" passt der Spielbildschirm weiter auf das iPhone SE', async ({
-    page,
-  }) => {
+  test('003 SC-E03 FR-033 mit Knopfzeile passt der Spielbildschirm weiter auf das iPhone SE', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await enableMarks(page);
     await startGame(page);
-    await expect(page.getByTestId('btn-event')).toBeVisible();
+    await expect(page.getByTestId('btn-event-mark')).toBeVisible();
     const scroll = await page.evaluate(() => {
       const el = document.scrollingElement as HTMLElement;
       return { sh: el.scrollHeight, ih: window.innerHeight, sw: el.scrollWidth, iw: window.innerWidth };
