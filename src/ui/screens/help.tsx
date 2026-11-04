@@ -20,8 +20,9 @@ export function HelpScreen() {
         </p>
         <h2 class="t-label">TON AM SPIELFELDRAND</h2>
         <p>
-          Der Pfiff bei Spielzeitende kommt auch bei eingeschaltetem Lautlos-Schalter. Die Lautstärke regelst du mit den
-          Lautstärketasten, solange die App offen ist.
+          Der Signalton bei Spielzeitende kommt auch bei eingeschaltetem Lautlos-Schalter. Die Lautstärke regelst du mit
+          den Lautstärketasten, solange die App offen ist. Pfiff, Glocke oder Gong wählst du unter „Mehr“ →
+          „Einstellungen“.
         </p>
         <p>
           Lass die App während des Spiels im Vordergrund. Der Bildschirm bleibt dann an. Im Hintergrund oder bei

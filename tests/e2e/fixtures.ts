@@ -75,6 +75,8 @@ export interface Recorded {
   shares: { text?: string; title?: string; files?: number; fileName?: string; fileText?: string }[];
   clipboard?: string;
   sounds: number;
+  /** Spec 008: Ton (`data-sound`) des zuletzt hörbar gestarteten Signals. */
+  lastSound?: string;
   vibrations: number;
   keepAlive: boolean;
 }
@@ -83,7 +85,14 @@ export interface Recorded {
 export async function installMocks(page: Page): Promise<void> {
   await page.clock.install();
   await page.addInitScript(() => {
-    const rec = { shares: [] as unknown[], sounds: 0, vibrations: 0, blockAudio: false, keepAlive: false };
+    const rec = {
+      shares: [] as unknown[],
+      sounds: 0,
+      lastSound: undefined as string | undefined,
+      vibrations: 0,
+      blockAudio: false,
+      keepAlive: false,
+    };
     (window as unknown as { __rec: typeof rec }).__rec = rec;
     Object.defineProperty(navigator, 'share', {
       configurable: true,
@@ -118,7 +127,10 @@ export async function installMocks(page: Page): Promise<void> {
     // Signal läuft über ein Audio-Element (R-18). Hörbare Starts zählen; blockAudio simuliert die iOS-Sperre.
     HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) {
       if (rec.blockAudio) return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
-      if (!this.muted && !this.hasAttribute('data-keepalive')) rec.sounds++;
+      if (!this.muted && !this.hasAttribute('data-keepalive')) {
+        rec.sounds++;
+        rec.lastSound = this.dataset.sound;
+      }
       if (this.hasAttribute('data-keepalive')) rec.keepAlive = true;
       return Promise.resolve();
     };
