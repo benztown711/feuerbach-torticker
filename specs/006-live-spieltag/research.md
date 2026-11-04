@@ -98,3 +98,8 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 - **Erkennen beim Anlegen**: "Neues Spiel" hört auf einem Trainer-Handy mit. Ein fremdes Spiel derselben Mannschaft gilt als laufend, wenn es heute ist, nicht beendet und die letzte Meldung höchstens 30 Minuten alt ist.
 - **Grenzen**: Übernommen wird nur, was übertragen wird (FR-L10): keine Karten, Wechsel, Lesezeichen, kein Aufgebot. Torschützen werden über den Namen dem eigenen Kader zugeordnet. Die Uhrzeit der Tore wird aus Minute und Anpfiff geschätzt, höchstens der Zeitpunkt der Meldung (sonst gälte ein späteres Tor als Doppeltipp).
 - **Alternatives**: Explizite Übergabe-Meldung an das alte Handy (braucht Empfang auf beiden Seiten, ohne Mehrwert gegenüber `h`); Sperre "nur ein Handy je Mannschaft" (verhindert die gewünschte Übergabe).
+
+## R-L16 Sicherheitsreview US6 (04.11.2026)
+
+- Ergebnis: keine Schwachstelle mit Konfidenz ≥ 8. Geprüft: `h` steht im signierten Inhalt (ohne Trainer- oder Lead-Schlüssel kein größeres `h`), wiederholte Meldungen ändern nichts (`h` und `sentAt` gleich), Mithören nutzt dieselbe Prüfung wie das Dashboard, Obergrenzen der übernommenen Daten, keine neuen Empfänger von Daten, Sicherung (`liveTakeover` 0 bis 100, vorhandene Spiele werden nicht überschrieben).
+- Bewusst offen: Eine fremde Sicherung mit `liveTakeover` könnte, von einem Trainer eingespielt, ein laufendes Spiel übernehmen. Das setzt voraus, dass ein Schlüsselinhaber eine fremde Datei importiert (wie schon vorher bei offenen Spielen); beim Handywechsel (FR-L21) muss der Zähler erhalten bleiben.

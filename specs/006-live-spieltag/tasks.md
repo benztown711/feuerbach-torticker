@@ -73,7 +73,7 @@
 - [x] L050 [US6] Domäne `src/domain/live-takeover.ts`, `live-board.ts`, `live-snapshot.ts`, `export.ts` (macht L049 grün, 100 % Branch-Coverage)
 - [x] L051 [US6] `src/platform/live-watch.ts` (nachgeladen), "Neues Spiel" mit Rückfrage, Spielbildschirm merkt die Übernahme (`live-handed-over`, Kennzeichen "Übergeben")
 - [x] L052 [US6] E2E `tests/e2e/live-us6.spec.ts`: 006 US6-S1 bis S5 mit zwei Trainer-Handys und Zuschauer
-- [ ] L053 [US6] `/code-review`, `/security-review`, Screenshots iPhone SE hell/dunkel an Atti
+- [x] L053 [US6] `/code-review`, `/security-review`, Screenshots iPhone SE hell/dunkel an Atti
 
 ## Phase 6: US4 Blick auf das andere Spiel (P2, PR 4)
 
