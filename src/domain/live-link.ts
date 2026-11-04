@@ -1,4 +1,5 @@
 import { textFromBase64Url, textToBase64Url } from './base64url';
+import { joinList } from './format';
 import { isPaletteColor } from './jersey-colors';
 import {
   isKey,
@@ -74,6 +75,12 @@ export const trainerLinkPath = (t: TrainerLinkData): string =>
 
 /** Vollständiger Link: Basisadresse der App plus Fragment. */
 export const linkUrl = (base: string, path: string): string => `${base}#${path}`;
+
+/** Spec 010 FR-H17: Text für "Teilen" in der Eltern-Leiste, z. B. für Großeltern. */
+export function viewerShareText(title: string, teams: string[], url: string): string {
+  const who = teams.length > 0 ? ` (Sportvg Feuerbach ${joinList(teams)})` : '';
+  return `${title} live${who}. Der Link gilt die ganze Saison: ${url}`;
+}
 
 function decode(data: string): Obj | null {
   try {

@@ -67,6 +67,21 @@ for (const scheme of ['light', 'dark'] as const) {
         expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       }
     });
+
+    test('010 Hilfe: Übersicht, Treffer mit Hervorhebung und Eintrag ohne axe-Verstöße', async ({ page }) => {
+      await page.goto('./#/hilfe');
+      await expect(page.getByTestId('help-topic-start')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.getByTestId('help-search').fill('tor löschen');
+      await expect(page.getByTestId('help-count')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.getByTestId('help-search').fill('xyz');
+      await expect(page.getByTestId('help-none')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.goto('./#/hilfe/sichern');
+      await expect(page.getByTestId('help-entry')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    });
   });
 }
 
@@ -84,6 +99,11 @@ test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
       await v.getByTestId('dash-toggle-E3').click();
       await expect(v.getByTestId('dash-details-E3')).toBeVisible();
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      // Spec 010: Eltern-Hilfe mit Leiste
+      await v.getByTestId('viewer-nav-help').click();
+      await v.getByTestId('help-search').fill('teilen');
+      await expect(v.getByTestId('help-count')).toBeVisible();
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
     });
   }

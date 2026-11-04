@@ -251,6 +251,10 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 - **SC-L07**: Betrieb und Nutzung kosten nichts und brauchen kein Konto (Constitution VIII).
 - **SC-L08**: Bis zu 40 Zuschauer je Mannschaft, bei drei Mannschaften also 120, verfolgen den Spieltag gleichzeitig, ohne dass SC-L01 und SC-L02 schlechter werden.
 
+## Hilfe
+
+Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden).
+
 ## Assumptions
 
 - Am Platz gibt es meistens mobiles Netz; Funklöcher verzögern die Anzeige, verhindern aber nie die Erfassung.
