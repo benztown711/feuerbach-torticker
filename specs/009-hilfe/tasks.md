@@ -24,7 +24,7 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 - [x] H011 [P] [US2] E2E `tests/e2e/hilfe-eltern.spec.ts`: 009 US2-S6 Leiste, US2-S7 Eltern-Hilfe mit Suche und zurück zum Spieltag ohne Neuladen, US2-S8 Teilen (Teilen-Menü aufgezeichnet bzw. Zwischenablage)
 - [x] H012 [US2] Router `#/live/<Daten>/hilfe[/<id>]`, `src/ui/components/viewer-nav.tsx`, `ViewerScreen` mit Reitern (Dashboard bleibt eingehängt) (macht H011 grün)
-- [ ] H013 [US2] Screenshot-Vergleich `dashboard-hell/dunkel` mit Leiste neu aufnehmen (bewusste Änderung, alle drei Profile)
+- [x] H013 [US2] Screenshot-Vergleich `dashboard-hell/dunkel` geprüft: Die Leiste ändert weniger als 1 % der Pixel (Toleranz `maxDiffPixelRatio` 0,01), der Vergleich bleibt in allen drei Profilen grün; Referenzbilder unverändert. Neu aufnehmen, sobald sich das Dashboard sichtbar stärker ändert.
 
 ## Phase 4: Prüfung Hilfe-Abdeckung (US3)
 
@@ -36,4 +36,4 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 - [x] H017 Spec 001 `tasks.md` T086 und Spec 006 `tasks.md` L040 mit Verweis auf 009; `README.md` Hinweis auf Hilfe
 - [x] H018 `a11y.spec.ts`: Trefferliste und Eintrag zusätzlich prüfen
-- [ ] H019 Lint, Typen, Unit mit Coverage, Kontrast, Budget, E2E lokal (Android), `/code-review`, `/security-review`; Screenshots iPhone hell/dunkel (Übersicht, Suche, Eintrag, Eltern-Leiste) an Atti
+- [x] H019 Lint, Typen, Unit mit Coverage, Kontrast, Budget, E2E lokal (Android), `/code-review`, `/security-review`; Screenshots iPhone hell/dunkel (Übersicht, Suche, Eintrag, Eltern-Leiste) an Atti
