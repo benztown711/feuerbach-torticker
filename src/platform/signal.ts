@@ -95,11 +95,14 @@ function element(): HTMLAudioElement {
   return audio;
 }
 
-/** Spec 008 FR-K04: gewählter Signalton; gilt ab dem nächsten Signal. Erzeugt den Ton schon jetzt. */
+/**
+ * Spec 008 FR-K04: gewählter Signalton; gilt ab dem nächsten Signal. Erzeugt wird der Ton erst beim
+ * ersten Abspielen, damit der Start (auch das Eltern-Dashboard) nicht wartet.
+ */
 export function setSignalSound(next: SignalSound): void {
   sound = next;
-  const el = element();
-  if (el.dataset.sound !== next) {
+  const el = audio;
+  if (el && el.dataset.sound !== next) {
     el.dataset.sound = next;
     el.src = soundUrl(next);
   }

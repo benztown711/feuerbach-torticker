@@ -11,7 +11,7 @@ import { applyTheme, requestPersistentStorage } from './platform/storage';
 // FR-018: gespeichertes Theme anwenden; FR-023: dauerhaften Speicher anfragen.
 void getSettings().then((s) => {
   applyTheme(s.theme);
-  // Spec 008 FR-K04: gewählten Signalton schon beim Start erzeugen.
+  // Spec 008 FR-K04: gewählten Signalton merken (erzeugt wird er beim ersten Abspielen).
   setSignalSound(s.signalSound);
   // Spec 006 FR-L05, FR-L06: nur gekoppelte Lead-Handys senden.
   void startLiveSender(s);
