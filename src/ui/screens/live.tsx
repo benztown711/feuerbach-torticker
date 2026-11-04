@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
-import { findLink, viewerLinkPath, type LeadLinkData } from '../../domain/live-link';
+import { findLink, viewerLinkPath, type LeadLinkData, type TrainerLinkData } from '../../domain/live-link';
 import {
   couplingKind,
   DEFAULT_LIVE_TITLE,
@@ -10,12 +10,21 @@ import {
   MAX_LIVE_TEAMS,
   replacesOrganizer,
   titleOf,
+  trainerTeamsOf,
   validateLiveInput,
 } from '../../domain/live-spieltag';
 import { shortTeamName } from '../../domain/team-name';
 import type { LeadCert, LiveSpieltag, Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
-import { coupleLead, createLive, shareLeadLink, shareViewerLink, verifyLeadLink } from '../../platform/live-setup';
+import {
+  coupleLead,
+  coupleTrainer,
+  createLive,
+  shareTrainerLink,
+  shareViewerLink,
+  verifyLeadLink,
+  verifyTrainerLink,
+} from '../../platform/live-setup';
 import type { ShareResult } from '../../platform/share';
 import { CoupleDialog } from '../components/couple-dialog';
 import { navigate } from '../router';
@@ -23,12 +32,14 @@ import { navigate } from '../router';
 /** Spec 006: "Mehr" → "Live-Spieltag" (US1): leer, anlegen, Übersicht, Lead-Ansicht, Link einfügen. */
 
 type View = 'main' | 'form' | 'paste';
-interface Pending {
-  lead: LeadLinkData;
-  cert: LeadCert;
-  /** Titel aus der geprüften Konfiguration. */
-  title: string;
-}
+/** Geprüfter Link, der auf Bestätigung wartet; Titel aus der geprüften Konfiguration. */
+type Pending =
+  | { kind: 'lead'; lead: LeadLinkData; cert: LeadCert; title: string }
+  | { kind: 'trainer'; trainer: TrainerLinkData; title: string };
+
+/** Mannschaften (Name und Trikots) eines wartenden Links. */
+const pendingTeams = (p: Pending): { name: string; homeColor: string }[] =>
+  p.kind === 'lead' ? [p.cert] : trainerTeamsOf(p.trainer);
 
 const SHARE_MSG: Record<ShareResult, string> = {
   shared: '',
@@ -93,7 +104,9 @@ export function LiveScreen() {
     if (!pending || coupling) return;
     setCoupling(true);
     try {
-      setSettings(await coupleLead(pending.lead, pending.cert));
+      setSettings(
+        await (pending.kind === 'lead' ? coupleLead(pending.lead, pending.cert) : coupleTrainer(pending.trainer)),
+      );
       setView('main');
     } catch {
       setMsg('Koppeln hat nicht geklappt. Bitte erneut versuchen.');
@@ -116,13 +129,13 @@ export function LiveScreen() {
           }}
         />
       )}
-      {view === 'paste' && <PasteLink onCancel={() => setView('main')} onLead={setPending} />}
+      {view === 'paste' && <PasteLink onCancel={() => setView('main')} onLink={setPending} />}
       {view === 'main' && !live && (
         <div class="form live" data-testid="live-empty">
           {settings?.liveView && <DashboardButton label={`Dashboard „${settings.liveView.title}“ ansehen`} />}
           <p class="live__lead">
-            Eltern verfolgen eure Spiele live auf einem Dashboard. Festgelegte Handys am Spielfeldrand senden die Stände
-            automatisch.
+            Eltern verfolgen eure Spiele live auf einem Dashboard. Die Handys der Trainergruppe senden die Spiele, die
+            sie erfassen, automatisch.
           </p>
           <div class="live__box">
             <span class="field__label t-label">WAS DAS HANDY VERLÄSST</span>
@@ -140,7 +153,7 @@ export function LiveScreen() {
             data-testid="btn-paste-link"
             onClick={() => setView('paste')}
           >
-            Lead-Link einfügen
+            Trainer-Link einfügen
           </button>
         </div>
       )}
@@ -155,11 +168,18 @@ export function LiveScreen() {
       )}
       {pending && (
         <CoupleDialog
-          cert={pending.cert}
+          trainer={pending.kind === 'trainer'}
+          teams={pendingTeams(pending).map((t) => shortTeamName(t.name))}
           title={pending.title}
-          replace={couplingKind(settings, pending.lead) === 'replace'}
-          addsTeam={!knowsTeam(settings, pending.cert.name)}
-          losesOrganizer={live && replacesOrganizer(settings, pending.lead) ? titleOf(live) : null}
+          replace={couplingKind(settings, pending.kind === 'lead' ? pending.lead : pending.trainer) === 'replace'}
+          adds={pendingTeams(pending)
+            .filter((t) => !knowsTeam(settings, t.name))
+            .map((t) => shortTeamName(t.name))}
+          losesOrganizer={
+            live && replacesOrganizer(settings, pending.kind === 'lead' ? pending.lead : pending.trainer)
+              ? titleOf(live)
+              : null
+          }
           busy={coupling}
           onYes={() => void couple()}
           onNo={() => setPending(null)}
@@ -182,9 +202,8 @@ function LiveForm({
   const [title, setTitle] = useState(DEFAULT_LIVE_TITLE);
   const [ids, setIds] = useState<string[]>(options.slice(0, MAX_LIVE_TEAMS).map((o) => o.team.id));
   const [failed, setFailed] = useState(false);
-  const [self, setSelf] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const check = validateLiveInput({ title, teamIds: ids, selfTeamId: self }, settings.teams);
+  const check = validateLiveInput({ title, teamIds: ids }, settings.teams);
   const [tried, setTried] = useState(false);
 
   if (options.length === 0) {
@@ -202,9 +221,7 @@ function LiveForm({
   }
 
   const toggle = (id: string): void => {
-    const next = ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
-    setIds(next);
-    if (self && !next.includes(self)) setSelf(null);
+    setIds(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
   };
 
   const save = async (): Promise<void> => {
@@ -213,7 +230,7 @@ function LiveForm({
     setBusy(true);
     setFailed(false);
     try {
-      onCreated(await createLive({ title, teamIds: ids, selfTeamId: self }));
+      onCreated(await createLive({ title, teamIds: ids }));
     } catch {
       setFailed(true);
       setBusy(false);
@@ -263,36 +280,9 @@ function LiveForm({
         <p class="field__help">Aus „Meine Mannschaften“, bis zu sechs.</p>
         {tried && check.errors.teams && <p class="field__error">{check.errors.teams}</p>}
       </div>
-      <div class="field">
-        <span class="field__label t-label" id="live-self">
-          DIESES HANDY SENDET FÜR
-        </span>
-        <div class="chips" role="group" aria-labelledby="live-self">
-          <button
-            type="button"
-            class="chip chip--wide"
-            aria-pressed={self === null}
-            data-testid="live-self-chip-none"
-            onClick={() => setSelf(null)}
-          >
-            Keine
-          </button>
-          {options
-            .filter((o) => ids.includes(o.team.id))
-            .map((o) => (
-              <button
-                type="button"
-                key={o.team.id}
-                class="chip chip--wide"
-                aria-pressed={self === o.team.id}
-                data-testid={`live-self-chip-${o.key}`}
-                onClick={() => setSelf(o.team.id)}
-              >
-                {o.key}
-              </button>
-            ))}
-        </div>
-      </div>
+      <p class="field__help">
+        Danach teilst du zwei Links: den Zuschauer-Link für die Eltern und den Trainer-Link für eure Trainergruppe.
+      </p>
       {failed && (
         <p class="field__error" role="alert">
           Anlegen hat nicht geklappt. Bitte erneut versuchen.
@@ -335,35 +325,40 @@ function Overview({
         </button>
       </section>
       <section class="field">
-        <span class="field__label t-label">LEAD-HANDYS</span>
+        <span class="field__label t-label">TRAINER</span>
+        <p class="live__text">
+          Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
+          Live-Spieltag verwalten.
+        </p>
+        <button
+          type="button"
+          class="btn btn--primary"
+          data-testid="btn-share-trainer"
+          onClick={() => void onShare(shareTrainerLink(live))}
+        >
+          Trainer-Link teilen
+        </button>
+      </section>
+      <section class="field">
+        <span class="field__label t-label">MANNSCHAFTEN</span>
         <ul class="live__rows">
           {live.teams.map((t) => (
-            <li key={t.key} class="live__row" data-testid={`live-lead-row-${t.key}`}>
+            <li key={t.key} class="live__row" data-testid={`live-team-row-${t.key}`}>
               <Mark color={t.homeColor} />
               <span class="live__row-text">
                 <strong>{shortTeamName(t.name)}</strong>
-                <span class="live__row-sub">{t.sends ? 'dieses Handy' : 'anderes Handy am Spielfeldrand'}</span>
               </span>
-              {!t.sends && (
-                <button
-                  type="button"
-                  class="link-btn"
-                  data-testid={`btn-share-lead-${t.key}`}
-                  onClick={() => void onShare(shareLeadLink(live, t.key))}
-                >
-                  Lead-Link teilen
-                </button>
-              )}
             </li>
           ))}
         </ul>
         <p class="field__help">
-          Den Lead-Link nur an das Handy schicken, das den Torticker bedient. Ein Ersatzhandy darf ihn auch einfügen.
+          Jedes Trainer-Handy sendet automatisch die Spiele, die es erfasst. Beim Anlegen eines Spiels lässt sich „Live
+          aufs Dashboard“ abschalten, z. B. für ein Testspiel.
         </p>
       </section>
       <DashboardButton />
       <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
-        Lead-Link einfügen
+        Link einfügen
       </button>
     </div>
   );
@@ -382,15 +377,16 @@ function LeadInfo({ live, onPaste }: { live: LiveSpieltag; onPaste: () => void }
         Jedes Spiel dieser Mannschaft geht ab dem Anlegen automatisch aufs Dashboard. Einzelne Spiele lassen sich im
         Spiel über „…“ ausnehmen, z. B. ein Testspiel.
       </p>
+      <p class="live__text">Mit dem Trainer-Link eurer Trainergruppe sendet dieses Handy für alle Mannschaften.</p>
       <DashboardButton />
       <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
-        Weiteren Lead-Link einfügen
+        Link einfügen
       </button>
     </div>
   );
 }
 
-function PasteLink({ onCancel, onLead }: { onCancel: () => void; onLead: (p: Pending) => void }) {
+function PasteLink({ onCancel, onLink }: { onCancel: () => void; onLink: (p: Pending) => void }) {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
 
@@ -405,12 +401,18 @@ function PasteLink({ onCancel, onLead }: { onCancel: () => void; onLead: (p: Pen
       setError('Kein gültiger Link. Bitte den ganzen Link aus WhatsApp kopieren.');
       return;
     }
+    if (link.kind === 'trainer') {
+      const config = await verifyTrainerLink(link.trainer);
+      if (config) onLink({ kind: 'trainer', trainer: link.trainer, title: config.title });
+      else setError('Dieser Trainer-Link ist nicht gültig.');
+      return;
+    }
     const verified = await verifyLeadLink(link.lead);
     if (!verified) {
       setError('Dieser Lead-Link ist nicht gültig.');
       return;
     }
-    onLead({ lead: link.lead, cert: verified.cert, title: verified.config.title });
+    onLink({ kind: 'lead', lead: link.lead, cert: verified.cert, title: verified.config.title });
   };
 
   return (
@@ -423,7 +425,7 @@ function PasteLink({ onCancel, onLead }: { onCancel: () => void; onLead: (p: Pen
     >
       <div class="field">
         <label class="field__label t-label" for="paste-link">
-          LEAD-LINK
+          LINK
         </label>
         <textarea
           id="paste-link"

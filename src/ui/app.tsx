@@ -58,7 +58,7 @@ export function App() {
       {route.name === 'game' && <GameScreen key={route.id} id={route.id} />}
       {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}
       {route.name === 'live' && <Lazy load={loadLive} props={{}} />}
-      {route.name === 'leadLink' && <Lazy load={loadLeadLink} props={{ data: route.data }} />}
+      {route.name === 'leadLink' && <Lazy load={loadLeadLink} props={{ data: route.data, kind: route.kind }} />}
       {route.name === 'liveView' && <Lazy key={route.data} load={loadViewer} props={{ data: route.data }} />}
       {route.name === 'liveDash' && <Lazy load={loadAppDashboard} props={{}} />}
       {route.name !== 'leadLink' && route.name !== 'liveView' && <NavBar route={route} />}

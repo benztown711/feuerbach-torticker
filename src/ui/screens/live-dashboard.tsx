@@ -235,8 +235,7 @@ export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean;
         <section class="dash-empty" data-testid="dash-empty">
           <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>
           <p class="dash-empty__text">
-            Sobald ein Lead-Handy ein Spiel{v.teams.length > 0 ? ` von ${orList(v.teams)}` : ''} anlegt, erscheint es
-            hier.
+            Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${orList(v.teams)}` : ''} anlegt, erscheint es hier.
           </p>
           {v.cards.length > 0 && <p class="dash-empty__label t-label">ZULETZT</p>}
         </section>
