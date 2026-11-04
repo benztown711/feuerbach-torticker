@@ -3,7 +3,7 @@ import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag } from '../../src/domain/types';
 import type { OpenedMessage } from '../../src/platform/live-crypto';
 import type { SubscribeOptions } from '../../src/platform/relay';
-import { watchSpieltag, watchTakeover } from '../../src/platform/live-watch';
+import { watchGame, watchSpieltag } from '../../src/platform/live-watch';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 const live = {
@@ -79,19 +79,45 @@ describe('006 US6 Mithören', () => {
     expect(f.stop).toHaveBeenCalled();
   });
 
-  it('FR-L24 meldet die Übernahme genau einmal und hört beim Beenden auf', async () => {
+  it('FR-L24 meldet die Übernahme genau einmal, nur wenn dieses Handy sendet, und hört beim Beenden auf', async () => {
     const f = fakeDeps();
-    let game: Game | null = { id: 'fremd', liveTakeover: 0 } as Game;
+    let game: Game | null = null;
+    let team: string | null = 'E2';
     const taken = vi.fn();
-    const stop = watchTakeover(live, 'E2', () => game, taken, f.deps);
-    await f.send(snap({ h: 0 }));
+    const w = watchGame(live, { team: () => team, current: () => game, onTakenOver: taken }, f.deps);
+    await f.send(snap({ h: 1 }));
     expect(taken).not.toHaveBeenCalled();
+    game = { id: 'fremd', liveTakeover: 0 } as Game;
+    team = null;
     await f.send(snap({ h: 1, sentAt: T0 + 61_000 }));
+    expect(taken).not.toHaveBeenCalled();
+    team = 'E2';
+    await f.send(snap({ h: 1, sentAt: T0 + 62_000 }));
     expect(taken).toHaveBeenCalledTimes(1);
-    await f.send(snap({ h: 2, sentAt: T0 + 62_000 }));
+    await f.send(snap({ h: 2, sentAt: T0 + 63_000 }));
     expect(taken).toHaveBeenCalledTimes(1);
-    game = null;
-    stop();
+    w.stop();
     expect(f.stop).toHaveBeenCalled();
+  });
+});
+
+describe('006 US4 andere Spiele', () => {
+  it('heutige Spiele ohne das eigene; neue Stände werden gemeldet', async () => {
+    const f = fakeDeps();
+    const w = watchGame(live, { team: () => null, current: () => null, onTakenOver: vi.fn() }, f.deps);
+    const changed = vi.fn();
+    const off = w.onChange(changed);
+    expect(w.others('eigen')).toEqual([]);
+    await f.send(snap());
+    expect(changed).toHaveBeenCalled();
+    expect(w.others('eigen').map((c) => [c.key, c.score, c.phase])).toEqual([['E2', '1:0', "3'"]]);
+    expect(w.others('fremd')).toEqual([]);
+    expect(w.serverNow()).toBe(T0 + 2 * 60_000);
+    off();
+    changed.mockClear();
+    await f.send(snap({ sentAt: T0 + 70_000, goals: [] }));
+    expect(changed).not.toHaveBeenCalled();
+    expect(w.others('eigen')[0]?.score).toBe('0:0');
+    w.stop();
   });
 });

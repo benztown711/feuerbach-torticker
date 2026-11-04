@@ -9,6 +9,7 @@ import {
   emptyBoard,
   formatClockTime,
   formatDay,
+  otherGames,
   parseBoard,
   runningElsewhere,
   type Board,
@@ -476,5 +477,34 @@ describe('006 FR-L22 läuft das Spiel schon auf einem anderen Handy?', () => {
       snap({ team: 'E2', gameId: 'zwei', clock: kicked(), sentAt: T0 + min(11) }),
     );
     expect(runningElsewhere(two, 'E2', [], T0 + min(12), TZ)?.snap.gameId).toBe('zwei');
+  });
+});
+
+describe('006 US4 andere Spiele im Spielbildschirm', () => {
+  const withConfig = (...snaps: LiveGameSnapshot[]): Board =>
+    snaps.reduce((b, s) => put(b, s), applyConfig(emptyBoard(), config(['E1', 'E2', 'E3'])));
+  const at = T0 + min(31);
+
+  it('Spiele von heute ohne das eigene, laufende zuerst, mit Stand und Minute wie auf dem Dashboard', () => {
+    const b = withConfig(
+      snap({ gameId: 'eigen', clock: kicked(), sentAt: T0 + min(30) }),
+      snap({ team: 'E3', gameId: 'e3', clock: fullTime, sentAt: T0 + min(56), goals: [goal('opp', 3)] }),
+      snap({ team: 'E2', gameId: 'e2', clock: kicked(T0 + min(20)), sentAt: at, goals: [goal('own', 4)] }),
+    );
+    const others = otherGames(b, 'eigen', at, TZ);
+    expect(others.map((c) => [c.key, c.score, c.phase, c.goals.length])).toEqual([
+      ['E2', '1:0', "12'", 1],
+      ['E3', '0:1', 'Ende', 1],
+    ]);
+  });
+
+  it('Spiele früherer Tage fehlen; ein eigenes Spiel, das nicht gesendet wird, verdeckt nichts', () => {
+    const late = Date.UTC(2026, 10, 6, 15, 0);
+    const b = withConfig(
+      snap({ team: 'E2', gameId: 'gestern', clock: kicked(late), sentAt: late }),
+      snap({ gameId: 'anderes-handy', clock: kicked(), sentAt: T0 + min(5) }),
+    );
+    expect(otherGames(b, 'nur-hier', T0 + min(6), TZ).map((c) => c.gameId)).toEqual(['anderes-handy']);
+    expect(otherGames(emptyBoard(), 'eigen', T0, TZ)).toEqual([]);
   });
 });
