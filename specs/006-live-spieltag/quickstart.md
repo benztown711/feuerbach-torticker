@@ -17,8 +17,8 @@ Voraussetzung: zwei Handys mit installiertem Torticker (A = Organisator, B = Lea
 
 | Nr. | Schritt | Erwartung |
 |---|---|---|
-| G-1 | A: Mehr → Live-Spieltag → anlegen mit E1, E2; "Dieses Handy sendet für E1"; Lead-Link E2 per WhatsApp an B | Übersicht mit Zuschauer-Link und Lead-Link E2 |
-| G-2 | B: Link in WhatsApp antippen | Safari zeigt die Anleitung; "Link kopieren"; im Torticker unter Mehr → Live-Spieltag einfügen, "Ja, live senden" |
+| G-1 | A: Mehr → Live-Spieltag → anlegen mit E1, E2; Trainer-Link per WhatsApp an B | Übersicht mit Zuschauer-Link, Trainer-Link und Mannschaften |
+| G-2 | B: Trainer-Link in WhatsApp antippen | Safari zeigt die Anleitung; "Link kopieren"; im Torticker unter Mehr → Live-Spieltag → "Trainer-Link einfügen", "Ja, live senden" |
 | G-3 | C: Zuschauer-Link öffnen, "Zum Home-Bildschirm", danach über das Symbol starten | Dashboard erscheint (sonst R-L6: Hinweis auf Lesezeichen) |
 | G-4 | A und B je ein Spiel anlegen und anpfeifen, Tore erfassen | C zeigt beide Spiele, Tor nach höchstens 10 s, Minute läuft |
 | G-5 | B: Flugmodus, Tor erfassen, Flugmodus aus | Erfassung sofort; B zeigt "Live: wartet auf Netz"; C bekommt das Tor nach dem Einschalten |

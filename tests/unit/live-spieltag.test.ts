@@ -7,8 +7,11 @@ import {
   DEFAULT_LIVE_TITLE,
   isOrganizer,
   knowsTeam,
-  leadLinkFor,
   liveTeamOptions,
+  sendsFor,
+  trainerLinkFor,
+  trainerTeamsOf,
+  applyTrainerLink,
   newerConfig,
   parseConfig,
   parseLeadCert,
@@ -19,10 +22,17 @@ import {
   viewerOf,
   type LiveDeps,
 } from '../../src/domain/live-spieltag';
+import type { LeadLinkData } from '../../src/domain/live-link';
 import { defaultSettings } from '../../src/domain/settings';
 import type { LiveSpieltag, PrivateKeyParts, SignedData, Team } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
+
+/** Lead-Link der ersten Version (wird nicht mehr erzeugt, bleibt aber gültig). */
+function leadLinkFor(live: LiveSpieltag, key: string): LeadLinkData | null {
+  const cred = live.teams.find((t) => t.key === key);
+  return cred ? { view: viewerOf(live), cert: cred.cert, key: cred.leadKey, config: live.config } : null;
+}
 const B43 = 'A'.repeat(42) + 'Q';
 const B87 = 'C'.repeat(86) + 'A';
 /** Gültiger öffentlicher Schlüssel (65 Byte) mit Nummer. */
@@ -69,31 +79,25 @@ describe('006 FR-L01 Live-Spieltag anlegen', () => {
   });
 
   it('prüft Titel (1 bis 40 Zeichen) und Mannschaften (1 bis 6, bekannt)', () => {
-    const ok = validateLiveInput({ title: '  Unser   Spieltag ', teamIds: ['t1'], selfTeamId: null }, [E1]);
+    const ok = validateLiveInput({ title: '  Unser   Spieltag ', teamIds: ['t1'] }, [E1]);
     expect(ok).toEqual({ ok: true, title: 'Unser Spieltag', errors: {} });
-    expect(validateLiveInput({ title: ' ', teamIds: ['t1'], selfTeamId: null }, [E1]).errors.title).toBe(
-      'Bitte einen Titel eintragen.',
-    );
-    expect(validateLiveInput({ title: 'x'.repeat(41), teamIds: ['t1'], selfTeamId: null }, [E1]).errors.title).toBe(
+    expect(validateLiveInput({ title: ' ', teamIds: ['t1'] }, [E1]).errors.title).toBe('Bitte einen Titel eintragen.');
+    expect(validateLiveInput({ title: 'x'.repeat(41), teamIds: ['t1'] }, [E1]).errors.title).toBe(
       'Höchstens 40 Zeichen.',
     );
-    expect(validateLiveInput({ title: 'A', teamIds: [], selfTeamId: null }, [E1]).errors.teams).toBe(
+    expect(validateLiveInput({ title: 'A', teamIds: [] }, [E1]).errors.teams).toBe(
       'Bitte mindestens eine Mannschaft wählen.',
     );
     const seven = Array.from({ length: 7 }, (_, i) => team(`x${i}`, `Sportvg Feuerbach F${i}`));
-    expect(
-      validateLiveInput({ title: 'A', teamIds: seven.map((t) => t.id), selfTeamId: null }, seven).errors.teams,
-    ).toBe('Höchstens 6 Mannschaften.');
-    expect(validateLiveInput({ title: 'A', teamIds: ['fehlt'], selfTeamId: null }, [E1]).ok).toBe(false);
+    expect(validateLiveInput({ title: 'A', teamIds: seven.map((t) => t.id) }, seven).errors.teams).toBe(
+      'Höchstens 6 Mannschaften.',
+    );
+    expect(validateLiveInput({ title: 'A', teamIds: ['fehlt'] }, [E1]).ok).toBe(false);
   });
 
-  it('erzeugt Topic, Schlüssel, Konfiguration und je Mannschaft ein Zertifikat; "Dieses Handy sendet für"', async () => {
+  it('erzeugt Topic, Schlüssel, Konfiguration und je Mannschaft ein Zertifikat; Trainer-Handy sendet für alle', async () => {
     const d = deps();
-    const live = await createSpieltag(
-      { title: DEFAULT_LIVE_TITLE, teamIds: ['t1', 't2'], selfTeamId: 't1' },
-      [E1, E2, E3],
-      d,
-    );
+    const live = await createSpieltag({ title: DEFAULT_LIVE_TITLE, teamIds: ['t1', 't2'] }, [E1, E2, E3], d);
     expect(live).toMatchObject({
       v: 1,
       topic: 'abcdefghijklmnopqrstuv',
@@ -105,7 +109,7 @@ describe('006 FR-L01 Live-Spieltag anlegen', () => {
     expect(JSON.parse(live.config.d)).toEqual({ title: 'Unser Spieltag', teams: ['E1', 'E2'], iat: T0 });
     expect(live.teams.map((t) => [t.key, t.name, t.sends])).toEqual([
       ['E1', 'Sportvg Feuerbach E1', true],
-      ['E2', 'Sportvg Feuerbach E2', false],
+      ['E2', 'Sportvg Feuerbach E2', true],
     ]);
     expect(JSON.parse(live.teams[1]!.cert.d)).toEqual({
       key: 'E2',
@@ -121,14 +125,26 @@ describe('006 FR-L01 Live-Spieltag anlegen', () => {
     expect(viewerOf(live)).toEqual({ topic: live.topic, viewKey: B43, orgPub: pubOf(1), title: 'Unser Spieltag' });
   });
 
-  it('ungültige Eingaben werfen; ohne "sendet für" sendet niemand', async () => {
-    await expect(createSpieltag({ title: '', teamIds: ['t1'], selfTeamId: null }, [E1], deps())).rejects.toThrow();
-    const live = await createSpieltag({ title: 'A', teamIds: ['t1'], selfTeamId: null }, [E1], deps());
-    expect(live.teams[0]!.sends).toBe(false);
+  it('ungültige Eingaben werfen', async () => {
+    await expect(createSpieltag({ title: '', teamIds: ['t1'] }, [E1], deps())).rejects.toThrow();
+  });
+
+  it('FR-L02 Trainer-Link: Zuschauerteil, Organisator-Schlüssel, Konfiguration und Mannschaften', async () => {
+    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'] }, [E1, E2], deps());
+    expect(trainerLinkFor(live)).toEqual({
+      view: viewerOf(live),
+      orgKey: live.orgKey,
+      config: live.config,
+      teams: [
+        { key: 'E1', name: 'Sportvg Feuerbach E1', homeColor: 'rot', awayColor: 'schwarz' },
+        { key: 'E2', name: 'Sportvg Feuerbach E2', homeColor: 'rot', awayColor: 'weiss' },
+      ],
+    });
+    expect(trainerLinkFor({ ...live, orgKey: undefined })).toBeNull();
   });
 
   it('Lead-Link je Mannschaft enthält Zuschauerteil, Zertifikat, Schlüssel und Konfiguration', async () => {
-    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'], selfTeamId: null }, [E1, E2], deps());
+    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'] }, [E1, E2], deps());
     const link = leadLinkFor(live, 'E2');
     expect(link).toEqual({
       view: viewerOf(live),
@@ -187,11 +203,7 @@ describe('006 FR-L03 FR-L04 Zertifikat und Konfiguration prüfen', () => {
 describe('006 FR-L03 FR-L04 Kopplung aus Lead-Link', () => {
   async function organizer() {
     const d = deps();
-    const live = await createSpieltag(
-      { title: 'Unser Spieltag', teamIds: ['t1', 't2'], selfTeamId: 't1' },
-      [E1, E2],
-      d,
-    );
+    const live = await createSpieltag({ title: 'Unser Spieltag', teamIds: ['t1', 't2'] }, [E1, E2], d);
     return { live, d };
   }
   const certOf = (live: LiveSpieltag, key: string) =>
@@ -351,13 +363,92 @@ describe('006 FR-L06 FR-L09 Welche Spiele sendet dieses Gerät?', () => {
     );
 
   it('nur Spiele gekoppelter Mannschaften mit sends, nicht bei "Nicht live senden"', async () => {
-    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'], selfTeamId: 't1' }, [E1, E2], deps());
+    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'] }, [E1, E2], deps());
     expect(sendingTeamFor(game('Sportvg Feuerbach E1'), live)?.key).toBe('E1');
     expect(sendingTeamFor(game('  sportvg feuerbach   e1'), live)?.key).toBe('E1');
     expect(sendingTeamFor({ ...game('Sportvg Feuerbach E1'), live: true }, live)?.key).toBe('E1');
     expect(sendingTeamFor({ ...game('Sportvg Feuerbach E1'), live: false }, live)).toBeNull();
-    expect(sendingTeamFor(game('Sportvg Feuerbach E2'), live)).toBeNull(); // E2 sendet ein anderes Handy
+    expect(sendingTeamFor(game('Sportvg Feuerbach E2'), live)?.key).toBe('E2'); // FR-L04: je Spiel
     expect(sendingTeamFor(game('Sportvg Feuerbach D3'), live)).toBeNull();
     expect(sendingTeamFor(game('Sportvg Feuerbach E1'), null)).toBeNull();
+  });
+
+  it('Lead-Handy der ersten Version sendet nur für eingefügte Mannschaften', async () => {
+    const live = await createSpieltag({ title: 'A', teamIds: ['t1', 't2'] }, [E1, E2], deps());
+    const cert = parseLeadCert(JSON.parse(live.teams[1]!.cert.d))!;
+    const lead = applyLeadLink(defaultSettings(), leadLinkFor(live, 'E2')!, cert, { now: T0, newId: () => 'x' }).live!;
+    expect(isOrganizer(lead)).toBe(false);
+    expect(sendingTeamFor(game('Sportvg Feuerbach E2'), lead)?.key).toBe('E2');
+    expect(sendingTeamFor(game('Sportvg Feuerbach E1'), lead)).toBeNull();
+    expect(sendsFor(lead, { ...lead.teams[0]!, sends: false })).toBe(false);
+    expect(sendsFor(live, { ...live.teams[0]!, sends: false })).toBe(true);
+  });
+});
+
+describe('006 FR-L03 FR-L04 Kopplung aus Trainer-Link', () => {
+  async function trainerLink() {
+    const live = await createSpieltag({ title: 'Unser Spieltag', teamIds: ['t1', 't2'] }, [E1, E2], deps());
+    return { live, link: trainerLinkFor(live)! };
+  }
+
+  it('neues Gerät wird Trainer-Handy: eigener Lead-Schlüssel, Zertifikate je Mannschaft, Mannschaften übernommen', async () => {
+    const { live, link } = await trainerLink();
+    const d = { ...deps(), now: T0 + 1000, newId: () => 'neu' };
+    const s = await applyTrainerLink({ ...defaultSettings(), teams: [E1] }, link, d);
+    expect(s.live).toMatchObject({ topic: live.topic, viewKey: B43, orgPub: live.orgPub, orgKey: live.orgKey });
+    expect(s.live?.config).toEqual(live.config);
+    expect(s.live?.createdAt).toBe(T0 + 1000);
+    expect(s.live?.teams.map((t) => [t.key, t.sends, t.leadKey.d])).toEqual([
+      ['E1', true, 'd1'],
+      ['E2', true, 'd1'],
+    ]);
+    expect(JSON.parse(s.live!.teams[1]!.cert.d)).toEqual({
+      key: 'E2',
+      name: 'Sportvg Feuerbach E2',
+      homeColor: 'rot',
+      awayColor: 'weiss',
+      pub: pubOf(1),
+      iat: T0 + 1000,
+    });
+    expect(s.live!.teams[1]!.cert.s).toBe(`sig-${live.orgKey!.d}`);
+    expect(s.teams.map((t) => [t.id, t.name])).toEqual([
+      ['t1', 'Sportvg Feuerbach E1'],
+      ['neu', 'Sportvg Feuerbach E2'],
+    ]);
+    expect(isOrganizer(s.live!)).toBe(true);
+  });
+
+  it('nur Mannschaften der Konfiguration; kaputte Konfiguration ergibt keine', async () => {
+    const { link } = await trainerLink();
+    const extra = { key: 'D1', name: 'Sportvg Feuerbach D1', homeColor: 'rot', awayColor: 'rot' };
+    expect(trainerTeamsOf({ ...link, teams: [...link.teams, extra] }).map((t) => t.key)).toEqual(['E1', 'E2']);
+    expect(trainerTeamsOf({ ...link, config: { d: 'kaputt', s: '' } })).toEqual([]);
+  });
+
+  it('derselbe Live-Spieltag (z. B. Lead-Handy der ersten Version): bleibt bei Anlegezeit und jüngerer Konfiguration', async () => {
+    const { live, link } = await trainerLink();
+    const cert = parseLeadCert(JSON.parse(live.teams[1]!.cert.d))!;
+    const lead = applyLeadLink(defaultSettings(), leadLinkFor(live, 'E2')!, cert, { now: T0 - 5000, newId: () => 'x' });
+    const newer = { d: JSON.stringify({ title: 'Neu', teams: ['E1', 'E2'], iat: T0 + 5 }), s: 'x' };
+    const known = { ...lead, live: { ...lead.live!, config: newer } };
+    const s = await applyTrainerLink(known, link, { ...deps(), now: T0 + 9000 });
+    expect(s.live?.createdAt).toBe(T0 - 5000);
+    expect(s.live?.config).toEqual(newer);
+    expect(s.live?.orgKey).toEqual(live.orgKey);
+    // Der Link ist jünger als das, was das Handy kennt: der Link gilt.
+    const s2 = await applyTrainerLink(lead, link, { ...deps(), now: T0 + 9000 });
+    expect(s2.live?.config).toEqual(live.config);
+  });
+
+  it('anderer Live-Spieltag wird ersetzt (Rückfrage in der Oberfläche)', async () => {
+    const { live, link } = await trainerLink();
+    const other = { ...link, view: { ...link.view, topic: 'zzzzzzzzzzzzzzzzzzzzzz' } };
+    const s0 = await applyTrainerLink(defaultSettings(), link, deps());
+    expect(couplingKind(s0, other)).toBe('replace');
+    expect(replacesOrganizer(s0, other)).toBe(true);
+    const s1 = await applyTrainerLink(s0, other, { ...deps(), now: T0 + 1 });
+    expect(s1.live?.topic).toBe('zzzzzzzzzzzzzzzzzzzzzz');
+    expect(s1.live?.createdAt).toBe(T0 + 1);
+    expect(live.topic).not.toBe(s1.live?.topic);
   });
 });

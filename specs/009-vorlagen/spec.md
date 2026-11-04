@@ -1,6 +1,6 @@
 # Feature Specification: Vorlagen (Assists)
 
-**Feature Branch**: `008-vorlagen`
+**Feature Branch**: `009-vorlagen`
 
 **Created**: 2026-11-04
 
@@ -117,7 +117,7 @@ Torschützen und Vorlagen erscheinen überall nur mit Namen. Die Rückennummer h
 - **FR-V05**: Eine Vorlage DARF nur an einem Feuerbach-Tor mit Spieler als Torschützen und ohne Elfmeter-Kennzeichen hängen, und der Vorlagengeber DARF nicht der Torschütze sein. Ändert sich das Tor so, dass eine Bedingung verletzt ist (anderer Torschütze gleich Vorlagengeber, "Ohne Torschütze", "Eigentor Gegner", "Elfmeter"), MUSS die Vorlage entfernt werden.
 - **FR-V06**: Torliste im Spiel (FR-034), Titel des Tor-Fensters und Spieldetails MÜSSEN ein Tor mit Vorlage als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen, z. B. "12' 1:0 Feuerbach, Max (Vorlage Ben)".
 - **FR-V07**: Der Teilen-Text (Spec 005, FR-S03) MUSS die Vorlage in der Zeile des Tores als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen. Es gibt keine eigene Zeile für Vorlagen; die Zeile "\*Torschützen\*" (FR-S06) bleibt unverändert.
-- **FR-V08**: Die Live-Kopplung (Spec 006) MUSS den Anzeigenamen des Vorlagengebers mit übertragen (Ergänzung zu FR-L10), und das Dashboard MUSS ihn im aufgeklappten Torverlauf (FR-L12) als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen. Ein Dashboard mit älterem Stand der App MUSS solche Stände weiterhin anzeigen (ohne Vorlage), und ein neues Dashboard MUSS Stände ohne Vorlage von älteren Lead-Handys anzeigen.
+- **FR-V08**: Die Live-Kopplung (Spec 006) MUSS den Anzeigenamen des Vorlagengebers mit übertragen (Ergänzung zu FR-L10), und das Dashboard MUSS ihn im aufgeklappten Torverlauf (FR-L12) als "{Torschütze} (Vorlage {Vorlagengeber})" zeigen. Ein Dashboard mit älterem Stand der App MUSS solche Stände weiterhin anzeigen (ohne Vorlage), und ein neues Dashboard MUSS Stände ohne Vorlage von Trainer-Handys mit älterem Stand der App anzeigen.
 - **FR-V09**: In allen Anzeigen (Torliste, Tor-Fenster, Spieldetails, Teilen-Text, Dashboard) MÜSSEN Torschütze und Vorlagengeber nur mit Anzeigenamen (FR-020) erscheinen, nie mit Rückennummer, auch wenn eine eingetragen ist. Die Auswahlknöpfe in "Wer hat getroffen?" und "Vorlage von?" MÜSSEN Nummer und Name zeigen.
 - **FR-V10**: Vorlagen MÜSSEN in der Sicherung (FR-024) enthalten sein; Sicherungen ohne Vorlagen MÜSSEN weiterhin importiert werden können.
 

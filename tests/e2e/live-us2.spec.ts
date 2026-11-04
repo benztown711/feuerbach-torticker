@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { addTeam, confirmYes, forward, MIN, newGame, startGame } from './helpers';
-import { createLive, latestState, liveStates } from './live-helpers';
+import { confirmYes, forward, MIN, newGame, startGame } from './helpers';
+import { createLive, latestState, liveStates, pasteLink } from './live-helpers';
 
-/** Spec 006 US2: Lead-Handy sendet automatisch. Dieses Handy ist Organisator und sendet selbst für E1. */
+/** Spec 006 US2: Das erfassende Trainer-Handy sendet automatisch, je Spiel für dessen Mannschaft. */
 
 // Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
@@ -15,7 +15,7 @@ type State = Record<string, unknown> & { goals?: unknown[]; clock?: [string, num
 const settle = (page: Page) => page.clock.runFor(6_000);
 
 test('006 US2-S1 Anpfiff kommt mit Gegner, Trikots und 0:0 beim Dienst an', async ({ page, relay, recorded }) => {
-  const links = await createLive(page, recorded, { teams: ['E1', 'E2'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   await startGame(page, { ownTeam: E1, opponent: 'TSV Musterstadt' });
   await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
   await expect(page.getByTestId('live-pill')).toHaveText('Live');
@@ -36,7 +36,7 @@ test('006 US2-S1 Anpfiff kommt mit Gegner, Trikots und 0:0 beim Dienst an', asyn
 });
 
 test('006 US2-S2 Tor, Rückgängig, Entfernen und Wiederherstellen kommen an', async ({ page, relay, recorded }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await startGame(page, { ownTeam: E1 });
   const goals = async () => ((await latestState(relay, links.viewer)) as State | undefined)?.goals?.length;
 
@@ -64,7 +64,7 @@ test('006 US2-S2 Tor, Rückgängig, Entfernen und Wiederherstellen kommen an', a
 });
 
 test('006 US2-S3 Pausenpfiff und Schlusspfiff kommen an', async ({ page, relay, recorded }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await startGame(page, { ownTeam: E1, sections: 2, minutes: 10 });
   const types = async () => ((await latestState(relay, links.viewer)) as State | undefined)?.clock?.map((c) => c[0]);
   await page.getByTestId('btn-section-end').click();
@@ -83,7 +83,7 @@ test('006 US2-S4 ohne Netz zählt das Tor sofort, Kennzeichen "wartet auf Netz",
   relay,
   recorded,
 }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await startGame(page, { ownTeam: E1 });
   await settle(page);
   relay.fail = true;
@@ -100,10 +100,13 @@ test('006 US2-S4 ohne Netz zählt das Tor sofort, Kennzeichen "wartet auf Netz",
   await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
 });
 
-test('006 US2-S5 Spiel einer Mannschaft ohne Kopplung wird nicht gesendet', async ({ page, relay, recorded }) => {
-  const links = await createLive(page, recorded, { teams: ['E1', 'E2'], self: 'E1' });
-  await addTeam(page, 'Sportvg Feuerbach E3');
-  await startGame(page, { ownTeam: 'Sportvg Feuerbach E3' });
+test('006 US2-S5 Spiel einer Mannschaft außerhalb des Live-Spieltags wird nicht gesendet', async ({
+  page,
+  relay,
+  recorded,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'], without: ['E2'] });
+  await startGame(page, { ownTeam: 'Sportvg Feuerbach E2' });
   await expect(page.getByTestId('btn-pause')).toBeVisible();
   await expect(page.getByTestId('live-pill')).toHaveCount(0);
   await page.getByTestId('btn-menu').click();
@@ -117,7 +120,7 @@ test('006 US2-S6 "Nicht live senden" schickt off, "Live senden" wieder den Stand
   relay,
   recorded,
 }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await startGame(page, { ownTeam: E1 });
   await settle(page);
   await page.getByTestId('btn-menu').click();
@@ -134,7 +137,7 @@ test('006 US2-S6 "Nicht live senden" schickt off, "Live senden" wieder den Stand
 });
 
 test('006 US2-S7 Löschen eines Spiels schickt deleted', async ({ page, relay, recorded }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await newGame(page, { ownTeam: E1 });
   await settle(page);
   await page.getByTestId('nav-history').click();
@@ -150,7 +153,7 @@ test('006 SC-L06 Meldungen enthalten weder Mannschafts- noch Spielernamen im Kla
   relay,
   recorded,
 }) => {
-  const links = await createLive(page, recorded, { teams: ['E1'], self: 'E1', title: 'Unser Spieltag' });
+  const links = await createLive(page, recorded, { teams: ['E1'], title: 'Unser Spieltag' });
   await startGame(page, { ownTeam: E1, opponent: 'TSV Musterstadt' });
   await forward(page, MIN);
   await page.getByTestId('btn-goal-own').click();
@@ -169,7 +172,7 @@ test('006 FR-L08 FR-033 Spielbildschirm mit Kennzeichen passt aufs iPhone SE, au
   recorded,
 }) => {
   await page.setViewportSize({ width: 375, height: 667 });
-  await createLive(page, recorded, { teams: ['E1'], self: 'E1' });
+  await createLive(page, recorded, { teams: ['E1'] });
   await startGame(page, { ownTeam: E1, opponent: 'SGM SV Prag Stuttgart/TSV Weilimdorf' });
   relay.fail = true;
   await forward(page, MIN);
@@ -186,4 +189,54 @@ test('006 FR-L08 FR-033 Spielbildschirm mit Kennzeichen passt aufs iPhone SE, au
   const menu = await page.getByTestId('btn-menu').boundingBox();
   expect((pill?.x ?? 0) + (pill?.width ?? 0)).toBeLessThanOrEqual(menu?.x ?? 0);
   expect((menu?.x ?? 0) + (menu?.width ?? 0)).toBeLessThanOrEqual(375);
+});
+
+test('006 US2-S8 FR-L09 "Live aufs Dashboard" beim Anlegen: an sendet, aus sendet nichts', async ({
+  page,
+  relay,
+  recorded,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
+  await newGame(page, { ownTeam: E1 });
+  await page.goto('./#/neu');
+  const sw = page.getByTestId('new-live-switch');
+  await expect(sw).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('new-live-row')).toContainText('Eltern sehen das Spiel in „Unser Spieltag“.');
+  await sw.click();
+  await expect(sw).toHaveAttribute('aria-checked', 'false');
+  await page.getByTestId('input-opponent').fill('Testspiel SV');
+  await page.getByTestId('btn-create').click();
+  await page.getByTestId('btn-kickoff').click();
+  await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'off');
+  await settle(page);
+  const opps = async () => (await liveStates(relay, links.viewer)).map((s) => s.opp);
+  expect(await opps()).not.toContain('Testspiel SV');
+  // Im Spiel wieder einschalten
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-live-toggle').click();
+  await settle(page);
+  await expect.poll(opps).toContain('Testspiel SV');
+});
+
+test('006 US2-S9 FR-L04 ein zweites Trainer-Handy sendet E2 und am nächsten Wochenende E1, ohne Umstellen', async ({
+  page,
+  relay,
+  recorded,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  const b = await newDevice();
+  await pasteLink(b, links.trainer);
+  await startGame(b, { ownTeam: 'Sportvg Feuerbach E2', opponent: 'SV Beispielhausen' });
+  await expect(b.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
+  await b.clock.runFor(6_000);
+  await expect.poll(async () => (await latestState(relay, links.viewer))?.team).toBe('E2');
+  await b.getByTestId('btn-section-end').click();
+  await confirmYes(b);
+  await b.getByTestId('btn-kickoff').click();
+  await b.getByTestId('btn-section-end').click();
+  await confirmYes(b);
+  await startGame(b, { ownTeam: E1, opponent: 'TSV Musterstadt' });
+  await b.clock.runFor(6_000);
+  await expect.poll(async () => (await latestState(relay, links.viewer))?.team).toBe('E1');
 });

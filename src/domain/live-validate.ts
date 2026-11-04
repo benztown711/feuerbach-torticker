@@ -6,6 +6,8 @@ import type { PrivateKeyParts, SignedData } from './types';
 export const MAX_TITLE = 40;
 /** Kurzlabel einer Mannschaft, z. B. "E1" oder "E1 (2)". */
 export const MAX_KEY = 20;
+/** Höchstens so viele Mannschaften je Live-Spieltag (FR-L01). */
+export const MAX_LIVE_TEAMS = 6;
 const MAX_SIGNED = 2000;
 
 export type Obj = Record<string, unknown>;

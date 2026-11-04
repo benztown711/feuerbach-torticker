@@ -8,6 +8,9 @@ export type Side = 'own' | 'opp';
 export type GameStatus = 'created' | 'running' | 'paused' | 'break' | 'finished';
 export type Theme = 'system' | 'light' | 'dark';
 
+/** Spec 008 FR-K01. */
+export type SignalSound = 'pfiff' | 'glocke' | 'gong';
+
 export interface Schema {
   /** Anzahl Abschnitte, 1 bis 4. */
   sections: number;
@@ -135,6 +138,11 @@ export interface Game {
   halfTimeScore: Score | null;
   /** Spec 006 FR-L09: false = "Nicht live senden"; fehlt = senden, wenn die Mannschaft gekoppelt ist. */
   live?: boolean;
+  /**
+   * Spec 006 FR-L09: beim Anlegen "Live aufs Dashboard" aus und seitdem nie eingeschaltet. Von diesem Spiel
+   * ging nie etwas an den Vermittlungsdienst, darum auch kein "off" und beim Löschen kein "deleted".
+   */
+  livePrivate?: boolean;
 }
 
 export interface Player {
@@ -170,6 +178,8 @@ export interface Settings {
   /** Zuletzt genutzte Farbe je Gegnername (normalisiert). */
   opponentColors: Record<string, string>;
   theme: Theme;
+  /** Spec 008 FR-K03: gewählter Signalton, Vorgabe Pfiff. */
+  signalSound: SignalSound;
   installHintDismissedAt: number | null;
   /** Spec 006: Live-Spieltag dieses Geräts (Organisator und/oder Lead), höchstens einer. */
   live: LiveSpieltag | null;

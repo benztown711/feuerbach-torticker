@@ -1,3 +1,4 @@
+import { DEFAULT_SIGNAL_SOUND, isSignalSound } from './signal-sound';
 import { migrateTeams } from './teams';
 import type { Settings } from './types';
 
@@ -12,6 +13,7 @@ export function defaultSettings(): Settings {
     lastOwnColor: null,
     opponentColors: {},
     theme: 'system',
+    signalSound: DEFAULT_SIGNAL_SOUND,
     installHintDismissedAt: null,
     teams: [],
     features: { cards: false, subs: false, marks: false },
@@ -20,9 +22,13 @@ export function defaultSettings(): Settings {
   };
 }
 
-/** Ergänzt gespeicherte (ältere) Einstellungen um neue Felder; vor Spec 004 gespeicherte bekommen Mannschaften. */
+/**
+ * Ergänzt gespeicherte (ältere) Einstellungen um neue Felder; vor Spec 004 gespeicherte bekommen Mannschaften.
+ * Spec 008 FR-K03: fehlender oder unbekannter Signalton wird zum Pfiff.
+ */
 export function withSettingsDefaults(stored: Partial<Settings> | undefined): Settings {
   const d = defaultSettings();
-  const s = { ...d, ...stored, features: { ...d.features, ...stored?.features } };
+  const signalSound = isSignalSound(stored?.signalSound) ? stored.signalSound : d.signalSound;
+  const s = { ...d, ...stored, features: { ...d.features, ...stored?.features }, signalSound };
   return stored?.teams === undefined ? { ...s, teams: migrateTeams(s) } : s;
 }

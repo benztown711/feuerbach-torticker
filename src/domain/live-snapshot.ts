@@ -82,8 +82,15 @@ function personName(who: EventPerson, players: Player[]): string | null {
   return who.kind === 'text' ? nameOrNull(who.text) : playerName(players, who.playerId);
 }
 
-/** FR-L09: "Nicht live senden" (false) bzw. wieder senden (true). */
-export const setLive = (game: Game, on: boolean): Game => ({ ...game, live: on });
+/** FR-L09: "Nicht live senden" (false) bzw. wieder senden (true); Einschalten hebt "nie gesendet" auf. */
+export function setLive(game: Game, on: boolean): Game {
+  const next: Game = { ...game, live: on };
+  if (on) delete next.livePrivate;
+  return next;
+}
+
+/** FR-L09: beim Anlegen "Live aufs Dashboard" aus: nicht senden, auch später keinen Grabstein. */
+export const startPrivate = (game: Game): Game => ({ ...game, live: false, livePrivate: true });
 
 export const tombstone = (gameId: string, team: string, sentAt: number): LiveTombstone => ({
   v: 1,

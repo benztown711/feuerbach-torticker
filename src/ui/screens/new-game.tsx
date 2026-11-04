@@ -2,14 +2,17 @@ import { useEffect, useState } from 'preact/hooks';
 import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
+import { startPrivate } from '../../domain/live-snapshot';
+import { liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
+import { signalSoundName } from '../../domain/signal-sound';
 import { currentTeam, findTeam, ownColorFor, recordTeamUse, schemaFor, squadFor } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getSettings, putGame, putSettings } from '../../platform/db';
-import { testSignal } from '../../platform/signal';
+import { setSignalSound, testSignal } from '../../platform/signal';
 import { KitRow } from '../components/kit-row';
 import { useDarkTheme, usePlayers } from '../hooks';
 import { navigate } from '../router';
@@ -35,6 +38,7 @@ export function NewGameScreen() {
   const [oppTouched, setOppTouched] = useState(false);
   const [pal, setPal] = useState<'own' | 'opp' | null>(null);
   const [busy, setBusy] = useState(false);
+  const [liveOn, setLiveOn] = useState(true);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -50,6 +54,8 @@ export function NewGameScreen() {
     void getSettings().then((s) => {
       setSettings(s);
       applyTeam(s, currentTeam(s));
+      // Spec 008 FR-K05: "Ton testen" spielt den gewählten Ton.
+      setSignalSound(s.signalSound);
     });
   }, []);
 
@@ -89,6 +95,7 @@ export function NewGameScreen() {
   };
   const check = validateNewGame(input);
   const ownShort = shortTeamName(team.name);
+  const liveTeam = liveTeamFor(team.name, settings.live);
   const oppLabel = opponent.trim() || 'Gegner';
   const sides =
     venue === 'home'
@@ -106,7 +113,9 @@ export function NewGameScreen() {
     if (!check.ok || busy) return;
     setBusy(true);
     const now = Date.now();
-    const game = createGame(check.value, { id: globalThis.crypto.randomUUID(), now });
+    const created = createGame(check.value, { id: globalThis.crypto.randomUUID(), now });
+    // Spec 006 FR-L09: "Live aufs Dashboard" aus → das Spiel wird nicht gesendet.
+    const game = liveTeam && !liveOn ? startPrivate(created) : created;
     await putGame(game);
     await putSettings(
       rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: chosen, now }), check.value),
@@ -151,6 +160,29 @@ export function NewGameScreen() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+        {liveTeam && settings.live && (
+          <div class="switch-row" data-testid="new-live-row">
+            <div class="switch-row__text">
+              <span class="switch-row__title" id="ng-live">
+                Live aufs Dashboard
+              </span>
+              <p class="switch-row__help">
+                {liveOn
+                  ? `Eltern sehen das Spiel in „${titleOf(settings.live)}“.`
+                  : 'Wird nicht gesendet, z. B. Testspiel. Im Spiel über „…“ wieder einschaltbar.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="switch"
+              role="switch"
+              aria-checked={liveOn}
+              aria-labelledby="ng-live"
+              data-testid="new-live-switch"
+              onClick={() => setLiveOn(!liveOn)}
+            />
           </div>
         )}
         {settings.teams.length === 0 && (
@@ -305,8 +337,9 @@ export function NewGameScreen() {
           >
             Ton testen
           </button>
-          <p class="t-klein signal-test__hint">
-            Tipp: Lautstärke mit den Tasten am Handy einstellen, solange die App offen ist.
+          <p class="t-klein signal-test__hint" data-testid="signal-test-hint">
+            Signalton: {signalSoundName(settings.signalSound)}, änderbar unter „Mehr“ → „Einstellungen“. Lautstärke mit
+            den Tasten am Handy einstellen, solange die App offen ist.
           </p>
         </div>
 

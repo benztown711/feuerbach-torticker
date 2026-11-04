@@ -62,8 +62,8 @@ test('006 US3-S1 US3-S4 US3-S10 zwei Karten in 5 s, zugeklappt, aufklappbar, ohn
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, e1At37());
-  await sendAs(relay, links.lead.E2!, e2AtHalf());
+  await sendAs(relay, links.trainer, e1At37());
+  await sendAs(relay, links.trainer, e2AtHalf());
   const v = await openViewer(newDevice, relay, links);
 
   const e1 = v.getByTestId('dash-card-E1');
@@ -113,7 +113,7 @@ test('006 US3-S2 Minute läuft ohne neue Meldung weiter, auch in der Nachspielze
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 23.5, 1]] }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 23.5, 1]] }));
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-phase-E1')).toHaveText("24'");
   await later(v, relay, 3 * MIN);
@@ -130,8 +130,8 @@ test('006 US3-S3 neues Tor hebt die Karte hervor und steht oben im Torverlauf', 
   onMatchday(relay);
   const clock: [string, number, number][] = [['kickoff', 10, 1]];
   // Ältere Stände werden beim Öffnen nachgeladen und nicht hervorgehoben.
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T - 60_000, clock: [['kickoff', 9, 1]] }));
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T, clock, goals: [{ side: 'own', minute: 4 }] }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T - 60_000, clock: [['kickoff', 9, 1]] }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T, clock, goals: [{ side: 'own', minute: 4 }] }));
   relay.offsetMs += 2 * MIN;
   const v = await openViewer(newDevice, relay, links);
   const card = v.getByTestId('dash-card-E1');
@@ -142,7 +142,7 @@ test('006 US3-S3 neues Tor hebt die Karte hervor und steht oben im Torverlauf', 
   const now = T + 2 * MIN + 30_000;
   await sendAs(
     relay,
-    links.lead.E1!,
+    links.trainer,
     liveSnap({
       team: 'E1',
       now,
@@ -187,7 +187,7 @@ test('006 US3-S6 Verbindung weg: "Keine Verbindung · Stand von", danach von sel
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 5, 1]] }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 5, 1]] }));
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-score-E1')).toHaveText('0:0');
 
@@ -196,7 +196,7 @@ test('006 US3-S6 Verbindung weg: "Keine Verbindung · Stand von", danach von sel
   await expect(status).toHaveAttribute('data-state', 'offline');
   await expect(status).toContainText(/Keine Verbindung · Stand von 10:4\d Uhr/);
   const goals = [{ side: 'opp' as const, minute: 6 }];
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T + 60_000, clock: [['kickoff', 6, 1]], goals }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T + 60_000, clock: [['kickoff', 6, 1]], goals }));
   relay.fail = false;
   await v.clock.runFor(5_000);
   await expect(status).toHaveAttribute('data-state', 'live');
@@ -211,7 +211,7 @@ test('006 US3-S7 FR-L15 seit 7 Minuten keine Meldung: Hinweis, Minute läuft wei
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 2.5, 1]] }));
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T, clock: [['kickoff', 2.5, 1]] }));
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-phase-E1')).toHaveText("3'");
   await later(v, relay, 7 * MIN + 10_000);
@@ -240,8 +240,8 @@ test('006 US3-S8 beendetes Spiel bleibt mit "Ende" unter dem laufenden, aufgekla
     ],
     goals: [{ side: 'own', minute: 30, section: 2 }],
   });
-  await sendAs(relay, links.lead.E1!, ended);
-  await sendAs(relay, links.lead.E2!, liveSnap({ team: 'E2', now: T, clock: [['kickoff', 3, 1]] }));
+  await sendAs(relay, links.trainer, ended);
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E2', now: T, clock: [['kickoff', 3, 1]] }));
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-phase-E1')).toHaveText('Ende');
   await expect.poll(() => cardIds(v)).toEqual(['dash-card-E2', 'dash-card-E1']);
@@ -275,7 +275,7 @@ test('006 US3-S9 FR-L14 früheres Spiel desselben Tages als "Heute außerdem"', 
       { side: 'own', minute: 20 },
     ],
   });
-  await sendAs(relay, links.lead.E2!, first);
+  await sendAs(relay, links.trainer, first);
   const next = liveSnap({
     team: 'E2',
     now: T,
@@ -284,7 +284,7 @@ test('006 US3-S9 FR-L14 früheres Spiel desselben Tages als "Heute außerdem"', 
     opp: 'SV Beispielhausen',
     clock: [['kickoff', 10, 1]],
   });
-  await sendAs(relay, links.lead.E2!, next);
+  await sendAs(relay, links.trainer, next);
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-card-E2')).toHaveAttribute('data-game', 'e2-2');
   await v.getByTestId('dash-toggle-E2').click();
@@ -295,9 +295,9 @@ test('006 US3-S10 FR-L11 gefälschte Meldungen werden ignoriert', async ({ page,
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   onMatchday(relay);
   // Fremder Schlüssel (nur Zuschauer-Link bekannt) und Stand für eine andere Mannschaft als im Zertifikat
-  await sendAs(relay, links.lead.E2!, e2AtHalf(), { forge: true });
-  await sendAs(relay, links.lead.E1!, { ...e2AtHalf(), gameId: 'falsch' });
-  await sendAs(relay, links.lead.E1!, e1At37());
+  await sendAs(relay, links.trainer, e2AtHalf(), { forge: true });
+  await sendAs(relay, links.trainer, { ...e2AtHalf(), gameId: 'falsch' }, { certTeam: 'E1' });
+  await sendAs(relay, links.trainer, e1At37());
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-card-E1')).toBeVisible();
   await expect(v.getByTestId('dash-card-E2')).toHaveCount(0);
@@ -312,7 +312,7 @@ test('006 SC-L08 zu viele Verbindungen (429): Abfrage alle 30 s statt Stream', a
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, e1At37());
+  await sendAs(relay, links.trainer, e1At37());
   relay.tooMany = true;
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-status')).toHaveAttribute('data-state', 'polling');
@@ -343,7 +343,7 @@ test('006 FR-L17 Lead-Handy: "Live" und "Dashboard ansehen" öffnen das Dashboar
   relay,
 }) => {
   expect(relay.all()).toEqual([]);
-  await createLive(page, recorded, { teams: ['E1', 'E2'], self: 'E1' });
+  await createLive(page, recorded, { teams: ['E1', 'E2'] });
   await page.getByTestId('btn-live-dashboard').click();
   await expect(page.getByTestId('dashboard')).toBeVisible();
   await expect(page.getByTestId('nav')).toBeVisible();
@@ -375,7 +375,7 @@ test('006 FR-L18 Karten ab 375 pt ohne waagrechtes Scrollen, auch mit langen Nam
     clock: [['kickoff', 26.5, 1]],
     goals: [{ side: 'opp', minute: 3, who: 'Nr. 10 Langername-Doppelname' }],
   });
-  await sendAs(relay, links.lead.E1!, long);
+  await sendAs(relay, links.trainer, long);
   const v = await openViewer(newDevice, relay, links);
   await v.getByTestId('dash-toggle-E1').click();
   await expect(v.getByTestId('dash-details-E1')).toBeVisible();
