@@ -31,6 +31,6 @@
 
 ## Notes
 
-- Review A (04.11.2026): alle drei Klärungen beantwortet (US4, FR-L10, FR-L16). Offen für Review B: Benachrichtigung bei Toren (Abschnitt "Offene Fragen").
+- Review A (04.11.2026): alle drei Klärungen beantwortet (US4, FR-L10, FR-L16). Review B Entwurf 1: Benachrichtigung vorerst nicht (C), später Spec 007; Karten aufklappbar (FR-L12).
 - Der Kandidat ntfy.sh steht bewusst nur unter Assumptions (Machbarkeit belegt); die Auswahl des Dienstes trifft `research.md` im Plan.
 - Voraussetzung: Constitution 2.0.0 (Prinzip II), im selben PR.

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A erledigt (04.11.2026), Review B offen. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A erledigt (04.11.2026), Review B offen (Entwurf 2). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -23,7 +23,13 @@
 - Q: Torschützen auf dem Dashboard? → A: Ja, Vornamen bzw. Kürzel wie im Teilen-Text (FR-L10).
 - Q: Andere Spiele im Spielbildschirm des Lead-Handys? → A: Eltern sehen auf dem Dashboard ohnehin alle Spiele. Für Lead-Handys gilt die Empfehlung: eine kleine Zeile je anderem Spiel, sofern der Spielbildschirm auf dem iPhone SE ohne Scrollen bleibt; Prüfung im Mockup (US4).
 - Q: Mengengerüst? → A: Bis zu 40 Zuschauer je Mannschaft (20 Kinder, je zwei Elternteile), bei drei Mannschaften also bis zu 120 gleichzeitig (SC-L08).
-- Q: Benachrichtigung bei Toren (Push)? → A: Kommt in Frage, wenn der Dienst kostenlos ist (SaaS). Varianten und Entscheidung siehe "Offene Fragen".
+- Q: Benachrichtigung bei Toren (Push)? → A: Kommt in Frage, wenn der Dienst kostenlos ist (SaaS). Entscheidung in Review B (siehe unten).
+
+### Session 2026-11-04 (Review B, Entwurf 1)
+
+- Q: Benachrichtigung bei Toren: A ntfy-App, B eigener Gratis-Dienst mit Web-Push, C keine? → A: Vorerst C. Danach folgt B als eigene Spec 007 (Backlog), die auch den Endstand bis zum nächsten Spiel für alle Zuschauer sichtbar hält.
+- Q: Karten im Dashboard? → A: Aufklappbar. Zugeklappt nur Mannschaftsnamen, Ergebnis und Minute bzw. Phase; Details (Anpfiff, Halbzeitstand, Torverlauf mit Torschützen, "Heute außerdem", Hinweis auf alte Meldung) erst nach Tipp (FR-L12).
+- Q: Wo ist die Zeile mit den anderen Spielen? → A: Im Mockup unter "Lead-Handy" schlecht auffindbar; Entwurf 2 markiert sie und bietet direkte Links je Ansicht.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -77,13 +83,14 @@ Eltern öffnen den Zuschauer-Link aus der WhatsApp-Gruppe im Browser, ohne Insta
 
 1. **Given** E1 führt 2:1 in Minute 37 und E2 ist in der Halbzeitpause 0:0, **When** ein Elternteil den Zuschauer-Link öffnet, **Then** sieht es innerhalb von 5 Sekunden "Unser Spieltag" mit zwei Karten: "Feuerbach E1 2:1 TSV Musterstadt · 37'" und "Feuerbach E2 0:0 SV Beispielhausen · Halbzeit".
 2. **Given** ein laufendes Spiel, **Then** zählt die Minute auf dem Dashboard ohne neue Meldung weiter, einschließlich Nachspielzeit ("25+2'").
-3. **Given** ein neues Tor, **Then** hebt sich die Karte für einige Sekunden hervor (ohne Ton) und der Torverlauf zeigt Minute und Stand.
-4. **Given** heute läuft noch kein Spiel, **Then** zeigt das Dashboard "Heute noch kein Spiel live" und die Mannschaften des Spieltags.
-5. **Given** das Gerät des Zuschauers verliert die Verbindung, **Then** zeigt das Dashboard "Keine Verbindung · Stand von 10:42 Uhr" und aktualisiert sich selbst, sobald die Verbindung zurück ist.
-6. **Given** ein laufendes Spiel, von dessen Lead-Handy seit mehr als 5 Minuten keine Meldung kam, **Then** zeigt die Karte "Letzte Meldung vor 7 Min" (die Minute läuft weiter).
-7. **Given** ein Spiel ist beendet, **Then** steht es mit "Endstand" und Datum unter den laufenden Spielen, bis seine Mannschaft an einem anderen Tag ein neues Spiel anlegt (FR-L16).
-8. **Given** E2 hat heute schon 2:1 gegen TSV Musterstadt gespielt und das nächste Spiel läuft, **Then** zeigt die E2-Karte das laufende Spiel und darunter die Zeile "Heute außerdem: 2:1 gegen TSV Musterstadt".
-9. **Given** der Zuschauer-Link, **Then** gibt es auf dem Dashboard keine Bedienelemente zum Ändern; Meldungen, die nicht von einem festgelegten Lead-Handy stammen, werden ignoriert.
+3. **Given** ein neues Tor, **Then** hebt sich die Karte für einige Sekunden hervor (ohne Ton), auch zugeklappt; aufgeklappt steht das Tor oben im Torverlauf mit Minute, Stand und Torschütze.
+4. **Given** das Dashboard wird geöffnet, **Then** sind alle Karten zugeklappt und zeigen nur Mannschaftsnamen, Ergebnis und Minute bzw. Phase; **When** der Nutzer auf eine Karte tippt, **Then** klappt sie auf (Anpfiff, Halbzeitstand, alle Tore neuestes zuerst); ein weiterer Tipp klappt sie wieder zu. Mehrere Karten dürfen gleichzeitig offen sein.
+5. **Given** heute läuft noch kein Spiel, **Then** zeigt das Dashboard "Heute noch kein Spiel live" und die Mannschaften des Spieltags.
+6. **Given** das Gerät des Zuschauers verliert die Verbindung, **Then** zeigt das Dashboard "Keine Verbindung · Stand von 10:42 Uhr" und aktualisiert sich selbst, sobald die Verbindung zurück ist.
+7. **Given** ein laufendes Spiel, von dessen Lead-Handy seit mehr als 5 Minuten keine Meldung kam, **Then** zeigt die Karte "Letzte Meldung vor 7 Min" (die Minute läuft weiter).
+8. **Given** ein Spiel ist beendet, **Then** steht es mit "Endstand" und Datum unter den laufenden Spielen, bis seine Mannschaft an einem anderen Tag ein neues Spiel anlegt (FR-L16).
+9. **Given** E2 hat heute schon 2:1 gegen TSV Musterstadt gespielt und das nächste Spiel läuft, **Then** zeigt die E2-Karte das laufende Spiel und darunter die Zeile "Heute außerdem: 2:1 gegen TSV Musterstadt".
+10. **Given** der Zuschauer-Link, **Then** gibt es auf dem Dashboard keine Bedienelemente zum Ändern; Meldungen, die nicht von einem festgelegten Lead-Handy stammen, werden ignoriert.
 
 ---
 
@@ -123,7 +130,7 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 
 - **Uhr falsch gestellt**: Weicht die Uhrzeit des Lead-Handys oder des Zuschauers ab, muss die Minute auf dem Dashboard trotzdem stimmen (berechnet aus dem Spielverlauf, nicht aus der Uhrzeit des Geräts).
 - **Lead-Handy im Hintergrund oder gesperrt**: iOS sendet aus Web-Apps im Hintergrund nichts. Im Spiel bleibt der Bildschirm ohnehin an (FR-013). Kehrt die App zurück, sendet sie sofort den aktuellen Stand. Das Dashboard zeigt bis dahin die weiterlaufende Minute und "Letzte Meldung vor X Min".
-- **Mehrere Spiele einer Mannschaft am Tag** (Turnier, Spieltage im Kinderfußball, Spec 002 FR-T05): Die Karte zeigt das neueste Spiel, frühere Spiele desselben Tages stehen als kurze Zeilen darunter (US3 Szenario 8).
+- **Mehrere Spiele einer Mannschaft am Tag** (Turnier, Spieltage im Kinderfußball, Spec 002 FR-T05): Die Karte zeigt das neueste Spiel, frühere Spiele desselben Tages stehen als kurze Zeilen darunter (US3 Szenario 9).
 - **Angepfiffenes Spiel vom Vortag** ohne Schlusspfiff: erscheint nicht auf dem Dashboard des neuen Tages.
 - **Vermittlungsdienst nicht erreichbar**: Verhalten wie ohne Netz; die Erfassung ist nie betroffen.
 - **Lead-Link weitergeleitet**: Nur wer den Lead-Link hat, kann für diese Mannschaft senden. Gerät er in falsche Hände, hilft "Alle Links neu ausstellen" (US5).
@@ -159,7 +166,7 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 
 **Dashboard (Zuschauer)**
 
-- **FR-L12**: Das Dashboard MUSS im Browser ohne Installation und ohne Konto funktionieren und zeigt den Titel sowie je Spiel des Tages eine Karte: Kurzform der eigenen Mannschaft, Gegner, Trikotfarben, Stand Heim:Gast (Heim zuerst wie im Spielbildschirm), Phase ("noch nicht angepfiffen", Minute wie "37'" bzw. "25+2'", "Uhr angehalten", "Halbzeit" bzw. "Pause", "Verlängerung", "Elfmeterschießen", "Endstand" mit "n. V."/"i. E."), Halbzeitstand und Torverlauf (Minute, Stand, ggf. "Elfmeter"/"Eigentor").
+- **FR-L12**: Das Dashboard MUSS im Browser ohne Installation und ohne Konto funktionieren und zeigt den Titel sowie je Spiel eine aufklappbare Karte. Zugeklappt (Standard): Kurzform der eigenen Mannschaft, Gegner, Trikotfarben, Stand Heim:Gast (Heim zuerst wie im Spielbildschirm) und Phase ("noch nicht angepfiffen", Minute wie "37'" bzw. "25+2'", "Uhr angehalten", "Halbzeit" bzw. "Pause", "Verlängerung", "Elfmeterschießen", "Ende" mit "n. V."/"i. E."). Aufgeklappt zusätzlich: Mannschaftskürzel, Anpfiff- und Schlusspfiff-Uhrzeit, Halbzeitstand (bei mehr als einem Abschnitt), Torverlauf neuestes zuerst (Minute, Stand, Torschütze, ggf. "Elfmeter"/"Eigentor"), "Heute außerdem" (FR-L14) und der Hinweis auf eine alte Meldung (FR-L15). Die ganze Karte ist die Tippfläche (mindestens 64 pt hoch).
 - **FR-L13**: Die Minute auf dem Dashboard MUSS aus dem übertragenen Spielverlauf berechnet werden und ohne neue Meldung weiterlaufen (Constitution V); die Abweichung zur Anzeige auf dem Lead-Handy beträgt höchstens 1 Minute.
 - **FR-L14**: Das Dashboard MUSS je Mannschaft höchstens eine Karte zeigen, mit deren neuestem Spiel; frühere Spiele desselben Tages stehen als kurze Zeilen darunter ("Heute außerdem: 2:1 gegen TSV Musterstadt"). Reihenfolge: Karten mit laufendem Spiel in der Reihenfolge der Mannschaften des Live-Spieltags, darunter angelegte, darunter beendete. Ohne Spiele: "Heute noch kein Spiel live" mit den Mannschaften. Spielen zwei Lead-Handys derselben Mannschaft gleichzeitig (US5 Szenario 5), zeigt die Karte beide Spiele.
 - **FR-L15**: Das Dashboard MUSS sich ohne Neuladen aktualisieren, neue Tore für einige Sekunden hervorheben (ohne Ton) und den Verbindungsstatus zeigen: bei eigener fehlender Verbindung "Keine Verbindung · Stand von <Uhrzeit>", bei laufendem Spiel ohne Meldung seit mehr als 5 Minuten "Letzte Meldung vor <n> Min" auf der Karte.
@@ -196,14 +203,11 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 
 - Am Platz gibt es meistens mobiles Netz; Funklöcher verzögern die Anzeige, verhindern aber nie die Erfassung.
 - Vermittlungsdienst: kostenlos, ohne Konto, aus dem Browser nutzbar; Kandidat ntfy.sh (erreichbar, Browser-Zugriff erlaubt; laut Dokumentation Meldungen bis 4 KB, rund 12 Stunden vorgehalten, je Anschluss 250 gesendete Meldungen am Tag und 30 offene Verbindungen). Auswahl, Grenzen und Ausfallverhalten klärt `research.md`. Fällt der Dienst aus, fehlt nur die Live-Anzeige.
-- Zuschauer sehen Stände im Dashboard nur bei geöffneter Seite; Benachrichtigungen siehe "Offene Fragen".
+- Zuschauer sehen Stände im Dashboard nur bei geöffneter Seite. Benachrichtigungen auf dem Sperrbildschirm sind nicht Teil dieser Spec (Review B: Variante C); sie folgen mit Spec 007.
 - Lead-Handys sind während des Spiels im Vordergrund (Bildschirm bleibt an, FR-013).
 - Die Constitution wird auf Version 2.0.0 angehoben (Prinzip II erlaubt die Live-Kopplung); das Qualitätstor "Netzwerk-Wächter" lässt genau den Vermittlungsdienst und nur bei aktiver Kopplung zu.
 - Spiele werden nicht zwischen Geräten übernommen: Das Dashboard ist eine Anzeige, die Historie bleibt auf dem Lead-Handy.
 
 ## Offene Fragen
 
-1. **Benachrichtigung bei Toren (Review B).** Eine Meldung auf dem Sperrbildschirm der Eltern kann das Dashboard selbst nicht auslösen. Varianten:
-   - **A, ntfy-App (Empfehlung):** Eltern installieren einmal die kostenlose ntfy-App und abonnieren per Knopf "Bei Toren benachrichtigen" im Dashboard. Lead-Handys senden bei Anpfiff, Tor, Halbzeit und Endstand eine kurze Meldung ("Tor für Feuerbach E1: 2:1 gegen TSV Musterstadt, 37'"). Kein Konto, kleiner Aufwand. Der Meldungstext ist nicht verschlüsselt, enthält aber nur Mannschaften und Stand, keine Torschützen; dafür braucht Prinzip II eine Klarstellung.
-   - **B, Web-Push direkt vom Dashboard:** keine zweite App, aber ein eigener kleiner Dienst bei einem kostenlosen Anbieter (z. B. Cloudflare, kostenloses Konto nötig). Auf dem iPhone müssen Eltern das Dashboard auf den Home-Bildschirm legen. Würde auch den Endstand bis zum nächsten Spiel für alle sichtbar halten. Mittlerer bis großer Aufwand, eigene Spec 007.
-   - **C:** keine Benachrichtigung.
+Keine. Benachrichtigungen bei Toren und ein Endstand, der für alle bis zum nächsten Spiel sichtbar bleibt, folgen als Spec 007 (`specs/007-push-benachrichtigung`, Backlog).
