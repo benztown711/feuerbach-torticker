@@ -4,6 +4,9 @@ import { asPath, createLive, pasteLeadLink, recordedOf } from './live-helpers';
 
 /** Spec 006 US1: Live-Spieltag anlegen und Lead-Handys festlegen. */
 
+// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+test.use({ serviceWorkers: 'block' });
+
 test('006 US1-S1 Live-Spieltag mit E1 und E2 anlegen, Zuschauer- und Lead-Link teilen', async ({
   page,
   relay,

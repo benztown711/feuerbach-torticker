@@ -51,11 +51,16 @@ function wrapNavigation(page: Page): void {
   };
 }
 
-/** Kontext mit denselben Geräteeinstellungen wie das Projekt (Viewport, Touch, Sprache, Zeitzone). */
+/**
+ * Kontext mit denselben Geräteeinstellungen wie das Projekt (Viewport, Touch, Sprache, Zeitzone).
+ * Service Worker sind blockiert: WebKit leitet Anfragen, die über den Service Worker laufen, nicht durch
+ * `context.route` (Playwright-Doku "Service Workers"), sie gingen sonst am Relay-Nachbau vorbei.
+ */
 async function newDeviceContext(browser: Browser, testInfo: TestInfo, baseURL?: string): Promise<BrowserContext> {
   const u = testInfo.project.use;
   return browser.newContext({
     baseURL,
+    serviceWorkers: 'block',
     viewport: u.viewport,
     userAgent: u.userAgent,
     deviceScaleFactor: u.deviceScaleFactor,
@@ -162,8 +167,12 @@ export const test = base.extend<{
     },
     { auto: true },
   ],
-  /** Spec 006 R-L8: Nachbau von ntfy.sh; nur Tests mit dieser Fixture dürfen ntfy.sh erreichen. */
-  relay: async ({ context, allowedOrigins }, use) => {
+  /**
+   * Spec 006 R-L8: Nachbau von ntfy.sh; nur Tests mit dieser Fixture dürfen ntfy.sh erreichen.
+   * Verlangt `test.use({ serviceWorkers: 'block' })`, sonst umgehen Anfragen in WebKit den Nachbau.
+   */
+  relay: async ({ context, allowedOrigins, serviceWorkers }, use) => {
+    if (serviceWorkers !== 'block') throw new Error("Fixture relay braucht test.use({ serviceWorkers: 'block' })");
     const relay = new FakeRelay();
     allowedOrigins.add(RELAY_ORIGIN);
     await relay.attach(context);
