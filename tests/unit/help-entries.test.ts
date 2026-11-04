@@ -102,6 +102,8 @@ const CATALOG: [string, string][] = [
   ['tor', 'tor'],
   ['glocke', 'signalton'],
   ['vorlage', 'vorlage'],
+  ['spiel übernehmen', 'spiel-uebernehmen'],
+  ['übergabe', 'spiel-uebernehmen'],
   ['assist ändern', 'vorlage-aendern'],
   ['ton ändern', 'signalton'],
 ];

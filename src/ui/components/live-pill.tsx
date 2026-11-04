@@ -24,11 +24,17 @@ export function useLiveStatus(game: Game | null | undefined): LiveStatus | null 
   return game ? (liveSender()?.statusFor(game) ?? null) : null;
 }
 
-const LABEL: Record<LiveStatus, string> = { on: 'Live', wait: 'Wartet auf Netz', off: 'Nicht live' };
+const LABEL: Record<LiveStatus, string> = {
+  on: 'Live',
+  wait: 'Wartet auf Netz',
+  off: 'Nicht live',
+  handed: 'Übergeben',
+};
 const ARIA: Record<LiveStatus, string> = {
   on: 'Live: Stand wird übertragen',
   wait: 'Live: wartet auf Netz',
   off: 'Nicht live gesendet',
+  handed: 'Ein anderes Handy überträgt dieses Spiel',
 };
 
 /** Spec 006 FR-L08: Kennzeichen im Spielbildschirm eines Lead-Handys. */
@@ -37,7 +43,7 @@ export function LivePill({ game }: { game: Game }) {
   if (!status) return null;
   return (
     <a
-      class={`live-pill live-pill--${status}`}
+      class={`live-pill live-pill--${status === 'handed' ? 'off' : status}`}
       href="#/live-spieltag/dashboard"
       data-testid="live-pill"
       data-state={status}

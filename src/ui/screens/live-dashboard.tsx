@@ -186,11 +186,7 @@ export function Dashboard({
   /** Titel und Mannschaften für "Teilen" in der Eltern-Leiste (FR-H17). */
   onInfo?: (info: { title: string; teams: string[] }) => void;
 }) {
-  const receiver = useMemo(() => {
-    const r = newReceiver(view);
-    if (config) r.seed(config);
-    return r;
-  }, [view.topic, view.viewKey, view.orgPub]);
+  const receiver = useMemo(() => newReceiver(view, {}, config), [view.topic, view.viewKey, view.orgPub]);
   const [state, setState] = useState<ReceiverState>(() => receiver.get());
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   // Ausgeblendet (Eltern-Hilfe offen) reicht ein seltener Takt; die Verbindung bleibt trotzdem bestehen.

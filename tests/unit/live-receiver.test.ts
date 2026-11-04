@@ -18,6 +18,7 @@ const snap = (p: Partial<LiveGameSnapshot> = {}): LiveGameSnapshot => ({
   gameId: 'g1',
   team: 'E1',
   sentAt: T0,
+  h: 0,
   createdAt: T0 - 60_000,
   own: 'Feuerbach E1',
   opp: 'TSV Musterstadt',

@@ -146,11 +146,19 @@ const browserStorage = (): KeyValueStore | null => {
 };
 
 /** Empfänger für einen Zuschauer-Link mit echter Verbindung, Prüfung und Speicher. */
-export const newReceiver = (view: View, override: Partial<ReceiverDeps> = {}): LiveReceiver =>
-  new LiveReceiver(view, {
+export function newReceiver(
+  view: View,
+  override: Partial<ReceiverDeps> = {},
+  config: LiveConfig | null = null,
+): LiveReceiver {
+  const r = new LiveReceiver(view, {
     now: () => Date.now(),
     subscribe,
     open: openMessage,
     storage: browserStorage(),
     ...override,
   });
+  // Bekannte Konfiguration (Organisator, Trainer-Handy) gilt sofort.
+  if (config) r.seed(config);
+  return r;
+}

@@ -171,6 +171,19 @@ describe('T072 FR-024 Sicherung', () => {
     const bad = JSON.parse(JSON.stringify(priv)) as { games: { livePrivate?: unknown }[] };
     bad.games[0]!.livePrivate = 'ja';
     expect(parseBackup(JSON.stringify(bad)).ok).toBe(false);
+    // FR-L23, FR-L24: Übergabe
+    const taken = buildBackup([{ ...game(G1), live: false, liveTakeover: 2, liveHandedOver: true }], players, T0);
+    expect(parseBackup(JSON.stringify(taken)).ok).toBe(true);
+    expect(validate(JSON.parse(JSON.stringify(taken)))).toBe(true);
+    for (const [k, v] of [
+      ['liveTakeover', 101],
+      ['liveTakeover', 1.5],
+      ['liveHandedOver', 'ja'],
+    ] as const) {
+      const t = JSON.parse(JSON.stringify(taken)) as { games: Record<string, unknown>[] };
+      t.games[0]![k] = v;
+      expect(parseBackup(JSON.stringify(t)).ok).toBe(false);
+    }
   });
 
   it('009 FR-V10 Sicherung enthält Vorlagen (Schema), ältere ohne Feld bleiben gültig, ungültige abgelehnt', () => {

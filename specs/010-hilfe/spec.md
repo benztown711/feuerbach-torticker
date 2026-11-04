@@ -152,7 +152,7 @@ Keine Spieldaten betroffen; die Einträge werden mit der App ausgeliefert und ni
 
 ## Hilfe *(mandatory)*
 
-Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3), nachgezogen beim Merge: 008 US1 (Signalton), 009 US1 bis US4 (Vorlagen), 003 Teil 4 (ein Knopf je Schalter) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, mit Familie und Freunden teilen (Quelle 010 FR-H16), "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
+Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3), nachgezogen beim Merge: 008 US1 (Signalton), 009 US1 bis US4 (Vorlagen), 003 Teil 4 (ein Knopf je Schalter), 006 US6 (Spiel übernehmen) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, mit Familie und Freunden teilen (Quelle 010 FR-H16), "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
 
 ## Verankerung im Vorgehensmodell
 

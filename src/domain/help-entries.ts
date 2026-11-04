@@ -453,6 +453,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-anlegen', 'trainer-link'],
   },
   {
+    id: 'spiel-uebernehmen',
+    topic: 'live',
+    title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
+    answer:
+      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit.',
+    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher',
+    sources: ['006 US6'],
+    related: ['live-senden', 'trainer-link'],
+  },
+  {
     id: 'eltern-dashboard',
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
