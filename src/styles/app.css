@@ -571,22 +571,33 @@
   color: var(--color-ink-muted);
 }
 
-/* Spec 003 FR-E09: Knopf "Ereignis" zwischen Uhr-Knöpfen und Torliste */
-.event-add {
+/* Spec 003 FR-E09: ein Knopf je Schalter zwischen Uhr-Knöpfen und Torliste. Die Breite richtet sich nach
+   der Beschriftung, damit auch drei Knöpfe auf 375 pt ohne Umbruch passen; Höhe wie zuvor "Ereignis". */
+.event-row {
+  display: flex;
   flex-shrink: 0;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-4) 0;
 }
 
-.event-add__btn {
-  width: 100%;
+.event-row__btn {
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 40px;
+  padding: 0 var(--space-2);
   font-size: 15px;
+  white-space: nowrap;
 }
 
 .pick-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
+}
+
+/* Spec 003 FR-E09: vier Kartenarten als 2 × 2 große Kacheln */
+.pick-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .pick {
@@ -1989,7 +2000,7 @@
 }
 
 .game--expanded .controls,
-.game--expanded .event-add {
+.game--expanded .event-row {
   display: none;
 }
 

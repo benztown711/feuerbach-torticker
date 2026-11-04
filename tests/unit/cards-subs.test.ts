@@ -247,6 +247,6 @@ describe('005 FR-S03 FR-S04 Karten und Wechsel im Verlauf des Teilen-Texts', () 
 describe('003 FR-E02 Schalter Karten und Wechsel', () => {
   it('ältere Einstellungen mit nur "Lesezeichen" bekommen die weiteren Schalter (aus)', () => {
     const s = withSettingsDefaults({ features: { marks: true } as never });
-    expect(s.features).toEqual({ cards: false, subs: false, marks: true });
+    expect(s.features).toEqual({ cards: false, subs: false, marks: true, assists: false });
   });
 });

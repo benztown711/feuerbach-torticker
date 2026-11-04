@@ -46,7 +46,7 @@ Prüfreihenfolge beim Empfänger: entschlüsseln → entpacken → JSON → `g` 
 | `ownColor`, `oppColor` | Paletten-ID aus `design/trikot-farben.json`, sonst verworfen |
 | `schema` | wie `Schema` (1 bis 4 Abschnitte, 1 bis 60 Minuten, Verlängerung optional) |
 | `clock` | höchstens 50 Uhr-Ereignisse `[Typ, Zeit, Abschnitt]` |
-| `goals` | nur nicht entfernte Tore, höchstens 200; `who` = Anzeigename des Kaderspielers bzw. Freitext beim Gegner, sonst `null`, höchstens 40 Zeichen; `ownGoal` für "Eigentor Gegner" |
+| `goals` | nur nicht entfernte Tore, höchstens 200; `who` = Anzeigename des Kaderspielers bzw. Freitext beim Gegner, sonst `null`, höchstens 40 Zeichen; `ownGoal` für "Eigentor Gegner"; `assist` (Spec 009, optional) = Anzeigename des Vorlagengebers, 1 bis 40 Zeichen, fehlt ohne Vorlage (`null` wird beim Einlesen wie "fehlt" behandelt). Ältere Dashboards übergehen das Feld. |
 | `shootout` | `null` oder `{ first, done, shots: [[Seite, Treffer, Name\|null]] }`, höchstens 100 Schüsse |
 
 Nie enthalten: Kader, Aufgebot, Karten, Wechsel, Lesezeichen, Nachnamen.

@@ -3,7 +3,7 @@ import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
 import { shootoutState } from '../../domain/cup';
 import { cardText, marksText, personLabel, subText } from '../../domain/events';
-import { goalSuffix, homeAway, score, scorerLabel } from '../../domain/goals';
+import { goalWho, homeAway, score } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
 import { buildShareText } from '../../domain/share-text';
@@ -178,14 +178,7 @@ export function GameDetailsScreen({ id }: { id: string }) {
             >
               <span class="details__minute">{item.label}</span>
               <span class="details__score-cell">{item.score}</span>
-              <span class="details__what">
-                {item.goal.scorer
-                  ? `${scorerLabel(item.goal, players)}${item.goal.side === 'opp' ? ` (${game.opponent})` : ''}`
-                  : item.goal.side === 'own'
-                    ? shortTeamName(game.ownTeam)
-                    : game.opponent}
-                {goalSuffix(item.goal)}
-              </span>
+              <span class="details__what">{goalWho(game, item.goal, players)}</span>
               <span class="details__time">{formatTime(item.at)}</span>
               {item.removed && <span class="goal-row__tag">entfernt</span>}
             </li>

@@ -5,7 +5,7 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../src
 import { addShot, endShootout, startExtraTime, startShootout } from '../../src/domain/cup';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
 import { addCard, addMark, addSub, setMarkComment } from '../../src/domain/events';
-import { addGoal, setPenalty, setScorer } from '../../src/domain/goals';
+import { addGoal, setAssist, setPenalty, setScorer } from '../../src/domain/goals';
 import type { Game, MarkEvent, Player } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
@@ -171,6 +171,28 @@ describe('T072 FR-024 Sicherung', () => {
     const bad = JSON.parse(JSON.stringify(priv)) as { games: { livePrivate?: unknown }[] };
     bad.games[0]!.livePrivate = 'ja';
     expect(parseBackup(JSON.stringify(bad)).ok).toBe(false);
+  });
+
+  it('009 FR-V10 Sicherung enthält Vorlagen (Schema), ältere ohne Feld bleiben gültig, ungültige abgelehnt', () => {
+    const roster: Player[] = [...players, { id: 'ben-id', name: 'Ben', number: 9, deletedAt: null }];
+    const plain = game(G1);
+    const g = setAssist(plain, plain.goals[0]!.id, 'ben-id');
+    expect(g.goals[0]?.assist).toBe('ben-id');
+    const backup = buildBackup([g, plain], roster, T0);
+    const json = JSON.parse(JSON.stringify(backup)) as { games: { goals: { assist?: unknown }[] }[] };
+    expect(validate(json)).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games.map((x) => x.goals[0]?.assist)).toEqual(['ben-id', undefined]);
+    for (const wrong of ['', 7, 'x'.repeat(201)]) {
+      const b = JSON.parse(JSON.stringify(backup)) as typeof json;
+      b.games[0]!.goals[0]!.assist = wrong;
+      expect(parseBackup(JSON.stringify(b)).ok).toBe(false);
+      expect(validate(b)).toBe(false);
+    }
+    const none = JSON.parse(JSON.stringify(backup)) as typeof json;
+    none.games[0]!.goals[0]!.assist = null;
+    expect(parseBackup(JSON.stringify(none)).ok).toBe(true);
+    expect(validate(none)).toBe(true);
   });
 
   it('ohne App-Version fehlt das Feld', () => {

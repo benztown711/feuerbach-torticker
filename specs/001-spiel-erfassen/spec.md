@@ -131,7 +131,7 @@ Nach einem Feuerbach-Tor kann der Nutzer optional den Torschützen auswählen, e
 
 **Acceptance Scenarios**:
 
-1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Max" antippt, **Then** zeigt die Torliste "12' Feuerbach, Max".
+1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Max" antippt, **Then** zeigt die Torliste "12' Feuerbach, Max" (seit Spec 009 FR-V11 ohne Mannschaftsnamen: "12' Max").
 2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach 8 Sekunden ohne Torschützen.
 3. **Given** ein Feuerbach-Tor ohne Torschützen, **When** der Nutzer es in der Torliste antippt, **Then** kann er einen Torschützen aus dem Kader wählen.
 4. **Given** ein Gegentor, **When** der Nutzer es in der Torliste antippt, **Then** kann er optional einen Torschützen als Freitext eintragen (Name oder Rückennummer, z. B. "Nr. 9"; das Feld zeigt diesen Hinweis als Platzhalter).

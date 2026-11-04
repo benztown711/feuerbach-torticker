@@ -9,6 +9,15 @@ export function BookmarkIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+/** Spec 003 FR-E09: neutrale Karte (Umriss) für den Knopf "Karte". */
+export function CardIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" class="icon">
+      <path d="M7 4.5h10v15H7z" />
+    </svg>
+  );
+}
+
 /** Wechsel: Pfeil hoch (rein), Pfeil runter (raus). */
 export function SubIcon({ size = 16 }: { size?: number }) {
   return (

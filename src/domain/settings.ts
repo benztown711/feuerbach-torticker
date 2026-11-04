@@ -2,7 +2,7 @@ import { DEFAULT_SIGNAL_SOUND, isSignalSound } from './signal-sound';
 import { migrateTeams } from './teams';
 import type { Settings } from './types';
 
-/** Spec 003 FR-E02: mindestens ein Ereignis eingeschaltet (dann gibt es den Knopf "Ereignis"). */
+/** Spec 003 FR-E02: mindestens ein Ereignis eingeschaltet (dann gibt es die Knopfzeile, FR-E09). */
 export const anyEventFeature = (s: Settings): boolean => s.features.cards || s.features.subs || s.features.marks;
 
 export function defaultSettings(): Settings {
@@ -16,7 +16,7 @@ export function defaultSettings(): Settings {
     signalSound: DEFAULT_SIGNAL_SOUND,
     installHintDismissedAt: null,
     teams: [],
-    features: { cards: false, subs: false, marks: false },
+    features: { cards: false, subs: false, marks: false, assists: false },
     live: null,
     liveView: null,
   };
