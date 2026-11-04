@@ -15,9 +15,10 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 
 ### II. Offline-first und lokal
 
-- Die App funktioniert vollständig ohne Netzverbindung, sobald sie einmal geladen ist.
-- Spieldaten bleiben auf dem Gerät. Es gibt keinen Server und kein Benutzerkonto.
-- Daten verlassen das Gerät nur durch eine bewusste Aktion des Nutzers (z. B. "Ergebnis teilen").
+- Die App funktioniert vollständig ohne Netzverbindung, sobald sie einmal geladen ist. Die Erfassung hängt nie vom Netz ab.
+- Spieldaten bleiben auf dem Gerät. Es gibt keinen eigenen Server und kein Benutzerkonto.
+- Daten verlassen das Gerät nur durch eine bewusste Aktion des Nutzers: einmalig (z. B. "Ergebnis teilen", Export) oder dauerhaft über eine vom Nutzer aktivierte Live-Kopplung (Spec 006).
+- Eine Live-Kopplung überträgt nur die für die Anzeige nötigen Daten, Ende-zu-Ende verschlüsselt, über genau einen kostenlosen Vermittlungsdienst ohne Konto. Ohne Kopplung baut die App keine Verbindung zu einem solchen Dienst auf.
 
 ### III. Datensparsamkeit (Kinder- und Jugendfußball)
 
@@ -72,4 +73,6 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 1.2.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-02
+**Version**: 2.0.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-04
+
+Änderungshistorie: 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
