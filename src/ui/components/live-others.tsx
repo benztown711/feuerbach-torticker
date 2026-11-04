@@ -3,14 +3,25 @@ import type { GameWatch } from '../../platform/live-watch';
 import { useGoalFlash } from '../hooks';
 
 /**
- * Spec 006 US4: eine Zeile mit den heutigen anderen Spielen unter der Kopfzeile ("E2 2:1 · 31'"), ein Tipp
- * öffnet das Dashboard. Ein neues Tor hebt die Zeile kurz hervor, ohne Ton (das Signal gehört dem eigenen
- * Spiel). Ohne andere Spiele fehlt die Zeile, damit die Torliste Platz behält (FR-033).
+ * Spec 006 US4: eine Zeile mit den heutigen Spielen der anderen Mannschaften unter der Kopfzeile
+ * ("E2 2:1 · 31'"), ein Tipp öffnet das Dashboard. Ein neues Tor hebt die Zeile kurz hervor, ohne Ton (das
+ * Signal gehört dem eigenen Spiel). Ohne andere Spiele fehlt die Zeile, damit die Torliste Platz behält (FR-033).
  */
-export function LiveOthers({ watch, gameId, now }: { watch: GameWatch; gameId: string; now: number }) {
+export function LiveOthers({
+  watch,
+  gameId,
+  team,
+  now,
+}: {
+  watch: GameWatch;
+  gameId: string;
+  /** Eigene Mannschaft im Live-Spieltag (null: nicht dabei). */
+  team: string | null;
+  now: number;
+}) {
   const [, setTick] = useState(0);
   useEffect(() => watch.onChange(() => setTick((n) => n + 1)), [watch]);
-  const others = watch.others(gameId);
+  const others = watch.others(gameId, team);
   const flash = useGoalFlash(others, now, watch.serverNow());
   if (others.length === 0) return null;
   const flashing = others.some((c) => flash.has(c.gameId));

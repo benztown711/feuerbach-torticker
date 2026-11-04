@@ -78,7 +78,7 @@ import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
 import { setLive } from '../../domain/live-snapshot';
-import { sendingTeamFor } from '../../domain/live-spieltag';
+import { liveTeamFor, sendingTeamFor } from '../../domain/live-spieltag';
 import type { GameWatch } from '../../platform/live-watch';
 
 const base = import.meta.env.BASE_URL;
@@ -176,16 +176,20 @@ export function GameScreen({ id }: { id: string }) {
   // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
   const liveStatus = useLiveStatus(game);
 
-  // Spec 006 US4 und FR-L24: eine Verbindung (nachgeladen), solange der Spielbildschirm offen und das Handy
-  // gekoppelt ist: Zeile mit den anderen Spielen und Übernahme dieses Spiels durch ein anderes Handy.
+  const clock = game ? clockOf(game, now) : null;
+  const status = clock?.status;
+
+  // Spec 006 US4 und FR-L24: eine Verbindung (nachgeladen), solange der Spielbildschirm eines nicht beendeten
+  // Spiels offen und das Handy gekoppelt ist: Zeile mit den anderen Spielen und Übernahme durch ein anderes Handy.
   const [handedUntil, setHandedUntil] = useState(0);
   const [watch, setWatch] = useState<GameWatch | null>(null);
-  const liveKey = game && settings?.live ? (sendingTeamFor(game, settings.live)?.key ?? null) : null;
+  const live = settings?.live ?? null;
+  const liveKey = game && live ? (sendingTeamFor(game, live)?.key ?? null) : null;
   const liveKeyRef = useRef(liveKey);
   liveKeyRef.current = liveKey;
+  const watching = !!live && !!game && (status !== 'finished' || (!!game.shootout && !game.shootout.done));
   useEffect(() => {
-    const live = settings?.live;
-    if (!live) return;
+    if (!live || !watching) return;
     let w: GameWatch | null = null;
     let alive = true;
     import('../../platform/live-watch')
@@ -208,10 +212,11 @@ export function GameScreen({ id }: { id: string }) {
       w?.stop();
       setWatch(null);
     };
-    // Nur bei anderem Spiel oder anderem Live-Spieltag neu verbinden.
-  }, [id, settings?.live?.topic]);
-  const clock = game ? clockOf(game, now) : null;
-  const status = clock?.status;
+    // Nur bei anderem Spiel, anderem Live-Spieltag oder Schlusspfiff neu verbinden bzw. trennen.
+  }, [id, live?.topic, watching]);
+  // FR-L24 auch prüfen, wenn dieses Handy (wieder) für die Mannschaft sendet, ohne dass eine Meldung kommt.
+  useEffect(() => watch?.check(), [watch, liveKey]);
+  const ownKey = game && live ? (liveTeamFor(game.ownTeam, live)?.key ?? null) : null;
 
   // FR-007: Signal bei 00:00 und jeder vollen Nachspielminute; einmal je Schwelle, auch nach Neuladen.
   const due = clock?.dueThresholds.join(',') ?? '';
@@ -492,7 +497,7 @@ export function GameScreen({ id }: { id: string }) {
           </svg>
         </button>
       </header>
-      {watch && <LiveOthers watch={watch} gameId={game.id} now={now} />}
+      {watch && <LiveOthers watch={watch} gameId={game.id} team={ownKey} now={now} />}
 
       <section class="teams" aria-label="Spielstand">
         <div class="team">

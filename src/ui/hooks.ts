@@ -60,8 +60,13 @@ export function useGoalFlash(
     const fresh = cards.filter(
       (c) => c.goals.length > (prev.get(c.gameId) ?? c.goals.length) && serverNow - c.updatedAt < FRESH_MS,
     );
-    if (fresh.length > 0)
-      setUntil((u) => ({ ...u, ...Object.fromEntries(fresh.map((c) => [c.gameId, Date.now() + FLASH_MS])) }));
+    if (fresh.length === 0) return;
+    const t = Date.now();
+    // Abgelaufene Einträge fallen dabei weg.
+    setUntil((u) => ({
+      ...Object.fromEntries(Object.entries(u).filter(([, end]) => end > t)),
+      ...Object.fromEntries(fresh.map((c) => [c.gameId, t + FLASH_MS])),
+    }));
     // Nur bei geänderter Toranzahl (signature), nicht bei jedem neuen Array.
   }, [signature]);
   return new Set(Object.keys(until).filter((id) => (until[id] ?? 0) > now));

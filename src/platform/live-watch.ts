@@ -1,4 +1,11 @@
-import { boardView, otherGames, runningElsewhere, type BoardCard, type BoardEntry } from '../domain/live-board';
+import {
+  boardView,
+  otherGames,
+  runningElsewhere,
+  type Board,
+  type BoardCard,
+  type BoardEntry,
+} from '../domain/live-board';
 import { configOf, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
@@ -50,10 +57,12 @@ export function watchSpieltag(live: LiveSpieltag, deps: Partial<ReceiverDeps> = 
 }
 
 export interface GameWatch {
-  /** US4: heutige Spiele ohne das Spiel `gameId` dieses Handys, Stand und Minute jetzt. */
-  others(gameId: string): BoardCard[];
+  /** US4: heutige Spiele der anderen Mannschaften (`team` eigene, `gameId` eigenes Spiel), Stand und Minute jetzt. */
+  others(gameId: string, team: string | null): BoardCard[];
   /** Jetzt in Serverzeit (R-L4). */
   serverNow(): number;
+  /** FR-L24 erneut prüfen, z. B. wenn das Spiel geladen ist oder dieses Handy wieder sendet. */
+  check(): void;
   onChange(cb: () => void): () => void;
   stop(): void;
 }
@@ -63,27 +72,41 @@ export interface GameWatchHooks {
   team(): string | null;
   /** Aktueller Stand des Spiels auf diesem Handy. */
   current(): Game | null;
-  /** FR-L24: einmal, sobald ein anderes Handy das Spiel übernommen hat (größerer Übergabezähler). */
+  /** FR-L24: einmal je Spiel und eigenem Übergabezähler, sobald ein anderes Handy das Spiel übernommen hat. */
   onTakenOver(): void;
 }
 
 /** Eine Verbindung je Spielbildschirm, solange er offen und das Handy gekoppelt ist (US4, FR-L24). */
 export function watchGame(live: LiveSpieltag, hooks: GameWatchHooks, deps: Partial<ReceiverDeps> = {}): GameWatch {
   const r = receiverFor(live, deps);
-  let done = false;
+  let reported = '';
   const check = (): void => {
     const g = hooks.current();
     const team = hooks.team();
-    if (done || !g || !team || !takenOver(r.get().board, g, team)) return;
-    done = true;
+    if (!g || g.liveHandedOver || !team || !takenOver(r.get().board, g, team)) return;
+    const key = `${g.id}:${g.liveTakeover ?? 0}`;
+    if (reported === key) return;
+    reported = key;
     hooks.onTakenOver();
+  };
+  // Der Spielbildschirm zeichnet viermal je Sekunde: Karten je Stand, Sekunde und Spiel nur einmal berechnen.
+  let cache: { board: Board; sec: number; key: string; cards: BoardCard[] } | null = null;
+  const others = (gameId: string, team: string | null): BoardCard[] => {
+    const board = r.get().board;
+    const now = r.serverNow();
+    const sec = Math.floor(now / 1000);
+    const key = `${gameId}|${team ?? ''}`;
+    if (cache?.board !== board || cache.sec !== sec || cache.key !== key)
+      cache = { board, sec, key, cards: otherGames(board, gameId, team, now, deps.timeZone) };
+    return cache.cards;
   };
   r.onChange(check);
   r.start();
   check();
   return {
-    others: (gameId) => otherGames(r.get().board, gameId, r.serverNow(), deps.timeZone),
+    others,
     serverNow: () => r.serverNow(),
+    check,
     onChange: (cb) => r.onChange(cb),
     stop: () => r.stop(),
   };

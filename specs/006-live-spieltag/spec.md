@@ -134,7 +134,7 @@ Wer am Spielfeldrand von E1 steht, will kurz sehen, wie es bei E2 steht, ohne di
 **Acceptance Scenarios**:
 
 1. **Given** ein laufendes Spiel auf einem Lead-Handy, **When** der Nutzer auf das Kennzeichen "Live" in der Kopfzeile tippt, **Then** öffnet sich das Dashboard; "Spiel" in der Navigationsleiste führt zurück, die Uhr läuft unverändert weiter.
-2. **Given** ein laufendes Spiel auf dem Lead-Handy von E1 und ein laufendes Spiel von E2, **Then** zeigt der Spielbildschirm unter der Kopfzeile eine kleine Zeile "E2 2:1 · 31'" mit laufender Minute; ein Tipp darauf öffnet das Dashboard. Die Zeile nennt alle heutigen Spiele des Live-Spieltags außer dem eigenen (laufende zuerst, Reihenfolge wie auf dem Dashboard), auf jedem gekoppelten Trainer-Handy, auch wenn das eigene Spiel nicht live gesendet wird; ohne andere Spiele fehlt sie (FR-033).
+2. **Given** ein laufendes Spiel auf dem Lead-Handy von E1 und ein laufendes Spiel von E2, **Then** zeigt der Spielbildschirm unter der Kopfzeile eine kleine Zeile "E2 2:1 · 31'" mit laufender Minute; ein Tipp darauf öffnet das Dashboard. Die Zeile nennt die heutigen Spiele der anderen Mannschaften des Live-Spieltags (laufende zuerst, Reihenfolge wie auf dem Dashboard), auf jedem gekoppelten Trainer-Handy bis zum Schlusspfiff des eigenen Spiels, auch wenn das eigene Spiel nicht live gesendet wird; ohne andere Spiele fehlt sie (FR-033).
 3. **Given** ein neues Tor bei E2, **Then** hebt sich die Zeile auf dem Lead-Handy von E1 kurz hervor, ohne Ton und ohne Pfiff (das Signal bleibt dem eigenen Spiel vorbehalten).
 
 ---

@@ -63,7 +63,7 @@ Kopplungsfrage (Sheet `couple-dialog`): "Live senden für <Mannschaften>?", `cou
 |---|---|---|
 | Kennzeichen | `live-pill` | `data-state="on"` ("Live"), `"wait"` ("Live: wartet auf Netz"), `"off"` ("Nicht live"), `"handed"` ("Übergeben", US6); Tipp öffnet das Dashboard |
 | Übernommen | `live-handed-over` | Hinweis (10 s): "<Kurzlabel> überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst."; `menu-live-toggle` entfällt |
-| Andere Spiele | `live-others` | eine Zeile unter der Kopfzeile, je Spiel `live-other-<key>` mit "E2 2:1 · 31'" (heutige Spiele ohne das eigene, laufende zuerst; fehlt ohne andere Spiele); Tipp öffnet das Dashboard; `data-flash="true"` für 5 s nach einem neuen Tor, ohne Ton |
+| Andere Spiele | `live-others` | eine Zeile unter der Kopfzeile, je Spiel `live-other-<key>` mit "E2 2:1 · 31'" (heutige Spiele der anderen Mannschaften, laufende zuerst; bis zum eigenen Schlusspfiff; fehlt ohne andere Spiele); Tipp öffnet das Dashboard; `data-flash="true"` für 5 s nach einem neuen Tor, ohne Ton |
 | Menü | `menu-live-toggle` | "Nicht live senden" bzw. "Live senden" |
 
 ## Neues Spiel (Trainer-Handy)

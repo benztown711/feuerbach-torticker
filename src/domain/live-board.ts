@@ -359,11 +359,18 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
 }
 
 /**
- * Spec 006 US4: die heutigen Karten ohne das Spiel `gameId` dieses Handys, für die Zeile im Spielbildschirm.
- * Reihenfolge wie auf dem Dashboard (laufende zuerst).
+ * Spec 006 US4: die heutigen Karten der anderen Mannschaften für die Zeile im Spielbildschirm; `team` ist die
+ * eigene Mannschaft (null: nicht im Live-Spieltag), `gameId` das eigene Spiel. Reihenfolge wie auf dem
+ * Dashboard (laufende zuerst).
  */
-export function otherGames(board: Board, gameId: string, serverNow: number, timeZone?: string): BoardCard[] {
-  return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId);
+export function otherGames(
+  board: Board,
+  gameId: string,
+  team: string | null,
+  serverNow: number,
+  timeZone?: string,
+): BoardCard[] {
+  return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId && c.key !== team);
 }
 
 /** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */
