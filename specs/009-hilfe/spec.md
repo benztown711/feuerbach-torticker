@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A erledigt (04.11.2026), Mockup offen (Review B). Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
+**Status**: Review A erledigt (04.11.2026), Mockup wartet auf Review B: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
 
 **Input**: User description: "bitte erstelle eine Hilfe seite in der app mit Suchfunktion und verankere dies in unserem Vorgehensmodell von Open-Spec, dass diese immer aktuell gehalten werden muss"
 
@@ -57,7 +57,7 @@ Ein neuer Trainer (oder ein Elternteil mit dem Dashboard-Link) bekommt den Torti
 
 1. **Given** die Hilfe ist offen und das Suchfeld leer, **Then** stehen die Einträge gruppiert unter den Themen aus FR-H08 in dieser Reihenfolge, jeder Eintrag als Frage formuliert.
 2. **Given** die Themenübersicht, **When** der Nutzer "Wie erfasse ich ein Tor?" antippt, **Then** öffnet sich der Eintrag mit kurzer Antwort und, wo sinnvoll, nummerierten Schritten, die die Knopf-Beschriftungen der App wörtlich nennen.
-3. **Given** ein geöffneter Eintrag zu einer Funktion mit eigenem Bildschirm (z. B. Sicherung), **Then** gibt es einen Knopf "Öffnen", der direkt dorthin führt (z. B. "Einstellungen").
+3. **Given** ein geöffneter Eintrag zu einer Funktion mit eigenem Bildschirm (z. B. Sicherung), **Then** gibt es einen Knopf "{Bereich} öffnen", der direkt dorthin führt (z. B. "Einstellungen öffnen").
 4. **Given** ein geöffneter Eintrag, **Then** stehen darunter bis zu drei verwandte Einträge ("Siehe auch").
 5. **Given** die Hilfe, **Then** steht ganz unten "Stand: Version {x.y.z}" mit der installierten App-Version.
 6. **Given** ein Elternteil hat das Dashboard über den Zuschauer-Link offen (ohne Navigationsleiste), **When** es unten auf "Hilfe" tippt, **Then** erscheint die Hilfe nur mit den Einträgen für Eltern (z. B. "Wie lege ich den Spieltag auf den Home-Bildschirm?", "Was bedeutet „Keine Verbindung“?"), mit Suchfeld und ohne Navigationsleiste; "Zurück zum Spieltag" führt zum Dashboard zurück.
@@ -98,7 +98,7 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 **Suche (US1)**
 
 - **FR-H01**: Oben auf der Hilfe-Seite MUSS ein Suchfeld "Hilfe durchsuchen" stehen. Die Trefferliste MUSS sich bei jeder Eingabe sofort aktualisieren, ohne Absenden. Ein Knopf im Feld leert die Suche.
-- **FR-H02**: Die Suche MUSS Groß- und Kleinschreibung ignorieren, ä/ae, ö/oe, ü/ue, ß/ss gleich behandeln und Wortanfänge finden ("Elf" findet "Elfmeterschießen").
+- **FR-H02**: Die Suche MUSS Groß- und Kleinschreibung ignorieren, ä/ae, ö/oe, ü/ue, ß/ss gleich behandeln und Wortanfänge finden ("Elf" findet "Elfmeterschießen"); ab vier Buchstaben auch innerhalb zusammengesetzter Wörter ("pfiff" findet "Pausenpfiff").
 - **FR-H03**: Bei mehreren Suchwörtern MÜSSEN alle in einem Eintrag vorkommen (in Titel, Antwort oder hinterlegten Suchbegriffen). Füllwörter (siehe Edge Cases) zählen nicht.
 - **FR-H04**: Jeder Eintrag MUSS zusätzliche Suchbegriffe haben können, die nicht im Text stehen (Alltagswörter, z. B. "Backup", "WhatsApp", "Pfeife", "löschen").
 - **FR-H05**: Treffer MÜSSEN so sortiert sein: zuerst Treffer im Titel, dann in den Suchbegriffen, dann nur in der Antwort; bei Gleichstand in der Reihenfolge der Themenübersicht.
@@ -109,7 +109,7 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 
 - **FR-H08**: Die Hilfe MUSS ohne Suchbegriff alle Einträge nach Themen gruppiert zeigen, in dieser Reihenfolge: "Erste Schritte", "Spiel erfassen", "Torschützen und Ereignisse", "Pokal", "Teilen", "Mannschaften und Kader", "Historie", "Live-Spieltag", "Einstellungen und Sicherung", "Probleme lösen", "Datenschutz".
 - **FR-H09**: Jeder Eintrag MUSS eine Frage als Titel und eine kurze Antwort (höchstens etwa 600 Zeichen) haben, optional nummerierte Schritte. Knopf- und Menübezeichnungen MÜSSEN wörtlich wie in der App lauten. Es kommen nur fiktive Namen vor (Max, Ben, Tom, Leo, Maxi, Paul).
-- **FR-H10**: Ein Eintrag zu einer Funktion mit eigenem Bildschirm MUSS einen Knopf "Öffnen" haben, der dorthin führt.
+- **FR-H10**: Ein Eintrag zu einer Funktion mit eigenem Bildschirm MUSS einen Knopf "{Bereich} öffnen" haben (z. B. "Einstellungen öffnen"), der dorthin führt. In der Eltern-Hilfe entfällt er.
 - **FR-H11**: Ein geöffneter Eintrag MUSS bis zu drei verwandte Einträge anbieten ("Siehe auch").
 - **FR-H12**: Jeder Eintrag MUSS eine eigene Adresse haben (Zurück-Geste führt zur Liste mit erhaltenem Suchbegriff).
 - **FR-H13**: Unten auf der Hilfe-Seite MUSS "Stand: Version {x.y.z}" stehen.
