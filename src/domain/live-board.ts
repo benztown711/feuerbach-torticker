@@ -27,8 +27,8 @@ export interface BoardEntry {
 export interface Board {
   config: LiveConfig | null;
   games: BoardEntry[];
-  /** Entfernte Spiele (Schlüssel, sentAt), damit ältere Stände sie nicht zurückbringen. */
-  removed: [string, number][];
+  /** Entfernte Spiele (Schlüssel, sentAt, Übergabezähler), damit ältere Stände sie nicht zurückbringen. */
+  removed: [string, number, number][];
 }
 
 export const emptyBoard = (): Board => ({ config: null, games: [], removed: [] });
@@ -120,18 +120,22 @@ function prune(games: BoardEntry[], timeZone?: string): BoardEntry[] {
     .slice(-MAX_GAMES);
 }
 
+/** FR-L23: Der größere Übergabezähler gilt, bei gleichem der spätere Stand. */
+const notNewer = (a: { h: number; sentAt: number }, b: { h: number; sentAt: number }): boolean =>
+  a.h > b.h || (a.h === b.h && a.sentAt >= b.sentAt);
+
 /**
- * Übernimmt einen geprüften Live-Stand (R-L5): je Spiel gilt das größte `sentAt`;
+ * Übernimmt einen geprüften Live-Stand (R-L5): je Spiel gilt der größte Übergabezähler, dann das größte `sentAt`;
  * "off" und "deleted" entfernen das Spiel.
  */
 export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, timeZone?: string): Board {
   const id = idOf(snap);
   const known = board.games.find((e) => idOf(e.snap) === id);
-  const removedAt = board.removed.find(([r]) => r === id)?.[1] ?? -Infinity;
-  if ((known && known.snap.sentAt >= snap.sentAt) || removedAt >= snap.sentAt) return board;
+  const gone = board.removed.find(([r]) => r === id);
+  if ((known && notNewer(known.snap, snap)) || (gone && notNewer({ sentAt: gone[1], h: gone[2] }, snap))) return board;
   const others = board.games.filter((e) => idOf(e.snap) !== id);
   if (snap.state !== 'live') {
-    const removed = [...board.removed.filter(([r]) => r !== id), [id, snap.sentAt] as [string, number]];
+    const removed = [...board.removed.filter(([r]) => r !== id), [id, snap.sentAt, snap.h] as [string, number, number]];
     return { ...board, games: others, removed: removed.slice(-MAX_REMOVED) };
   }
   return { ...board, games: prune([...others, { snap, at }], timeZone) };
@@ -144,8 +148,11 @@ export function parseBoard(v: unknown): Board {
     const snap = isObj(e) && isTime(e.at) ? parseSnapshot(e.snap) : null;
     return snap?.state === 'live' ? [{ snap, at: (e as { at: number }).at }] : [];
   });
-  const removed = (v.removed as unknown[]).filter(
-    (r): r is [string, number] => Array.isArray(r) && isText(r[0], 200) && isTime(r[1]),
+  // Ältere Stände ohne Übergabezähler gelten als 0.
+  const removed = (v.removed as unknown[]).flatMap((r): [string, number, number][] =>
+    Array.isArray(r) && isText(r[0], 200) && isTime(r[1]) && (r[2] === undefined || isTime(r[2]))
+      ? [[r[0], r[1], (r[2] as number | undefined) ?? 0]]
+      : [],
   );
   return { config: parseConfig(v.config), games: games.slice(-MAX_GAMES), removed: removed.slice(-MAX_REMOVED) };
 }
@@ -347,4 +354,29 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
     })
     .sort((a, b) => RANK[a.group] - RANK[b.group]);
   return { title: board.config?.title ?? null, teams, cards, today: cards.some((c) => c.today) };
+}
+
+/** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */
+export const ACTIVE_MS = 30 * 60_000;
+
+/**
+ * FR-L22: Spiel einer Mannschaft, das gerade ein anderes Handy überträgt (heute, nicht beendet, letzte
+ * Meldung höchstens 30 Minuten alt); `localIds` sind die Spiele dieses Handys.
+ */
+export function runningElsewhere(
+  board: Board,
+  team: string,
+  localIds: string[],
+  serverNow: number,
+  timeZone?: string,
+): BoardEntry | null {
+  const today = dayKey(serverNow, timeZone);
+  const found = board.games
+    .filter((e) => e.snap.team === team && !localIds.includes(e.snap.gameId) && serverNow - e.at <= ACTIVE_MS)
+    .filter((e) => {
+      const st = stateOf(e, serverNow, today, timeZone);
+      return st.today && st.group !== 'finished';
+    })
+    .sort((a, b) => b.at - a.at);
+  return found[0] ?? null;
 }

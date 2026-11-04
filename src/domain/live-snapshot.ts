@@ -30,6 +30,8 @@ export interface LiveGameSnapshot {
   gameId: string;
   team: string;
   sentAt: number;
+  /** FR-L23: Übergabezähler; der größere gilt vor `sentAt`. */
+  h: number;
   createdAt: number;
   own: string;
   opp: string;
@@ -51,6 +53,7 @@ export interface LiveTombstone {
   gameId: string;
   team: string;
   sentAt: number;
+  h: number;
 }
 
 export type LiveSnapshot = LiveGameSnapshot | LiveTombstone;
@@ -59,6 +62,8 @@ const MAX_CLOCK = 50;
 const MAX_GOALS = 200;
 const MAX_SHOTS = 100;
 const MAX_ID = 100;
+/** FR-L23: höchstens so viele Übergaben je Spiel. */
+export const MAX_TAKEOVER = 100;
 const CLOCK_TYPES: ClockEventType[] = ['kickoff', 'pause', 'resume', 'sectionEnd', 'fullTime', 'reset', 'extraTime'];
 
 /** Namen höchstens 40 Zeichen (R-L9); leere werden null. */
@@ -92,18 +97,20 @@ export function setLive(game: Game, on: boolean): Game {
 /** FR-L09: beim Anlegen "Live aufs Dashboard" aus: nicht senden, auch später keinen Grabstein. */
 export const startPrivate = (game: Game): Game => ({ ...game, live: false, livePrivate: true });
 
-export const tombstone = (gameId: string, team: string, sentAt: number): LiveTombstone => ({
+export const tombstone = (gameId: string, team: string, sentAt: number, h = 0): LiveTombstone => ({
   v: 1,
   kind: 'game',
   state: 'deleted',
   gameId,
   team,
   sentAt,
+  h,
 });
 
 /** FR-L10: nur, was das Dashboard braucht; nie Kader, Aufgebot, Karten, Wechsel, Lesezeichen. */
 export function buildSnapshot(game: Game, players: Player[], team: string, sentAt: number): LiveSnapshot {
-  if (game.live === false) return { ...tombstone(game.id, team, sentAt), state: 'off' };
+  const h = game.liveTakeover ?? 0;
+  if (game.live === false) return { ...tombstone(game.id, team, sentAt, h), state: 'off' };
   return {
     v: 1,
     kind: 'game',
@@ -111,6 +118,7 @@ export function buildSnapshot(game: Game, players: Player[], team: string, sentA
     gameId: game.id,
     team,
     sentAt,
+    h,
     createdAt: game.createdAt,
     own: shortTeamName(game.ownTeam).slice(0, MAX_TITLE),
     opp: game.opponent.slice(0, MAX_TITLE),
@@ -225,7 +233,9 @@ function parseGame(v: Obj, base: Omit<LiveTombstone, 'state'>): LiveGameSnapshot
 export function parseSnapshot(v: unknown): LiveSnapshot | null {
   if (!isObj(v) || v.v !== 1 || v.kind !== 'game') return null;
   if (!isText(v.gameId, MAX_ID) || !isText(v.team, MAX_KEY) || !isTime(v.sentAt)) return null;
-  const base = { v: 1 as const, kind: 'game' as const, gameId: v.gameId, team: v.team, sentAt: v.sentAt };
+  const h = v.h === undefined ? 0 : v.h;
+  if (!isInt(h, 0, MAX_TAKEOVER)) return null;
+  const base = { v: 1 as const, kind: 'game' as const, gameId: v.gameId, team: v.team, sentAt: v.sentAt, h };
   if (v.state === 'off' || v.state === 'deleted') return { ...base, state: v.state };
   return v.state === 'live' ? parseGame(v, base) : null;
 }

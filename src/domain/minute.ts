@@ -18,7 +18,7 @@ export const sectionMinutesOf = (schema: Schema, section: number): number =>
   section > schema.sections && schema.extraMinutes ? schema.extraMinutes : schema.sectionMinutes;
 
 /** Minuten vor Beginn des Abschnitts (fortlaufende Zählung, auch in der Verlängerung). */
-function sectionOffset(schema: Schema, section: number): number {
+export function sectionOffset(schema: Schema, section: number): number {
   const regular = Math.min(section - 1, schema.sections) * schema.sectionMinutes;
   return regular + Math.max(0, section - 1 - schema.sections) * (schema.extraMinutes ?? 0);
 }

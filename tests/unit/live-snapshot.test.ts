@@ -169,6 +169,7 @@ describe('006 FR-L06 FR-L10 Live-Stand bauen (contracts/live-message.md)', () =>
       gameId: 'g1',
       team: 'E1',
       sentAt: T0 + 1,
+      h: 0,
     });
     expect(tombstone('g9', 'E2', T0 + 2)).toEqual({
       v: 1,
@@ -177,7 +178,10 @@ describe('006 FR-L06 FR-L10 Live-Stand bauen (contracts/live-message.md)', () =>
       gameId: 'g9',
       team: 'E2',
       sentAt: T0 + 2,
+      h: 0,
     });
+    expect(tombstone('g9', 'E2', T0 + 2, 3).h).toBe(3);
+    expect(buildSnapshot({ ...game(), liveTakeover: 2 }, players, 'E1', T0).h).toBe(2);
     expect(setLive(setLive(game(), false), true).live).toBe(true);
     const priv = startPrivate(game());
     expect([priv.live, priv.livePrivate]).toEqual([false, true]);
@@ -197,9 +201,17 @@ describe('006 FR-L11 R-L9 Live-Stand prüfen', () => {
   it('gültige Stände und Grabsteine werden angenommen; unbekannte Felder fallen weg', () => {
     expect(parseSnapshot(JSON.parse(JSON.stringify(ok)))).toEqual(ok);
     expect(parseSnapshot({ ...ok, extra: 'x' })).toEqual(ok);
-    const off = { v: 1, kind: 'game', state: 'off', gameId: 'g1', team: 'E1', sentAt: T0 };
+    const off = { v: 1, kind: 'game', state: 'off', h: 0, gameId: 'g1', team: 'E1', sentAt: T0 };
     expect(parseSnapshot({ ...off, own: 'egal' })).toEqual(off);
     expect(parseSnapshot({ ...off, state: 'deleted' })).toEqual({ ...off, state: 'deleted' });
+  });
+
+  it('FR-L23 Übergabezähler: fehlt = 0 (ältere Handys), sonst ganze Zahl von 0 bis 100', () => {
+    const old: Record<string, unknown> = { ...ok };
+    delete old.h;
+    expect(parseSnapshot(old)?.h).toBe(0);
+    expect(parseSnapshot({ ...ok, h: 3 })?.h).toBe(3);
+    for (const bad of [-1, 101, 1.5, '2', null]) expect(parseSnapshot({ ...ok, h: bad })).toBeNull();
   });
 
   it.each([

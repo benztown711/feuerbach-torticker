@@ -3,6 +3,7 @@ import { createGame, endSection, kickoff } from '../../src/domain/game';
 import { addGoal } from '../../src/domain/goals';
 import type { LiveGameSnapshot, LiveSnapshot } from '../../src/domain/live-snapshot';
 import { setLive, startPrivate } from '../../src/domain/live-snapshot';
+import { handOver } from '../../src/domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../../src/domain/types';
 import type { MessageParts } from '../../src/platform/live-crypto';
 import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
@@ -150,6 +151,31 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     expect(fresh.sent).toHaveLength(0);
     t.sender.stop();
     fresh.sender.stop();
+  });
+
+  it('FR-L24 übernommenes Spiel: nichts mehr senden, auch kein "off" und beim Löschen kein "deleted"', async () => {
+    const t = setup();
+    const g = kickoff(newGame(), T0);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.sent).toHaveLength(1);
+    const handed = handOver(g);
+    t.sender.handle({ kind: 'put', game: handed });
+    expect(t.sender.status(g.id)).toBe('handed');
+    expect(t.sender.statusFor(handed)).toBe('handed');
+    expect(setup().sender.statusFor(handed)).toBe('handed');
+    t.sender.handle({ kind: 'delete', id: g.id, game: handed });
+    await vi.advanceTimersByTimeAsync(HEARTBEAT_MS * 2);
+    expect(t.sent).toHaveLength(1);
+    t.sender.stop();
+  });
+
+  it('übernommenes Spiel sendet mit dem Übergabezähler', async () => {
+    const t = setup();
+    t.sender.handle({ kind: 'put', game: { ...newGame(), liveTakeover: 2 } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps()[0]?.h).toBe(2);
+    t.sender.stop();
   });
 
   it('FR-L09 "Nicht live senden" ohne Netz, dann Neustart: "off" wird trotzdem gesendet', async () => {

@@ -10,6 +10,7 @@ import {
   formatClockTime,
   formatDay,
   parseBoard,
+  runningElsewhere,
   type Board,
 } from '../../src/domain/live-board';
 import type { LiveGameSnapshot, LiveGoal, LiveSnapshot } from '../../src/domain/live-snapshot';
@@ -31,6 +32,7 @@ function snap(p: Partial<LiveGameSnapshot> = {}): LiveGameSnapshot {
     gameId: 'g1',
     team: 'E1',
     sentAt: T0,
+    h: 0,
     createdAt: T0 - min(10),
     own: 'Feuerbach E1',
     opp: 'TSV Musterstadt',
@@ -83,17 +85,40 @@ describe('006 FR-L11 R-L5 Meldungen übernehmen', () => {
 
   it('"Nicht live senden" und Löschen entfernen das Spiel; ältere Stände bringen es nicht zurück', () => {
     const b1 = put(emptyBoard(), snap({ sentAt: T0 }));
-    const off = put(b1, { v: 1, kind: 'game', state: 'off', gameId: 'g1', team: 'E1', sentAt: T0 + 10 });
+    const off = put(b1, { v: 1, kind: 'game', state: 'off', h: 0, gameId: 'g1', team: 'E1', sentAt: T0 + 10 });
     expect(off.games).toEqual([]);
-    expect(off.removed).toEqual([['E1/g1', T0 + 10]]);
+    expect(off.removed).toEqual([['E1/g1', T0 + 10, 0]]);
     expect(put(off, snap({ sentAt: T0 + 5 }))).toBe(off);
-    expect(put(off, { v: 1, kind: 'game', state: 'deleted', gameId: 'g1', team: 'E1', sentAt: T0 + 9 })).toBe(off);
+    expect(put(off, { v: 1, kind: 'game', state: 'deleted', h: 0, gameId: 'g1', team: 'E1', sentAt: T0 + 9 })).toBe(
+      off,
+    );
     // "Live senden" wieder an: neuerer Stand
     const back = put(off, snap({ sentAt: T0 + 20 }));
     expect(back.games).toHaveLength(1);
-    const deleted = put(back, { v: 1, kind: 'game', state: 'deleted', gameId: 'g1', team: 'E1', sentAt: T0 + 30 });
+    const deleted = put(back, {
+      v: 1,
+      kind: 'game',
+      state: 'deleted',
+      h: 0,
+      gameId: 'g1',
+      team: 'E1',
+      sentAt: T0 + 30,
+    });
     expect(deleted.games).toEqual([]);
-    expect(deleted.removed).toEqual([['E1/g1', T0 + 30]]);
+    expect(deleted.removed).toEqual([['E1/g1', T0 + 30, 0]]);
+  });
+
+  it('FR-L23 größerer Übergabezähler gilt vor sentAt; Meldungen des alten Handys ändern nichts', () => {
+    const b1 = put(emptyBoard(), snap({ sentAt: T0 + 9000, goals: [goal('own', 3)] }));
+    const taken = put(b1, snap({ sentAt: T0 + 1000, h: 1, goals: [goal('own', 3), goal('own', 5)] }));
+    expect(taken.games[0]?.snap.goals).toHaveLength(2);
+    expect(put(taken, snap({ sentAt: T0 + 99_000, h: 0 }))).toBe(taken);
+    const off = { v: 1 as const, kind: 'game' as const, gameId: 'g1', team: 'E1', sentAt: T0 + 99_000 };
+    expect(put(taken, { ...off, state: 'deleted', h: 0 })).toBe(taken);
+    const gone = put(taken, { ...off, state: 'off', h: 1 });
+    expect(gone.games).toEqual([]);
+    expect(put(gone, snap({ sentAt: T0 + 200_000, h: 0 }))).toBe(gone);
+    expect(put(gone, snap({ sentAt: T0 + 1, h: 2 })).games).toHaveLength(1);
   });
 
   it('gleiche Spiel-ID einer anderen Mannschaft ändert das Spiel nicht', () => {
@@ -107,7 +132,7 @@ describe('006 FR-L11 R-L5 Meldungen übernehmen', () => {
     expect(b.games).toHaveLength(MAX_GAMES);
     expect(b.games[0]?.snap.gameId).toBe('g1');
     for (let i = 0; i <= MAX_REMOVED; i++)
-      b = put(b, { v: 1, kind: 'game', state: 'deleted', gameId: `x${i}`, team: 'E1', sentAt: T0 });
+      b = put(b, { v: 1, kind: 'game', state: 'deleted', h: 0, gameId: `x${i}`, team: 'E1', sentAt: T0 });
     expect(b.removed).toHaveLength(MAX_REMOVED);
     expect(b.removed[0]?.[0]).toBe('E1/x1');
   });
@@ -370,7 +395,7 @@ describe('006 FR-L16 gemerkter Stand', () => {
   it('übersteht JSON und prüft streng', () => {
     let b = applyConfig(emptyBoard(), config(['E1']));
     b = put(b, snap({ clock: kicked(), goals: [goal('own', 4, { who: 'Max' })] }));
-    b = put(b, { v: 1, kind: 'game', state: 'off', gameId: 'old', team: 'E1', sentAt: T0 });
+    b = put(b, { v: 1, kind: 'game', state: 'off', h: 0, gameId: 'old', team: 'E1', sentAt: T0 });
     expect(parseBoard(JSON.parse(JSON.stringify(b)))).toEqual(b);
   });
 
@@ -383,7 +408,7 @@ describe('006 FR-L16 gemerkter Stand', () => {
       games: [
         null,
         { at: 'x', snap: snap() },
-        { at: 1, snap: { v: 1, kind: 'game', state: 'off', gameId: 'g', team: 'E1', sentAt: 1 } },
+        { at: 1, snap: { v: 1, kind: 'game', state: 'off', h: 0, gameId: 'g', team: 'E1', sentAt: 1 } },
         { at: 1, snap: { ...snap(), own: '' } },
         { at: 2, snap: snap() },
       ],
@@ -391,7 +416,23 @@ describe('006 FR-L16 gemerkter Stand', () => {
     });
     expect(b.config).toBeNull();
     expect(b.games).toEqual([{ snap: snap(), at: 2 }]);
-    expect(b.removed).toEqual([['E1/a', 1]]);
+    expect(b.removed).toEqual([['E1/a', 1, 0]]);
+  });
+
+  it('gemerkte entfernte Spiele ohne Übergabezähler gelten als 0; ungültiger Zähler fällt weg', () => {
+    const b = parseBoard({
+      config: null,
+      games: [],
+      removed: [
+        ['E1/a', 1],
+        ['E1/b', 2, 1],
+        ['E1/c', 3, 'x'],
+      ],
+    });
+    expect(b.removed).toEqual([
+      ['E1/a', 1, 0],
+      ['E1/b', 2, 1],
+    ]);
   });
 
   it('auch gemerkt höchstens die Obergrenzen', () => {
@@ -401,5 +442,33 @@ describe('006 FR-L16 gemerkter Stand', () => {
     expect(b.games).toHaveLength(MAX_GAMES);
     expect(b.removed).toHaveLength(MAX_REMOVED);
     expect(b.games[0]?.at).toBe(2);
+  });
+});
+
+describe('006 FR-L22 läuft das Spiel schon auf einem anderen Handy?', () => {
+  const running = snap({ team: 'E2', gameId: 'fremd', clock: kicked(), sentAt: T0 + min(10) });
+
+  it('heute, nicht beendet, letzte Meldung höchstens 30 Minuten alt, nicht von diesem Handy', () => {
+    const b = put(emptyBoard(), running);
+    expect(runningElsewhere(b, 'E2', [], T0 + min(12), TZ)?.snap.gameId).toBe('fremd');
+    expect(runningElsewhere(b, 'E2', ['fremd'], T0 + min(12), TZ)).toBeNull();
+    expect(runningElsewhere(b, 'E1', [], T0 + min(12), TZ)).toBeNull();
+    expect(runningElsewhere(b, 'E2', [], T0 + min(41), TZ)).toBeNull();
+    // angelegt, noch nicht angepfiffen, zählt auch
+    const created = put(emptyBoard(), snap({ team: 'E2', gameId: 'neu', sentAt: T0 }));
+    expect(runningElsewhere(created, 'E2', [], T0 + min(1), TZ)?.snap.gameId).toBe('neu');
+  });
+
+  it('beendete Spiele und Spiele vom Vortag zählen nicht; das jüngste gewinnt', () => {
+    const ended = put(emptyBoard(), snap({ team: 'E2', gameId: 'aus', clock: fullTime, sentAt: T0 + min(56) }));
+    expect(runningElsewhere(ended, 'E2', [], T0 + min(57), TZ)).toBeNull();
+    const late = Date.UTC(2026, 10, 7, 22, 50);
+    const yesterday = put(emptyBoard(), snap({ team: 'E2', gameId: 'y', clock: kicked(late), sentAt: late }));
+    expect(runningElsewhere(yesterday, 'E2', [], late + min(15), TZ)).toBeNull();
+    const two = put(
+      put(emptyBoard(), running),
+      snap({ team: 'E2', gameId: 'zwei', clock: kicked(), sentAt: T0 + min(11) }),
+    );
+    expect(runningElsewhere(two, 'E2', [], T0 + min(12), TZ)?.snap.gameId).toBe('zwei');
   });
 });
