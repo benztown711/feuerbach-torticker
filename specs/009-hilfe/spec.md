@@ -4,9 +4,18 @@
 
 **Created**: 2026-11-04
 
-**Status**: Entwurf, wartet auf Review A. Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
+**Status**: Review A erledigt (04.11.2026), Mockup offen (Review B). Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
 
 **Input**: User description: "bitte erstelle eine Hilfe seite in der app mit Suchfunktion und verankere dies in unserem Vorgehensmodell von Open-Spec, dass diese immer aktuell gehalten werden muss"
+
+## Clarifications
+
+### Session 2026-11-04 (Review A)
+
+- Q: Umfang: vollständige Anleitung aller Funktionen oder nur Tipps und Problemlösungen? → A: Vollständige Anleitung als kurze Fragen und Antworten (rund 40 Einträge).
+- Q: Kontext-Hilfe ("?" auf einzelnen Bildschirmen)? → A: Für jetzt reicht die Hilfe unter "Mehr". Ein "?" auf einzelnen Bildschirmen kommt später als eigene User Story (Backlog).
+- Q: Eltern-Ansicht über den Zuschauer-Link? → A: Ja, ein kleiner Link "Hilfe", der nur die Einträge für Eltern zeigt (FR-H16).
+- Q: Strenge der Verankerung? → A: Automatische Prüfung, die den Merge blockiert, plus Constitution-Prinzip IX und Vorlagen.
 
 ## Ausgangslage
 
@@ -51,6 +60,7 @@ Ein neuer Trainer (oder ein Elternteil mit dem Dashboard-Link) bekommt den Torti
 3. **Given** ein geöffneter Eintrag zu einer Funktion mit eigenem Bildschirm (z. B. Sicherung), **Then** gibt es einen Knopf "Öffnen", der direkt dorthin führt (z. B. "Einstellungen").
 4. **Given** ein geöffneter Eintrag, **Then** stehen darunter bis zu drei verwandte Einträge ("Siehe auch").
 5. **Given** die Hilfe, **Then** steht ganz unten "Stand: Version {x.y.z}" mit der installierten App-Version.
+6. **Given** ein Elternteil hat das Dashboard über den Zuschauer-Link offen (ohne Navigationsleiste), **When** es unten auf "Hilfe" tippt, **Then** erscheint die Hilfe nur mit den Einträgen für Eltern (z. B. "Wie lege ich den Spieltag auf den Home-Bildschirm?", "Was bedeutet „Keine Verbindung“?"), mit Suchfeld und ohne Navigationsleiste; "Zurück zum Spieltag" führt zum Dashboard zurück.
 
 ---
 
@@ -105,6 +115,7 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 - **FR-H13**: Unten auf der Hilfe-Seite MUSS "Stand: Version {x.y.z}" stehen.
 - **FR-H14**: Hilfe und Suche MÜSSEN offline funktionieren und dürfen keine Netzanfrage auslösen (Constitution II, III).
 - **FR-H15**: Der Eintrag "Hilfe" unter "Mehr" MUSS den Untertitel "Suchen, Anleitungen, Tipps" tragen.
+- **FR-H16**: Die Eltern-Ansicht über den Zuschauer-Link (Spec 006 US3) MUSS unten einen Link "Hilfe" haben. Er zeigt nur die Einträge, die für Eltern gekennzeichnet sind, mit derselben Suche, ohne Navigationsleiste, und führt mit "Zurück zum Spieltag" ohne Neuladen zum Dashboard zurück. Der Zuschauer-Link bleibt dabei erhalten.
 
 **Aktualität (US3)**
 
@@ -117,14 +128,14 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 
 ### Key Entities
 
-- **Hilfe-Eintrag**: ID (für die Adresse), Thema, Titel (Frage), Antwort, optionale Schritte, Suchbegriffe, Quellen (Spec + User Story oder FR), optionales Ziel für "Öffnen", optionale verwandte Einträge.
+- **Hilfe-Eintrag**: ID (für die Adresse), Thema, Titel (Frage), Antwort, optionale Schritte, Suchbegriffe, Quellen (Spec + User Story oder FR), Kennzeichen "für Eltern", optionales Ziel für "Öffnen", optionale verwandte Einträge.
 - **Thema**: Name und Reihenfolge laut FR-H08.
 
 Keine Spieldaten betroffen; die Einträge werden mit der App ausgeliefert und nicht auf dem Gerät gespeichert.
 
 ## Hilfe *(mandatory)*
 
-Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
+Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
 
 ## Verankerung im Vorgehensmodell
 
@@ -154,15 +165,14 @@ Die Vorlagen liegen unter `overrides/`, damit ein Update von Spec Kit sie nicht 
 ## Assumptions
 
 - Mit "Open-Spec" ist unser Spec-Kit-Ablauf gemeint (CLAUDE.md, Constitution).
-- Die Hilfe richtet sich an Trainer (Erfassen) und an Eltern, die die App installiert haben. Die reine Zuschauer-Ansicht über den Eltern-Link hat keine Navigationsleiste und bleibt ohne Hilfe-Zugang (siehe offene Frage 3).
-- Nur Text und die App-eigenen Symbole, keine Screenshots: Screenshots veralten bei jeder Gestaltungsänderung und belasten Offline-Speicher und Budget (siehe offene Frage 4).
+- Die Hilfe richtet sich an Trainer (Erfassen) und an Eltern; Eltern ohne installierte App erreichen ihre Einträge über den Link in der Eltern-Ansicht (FR-H16).
+- Nur Text und die App-eigenen Symbole, keine Screenshots: Screenshots veralten bei jeder Gestaltungsänderung und belasten Offline-Speicher und Budget.
 - Inhalte nur auf Deutsch, Ansprache mit "du" wie in der übrigen App.
 - Keine Volltext-Bibliothek: Die Datenmenge (rund 40 Einträge) ist klein genug für eine eigene, einfache Suche (Constitution VI).
 - Kein Kontaktformular und kein Link zu fremden Diensten aus der Hilfe heraus.
 
-## Offene Fragen (Review A)
+## Nicht im Umfang
 
-1. **Umfang**: Vollständige Anleitung aller Funktionen als kurze Fragen und Antworten (rund 40 Einträge, Empfehlung) oder nur Tipps und Problemlösungen wie bisher, erweitert?
-2. **Kontext-Hilfe**: Reicht die Hilfe unter "Mehr" (Empfehlung für jetzt), oder soll zusätzlich ein "?" auf einzelnen Bildschirmen (Neues Spiel, Live-Spieltag, Einstellungen) direkt den passenden Eintrag öffnen? Das wäre eine eigene User Story (P3).
-3. **Eltern-Ansicht**: Soll das Dashboard über den Eltern-Link einen kleinen Link "Hilfe" bekommen, der nur die Einträge "Live-Spieltag für Eltern" zeigt (Empfehlung), oder bleibt die Eltern-Ansicht ohne Hilfe?
-4. **Strenge der Verankerung**: Automatische Prüfung, die den Merge blockiert, plus Constitution-Prinzip und Vorlagen (Empfehlung), oder nur Regel und Checkbox ohne automatische Prüfung?
+- Kontext-Hilfe ("?" auf einzelnen Bildschirmen, das direkt den passenden Eintrag öffnet): später als eigene User Story (Review A, Frage 2).
+- Screenshots oder Videos in der Hilfe.
+- Kontaktformular oder Fragen an den Verein aus der App heraus.

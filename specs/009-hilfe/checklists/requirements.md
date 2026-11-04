@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [x] No [NEEDS CLARIFICATION] markers remain (vier offene Fragen mit Empfehlung stehen im Abschnitt "Offene Fragen (Review A)"; die Spec ist mit den Empfehlungen in sich vollständig)
+- [x] No [NEEDS CLARIFICATION] markers remain (Review A am 04.11.2026 erledigt, Antworten unter Clarifications)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
