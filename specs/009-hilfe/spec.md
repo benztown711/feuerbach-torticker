@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A erledigt (04.11.2026), Mockup wartet auf Review B: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
+**Status**: Review A erledigt (04.11.2026), Review B Runde 1 erledigt, Runde 2 offen. Mockup: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
 
 **Input**: User description: "bitte erstelle eine Hilfe seite in der app mit Suchfunktion und verankere dies in unserem Vorgehensmodell von Open-Spec, dass diese immer aktuell gehalten werden muss"
 
@@ -16,6 +16,12 @@
 - Q: Kontext-Hilfe ("?" auf einzelnen Bildschirmen)? → A: Für jetzt reicht die Hilfe unter "Mehr". Ein "?" auf einzelnen Bildschirmen kommt später als eigene User Story (Backlog).
 - Q: Eltern-Ansicht über den Zuschauer-Link? → A: Ja, ein kleiner Link "Hilfe", der nur die Einträge für Eltern zeigt (FR-H16).
 - Q: Strenge der Verankerung? → A: Automatische Prüfung, die den Merge blockiert, plus Constitution-Prinzip IX und Vorlagen.
+
+### Session 2026-11-04 (Review B, Runde 1)
+
+- Q: Themenübersicht mit allen Fragen oder erst nur Themen zum Aufklappen? → A: So lassen (alle Fragen sichtbar).
+- Q: Hervorhebung der Fundstellen lesbar? → A: Hell gut, dunkel nicht besonders. → Dunkel kräftiger: Fundstelle auf `rot-tief` mit `on-rot`, hell bleibt `rot-hell` mit `ink` (FR-H06).
+- Q: Fällt der Link "Hilfe" im Eltern-Dashboard genug auf? → A: Nein. Lieber eine Navigationsleiste wie in der App, z. B. mit "Link zum Dashboard teilen" und "Hilfe". → Eltern-Leiste "Spieltag", "Teilen", "Hilfe" (FR-H16, FR-H17).
 
 ## Ausgangslage
 
@@ -60,7 +66,9 @@ Ein neuer Trainer (oder ein Elternteil mit dem Dashboard-Link) bekommt den Torti
 3. **Given** ein geöffneter Eintrag zu einer Funktion mit eigenem Bildschirm (z. B. Sicherung), **Then** gibt es einen Knopf "{Bereich} öffnen", der direkt dorthin führt (z. B. "Einstellungen öffnen").
 4. **Given** ein geöffneter Eintrag, **Then** stehen darunter bis zu drei verwandte Einträge ("Siehe auch").
 5. **Given** die Hilfe, **Then** steht ganz unten "Stand: Version {x.y.z}" mit der installierten App-Version.
-6. **Given** ein Elternteil hat das Dashboard über den Zuschauer-Link offen (ohne Navigationsleiste), **When** es unten auf "Hilfe" tippt, **Then** erscheint die Hilfe nur mit den Einträgen für Eltern (z. B. "Wie lege ich den Spieltag auf den Home-Bildschirm?", "Was bedeutet „Keine Verbindung“?"), mit Suchfeld und ohne Navigationsleiste; "Zurück zum Spieltag" führt zum Dashboard zurück.
+6. **Given** ein Elternteil hat das Dashboard über den Zuschauer-Link offen, **Then** steht unten eine Leiste mit "Spieltag" (markiert), "Teilen" und "Hilfe".
+7. **Given** die Eltern-Leiste, **When** das Elternteil auf "Hilfe" tippt, **Then** erscheint die Hilfe nur mit den Einträgen für Eltern (z. B. "Wie lege ich den Spieltag auf den Home-Bildschirm?", "Was bedeutet „Keine Verbindung“?"), mit Suchfeld; "Hilfe" ist markiert, und "Spieltag" führt ohne Neuladen zum Dashboard zurück.
+8. **Given** die Eltern-Leiste, **When** das Elternteil auf "Teilen" tippt, **Then** öffnet sich das Teilen-Menü des Handys mit dem Text "Unser Spieltag live (Sportvg Feuerbach E1 und E2). Der Link gilt die ganze Saison: {Zuschauer-Link}" (Titel und Mannschaften des Spieltags); ohne Teilen-Menü wird der Link kopiert und "Link kopiert." angezeigt.
 
 ---
 
@@ -90,6 +98,8 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 - Ein Eintrag kann über seine Adresse direkt geöffnet werden; eine unbekannte Adresse zeigt die Themenübersicht.
 - Funktionen, die noch in Arbeit sind (z. B. Signalton, Spec 008), bekommen ihren Eintrag in dem Pull Request, der sie fertigstellt (Prinzip IX).
 - Der Suchbegriff wird weder gespeichert noch übertragen.
+- Bricht das Elternteil das Teilen-Menü ab, passiert nichts (keine Meldung).
+- Die Eltern-Leiste erscheint auch, wenn noch kein Spiel live ist ("Heute noch kein Spiel live").
 
 ## Requirements *(mandatory)*
 
@@ -102,7 +112,7 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 - **FR-H03**: Bei mehreren Suchwörtern MÜSSEN alle in einem Eintrag vorkommen (in Titel, Antwort oder hinterlegten Suchbegriffen). Füllwörter (siehe Edge Cases) zählen nicht.
 - **FR-H04**: Jeder Eintrag MUSS zusätzliche Suchbegriffe haben können, die nicht im Text stehen (Alltagswörter, z. B. "Backup", "WhatsApp", "Pfeife", "löschen").
 - **FR-H05**: Treffer MÜSSEN so sortiert sein: zuerst Treffer im Titel, dann in den Suchbegriffen, dann nur in der Antwort; bei Gleichstand in der Reihenfolge der Themenübersicht.
-- **FR-H06**: Jeder Treffer MUSS Titel und einen kurzen Textauszug zeigen; gefundene Wörter MÜSSEN hervorgehoben sein.
+- **FR-H06**: Jeder Treffer MUSS Titel und einen kurzen Textauszug zeigen; gefundene Wörter MÜSSEN hervorgehoben sein, fett und farbig hinterlegt mit mindestens 4,5:1 Kontrast in beiden Themes (hell `rot-hell` mit `ink`, dunkel `rot-tief` mit `on-rot`).
 - **FR-H07**: Ohne Treffer MUSS "Nichts gefunden zu „{Eingabe}“" und der Knopf "Alle Themen anzeigen" erscheinen.
 
 **Inhalt (US2)**
@@ -115,7 +125,8 @@ Atti merged eine neue Funktion. Er kann sich darauf verlassen, dass die Hilfe si
 - **FR-H13**: Unten auf der Hilfe-Seite MUSS "Stand: Version {x.y.z}" stehen.
 - **FR-H14**: Hilfe und Suche MÜSSEN offline funktionieren und dürfen keine Netzanfrage auslösen (Constitution II, III).
 - **FR-H15**: Der Eintrag "Hilfe" unter "Mehr" MUSS den Untertitel "Suchen, Anleitungen, Tipps" tragen.
-- **FR-H16**: Die Eltern-Ansicht über den Zuschauer-Link (Spec 006 US3) MUSS unten einen Link "Hilfe" haben. Er zeigt nur die Einträge, die für Eltern gekennzeichnet sind, mit derselben Suche, ohne Navigationsleiste, und führt mit "Zurück zum Spieltag" ohne Neuladen zum Dashboard zurück. Der Zuschauer-Link bleibt dabei erhalten.
+- **FR-H16**: Die Eltern-Ansicht über den Zuschauer-Link (Spec 006 US3) MUSS unten eine Navigationsleiste mit genau drei Einträgen haben, gestaltet wie die Leiste der App (FR-037): "Spieltag" (Dashboard), "Teilen" und "Hilfe". "Hilfe" zeigt nur die Einträge, die für Eltern gekennzeichnet sind, mit derselben Suche; "Spieltag" führt ohne Neuladen zurück. Der Zuschauer-Link bleibt dabei erhalten. Der Hinweis "Zum Torticker" (Spec 006) bleibt unten auf der Dashboard-Seite.
+- **FR-H17**: "Teilen" in der Eltern-Leiste MUSS das Teilen-Menü des Handys mit dem Zuschauer-Link und einem kurzen Text öffnen (FR-H16, Szenario US2-8); ohne Teilen-Menü MUSS der Link in die Zwischenablage kopiert werden. Geteilt wird nur der Link, den das Elternteil bereits hat; es entstehen keine neuen Rechte.
 
 **Aktualität (US3)**
 
@@ -135,7 +146,7 @@ Keine Spieldaten betroffen; die Einträge werden mit der App ausgeliefert und ni
 
 ## Hilfe *(mandatory)*
 
-Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
+Neue Einträge: der komplette Grundbestand nach FR-H08, Quellen sind alle umgesetzten User Stories der Specs 001, 003, 004, 005 und 006 (Stand 04.11.2026: 001 US1 bis US7, 003 US1 bis US6, 004 US1 bis US3, 005 US1 bis US5, 006 US1 bis US3) sowie die iPhone-Hinweise der bisherigen Hilfe (001 FR-036, FR-039, Sicherung, Datenschutz). Für Eltern gekennzeichnet (FR-H16): Dashboard lesen, auf den Home-Bildschirm legen, mit Familie und Freunden teilen (Quelle 009 FR-H16), "Keine Verbindung", Datenschutz (Quelle 006 US3). Die bisherige Hilfe-Seite (T086) wird ersetzt, Aufgabe L040 aus Spec 006 erledigt sich damit.
 
 ## Verankerung im Vorgehensmodell
 
@@ -165,7 +176,8 @@ Die Vorlagen liegen unter `overrides/`, damit ein Update von Spec Kit sie nicht 
 ## Assumptions
 
 - Mit "Open-Spec" ist unser Spec-Kit-Ablauf gemeint (CLAUDE.md, Constitution).
-- Die Hilfe richtet sich an Trainer (Erfassen) und an Eltern; Eltern ohne installierte App erreichen ihre Einträge über den Link in der Eltern-Ansicht (FR-H16).
+- Die Hilfe richtet sich an Trainer (Erfassen) und an Eltern; Eltern ohne installierte App erreichen ihre Einträge über die Eltern-Leiste (FR-H16).
+- Eltern dürfen den Zuschauer-Link weitergeben (heute per WhatsApp ohnehin möglich). Der Hilfe-Eintrag zum Teilen bittet, ihn nur an Menschen zu geben, die die Kinder kennen. Wird ein Link zu weit gestreut, stellt der Trainer neue Links aus (Spec 006 US5).
 - Nur Text und die App-eigenen Symbole, keine Screenshots: Screenshots veralten bei jeder Gestaltungsänderung und belasten Offline-Speicher und Budget.
 - Inhalte nur auf Deutsch, Ansprache mit "du" wie in der übrigen App.
 - Keine Volltext-Bibliothek: Die Datenmenge (rund 40 Einträge) ist klein genug für eine eigene, einfache Suche (Constitution VI).
