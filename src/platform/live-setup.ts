@@ -1,17 +1,18 @@
-import { leadLinkPath, linkUrl, viewerLinkPath, type LeadLinkData } from '../domain/live-link';
+import { linkUrl, trainerLinkPath, viewerLinkPath, type LeadLinkData, type TrainerLinkData } from '../domain/live-link';
 import {
   applyLeadLink,
+  applyTrainerLink,
   createSpieltag,
-  leadLinkFor,
   parseConfig,
   parseLeadCert,
   titleOf,
+  trainerLinkFor,
+  trainerTeamsOf,
   viewerOf,
   type LiveDeps,
   type LiveInput,
 } from '../domain/live-spieltag';
-import { shortTeamName } from '../domain/team-name';
-import type { LeadCert, LiveConfig, LiveSpieltag, Settings } from '../domain/types';
+import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings } from '../domain/types';
 import { getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
 import { startLiveSender } from './live-sender';
@@ -51,11 +52,11 @@ export interface VerifiedLead {
   config: LiveConfig;
 }
 
-/** Passt der private Schlüssel im Link zum öffentlichen Schlüssel im Zertifikat? */
-async function keyMatches(lead: LeadLinkData, pub: string): Promise<boolean> {
+/** Passt der private Schlüssel im Link zum öffentlichen Schlüssel? */
+async function keyMatches(priv: PrivateKeyParts, pub: string): Promise<boolean> {
   try {
     const probe = `probe:${pub}`;
-    return await verify(pub, probe, await sign(lead.key, probe));
+    return await verify(pub, probe, await sign(priv, probe));
   } catch {
     return false;
   }
@@ -69,7 +70,25 @@ export async function verifyLeadLink(lead: LeadLinkData): Promise<VerifiedLead |
   const cert = parseLeadCert(await verifySigned(lead.view.orgPub, lead.cert));
   const config = parseConfig(await verifySigned(lead.view.orgPub, lead.config));
   if (!cert || !config || !config.teams.includes(cert.key)) return null;
-  return (await keyMatches(lead, cert.pub)) ? { cert, config } : null;
+  return (await keyMatches(lead.key, cert.pub)) ? { cert, config } : null;
+}
+
+/**
+ * Prüft einen Trainer-Link: Konfiguration vom Organisator signiert, der private Schlüssel gehört zum
+ * Organisator-Schlüssel und mindestens eine Mannschaft des Links steht in der Konfiguration.
+ */
+export async function verifyTrainerLink(trainer: TrainerLinkData): Promise<LiveConfig | null> {
+  const config = parseConfig(await verifySigned(trainer.view.orgPub, trainer.config));
+  if (!config || trainerTeamsOf(trainer).length === 0) return null;
+  return (await keyMatches(trainer.orgKey, trainer.view.orgPub)) ? config : null;
+}
+
+/** FR-L03: Trainer-Handy werden (fehlende Mannschaften werden übernommen). */
+export async function coupleTrainer(trainer: TrainerLinkData): Promise<Settings> {
+  const next = await applyTrainerLink(await getSettings(), trainer, deps());
+  await putSettings(next);
+  void startLiveSender(next);
+  return next;
 }
 
 /** FR-L03: Kopplung speichern (Mannschaft wird bei Bedarf in "Meine Mannschaften" übernommen). */
@@ -93,14 +112,13 @@ export function shareViewerLink(live: LiveSpieltag): Promise<ShareResult> {
   return shareText(`${title} live verfolgen: ${viewerLinkUrl(live)}`, title);
 }
 
-/** FR-L02: Lead-Link für das Handy am Spielfeldrand. */
-export function shareLeadLink(live: LiveSpieltag, key: string): Promise<ShareResult> {
-  const lead = leadLinkFor(live, key);
-  const cred = live.teams.find((t) => t.key === key);
-  if (!lead || !cred) return Promise.resolve('failed');
-  const url = linkUrl(appBase(), leadLinkPath(lead));
+/** FR-L02: Trainer-Link für die Trainergruppe (senden für alle Mannschaften, verwalten). */
+export function shareTrainerLink(live: LiveSpieltag): Promise<ShareResult> {
+  const trainer = trainerLinkFor(live);
+  if (!trainer) return Promise.resolve('failed');
+  const url = linkUrl(appBase(), trainerLinkPath(trainer));
   const text =
-    `Lead-Link für ${shortTeamName(cred.name)} ("${titleOf(live)}"). ` +
-    `Im Torticker unter Mehr → Live-Spieltag → "Lead-Link einfügen" einfügen:\n${url}`;
-  return shareText(text, `Lead-Link ${shortTeamName(cred.name)}`);
+    `Trainer-Link für "${titleOf(live)}" (${trainer.teams.map((t) => t.key).join(', ')}). ` +
+    `Nur in der Trainergruppe teilen. Im Torticker unter Mehr → Live-Spieltag → "Link einfügen" einfügen:\n${url}`;
+  return shareText(text, `Trainer-Link ${titleOf(live)}`);
 }

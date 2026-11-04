@@ -1,4 +1,5 @@
 import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
+import { sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
 import { normalizeName } from '../domain/validation';
 import { findOpenGame, getPlayers, getSettings, onGameWrite, type GameChange } from './db';
@@ -75,7 +76,7 @@ export class LiveSender {
     // Spiele von Mannschaften, für die das Gerät nicht mehr sendet, nicht weiter melden.
     for (const [id, { game }] of [...this.games]) if (!this.teamFor(game)) this.forget(id);
     for (const [id, team] of [...this.teamOfPending])
-      if (!live.teams.some((t) => t.sends && t.key === team.key)) this.forget(id);
+      if (!live.teams.some((t) => sendsFor(live, t) && t.key === team.key)) this.forget(id);
   }
 
   private forget(id: string): void {
@@ -87,7 +88,7 @@ export class LiveSender {
   /** Mannschaft dieses Spiels, für die das Gerät sendet (unabhängig von "Nicht live senden"). */
   private teamFor(game: Game): LiveTeamCred | null {
     const name = normalizeName(game.ownTeam);
-    return this.live.teams.find((t) => t.sends && normalizeName(t.name) === name) ?? null;
+    return this.live.teams.find((t) => sendsFor(this.live, t) && normalizeName(t.name) === name) ?? null;
   }
 
   handle(change: GameChange): void {
@@ -107,7 +108,13 @@ export class LiveSender {
       this.forget(change.game.id);
       return;
     }
+    const known = this.games.has(change.game.id);
     this.games.set(change.game.id, { game: change.game, team });
+    // FR-L09: Beim Anlegen "Live aufs Dashboard" aus: nichts senden, auch keinen Grabstein.
+    if (!known && change.game.live === false) {
+      this.notify();
+      return;
+    }
     this.enqueueGame(change.game, team);
   }
 
@@ -278,7 +285,7 @@ export function stopLiveSender(): void {
 export async function startLiveSender(settings?: Settings): Promise<void> {
   const s = settings ?? (await getSettings());
   const live = s.live;
-  if (!live || !live.teams.some((t) => t.sends)) {
+  if (!live || !live.teams.some((t) => sendsFor(live, t))) {
     stopLiveSender();
     return;
   }
