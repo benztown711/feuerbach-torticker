@@ -1,6 +1,6 @@
 import { boardView, runningElsewhere, type BoardEntry } from '../domain/live-board';
 import { configOf, viewerOf } from '../domain/live-spieltag';
-import { takenOver, takeoverGame } from '../domain/live-takeover';
+import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
 
@@ -8,6 +8,8 @@ import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiv
  * Spec 006 US6: Trainer-Handys hören beim Anlegen und während eines Live-Spiels mit, ob ein anderes Handy
  * dasselbe Spiel überträgt bzw. das eigene übernommen hat (FR-L22 bis FR-L24). Wird nachgeladen.
  */
+
+export { handOver };
 
 /** Empfänger für den gekoppelten Live-Spieltag, mit bekannter Konfiguration. */
 function receiverFor(live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveReceiver {

@@ -74,7 +74,6 @@ import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
 import { setLive } from '../../domain/live-snapshot';
 import { sendingTeamFor } from '../../domain/live-spieltag';
-import { handOver } from '../../domain/live-takeover';
 
 const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
@@ -181,7 +180,7 @@ export function GameScreen({ id }: { id: string }) {
           () => gameRef.current,
           () => {
             const g = gameRef.current;
-            if (g) update(handOver(g));
+            if (g) update(m.handOver(g));
             setHandedUntil(Date.now() + 10_000);
           },
         );
