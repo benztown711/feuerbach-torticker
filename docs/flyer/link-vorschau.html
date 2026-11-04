@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1200" />
+    <title>Torticker Link-Vorschau</title>
+    <!-- Vorschaubild für WhatsApp (FR-043), 1200 × 630. Farben und Schriften nur aus design/ -->
+    <link rel="stylesheet" href="../../src/styles/tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        background: var(--color-surface);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .vorschau {
+        width: 1200px;
+        height: 630px;
+        display: grid;
+        grid-template-columns: 790px 1fr;
+        overflow: hidden;
+        background: var(--color-surface);
+      }
+
+      /* Eine rote Fläche pro Motiv, eckig */
+      .rot {
+        background: var(--color-vereinsrot);
+        color: var(--color-on-rot);
+        padding: 56px 56px 48px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .titel {
+        font-family: var(--font-display);
+        font-weight: 900;
+        font-style: italic;
+        font-size: 150px;
+        line-height: 0.9;
+        letter-spacing: 0.01em;
+      }
+
+      .slogan {
+        margin-top: 20px;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 50px;
+        line-height: 56px;
+      }
+
+      .fuss {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .lockup {
+        height: 92px;
+        display: block;
+      }
+
+      .knopf {
+        background: var(--color-surface);
+        color: var(--color-ink);
+        border-radius: var(--radius-sm);
+        padding: 14px 24px;
+        font-size: 32px;
+        line-height: 38px;
+        font-weight: 800;
+      }
+
+      .handy {
+        position: relative;
+      }
+
+      .handy img {
+        position: absolute;
+        top: 44px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        border: 3px solid var(--color-ink);
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="vorschau" id="vorschau">
+      <section class="rot">
+        <h1 class="titel">TORTICKER</h1>
+        <p class="slogan">Vom Spielfeldrand,<br />für den Spielfeldrand.</p>
+        <div class="fuss">
+          <img
+            class="lockup"
+            src="../../design/brand/lockup-fussball.svg"
+            alt="Fußball, Sportvereinigung Feuerbach 1883 e. V."
+          />
+          <span class="knopf">Jetzt testen</span>
+        </div>
+      </section>
+      <section class="handy">
+        <img src="screens/spiel.png" alt="Laufendes Spiel mit großen Tor-Knöpfen" />
+      </section>
+    </main>
+  </body>
+</html>

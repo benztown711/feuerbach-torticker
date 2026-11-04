@@ -303,7 +303,7 @@ export function NewGameScreen() {
             data-testid="btn-test-signal"
             onClick={testSignal}
           >
-            Signal testen
+            Ton testen
           </button>
           <p class="t-klein signal-test__hint">
             Tipp: Lautstärke mit den Tasten am Handy einstellen, solange die App offen ist.
