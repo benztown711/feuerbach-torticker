@@ -9,11 +9,11 @@ import type { FakeRelay } from './relay';
 
 export interface LiveLinks {
   viewer: string;
-  lead: Record<string, string>;
+  trainer: string;
 }
 
 const urlIn = (text: string | undefined): string => {
-  const m = /(https?:\/\/\S+#\/(?:live|lead)\/[A-Za-z0-9_-]+)/.exec(text ?? '');
+  const m = /(https?:\/\/\S+#\/(?:live|lead|trainer)\/[A-Za-z0-9_-]+)/.exec(text ?? '');
   if (!m?.[1]) throw new Error(`Kein Link im geteilten Text: ${text}`);
   return m[1];
 };
@@ -27,12 +27,12 @@ export const asPath = (url: string): string => `./${url.slice(url.indexOf('#'))}
 
 /**
  * Legt die Mannschaften an, dann über "Mehr" → "Live-Spieltag" einen Live-Spieltag mit allen Mannschaften
- * außer `without`; `self` = "Dieses Handy sendet für". Teilt Zuschauer- und Lead-Links und liefert sie.
+ * außer `without`. Teilt Zuschauer- und Trainer-Link und liefert sie. Das Handy ist danach Trainer-Handy.
  */
 export async function createLive(
   page: Page,
   recorded: () => Promise<Recorded>,
-  o: { teams: string[]; self?: string; without?: string[]; title?: string },
+  o: { teams: string[]; without?: string[]; title?: string },
 ): Promise<LiveLinks> {
   for (const t of o.teams) await addTeam(page, `Sportvg Feuerbach ${t}`);
   await page.goto('./#/mehr');
@@ -40,29 +40,25 @@ export async function createLive(
   await page.getByTestId('btn-live-create').click();
   if (o.title !== undefined) await page.getByTestId('input-live-title').fill(o.title);
   for (const t of o.without ?? []) await page.getByTestId(`live-team-chip-${t}`).click();
-  if (o.self) await page.getByTestId(`live-self-chip-${o.self}`).click();
   await page.getByTestId('btn-live-save').click();
   await expect(page.getByTestId('live-overview')).toBeVisible();
   const before = (await recorded()).shares.length;
   await page.getByTestId('btn-share-viewer').click();
-  const leads = o.teams.filter((t) => t !== o.self && !(o.without ?? []).includes(t));
-  for (const t of leads) await page.getByTestId(`btn-share-lead-${t}`).click();
-  await expect.poll(async () => (await recorded()).shares.length).toBe(before + 1 + leads.length);
-  const shares = (await recorded()).shares.slice(before);
-  const lead: Record<string, string> = {};
-  leads.forEach((t, i) => (lead[t] = urlIn(shares[i + 1]?.text)));
-  return { viewer: urlIn(shares[0]?.text), lead };
+  await page.getByTestId('btn-share-trainer').click();
+  await expect.poll(async () => (await recorded()).shares.length).toBe(before + 2);
+  const [viewer, trainer] = (await recorded()).shares.slice(before);
+  return { viewer: urlIn(viewer?.text), trainer: urlIn(trainer?.text) };
 }
 
-/** Fügt einen Lead-Link im Torticker ein und bestätigt die Kopplung. */
-export async function pasteLeadLink(page: Page, url: string, text = 'Hier dein Lead-Link:'): Promise<void> {
+/** Fügt einen Trainer- oder Lead-Link im Torticker ein und bestätigt die Kopplung. */
+export async function pasteLink(page: Page, url: string, text = 'Hier der Link:'): Promise<void> {
   await page.goto('./#/live-spieltag');
   await page.getByTestId('btn-paste-link').click();
   await page.getByTestId('paste-link-input').fill(`${text}\n${url}\n`);
   await page.getByTestId('paste-link-apply').click();
   await expect(page.getByTestId('couple-dialog')).toBeVisible();
   await page.getByTestId('couple-yes').click();
-  await expect(page.getByTestId('live-lead-info')).toBeVisible();
+  await expect(page.getByTestId('couple-dialog')).toBeHidden();
 }
 
 /* ---------- Vertragstest: unabhängige Umsetzung von contracts/live-message.md ---------- */
@@ -123,9 +119,9 @@ export async function latestState(relay: FakeRelay, viewerUrl: string, gameId?: 
 
 /* ---------- Meldungen wie ein Lead-Handy (für Dashboard-Tests) ---------- */
 
-/** Daten eines Zuschauer- oder Lead-Links (contracts/live-link.md). */
+/** Daten eines Zuschauer-, Trainer- oder Lead-Links (contracts/live-link.md). */
 export function linkData(url: string): Json {
-  const m = /#\/(?:live|lead)\/([A-Za-z0-9_-]+)/.exec(url);
+  const m = /#\/(?:live|lead|trainer)\/([A-Za-z0-9_-]+)/.exec(url);
   if (!m?.[1]) throw new Error(`Kein Link: ${url}`);
   return JSON.parse(Buffer.from(m[1], 'base64url').toString('utf8')) as Json;
 }
@@ -137,29 +133,53 @@ async function signWith(jwk: JsonWebKey, text: string): Promise<string> {
 }
 
 /**
- * Baut eine Meldung wie das Lead-Handy des Lead-Links (Node-Gegenstück zu sealMessage).
- * `forge`: mit einem fremden Schlüssel signiert (wer nur den Zuschauer-Link hat).
+ * Baut eine Meldung wie ein Trainer-Handy (Node-Gegenstück zu sealMessage): eigener Lead-Schlüssel, Zertifikat
+ * für die Mannschaft des Inhalts, signiert mit dem Organisator-Schlüssel aus dem Trainer-Link.
+ * `forge`: Inhalt mit einem fremden Schlüssel signiert (wer nur den Zuschauer-Link hat).
+ * `certTeam`: Zertifikat für eine andere Mannschaft als im Inhalt.
  */
-export async function leadMessage(leadUrl: string, content: Json, o: { forge?: boolean } = {}): Promise<string> {
-  const lead = linkData(leadUrl);
-  const p = lead.p as { d: string; x: string; y: string };
-  let jwk: JsonWebKey = { kty: 'EC', crv: 'P-256', d: p.d, x: p.x, y: p.y };
-  if (o.forge) {
-    const pair = (await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign'])) as CryptoKeyPair;
-    jwk = await subtle.exportKey('jwk', pair.privateKey);
-  }
+export async function leadMessage(
+  trainerUrl: string,
+  content: Json,
+  o: { forge?: boolean; certTeam?: string } = {},
+): Promise<string> {
+  const link = linkData(trainerUrl);
+  const q = link.q as { d: string; x: string; y: string };
+  const org: JsonWebKey = { kty: 'EC', crv: 'P-256', d: q.d, x: q.x, y: q.y };
+  const pair = (await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign'])) as CryptoKeyPair;
+  const pub = Buffer.from(await subtle.exportKey('raw', pair.publicKey)).toString('base64url');
+  const team = (link.m as string[][]).find((t) => t[0] === (o.certTeam ?? content.team)) ?? [
+    content.team,
+    'Unbekannt',
+    'rot',
+    'rot',
+  ];
+  const certText = JSON.stringify({ key: team[0], name: team[1], homeColor: team[2], awayColor: team[3], pub, iat: 1 });
+  const c = { d: certText, s: await signWith(org, certText) };
+  const signer = o.forge
+    ? await subtle.exportKey(
+        'jwk',
+        ((await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign'])) as CryptoKeyPair)
+          .privateKey,
+      )
+    : await subtle.exportKey('jwk', pair.privateKey);
   const m = JSON.stringify(content);
-  const env = { m, s: await signWith(jwk, m), c: lead.c, g: lead.g };
+  const env = { m, s: await signWith(signer, m), c, g: link.g };
   const packed = deflateRawSync(Buffer.from(JSON.stringify(env), 'utf8'));
-  const key = await subtle.importKey('raw', b64(lead.k as string), 'AES-GCM', false, ['encrypt']);
+  const key = await subtle.importKey('raw', b64(link.k as string), 'AES-GCM', false, ['encrypt']);
   const iv = webcrypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv }, key, packed));
   return `t1.${Buffer.concat([iv, ct]).toString('base64url')}`;
 }
 
-/** Legt einen Live-Stand im Relay ab, als käme er vom Lead-Handy des Links. */
-export async function sendAs(relay: FakeRelay, leadUrl: string, content: Json, o: { forge?: boolean } = {}) {
-  relay.inject(linkData(leadUrl).t as string, await leadMessage(leadUrl, content, o));
+/** Legt einen Live-Stand im Relay ab, als käme er von einem Trainer-Handy mit diesem Trainer-Link. */
+export async function sendAs(
+  relay: FakeRelay,
+  trainerUrl: string,
+  content: Json,
+  o: { forge?: boolean; certTeam?: string } = {},
+) {
+  relay.inject(linkData(trainerUrl).t as string, await leadMessage(trainerUrl, content, o));
 }
 
 export type ClockSpec = [type: string, minutesAgo: number, section: number];
@@ -311,9 +331,9 @@ export async function sampleDashboard(
 ): Promise<Page> {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   onMatchday(relay);
-  await sendAs(relay, links.lead.E1!, e1At37());
-  await sendAs(relay, links.lead.E2!, { ...e2AtHalf(), goals: [goal('own', 4), goal('opp', 9)] });
-  await sendAs(relay, links.lead.E3!, e3Ended());
+  await sendAs(relay, links.trainer, e1At37());
+  await sendAs(relay, links.trainer, { ...e2AtHalf(), goals: [goal('own', 4), goal('opp', 9)] });
+  await sendAs(relay, links.trainer, e3Ended());
   const v = await openViewer(newDevice, relay, links, scheme);
   await expect(v.getByTestId('dash-card-E3')).toBeVisible();
   await v.getByTestId('dash-toggle-E1').click();

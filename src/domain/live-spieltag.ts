@@ -1,7 +1,7 @@
 import { teamShortLabel } from './history';
 import { isPaletteColor } from './jersey-colors';
-import type { LeadLinkData } from './live-link';
-import { isKey, isObj, isText, isTime, MAX_KEY, MAX_TITLE } from './live-validate';
+import type { LeadLinkData, TrainerLinkData, TrainerTeam } from './live-link';
+import { isKey, isObj, isText, isTime, MAX_KEY, MAX_LIVE_TEAMS, MAX_TITLE } from './live-validate';
 import { normalizeName } from './validation';
 import type {
   Game,
@@ -18,7 +18,7 @@ import type {
 
 /** Spec 006: Live-Spieltag anlegen, koppeln und Spiele zuordnen (FR-L01 bis FR-L04, FR-L06, FR-L09). */
 
-export const MAX_LIVE_TEAMS = 6;
+export { MAX_LIVE_TEAMS };
 export const DEFAULT_LIVE_TITLE = 'Unser Spieltag';
 
 /** Schlüssel und Signaturen kommen von außen (Web Crypto in der Plattform, Fakes in Tests). */
@@ -50,7 +50,6 @@ export function liveTeamOptions(teams: Team[]): LiveTeamOption[] {
 export interface LiveInput {
   title: string;
   teamIds: string[];
-  selfTeamId: string | null;
 }
 
 export interface LiveInputCheck {
@@ -71,7 +70,10 @@ export function validateLiveInput(input: LiveInput, teams: Team[]): LiveInputChe
   return { ok: Object.keys(errors).length === 0, title, errors };
 }
 
-/** FR-L01, FR-L02: legt Schlüssel, Konfiguration und je Mannschaft ein Lead-Zertifikat an. */
+/**
+ * FR-L01, FR-L02: legt Schlüssel, Konfiguration und je Mannschaft ein Lead-Zertifikat an.
+ * Das anlegende Handy ist Trainer-Handy und sendet je Spiel für alle Mannschaften (FR-L04).
+ */
 export async function createSpieltag(input: LiveInput, teams: Team[], deps: LiveDeps): Promise<LiveSpieltag> {
   const check = validateLiveInput(input, teams);
   if (!check.ok) throw new Error(Object.values(check.errors).join(' '));
@@ -96,7 +98,7 @@ export async function createSpieltag(input: LiveInput, teams: Team[], deps: Live
       awayColor: team.awayColor,
       leadKey: lead.priv,
       cert: await deps.signData(org.priv, cert),
-      sends: team.id === input.selfTeamId,
+      sends: true,
     });
   }
   return {
@@ -112,6 +114,12 @@ export async function createSpieltag(input: LiveInput, teams: Team[], deps: Live
 }
 
 export const isOrganizer = (live: LiveSpieltag): boolean => live.orgKey !== undefined;
+
+/**
+ * FR-L04: Ein Trainer-Handy (mit Organisator-Schlüssel) sendet für alle Mannschaften, je nach Spiel;
+ * ein Lead-Handy der ersten Version nur für seine eingefügten Mannschaften.
+ */
+export const sendsFor = (live: LiveSpieltag, cred: LiveTeamCred): boolean => cred.sends || isOrganizer(live);
 
 /** Inhalt einer gespeicherten (bereits geprüften) Konfiguration. */
 export const configOf = (signed: SignedData): LiveConfig | null => {
@@ -132,9 +140,15 @@ export const viewerOf = (live: LiveSpieltag): ViewerLink => ({
   title: titleOf(live),
 });
 
-export function leadLinkFor(live: LiveSpieltag, key: string): LeadLinkData | null {
-  const cred = live.teams.find((t) => t.key === key);
-  return cred ? { view: viewerOf(live), cert: cred.cert, key: cred.leadKey, config: live.config } : null;
+/** FR-L02: Trainer-Link nur auf einem Trainer-Handy (mit Organisator-Schlüssel). */
+export function trainerLinkFor(live: LiveSpieltag): TrainerLinkData | null {
+  if (!live.orgKey) return null;
+  return {
+    view: viewerOf(live),
+    orgKey: live.orgKey,
+    config: live.config,
+    teams: live.teams.map((t) => ({ key: t.key, name: t.name, homeColor: t.homeColor, awayColor: t.awayColor })),
+  };
 }
 
 /** Prüft den Inhalt eines Lead-Zertifikats (Signatur prüft die Plattform). */
@@ -167,7 +181,7 @@ export const knowsTeam = (settings: Settings, name: string): boolean =>
 export type CouplingKind = 'new' | 'same' | 'replace';
 
 /** Neu koppeln, zum bestehenden Live-Spieltag hinzufügen oder (nach Rückfrage) ersetzen. */
-export function couplingKind(settings: Settings, lead: LeadLinkData): CouplingKind {
+export function couplingKind(settings: Settings, lead: { view: ViewerLink }): CouplingKind {
   if (!settings.live) return 'new';
   const l = settings.live;
   // Derselbe Live-Spieltag nur bei gleichem Topic und gleichen Schlüsseln; sonst gilt er als anderer.
@@ -176,7 +190,7 @@ export function couplingKind(settings: Settings, lead: LeadLinkData): CouplingKi
 }
 
 /** Ersetzt der Lead-Link den Live-Spieltag, den dieses Gerät organisiert? Dann gehen dessen Schlüssel verloren. */
-export const replacesOrganizer = (settings: Settings, lead: LeadLinkData): boolean =>
+export const replacesOrganizer = (settings: Settings, lead: { view: ViewerLink }): boolean =>
   couplingKind(settings, lead) === 'replace' && settings.live !== null && isOrganizer(settings.live);
 
 /**
@@ -219,26 +233,75 @@ export function applyLeadLink(
       createdAt: deps.now,
     };
   }
-  const teams: Team[] = knowsTeam(settings, cert.name)
-    ? settings.teams
-    : [
-        ...settings.teams,
-        {
-          id: deps.newId(),
-          name: cert.name,
-          homeColor: cert.homeColor,
-          awayColor: cert.awayColor,
-          lastSchema: null,
-          lastSquad: [],
-          lastUsedAt: 0,
-        },
-      ];
-  return { ...settings, live, teams };
+  return { ...settings, live, teams: adoptTeams(settings, [cert], deps.newId) };
+}
+
+/** FR-L03: fehlende Mannschaften mit Name und Trikots in "Meine Mannschaften" übernehmen. */
+function adoptTeams(settings: Settings, add: Omit<TrainerTeam, 'key'>[], newId: () => string): Team[] {
+  const teams = [...settings.teams];
+  for (const t of add) {
+    if (teams.some((x) => normalizeName(x.name) === normalizeName(t.name))) continue;
+    teams.push({
+      id: newId(),
+      name: t.name,
+      homeColor: t.homeColor,
+      awayColor: t.awayColor,
+      lastSchema: null,
+      lastSquad: [],
+      lastUsedAt: 0,
+    });
+  }
+  return teams;
+}
+
+/** Mannschaften des Trainer-Links, die in der (geprüften) Konfiguration stehen. */
+export const trainerTeamsOf = (trainer: TrainerLinkData): TrainerTeam[] => {
+  const keys = configOf(trainer.config)?.teams ?? [];
+  return trainer.teams.filter((t) => keys.includes(t.key));
+};
+
+/**
+ * FR-L03, FR-L04: macht das Handy mit einem (geprüften) Trainer-Link zum Trainer-Handy. Es erzeugt einen
+ * eigenen Lead-Schlüssel und je Mannschaft ein mit dem Organisator-Schlüssel signiertes Zertifikat, damit
+ * Meldungen für Zuschauer gleich aussehen wie bisher.
+ */
+export async function applyTrainerLink(
+  settings: Settings,
+  trainer: TrainerLinkData,
+  deps: Pick<LiveDeps, 'now' | 'newId' | 'newSigningKey' | 'signData'>,
+): Promise<Settings> {
+  const teams = trainerTeamsOf(trainer);
+  const lead = await deps.newSigningKey();
+  const creds: LiveTeamCred[] = [];
+  for (const t of teams) {
+    const cert: LeadCert = { ...t, pub: lead.pub, iat: deps.now };
+    creds.push({ ...t, leadKey: lead.priv, cert: await deps.signData(trainer.orgKey, cert), sends: true });
+  }
+  const current = couplingKind(settings, trainer) === 'same' ? settings.live : null;
+  const fromLink = configOf(trainer.config);
+  // Kennt das Handy schon eine jüngere Konfiguration, bleibt sie (z. B. Titel inzwischen geändert).
+  const keepConfig = current !== null && newerConfig(configOf(current.config), fromLink) !== fromLink;
+  const live: LiveSpieltag = {
+    v: 1,
+    topic: trainer.view.topic,
+    viewKey: trainer.view.viewKey,
+    orgPub: trainer.view.orgPub,
+    orgKey: trainer.orgKey,
+    config: current && keepConfig ? current.config : trainer.config,
+    teams: creds,
+    // Gleicher Live-Spieltag: alte, beendete Spiele bleiben weiter unveröffentlicht (R-L11).
+    createdAt: current ? current.createdAt : deps.now,
+  };
+  return { ...settings, live, teams: adoptTeams(settings, teams, deps.newId) };
+}
+
+/** FR-L04: Mannschaft, für die dieses Gerät Spiele mit dieser eigenen Mannschaft sendet, sonst null. */
+export function liveTeamFor(ownTeam: string, live: LiveSpieltag | null): LiveTeamCred | null {
+  if (!live) return null;
+  const name = normalizeName(ownTeam);
+  return live.teams.find((t) => sendsFor(live, t) && normalizeName(t.name) === name) ?? null;
 }
 
 /** FR-L06, FR-L09: Mannschaft, für die dieses Gerät das Spiel sendet, sonst null. */
-export function sendingTeamFor(game: Game, live: LiveSpieltag | null): LiveTeamCred | null {
-  if (!live || game.live === false) return null;
-  const name = normalizeName(game.ownTeam);
-  return live.teams.find((t) => t.sends && normalizeName(t.name) === name) ?? null;
-}
+export const sendingTeamFor = (game: Game, live: LiveSpieltag | null): LiveTeamCred | null =>
+  game.live === false ? null : liveTeamFor(game.ownTeam, live);

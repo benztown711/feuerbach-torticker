@@ -166,6 +166,11 @@ describe('T072 FR-024 Sicherung', () => {
     b.games[0]!.live = 'ja';
     expect(parseBackup(JSON.stringify(b)).ok).toBe(false);
     expect(validate(b)).toBe(false);
+    const priv = buildBackup([{ ...game(G1), live: false, livePrivate: true }], players, T0);
+    expect(parseBackup(JSON.stringify(priv)).ok).toBe(true);
+    const bad = JSON.parse(JSON.stringify(priv)) as { games: { livePrivate?: unknown }[] };
+    bad.games[0]!.livePrivate = 'ja';
+    expect(parseBackup(JSON.stringify(bad)).ok).toBe(false);
   });
 
   it('ohne App-Version fehlt das Feld', () => {

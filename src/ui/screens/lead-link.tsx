@@ -1,46 +1,39 @@
 import { useEffect, useState } from 'preact/hooks';
-import { parseLinkPath, type LeadLinkData } from '../../domain/live-link';
+import { joinList } from '../../domain/format';
+import { parseLinkPath } from '../../domain/live-link';
 import { couplingKind, knowsTeam, replacesOrganizer, titleOf } from '../../domain/live-spieltag';
 import { shortTeamName } from '../../domain/team-name';
-import type { LeadCert, Settings } from '../../domain/types';
+import type { Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
-import { coupleLead, verifyLeadLink } from '../../platform/live-setup';
+import { coupleLink, linkOf, verifyLink, type VerifiedLink } from '../../platform/live-setup';
 import { CoupleDialog } from '../components/couple-dialog';
 import { navigate } from '../router';
 
 const base = import.meta.env.BASE_URL;
 
 /**
- * Spec 006 FR-L03, US1-S6: Lead-Link im Browser angetippt. iOS öffnet Links nie in der installierten App
- * (research.md R-L6), darum: Anleitung zum Einfügen, "Link kopieren", "Hier im Browser koppeln".
+ * Spec 006 FR-L03, US1-S6: Trainer- oder Lead-Link im Browser angetippt. iOS öffnet Links nie in der
+ * installierten App (research.md R-L6), darum: Anleitung zum Einfügen, "Link kopieren", "Hier im Browser koppeln".
  */
-export function LeadLinkScreen({ data }: { data: string }) {
+export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 'trainer' }) {
   const [state, setState] = useState<
-    | { kind: 'loading' }
-    | { kind: 'invalid' }
-    | { kind: 'ok'; lead: LeadLinkData; cert: LeadCert; title: string; settings: Settings }
+    { kind: 'loading' } | { kind: 'invalid' } | { kind: 'ok'; link: VerifiedLink; settings: Settings }
   >({ kind: 'loading' });
   const [ask, setAsk] = useState(false);
   const [copied, setCopied] = useState('');
   const [busy, setBusy] = useState(false);
+  const label = kind === 'trainer' ? 'Trainer-Link' : 'Lead-Link';
 
   useEffect(() => {
     void (async () => {
-      const link = parseLinkPath(`/lead/${data}`);
-      const verified = link.kind === 'lead' ? await verifyLeadLink(link.lead) : null;
-      if (link.kind !== 'lead' || !verified) {
+      const link = await verifyLink(parseLinkPath(`/${kind}/${data}`));
+      if (!link) {
         setState({ kind: 'invalid' });
         return;
       }
-      setState({
-        kind: 'ok',
-        lead: link.lead,
-        cert: verified.cert,
-        title: verified.config.title,
-        settings: await getSettings(),
-      });
+      setState({ kind: 'ok', link, settings: await getSettings() });
     })();
-  }, [data]);
+  }, [data, kind]);
 
   const copy = async (): Promise<void> => {
     try {
@@ -50,6 +43,9 @@ export function LeadLinkScreen({ data }: { data: string }) {
       setCopied('Kopieren ging nicht. Bitte den Link in WhatsApp lange antippen und kopieren.');
     }
   };
+
+  const ok = state.kind === 'ok' ? state : null;
+  const teams = ok ? ok.link.teams.map((t) => shortTeamName(t.name)) : [];
 
   return (
     <main class="page lead-link" data-testid="lead-link-page">
@@ -64,20 +60,22 @@ export function LeadLinkScreen({ data }: { data: string }) {
         />
         {state.kind === 'invalid' && (
           <p class="hint" data-testid="lead-link-invalid">
-            Dieser Lead-Link ist nicht gültig. Bitte den Link erneut beim Organisator anfordern.
+            Dieser {label} ist nicht gültig. Bitte den Link erneut in der Trainergruppe anfordern.
           </p>
         )}
-        {state.kind === 'ok' && (
+        {ok && (
           <>
-            <h2 class="live__title t-zwischentitel">Lead-Link für {shortTeamName(state.cert.name)}</h2>
+            <h2 class="live__title t-zwischentitel">
+              {label} für „{ok.link.title}“
+            </h2>
             <p class="live__text">
-              Damit sendet das Handy am Spielfeldrand die Spiele von {shortTeamName(state.cert.name)} an „{state.title}
-              “.
+              Damit sendet dieses Handy die Spiele von {joinList(teams)}, die es erfasst, automatisch an „
+              {ok.link.title}“.
             </p>
             <ol class="live__steps">
               <li>„Link kopieren“ tippen.</li>
               <li>Den Torticker vom Home-Bildschirm öffnen.</li>
-              <li>Mehr → Live-Spieltag → „Lead-Link einfügen“.</li>
+              <li>Mehr → Live-Spieltag → „Trainer-Link einfügen“ bzw. „Link einfügen“.</li>
             </ol>
             <button type="button" class="btn btn--primary" data-testid="btn-copy-lead-link" onClick={() => void copy()}>
               Link kopieren
@@ -94,20 +92,21 @@ export function LeadLinkScreen({ data }: { data: string }) {
           </>
         )}
       </div>
-      {state.kind === 'ok' && ask && (
+      {ok && ask && (
         <CoupleDialog
-          cert={state.cert}
-          title={state.title}
-          replace={couplingKind(state.settings, state.lead) === 'replace'}
-          addsTeam={!knowsTeam(state.settings, state.cert.name)}
+          trainer={ok.link.kind === 'trainer'}
+          teams={teams}
+          title={ok.link.title}
+          replace={couplingKind(ok.settings, linkOf(ok.link)) === 'replace'}
+          adds={ok.link.teams.filter((t) => !knowsTeam(ok.settings, t.name)).map((t) => shortTeamName(t.name))}
           losesOrganizer={
-            state.settings.live && replacesOrganizer(state.settings, state.lead) ? titleOf(state.settings.live) : null
+            ok.settings.live && replacesOrganizer(ok.settings, linkOf(ok.link)) ? titleOf(ok.settings.live) : null
           }
           busy={busy}
           onYes={() => {
             if (busy) return;
             setBusy(true);
-            void coupleLead(state.lead, state.cert)
+            void coupleLink(ok.link)
               .then(() => navigate('/live-spieltag', true))
               .catch(() => {
                 setBusy(false);

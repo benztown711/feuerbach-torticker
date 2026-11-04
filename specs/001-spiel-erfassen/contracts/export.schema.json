@@ -548,6 +548,10 @@
             "type": "boolean",
             "description": "Spec 006 FR-L09: false = nicht live senden (optional)"
           },
+          "livePrivate": {
+            "type": "boolean",
+            "description": "Spec 006 FR-L09: beim Anlegen nicht live und nie gesendet (optional)"
+          },
           "shootout": {
             "description": "Spec 003 FR-P03: Elfmeterschießen (optional)",
             "type": "object",

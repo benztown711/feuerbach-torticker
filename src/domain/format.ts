@@ -30,3 +30,9 @@ export function formatTime(at: number, timeZone?: string, seconds = true): strin
     ...(timeZone ? { timeZone } : {}),
   }).format(at);
 }
+
+/** Aufzählung "E1, E2 und E3" bzw. mit "oder"; leer bei leerer Liste. */
+export function joinList(items: string[], last: 'und' | 'oder' = 'und'): string {
+  if (items.length < 2) return items.join('');
+  return `${items.slice(0, -1).join(', ')} ${last} ${items[items.length - 1]}`;
+}

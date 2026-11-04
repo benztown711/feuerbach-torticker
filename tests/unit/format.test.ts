@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatClock, formatTime, formatDuration } from '../../src/domain/format';
+import { formatClock, formatTime, formatDuration, joinList } from '../../src/domain/format';
 import { deriveClock } from '../../src/domain/clock';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
@@ -36,5 +36,14 @@ describe('FR-017 Anzeigeformate', () => {
     expect(formatClock(brk)).toBe('25:00');
     const end = deriveClock([kick, { type: 'fullTime', at: T0 + 60_000, section: 1 }], T0 + 2 * 60_000, two25);
     expect(formatClock(end)).toBe('Ende');
+  });
+});
+
+describe('Aufzählungen', () => {
+  it('"und" bzw. "oder" vor dem letzten Eintrag', () => {
+    expect(joinList([])).toBe('');
+    expect(joinList(['E1'])).toBe('E1');
+    expect(joinList(['E1', 'E2'])).toBe('E1 und E2');
+    expect(joinList(['E1', 'E2', 'E3'], 'oder')).toBe('E1, E2 oder E3');
   });
 });
