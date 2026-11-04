@@ -86,3 +86,8 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 - **Sicherheit**: Der Trainer-Link ist so mächtig wie der Organisator: senden für alle Mannschaften, Konfiguration und Zertifikate signieren. Er gehört nur in die Trainergruppe (Text beim Teilen). Gelangt er nach außen oder verlässt jemand die Gruppe, hilft "Alle Links neu ausstellen" (US5). Wer nur den Zuschauer-Link hat, kann weiterhin nichts gültig signieren.
 - **Länge**: rund 1.000 Zeichen bei zwei Mannschaften, höchstens rund 1.400 bei sechs.
 - **Alternatives**: Lead-Links je Mannschaft weiter verteilen und alle einfügen (funktioniert, aber mehrere Links und nur ein Organisator); Auswahl "Dieses Wochenende bin ich Lead für" (muss jede Woche umgestellt werden); zusätzliche Helfer-Links je Mannschaft (von Atti nicht gewünscht).
+
+## R-L14 Sicherheitsreview Trainer-Link (04.11.2026)
+
+- Ergebnis: keine Schwachstelle mit Konfidenz ≥ 8. Geprüft: Organisator-Schlüssel `q` gehört zu `o` (Probesignatur), Konfiguration `g` von `o` signiert, nur Mannschaften der signierten Konfiguration werden gekoppelt und angezeigt, Rückfrage nennt Titel, alle Mannschaften und das Ersetzen einer Kopplung, Topic-Prüfung, kein Organisator-Schlüssel in Sicherung, Protokoll oder Meldungen, `livePrivate` (nie gesendet, Sicherung kann vorhandene Spiele nicht umstellen), XSS.
+- Bewusst so (R-L13): Bestehende Organisator-Handys senden nach dem Update automatisch für alle Mannschaften ihres Live-Spieltags.

@@ -65,7 +65,7 @@
 - [x] L045 [P] `tests/unit/live-setup.test.ts` (`verifyTrainerLink`), `tests/unit/live-sender.test.ts` (Trainer-Handy sendet je Spiel; beim Anlegen "Live" aus sendet nichts); `src/platform/live-setup.ts` (`verifyTrainerLink`, `coupleTrainer`, `shareTrainerLink`), `src/platform/live-sender.ts`
 - [x] L046 Oberfläche: `src/ui/screens/live.tsx` (Formular ohne Auswahl, Übersicht mit Trainer-Link und Mannschaften, "Link einfügen"), `src/ui/components/couple-dialog.tsx` (mehrere Mannschaften), `src/ui/screens/lead-link.tsx` und Route `#/trainer/<Daten>`, `src/ui/screens/new-game.tsx` (Schalter "Live aufs Dashboard")
 - [x] L047 E2E: `live-us1.spec.ts` auf Trainer-Link umgestellt (US1-S1 bis S7), `live-us2.spec.ts` um US2-S8 und US2-S9 ergänzt, `live-us3.spec.ts` sendet wie Trainer-Handys
-- [ ] L048 Verträge, research.md R-L13, Gerätetest G-1/G-2; `/code-review`, `/security-review`; Screenshots iPhone SE hell/dunkel an Atti
+- [x] L048 Verträge, research.md R-L13, Gerätetest G-1/G-2; `/code-review`, `/security-review`; Screenshots iPhone SE hell/dunkel an Atti
 
 ## Phase 6: US4 Blick auf das andere Spiel (P2, PR 4)
 
