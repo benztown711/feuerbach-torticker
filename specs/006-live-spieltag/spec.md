@@ -53,7 +53,8 @@ Ausgangslage (Atti nach US3): Es gibt keine festen Trainerteams. 4 bis 5 Trainer
 - Q: Wie wird festgelegt, welches Handy für welche Mannschaft sendet? → A: Automatisch je Spiel. Das Handy, das ein Spiel für E2 anlegt, sendet E2. Beim Anlegen steht "Live aufs Dashboard" (Vorgabe an), je Spiel abschaltbar. Nichts muss wöchentlich umgestellt oder zurückgesetzt werden.
 - Q: Ein gemeinsamer Trainer-Link statt je Mannschaft ein Lead-Link? → A: Ja, ein Trainer-Link für die Trainergruppe (5 Personen), einmal pro Saison teilen und einfügen. Wer ihn hat, sendet für alle Mannschaften des Live-Spieltags. Keine zusätzlichen Helfer-Links je Mannschaft.
 - Q: Wer darf den Live-Spieltag verwalten (Titel, Mannschaften, neu ausstellen)? → A: Alle mit Trainer-Link, gleichberechtigt; bei Änderungen gilt die jüngste.
-- Vertrauen: Die Trainergruppe ist klein und steht meist nebeneinander. Erfassen zwei Handys dasselbe Spiel, zeigt die Karte beide (FR-L14); einer schaltet "Live" für sein Spiel ab. Kein technischer Schutz dagegen.
+- Vertrauen: Die Trainergruppe ist klein und steht meist nebeneinander. Erfassen zwei Handys dasselbe Spiel, zeigt die Karte beide (FR-L14); einer schaltet "Live" für sein Spiel ab.
+- Q (Atti): Was passiert, wenn zwei Handys dasselbe Spiel übertragen wollen, und wenn der Trainer, der überträgt, früher gehen muss? → A: Das zweite Handy bekommt beim Anlegen die Meldung, dass E2 schon von einem anderen Handy übertragen wird, und kann das Spiel übernehmen: Es holt sich den Stand vom Dashboard (Gegner, Trikots, Spielzeit, Tore mit Torschützen) und überträgt allein weiter; das alte Handy hört auf zu senden. Nicht übernommen werden Karten, Wechsel und Lesezeichen (werden nie übertragen). Neue User Story US6, Review A am 04.11.2026 freigegeben ("Spiel übernehmen passt so"), Mockup übersprungen.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -154,6 +155,22 @@ Ein Trainer ergänzt im Laufe der Saison E3, ändert den Titel oder stellt alle 
 4. **Given** ein Trainer ändert den Titel in "Unser Spieltag E1 & E2", **Then** zeigt das Dashboard den neuen Titel.
 5. **Given** zwei Trainer-Handys erfassen versehentlich dasselbe E2-Spiel, **Then** zeigt die E2-Karte beide Spiele (das laufende oben, das andere als Zeile darunter, FR-L14); schaltet einer "Live" für sein Spiel ab, verschwindet es.
 
+### User Story 6 - Spiel übernehmen (Priority: P2)
+
+Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite ebenfalls ein E2-Spiel an, weist die App darauf hin, statt ein doppeltes Spiel aufs Dashboard zu schicken. Muss der erste Trainer früher gehen, übernimmt der zweite das laufende Spiel mit Stand, Spielzeit und Toren.
+
+**Why this priority**: Verhindert zwei verschiedene Stände für dieselbe Mannschaft und macht die Übergabe am Spielfeldrand möglich; ohne sie bleibt nur, dass einer "Nicht live senden" wählt.
+
+**Independent Test**: Trainer-Handy A erfasst E2 gegen TSV Musterstadt (1:0, 12'). Trainer-Handy B legt ein E2-Spiel an, wählt "Spiel übernehmen" und erfasst ein Tor; das Dashboard zeigt eine Karte mit 2:0, A zeigt "E2 überträgt jetzt ein anderes Handy".
+
+**Acceptance Scenarios**:
+
+1. **Given** Trainer-Handy A überträgt ein laufendes E2-Spiel, **When** auf Trainer-Handy B "Neues Spiel" für E2 mit "Live aufs Dashboard" bestätigt wird, **Then** fragt B: "Das Spiel der E2 überträgt bereits ein anderes Handy: TSV Musterstadt 1:0, 12'." mit "Spiel übernehmen", "Nur hier erfassen (nicht live)" und "Abbrechen".
+2. **Given** die Frage aus Szenario 1, **When** "Spiel übernehmen" gewählt wird, **Then** öffnet B das Spiel mit Gegner, Heim/Gast, Trikots, Spielzeit-Schema, laufender Uhr (gleiche Minute wie auf dem Dashboard, höchstens 1 Minute Abweichung), allen Toren mit Minute und Torschützen (eigene dem Kader zugeordnet, wenn der Name passt) und Elfmeterschießen; ab dann sendet nur noch B, das Dashboard zeigt weiter eine Karte ohne Sprung.
+3. **Given** B hat übernommen, **When** A wieder Netz hat und das Spiel offen ist, **Then** zeigt A "E2 überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst." und sendet nichts mehr; Meldungen von A, die später noch ankommen, ändern das Dashboard nicht.
+4. **Given** die Frage aus Szenario 1, **When** "Nur hier erfassen (nicht live)" gewählt wird, **Then** wird das Spiel wie mit ausgeschaltetem "Live aufs Dashboard" angelegt (FR-L09).
+5. **Given** B hat kein Netz oder empfängt nichts, **Then** legt B das Spiel ohne Frage an (die App kann die Übertragung von A nicht sehen); ein späteres doppeltes Spiel zeigt die Karte wie bisher als Zeile (FR-L14).
+
 ### Edge Cases
 
 - **Uhr falsch gestellt**: Weicht die Uhrzeit des Lead-Handys oder des Zuschauers ab, muss die Minute auf dem Dashboard trotzdem stimmen (berechnet aus dem Spielverlauf, nicht aus der Uhrzeit des Geräts).
@@ -208,6 +225,12 @@ Ein Trainer ergänzt im Laufe der Saison E3, ändert den Titel oder stellt alle 
 - **FR-L19**: Jedes Trainer-Handy MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Bei Änderungen von mehreren Handys gilt die jüngste. Hinzufügen und Entfernen ändern weder Zuschauer- noch Trainer-Link; Neuausstellen macht alle bisherigen Links wirkungslos.
 - **FR-L20**: Ein Trainer- oder Lead-Handy MUSS die Kopplung beenden können (mit Bestätigung); lokal gespeicherte Spiele bleiben unverändert.
 - **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten, damit ein Handywechsel ohne neue Links möglich ist.
+
+**Übernehmen (US6)**
+
+- **FR-L22**: Ein Trainer-Handy MUSS beim Anlegen eines Spiels mit "Live aufs Dashboard" erkennen, ob ein anderes Handy gerade ein Spiel derselben Mannschaft überträgt (heute, nicht beendet, letzte Meldung höchstens 30 Minuten alt), und dann wie in US6 Szenario 1 nachfragen.
+- **FR-L23**: "Spiel übernehmen" MUSS das Spiel aus dem letzten Live-Stand anlegen (alles aus FR-L10, Uhr auf die eigene Uhrzeit umgerechnet, bereits erreichte Signalschwellen als erledigt) und es mit einem um eins erhöhten Übergabezähler weitersenden. Das Dashboard MUSS Meldungen mit kleinerem Übergabezähler für dieses Spiel ignorieren.
+- **FR-L24**: Erfährt ein Handy, dass sein Spiel übernommen wurde, MUSS es das Senden dafür beenden (auch kein "off" und beim Löschen kein "deleted") und den Hinweis aus US6 Szenario 3 zeigen; lokal bleibt das Spiel vollständig erhalten und erfassbar.
 
 ### Key Entities
 

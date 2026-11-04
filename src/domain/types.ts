@@ -147,6 +147,10 @@ export interface Game {
    * ging nie etwas an den Vermittlungsdienst, darum auch kein "off" und beim Löschen kein "deleted".
    */
   livePrivate?: boolean;
+  /** Spec 006 FR-L23: Übergabezähler dieser Kopie (übernommenes Spiel), fehlt = 0. */
+  liveTakeover?: number;
+  /** Spec 006 FR-L24: ein anderes Handy hat das Spiel übernommen; dieses sendet nichts mehr dafür. */
+  liveHandedOver?: boolean;
 }
 
 export interface Player {
