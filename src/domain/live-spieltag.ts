@@ -113,7 +113,8 @@ export async function createSpieltag(input: LiveInput, teams: Team[], deps: Live
 
 export const isOrganizer = (live: LiveSpieltag): boolean => live.orgKey !== undefined;
 
-const configOf = (signed: SignedData): LiveConfig | null => {
+/** Inhalt einer gespeicherten (bereits geprüften) Konfiguration. */
+export const configOf = (signed: SignedData): LiveConfig | null => {
   try {
     return parseConfig(JSON.parse(signed.d));
   } catch {

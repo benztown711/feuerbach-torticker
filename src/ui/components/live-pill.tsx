@@ -38,7 +38,7 @@ export function LivePill({ game }: { game: Game }) {
   return (
     <a
       class={`live-pill live-pill--${status}`}
-      href="#/live-spieltag"
+      href="#/live-spieltag/dashboard"
       data-testid="live-pill"
       data-state={status}
       aria-label={ARIA[status]}

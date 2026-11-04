@@ -7,7 +7,7 @@ import type { Route } from '../router';
 
 type Tab = 'game' | 'history' | 'more';
 
-const TAB_OF: Record<Exclude<Route['name'], 'leadLink'>, Tab> = {
+const TAB_OF: Record<Exclude<Route['name'], 'leadLink' | 'liveView'>, Tab> = {
   start: 'game',
   new: 'game',
   game: 'game',
@@ -18,13 +18,14 @@ const TAB_OF: Record<Exclude<Route['name'], 'leadLink'>, Tab> = {
   settings: 'more',
   help: 'more',
   live: 'more',
+  liveDash: 'more',
 };
 
 /**
  * Navigationsleiste unten (FR-037): Spiel, Historie, Mehr.
  * Läuft ein Spiel und ist eine andere Seite offen, zeigt "Spiel" die Minute und führt direkt zurück.
  */
-export function NavBar({ route }: { route: Exclude<Route, { name: 'leadLink' }> }) {
+export function NavBar({ route }: { route: Exclude<Route, { name: 'leadLink' | 'liveView' }> }) {
   const active = TAB_OF[route.name];
   const now = useNow(1000);
   const [open, setOpen] = useState<Game | undefined>();

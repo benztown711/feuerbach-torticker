@@ -29,7 +29,7 @@ Ergänzt `specs/001-spiel-erfassen/contracts/ui-contract.md`. Test-IDs sind Vert
 | Zuschauer-Link teilen | `btn-share-viewer` | System-Teilen-Menü, Rückfall Zwischenablage |
 | Lead-Zeile | `live-lead-row-<key>` | Name, "dieses Handy" oder "zuletzt gesendet <Uhrzeit>" bzw. "noch nicht gekoppelt" |
 | Lead-Link teilen | `btn-share-lead-<key>` | System-Teilen-Menü |
-| Dashboard ansehen | `btn-live-dashboard` | `#/live-spieltag/dashboard` |
+| Dashboard ansehen | `btn-live-dashboard` | `#/live-spieltag/dashboard`; im Leerzustand, wenn ein Zuschauer-Link gemerkt ist ("Dashboard „<Titel>“ ansehen") |
 | Titel ändern | `btn-live-title` | US5 |
 | Mannschaft hinzufügen | `btn-live-add-team` | US5 |
 | Alle Links neu ausstellen | `btn-live-reissue` | US5, mit Bestätigung |
@@ -47,13 +47,15 @@ Kopplungsfrage (Sheet `couple-dialog`): `couple-yes` ("Ja, live senden"), `coupl
 | Element | Test-ID | Verhalten |
 |---|---|---|
 | Seite | `dashboard` | roter Kopf mit Titel `dash-title` und Datum |
-| Status | `dash-status` | `data-state="live"`, `"offline"` ("Keine Verbindung · Stand von <Uhrzeit> Uhr") oder `"polling"` |
+| Status | `dash-status` | `data-state="connecting"`, `"live"`, `"offline"` ("Keine Verbindung · Stand von <Uhrzeit> Uhr") oder `"polling"` |
 | Karte | `dash-card-<key>` | eine je Mannschaft; Attribut `data-game` = Spiel-ID |
 | Aufklappen | `dash-toggle-<key>` | ganze Karte, `aria-expanded` |
 | Stand | `dash-score-<key>` | "Heim:Gast" |
 | Phase | `dash-phase-<key>` | Minute oder Phase (FR-L12) |
 | Details | `dash-details-<key>` | Anpfiff, Halbzeit, Tore (`dash-goal`), `dash-earlier-<key>`, `dash-stale-<key>` |
-| Leer | `dash-empty` | "Heute noch kein Spiel live", Mannschaften, ggf. gemerkte letzte Ergebnisse |
+| Leer | `dash-empty` | "Heute noch kein Spiel live", Mannschaften; gemerkte Karten früherer Tage darunter unter "Zuletzt" |
+| Ungültiger Link | `dashboard-invalid` | Zuschauer-Link nicht lesbar |
+| Kein Live-Spieltag | `dashboard-none` | `#/live-spieltag/dashboard` ohne Live-Spieltag und ohne gemerkten Zuschauer-Link |
 | Hervorhebung | Klasse `card--flash` | einige Sekunden nach neuem Tor |
 
 ## Spielbildschirm (Lead-Handy)

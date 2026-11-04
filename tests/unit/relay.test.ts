@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   POLL_MS,
   POLLS_BEFORE_STREAM,
+  STALL_MS,
   publish,
   subscribe,
   type RelayMessage,
@@ -218,6 +219,51 @@ describe('006 FR-L07 FR-L15 SC-L08 Empfangen (research.md R-L2)', () => {
     stop();
     await vi.advanceTimersByTimeAsync(120_000);
     expect(f.calls).toHaveLength(2);
+  });
+
+  it('FR-L15: hängt der Stream ohne keepalive, wird er abgebrochen und neu verbunden', async () => {
+    const f = fakeFetch([{ kind: 'hang' }, { kind: 'hang' }]);
+    const states: RelayState[] = [];
+    const alive = vi.fn();
+    const stop = subscribe('t', {
+      fetchImpl: f.impl,
+      visibility: visibility(),
+      onMessage: () => undefined,
+      onState: (s) => states.push(s),
+      onAlive: alive,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(alive).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(STALL_MS - 1);
+    expect(states).toEqual(['connecting', 'live']);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(states).toEqual(['connecting', 'live', 'offline']);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(f.calls).toHaveLength(2);
+    expect(states.at(-1)).toBe('live');
+    stop();
+  });
+
+  it('jede erfolgreiche Abfrage meldet sich (auch ohne neue Meldungen)', async () => {
+    const f = fakeFetch([
+      { kind: 'status', status: 429 },
+      { kind: 'lines', chunks: [] },
+      { kind: 'lines', chunks: [] },
+    ]);
+    const alive = vi.fn();
+    const stop = subscribe('t', {
+      fetchImpl: f.impl,
+      visibility: visibility(),
+      onMessage: () => undefined,
+      onAlive: alive,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(alive).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(POLL_MS);
+    expect(alive).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(POLL_MS);
+    expect(alive).toHaveBeenCalledTimes(2);
+    stop();
   });
 
   it('startet die Seite verborgen, wartet der Empfang auf Sichtbarkeit', async () => {

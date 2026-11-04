@@ -71,3 +71,9 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 - Ergebnis: ein Befund mittlerer Schwere (Konfidenz 7): Nach dem Wechsel zu einem anderen Live-Spieltag konnte der Sender Stände des alten Spieltags (mit Vornamen) an das neue Topic schicken. Behoben: Bei anderem Topic oder anderen Schlüsseln startet ein neuer Sender; offene Sendungen nicht mehr gekoppelter Mannschaften werden verworfen.
 - Härtungen: Ein gestoppter Sender sendet nichts mehr (auch keine Wiederholung). Alte, beendete Spiele aus der Zeit vor der Kopplung (z. B. aus einer Sicherung) werden nicht veröffentlicht.
 - Bewusst offen: Länge und Zeitpunkt der Meldungen lassen für ntfy.sh grob erkennen, wann sich ein Stand ändert (keine Namen, keine Seite). Auffüllen auf feste Größen kostet Kontingent; entschieden: nicht nötig.
+
+## R-L12 Sicherheitsreview US3 (04.11.2026)
+
+- Ergebnis: ein Befund mittlerer Schwere (Konfidenz 8): Der gemerkte Dashboard-Stand hing nur am Topic. Wer das Topic kennt, hätte einen Link mit eigenem Organisator-Schlüssel bauen können; einmal geöffnet, hätte er gefälschte Stände (mit sehr großem `iat`/`sentAt`) unter dem Topic des echten Dashboards hinterlegt. Behoben: Der Speicher-Schlüssel enthält Topic und Organisator-Schlüssel (`torticker-live:<Topic>:<orgPub>`); ohne den echten Organisator-Schlüssel lässt sich weder Konfiguration noch Zertifikat gültig signieren.
+- Geprüft ohne Befund: XSS (nur JSX-Text, Farben aus der Palette), Mannschaft A ändert Mannschaft B (Zertifikat und `team/gameId`), Fälschen nur mit Zuschauer-Link, Umleitungen (nur interne Routen), Wächter für hängende Streams.
+- Bewusst offen: Inhaber eines echten Lead-Links könnten mit sehr großem `sentAt` ein Spiel ihrer Mannschaft festhalten; sie gelten nach R-L5 als vertrauenswürdig, Abhilfe ist "Alle Links neu ausstellen" (US5).

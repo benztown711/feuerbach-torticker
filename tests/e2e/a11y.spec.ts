@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
 import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
+import { sampleDashboard } from './live-helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -68,3 +69,22 @@ for (const scheme of ['light', 'dark'] as const) {
     });
   });
 }
+
+test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Dashboard ${scheme === 'light' ? 'hell' : 'dunkel'}, zu- und aufgeklappt`, async ({
+      page,
+      recorded,
+      relay,
+      newDevice,
+    }) => {
+      const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      await v.getByTestId('dash-toggle-E3').click();
+      await expect(v.getByTestId('dash-details-E3')).toBeVisible();
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+    });
+  }
+});

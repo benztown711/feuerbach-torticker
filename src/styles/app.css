@@ -2050,3 +2050,277 @@
     animation: none;
   }
 }
+
+/* ---------- Spec 006 US3: Dashboard (Mockup "Eltern", Entwurf 2) ---------- */
+.dash {
+  padding-bottom: var(--space-8);
+}
+
+.dash__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--space-4) 14px;
+
+  /* design/README.md: kleine weiße Schrift (Datum) nur auf rot-tief */
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+}
+
+.dash__wappen {
+  flex-shrink: 0;
+  width: 26px;
+  height: auto;
+}
+
+.dash__head-text {
+  min-width: 0;
+}
+
+.dash__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.dash__date {
+  margin: var(--space-1) 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dash__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.dash__status .live-pill__dot {
+  flex-shrink: 0;
+  color: var(--color-rot-text);
+}
+
+.dash__status--alert {
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+}
+
+.dash__icon {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dash__cards {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.dash-card {
+  display: grid;
+  border-left: 4px solid transparent;
+  background: var(--color-surface-alt);
+  transition: background-color 0.4s;
+}
+
+.dash-card--live {
+  border-left-color: var(--color-rot-tief);
+}
+
+.card--flash {
+  background: var(--color-rot-hell);
+}
+
+.dash-card__btn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px var(--space-2) 10px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-card__match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dash-card__team {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.dash-card__team > span:not(.team__mark) {
+  min-width: 0;
+}
+
+.dash-card__team--away {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.dash-card__mid {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.dash-card__score {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.dash-card__phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dash-card__phase--live {
+  color: var(--color-rot-text);
+}
+
+.dash-card__chev {
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 2;
+  transition: transform 0.2s;
+}
+
+.dash-card__btn[aria-expanded='true'] .dash-card__chev {
+  transform: rotate(180deg);
+}
+
+.dash-card__details {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0 12px 12px;
+}
+
+.dash-card__info,
+.dash-card__more {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.dash-card__note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-size: 13px;
+}
+
+.dash-goals {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+}
+
+.dash-goal {
+  display: grid;
+  grid-template-columns: 52px 40px minmax(0, 1fr);
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-goal span:last-child {
+  color: var(--color-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.dash-goal--new {
+  background: var(--color-rot-hell);
+}
+
+.dash-goal--new span:last-child {
+  color: var(--color-ink);
+}
+
+.dash-empty {
+  display: grid;
+  gap: 10px;
+  padding: 20px var(--space-4) 0;
+}
+
+.dash-empty__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.dash-empty__text {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 15px;
+}
+
+.dash-empty__label {
+  margin: var(--space-2) 0 0;
+}
+
+.dash__foot {
+  display: grid;
+  gap: 10px;
+  padding: var(--space-1) var(--space-4) 20px;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+}
+
+.dash__foot p {
+  margin: 0;
+}
+
+.dash__invalid {
+  padding: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-card,
+  .dash-card__chev {
+    transition: none;
+  }
+}

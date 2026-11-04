@@ -25,6 +25,8 @@ export const PAIRS: Pair[] = [
   { fg: 'rot-text', bg: 'surface-alt', min: 4.5, where: 'Links in Listen' },
   { fg: 'on-rot', bg: 'rot-tief', min: 4.5, where: 'Hinweis Halbzeit/Abpfiff, kleine Buttons' },
   { fg: 'ink', bg: 'rot-hell', min: 4.5, where: 'Hinweisboxen' },
+  { fg: 'ink-muted', bg: 'rot-hell', min: 4.5, where: 'Dashboard: hervorgehobene Karte (neues Tor)' },
+  { fg: 'rot-text', bg: 'rot-hell', min: 4.5, where: 'Dashboard: Minute in hervorgehobener Karte' },
   { fg: 'on-rot', bg: 'rot-dunkel', min: 4.5, where: 'Fußleisten' },
 ];
 

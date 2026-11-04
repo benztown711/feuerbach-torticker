@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
-import { findLink, type LeadLinkData } from '../../domain/live-link';
+import { findLink, viewerLinkPath, type LeadLinkData } from '../../domain/live-link';
 import {
   couplingKind,
   DEFAULT_LIVE_TITLE,
@@ -54,11 +54,17 @@ function Topbar({ title, onBack }: { title: string; onBack: () => void }) {
   );
 }
 
-function PreviewNote() {
+/** FR-L17: Dashboard in der App (Navigationsleiste bleibt). */
+function DashboardButton({ label = 'Dashboard ansehen' }: { label?: string }) {
   return (
-    <p class="hint" data-testid="live-preview-note">
-      Im Aufbau: Lead-Handys senden bereits automatisch. Das Dashboard für Eltern kommt mit dem nächsten Update.
-    </p>
+    <button
+      type="button"
+      class="btn btn--secondary"
+      data-testid="btn-live-dashboard"
+      onClick={() => navigate('/live-spieltag/dashboard')}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -113,7 +119,7 @@ export function LiveScreen() {
       {view === 'paste' && <PasteLink onCancel={() => setView('main')} onLead={setPending} />}
       {view === 'main' && !live && (
         <div class="form live" data-testid="live-empty">
-          <PreviewNote />
+          {settings?.liveView && <DashboardButton label={`Dashboard „${settings.liveView.title}“ ansehen`} />}
           <p class="live__lead">
             Eltern verfolgen eure Spiele live auf einem Dashboard. Festgelegte Handys am Spielfeldrand senden die Stände
             automatisch.
@@ -313,7 +319,6 @@ function Overview({
 }) {
   return (
     <div class="form live" data-testid="live-overview">
-      <PreviewNote />
       <h2 class="live__title t-zwischentitel" data-testid="live-title">
         {titleOf(live)}
       </h2>
@@ -356,6 +361,7 @@ function Overview({
           Den Lead-Link nur an das Handy schicken, das den Torticker bedient. Ein Ersatzhandy darf ihn auch einfügen.
         </p>
       </section>
+      <DashboardButton />
       <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
         Lead-Link einfügen
       </button>
@@ -367,7 +373,6 @@ function LeadInfo({ live, onPaste }: { live: LiveSpieltag; onPaste: () => void }
   const sending = live.teams.filter((t) => t.sends);
   return (
     <div class="form live">
-      <PreviewNote />
       <div class="live__box" data-testid="live-lead-info">
         <span class="field__label t-label">DIESES HANDY SENDET LIVE</span>
         <strong class="live__teams">{sending.map((t) => shortTeamName(t.name)).join(', ')}</strong>
@@ -377,6 +382,7 @@ function LeadInfo({ live, onPaste }: { live: LiveSpieltag; onPaste: () => void }
         Jedes Spiel dieser Mannschaft geht ab dem Anlegen automatisch aufs Dashboard. Einzelne Spiele lassen sich im
         Spiel über „…“ ausnehmen, z. B. ein Testspiel.
       </p>
+      <DashboardButton />
       <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
         Weiteren Lead-Link einfügen
       </button>
@@ -391,7 +397,8 @@ function PasteLink({ onCancel, onLead }: { onCancel: () => void; onLead: (p: Pen
   const apply = async (): Promise<void> => {
     const link = findLink(text);
     if (link.kind === 'view') {
-      setError('Das ist ein Zuschauer-Link. Das Dashboard für Eltern kommt mit dem nächsten Update.');
+      // US1-S5: Ein Zuschauer-Link macht das Handy nicht zum Lead-Handy, er zeigt nur das Dashboard.
+      navigate(viewerLinkPath(link.view));
       return;
     }
     if (link.kind === 'invalid') {
