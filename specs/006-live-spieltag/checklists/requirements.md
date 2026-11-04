@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,6 @@
 
 ## Notes
 
-- Drei Klärungen offen (Review A, 04.11.2026): Andere Spiele im Spielbildschirm (US4), Torschützen auf dem Dashboard (FR-L10), Gültigkeit des Zuschauer-Links (FR-L16).
+- Review A (04.11.2026): alle drei Klärungen beantwortet (US4, FR-L10, FR-L16). Offen für Review B: Benachrichtigung bei Toren (Abschnitt "Offene Fragen").
 - Der Kandidat ntfy.sh steht bewusst nur unter Assumptions (Machbarkeit belegt); die Auswahl des Dienstes trifft `research.md` im Plan.
 - Voraussetzung: Constitution 2.0.0 (Prinzip II), im selben PR.
