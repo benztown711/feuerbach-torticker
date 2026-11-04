@@ -168,7 +168,10 @@ export type CouplingKind = 'new' | 'same' | 'replace';
 /** Neu koppeln, zum bestehenden Live-Spieltag hinzufügen oder (nach Rückfrage) ersetzen. */
 export function couplingKind(settings: Settings, lead: LeadLinkData): CouplingKind {
   if (!settings.live) return 'new';
-  return settings.live.topic === lead.view.topic ? 'same' : 'replace';
+  const l = settings.live;
+  // Derselbe Live-Spieltag nur bei gleichem Topic und gleichen Schlüsseln; sonst gilt er als anderer.
+  const same = l.topic === lead.view.topic && l.orgPub === lead.view.orgPub && l.viewKey === lead.view.viewKey;
+  return same ? 'same' : 'replace';
 }
 
 /** Ersetzt der Lead-Link den Live-Spieltag, den dieses Gerät organisiert? Dann gehen dessen Schlüssel verloren. */

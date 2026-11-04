@@ -75,9 +75,17 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
     const org = await newSigningKey();
     const lead = await newSigningKey();
     const viewKey = newViewKey();
-    const cert = await signData(org.priv, { key: 'E1', name: 'Sportvg Feuerbach E1', pub: lead.pub });
+    const certValue = {
+      key: 'E1',
+      name: 'Sportvg Feuerbach E1',
+      homeColor: 'rot',
+      awayColor: 'schwarz',
+      pub: lead.pub,
+      iat: 1,
+    };
+    const cert = await signData(org.priv, certValue);
     const config = await signData(org.priv, { title: 'Unser Spieltag', teams: ['E1'], iat: 1 });
-    return { org, lead, viewKey, cert, config, view: { viewKey, orgPub: org.pub } };
+    return { org, lead, viewKey, cert, certValue, config, view: { viewKey, orgPub: org.pub } };
   }
 
   it('Live-Stand mit Zertifikat und Konfiguration wird geöffnet und geprüft', async () => {
@@ -92,7 +100,7 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
     const opened = await openMessage(s.view, text);
     expect(opened).toEqual({
       content: { team: 'E1' },
-      cert: { key: 'E1', name: 'Sportvg Feuerbach E1', pub: s.lead.pub },
+      cert: s.certValue,
       config: { title: 'Unser Spieltag', teams: ['E1'], iat: 1 },
     });
   });
@@ -117,6 +125,21 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
       config: fake,
     });
     expect(await openMessage(s.view, text)).toMatchObject({ content: { team: 'E1' }, config: null });
+  });
+
+  it('Live-Stand einer anderen Mannschaft als im Zertifikat (m.team ≠ c.key) wird verworfen', async () => {
+    const s = await setup();
+    const text = await sealMessage(s.viewKey, { content: '{"team":"E2"}', leadKey: s.lead.priv, cert: s.cert });
+    expect(await openMessage(s.view, text)).toMatchObject({ content: null, cert: null });
+    const noTeam = await sealMessage(s.viewKey, { content: '[1]', leadKey: s.lead.priv, cert: s.cert });
+    expect(await openMessage(s.view, noTeam)).toMatchObject({ content: null, cert: null });
+  });
+
+  it('Zertifikat ohne gültigen Inhalt (vom Organisator signiert, aber unvollständig) → verworfen', async () => {
+    const s = await setup();
+    const partial = await signData(s.org.priv, { key: 'E1', pub: s.lead.pub });
+    const text = await sealMessage(s.viewKey, { content: '{"team":"E1"}', leadKey: s.lead.priv, cert: partial });
+    expect(await openMessage(s.view, text)).toMatchObject({ content: null });
   });
 
   it('Zertifikat nicht vom Organisator, falsche Signatur oder fehlendes Zertifikat → Live-Stand verworfen', async () => {

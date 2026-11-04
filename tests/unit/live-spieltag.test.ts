@@ -310,6 +310,18 @@ describe('006 FR-L03 FR-L04 Kopplung aus Lead-Link', () => {
     expect(s2.live?.config).toEqual(newer);
   });
 
+  it('gleiches Topic, aber anderer Organisator- oder Zuschauer-Schlüssel gilt als anderer Live-Spieltag', async () => {
+    const { live } = await organizer();
+    const s0 = applyLeadLink(defaultSettings(), leadLinkFor(live, 'E2')!, certOf(live, 'E2'), {
+      now: T0,
+      newId: () => 'a',
+    });
+    const link = leadLinkFor(live, 'E1')!;
+    expect(couplingKind(s0, link)).toBe('same');
+    expect(couplingKind(s0, { ...link, view: { ...link.view, orgPub: pubOf(9) } })).toBe('replace');
+    expect(couplingKind(s0, { ...link, view: { ...link.view, viewKey: 'B'.repeat(42) + 'A' } })).toBe('replace');
+  });
+
   it('anderer Live-Spieltag: nur nach Bestätigung, ersetzt die alte Kopplung', async () => {
     const { live } = await organizer();
     const other: LiveSpieltag = { ...live, topic: 'zzzzzzzzzzzzzzzzzzzzzz' };

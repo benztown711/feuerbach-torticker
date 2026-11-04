@@ -1,5 +1,6 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
-import { isSignedData } from '../domain/live-validate';
+import { parseLeadCert } from '../domain/live-spieltag';
+import { isObj, isSignedData } from '../domain/live-validate';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
 
 /**
@@ -159,11 +160,12 @@ export async function openMessage(
   let cert: unknown = null;
   const c = isSignedData(e.c) ? e.c : null;
   if (typeof e.m === 'string' && typeof e.s === 'string' && c) {
-    const certValue = await verifySigned(view.orgPub, c);
-    const pub = (certValue as { pub?: unknown } | null)?.pub;
-    if (typeof pub === 'string' && (await verify(pub, e.m, e.s))) {
+    const certValue = parseLeadCert(await verifySigned(view.orgPub, c));
+    const parsed = certValue && (await verify(certValue.pub, e.m, e.s)) ? parseJson(e.m) : null;
+    // Ein Live-Stand gilt nur für die Mannschaft seines Zertifikats (contracts/live-message.md).
+    if (certValue && isObj(parsed) && parsed.team === certValue.key) {
       cert = certValue;
-      content = parseJson(e.m);
+      content = parsed;
     }
   }
   return { content, cert, config };
