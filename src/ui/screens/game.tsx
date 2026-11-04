@@ -747,7 +747,7 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
-      {cardPick && (
+      {cardPick && eventsOpen && (
         <Sheet
           title="Karte"
           subtitle={`Minute ${minuteAt(eventAt)}`}
