@@ -15,13 +15,38 @@ const player = (page: Page, prefix: string, name: string) =>
 const eventRows = (page: Page) => page.locator('[data-testid^="event-row-"]');
 
 test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
-  test('003 US3-S1 US4-S1 FR-E02 ohne Schalter keine Karten und Wechsel in der Auswahl', async ({ page }) => {
+  test('003 US3-S1 US4-S1 FR-E02 ohne Schalter keine Knöpfe "Karte" und "Wechsel"', async ({ page }) => {
     await enable(page, 'marks');
     await startGame(page);
-    await page.getByTestId('btn-event').click();
-    await expect(page.getByTestId('event-mark')).toBeVisible();
-    await expect(page.getByTestId('event-card-gelb')).toHaveCount(0);
-    await expect(page.getByTestId('event-sub')).toHaveCount(0);
+    await expect(page.getByTestId('btn-event-mark')).toBeVisible();
+    await expect(page.getByTestId('btn-event-card')).toHaveCount(0);
+    await expect(page.getByTestId('btn-event-sub')).toHaveCount(0);
+  });
+
+  test('003 US3-S7 FR-E09 nur "Karten" an: "Karte" zeigt genau vier Kacheln', async ({ page }) => {
+    await enable(page, 'cards');
+    await startGame(page);
+    const buttons = page.getByTestId('event-row').getByRole('button');
+    await expect(buttons).toHaveText(['Karte']);
+    await page.getByTestId('btn-event-card').click();
+    const tiles = page.getByTestId('card-pick-sheet').locator('[data-testid^="event-card-"]');
+    await expect(tiles).toHaveText(['Gelb', 'Gelb-Rot', 'Rot', 'Zeitstrafe']);
+    for (const box of await tiles.evaluateAll((els) => els.map((e) => e.getBoundingClientRect()))) {
+      expect(box.width).toBeGreaterThanOrEqual(64);
+      expect(box.height).toBeGreaterThanOrEqual(64);
+    }
+    await expect(page.getByTestId('card-pick-sheet')).toContainText('Karte');
+  });
+
+  test('003 US4-S5 FR-E09 "Wechsel" öffnet direkt raus/rein', async ({ page }) => {
+    await seedRoster(page, ['2 Ben', '3 Tom'].join('\n'));
+    await enable(page, 'subs');
+    await startGame(page);
+    await forward(page, 4 * MIN);
+    await page.getByTestId('btn-event-sub').click();
+    await expect(page.getByTestId('sub-sheet')).toBeVisible();
+    await expect(page.getByTestId('sub-sheet')).toContainText("Minute 5'");
+    await expect(page.getByRole('dialog')).toHaveCount(1);
   });
 
   test('003 US3-S2 Gelb für einen eigenen Spieler mit einem Tipp auf den Namen; Rückgängig', async ({ page }) => {
@@ -29,7 +54,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await enable(page, 'cards');
     await startGame(page);
     await forward(page, 5 * MIN);
-    await page.getByTestId('btn-event').click();
+    await page.getByTestId('btn-event-card').click();
     await page.getByTestId('event-card-gelb').click();
     await expect(page.getByTestId('card-sheet')).toContainText("Minute 6'");
     await expect(page.getByTestId('card-kind-gelb')).toHaveAttribute('aria-pressed', 'true');
@@ -46,7 +71,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await enable(page, 'cards');
     await startGame(page);
     await forward(page, 33 * SEC);
-    await page.getByTestId('btn-event').click();
+    await page.getByTestId('btn-event-card').click();
     await page.getByTestId('event-card-rot').click();
     await page.getByTestId('card-side-opp').click();
     await page.getByTestId('card-note').click();
@@ -54,7 +79,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await page.getByTestId('input-card-opp').fill('Nr. 9');
     await page.getByTestId('btn-save-card').click();
     await expect(eventRows(page)).toContainText('Rot Nr. 9 (TSV Musterstadt)');
-    await page.getByTestId('btn-event').click();
+    await page.getByTestId('btn-event-card').click();
     await page.getByTestId('event-card-zeit').click();
     await page.getByTestId('card-no-player').click();
     await expect(eventRows(page).first()).toContainText('Zeitstrafe (Feuerbach)');
@@ -65,7 +90,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await enable(page, 'cards');
     await startGame(page);
     await forward(page, 2 * MIN);
-    await page.getByTestId('btn-event').click();
+    await page.getByTestId('btn-event-card').click();
     await page.getByTestId('event-card-gelb').click();
     await player(page, 'card-player-', 'Tom').click();
     await forward(page, 11 * SEC);
@@ -85,8 +110,7 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await enable(page, 'subs');
     await startGame(page);
     await forward(page, 29 * MIN + 30 * SEC);
-    await page.getByTestId('btn-event').click();
-    await page.getByTestId('event-sub').click();
+    await page.getByTestId('btn-event-sub').click();
     await expect(page.getByTestId('btn-save-sub')).toBeDisabled();
     await player(page, 'sub-out-', 'Ben').click();
     await expect(player(page, 'sub-in-', 'Ben')).toHaveCount(0);
@@ -105,12 +129,11 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await enable(page, 'cards', 'subs');
     await startGame(page, { sections: 1, minutes: 12 });
     await forward(page, 3 * MIN);
-    await page.getByTestId('btn-event').click();
+    await page.getByTestId('btn-event-card').click();
     await page.getByTestId('event-card-gelb').click();
     await player(page, 'card-player-', 'Tom').click();
     await forward(page, 2 * MIN);
-    await page.getByTestId('btn-event').click();
-    await page.getByTestId('event-sub').click();
+    await page.getByTestId('btn-event-sub').click();
     await player(page, 'sub-out-', 'Ben').click();
     await player(page, 'sub-in-', 'Leo').click();
     await page.getByTestId('btn-save-sub').click();
@@ -140,10 +163,11 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
       return { sh: el.scrollHeight, ih: window.innerHeight };
     });
     expect(scroll.sh).toBeLessThanOrEqual(scroll.ih);
+    await expect(page.getByTestId('event-row')).toBeVisible();
     const before = (await page.getByTestId('goal-list').boundingBox())?.height ?? 0;
     await page.getByTestId('list-grip').click();
     await expect(page.getByTestId('btn-pause')).toBeHidden();
-    await expect(page.getByTestId('btn-event')).toBeHidden();
+    await expect(page.getByTestId('event-row')).toBeHidden();
     await expect(page.getByTestId('score')).toBeVisible();
     const after = (await page.getByTestId('goal-list').boundingBox())?.height ?? 0;
     expect(after).toBeGreaterThan(before + 40);

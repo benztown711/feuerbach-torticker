@@ -63,7 +63,7 @@ import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
-import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
+import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
@@ -125,7 +125,8 @@ export function GameScreen({ id }: { id: string }) {
   const gameRef = useRef<Game | null>(null);
   // Spec 003: Ereignisse (Teil 1: Lesezeichen)
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [eventSheet, setEventSheet] = useState(false);
+  /** Spec 003 FR-E09: Auswahl der Kartenart nach "Karte". */
+  const [cardPick, setCardPick] = useState(false);
   const [markUndo, setMarkUndo] = useState<{ id: string; until: number } | null>(null);
   const [markSheet, setMarkSheet] = useState<string | null>(null);
   const [markEdit, setMarkEdit] = useState<{ id: string; value: string } | null>(null);
@@ -333,7 +334,7 @@ export function GameScreen({ id }: { id: string }) {
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
 
-  // Spec 003 FR-E09: Knopf "Ereignis" ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
+  // Spec 003 FR-E09: Knopfzeile ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
   const allEvents = gameEvents(game);
   const marks = allEvents.filter(isMark);
   const minuteAt = (at: number): string => {
@@ -380,7 +381,6 @@ export function GameScreen({ id }: { id: string }) {
   const doMark = (): void => {
     const t = Date.now();
     const r = addMark(cur(), t);
-    setEventSheet(false);
     if (!r) return;
     update(r.game);
     setMarkUndo({ id: r.event.id, until: t + UNDO_MS });
@@ -543,22 +543,44 @@ export function GameScreen({ id }: { id: string }) {
             )}
           </section>
 
-          {eventsOpen && (
-            <section class="event-add" aria-label="Ereignisse">
-              <button
-                type="button"
-                class="btn btn--quiet event-add__btn"
-                data-testid="btn-event"
-                onClick={() => {
-                  setEventAt(Date.now());
-                  setEventSheet(true);
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Ereignis
-              </button>
+          {eventsOpen && settings && (
+            <section class="event-row" aria-label="Ereignisse erfassen" data-testid="event-row">
+              {settings.features.cards && (
+                <button
+                  type="button"
+                  class="btn btn--quiet event-row__btn"
+                  data-testid="btn-event-card"
+                  onClick={() => {
+                    setEventAt(Date.now());
+                    setCardPick(true);
+                  }}
+                >
+                  <CardIcon size={18} />
+                  Karte
+                </button>
+              )}
+              {settings.features.subs && (
+                <button
+                  type="button"
+                  class="btn btn--quiet event-row__btn"
+                  data-testid="btn-event-sub"
+                  onClick={() => setSubDraft({ id: null, at: Date.now(), out: null, inn: null, others: false })}
+                >
+                  <SubIcon size={18} />
+                  Wechsel
+                </button>
+              )}
+              {settings.features.marks && (
+                <button
+                  type="button"
+                  class="btn btn--quiet event-row__btn"
+                  data-testid="btn-event-mark"
+                  onClick={doMark}
+                >
+                  <BookmarkIcon size={18} />
+                  Lesezeichen
+                </button>
+              )}
             </section>
           )}
 
@@ -725,59 +747,38 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
-      {eventSheet && settings && (
+      {cardPick && eventsOpen && (
         <Sheet
-          title="Ereignis"
-          subtitle={`Minute ${formatMinute(clock.minute, clock.stoppage)}`}
-          testId="event-sheet"
-          onClose={() => setEventSheet(false)}
+          title="Karte"
+          subtitle={`Minute ${minuteAt(eventAt)}`}
+          testId="card-pick-sheet"
+          onClose={() => setCardPick(false)}
         >
-          <div class="pick-grid">
-            {settings.features.marks && (
-              <button type="button" class="pick" data-testid="event-mark" onClick={doMark}>
-                <BookmarkIcon size={24} />
-                <span>Lesezeichen</span>
-              </button>
-            )}
-            {settings.features.cards &&
-              CARDS.map((c) => (
-                <button
-                  type="button"
-                  key={c}
-                  class="pick"
-                  data-testid={`event-card-${c}`}
-                  onClick={() => {
-                    setEventSheet(false);
-                    setCardDraft({
-                      id: null,
-                      at: eventAt,
-                      card: c,
-                      side: 'own',
-                      oppText: '',
-                      comment: '',
-                      showNote: false,
-                      others: false,
-                    });
-                  }}
-                >
-                  <CardGlyph card={c} size={24} />
-                  <span>{cardLabel(c)}</span>
-                </button>
-              ))}
-            {settings.features.subs && (
+          <div class="pick-grid pick-grid--2">
+            {CARDS.map((c) => (
               <button
                 type="button"
+                key={c}
                 class="pick"
-                data-testid="event-sub"
+                data-testid={`event-card-${c}`}
                 onClick={() => {
-                  setEventSheet(false);
-                  setSubDraft({ id: null, at: eventAt, out: null, inn: null, others: false });
+                  setCardPick(false);
+                  setCardDraft({
+                    id: null,
+                    at: eventAt,
+                    card: c,
+                    side: 'own',
+                    oppText: '',
+                    comment: '',
+                    showNote: false,
+                    others: false,
+                  });
                 }}
               >
-                <SubIcon size={24} />
-                <span>Wechsel</span>
+                <CardGlyph card={c} size={24} />
+                <span>{cardLabel(c)}</span>
               </button>
-            )}
+            ))}
           </div>
         </Sheet>
       )}
