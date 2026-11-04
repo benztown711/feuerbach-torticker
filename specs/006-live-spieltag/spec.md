@@ -36,6 +36,16 @@
 
 - Befund: Auf dem iPhone öffnet ein Link aus WhatsApp immer Safari, nie die auf dem Home-Bildschirm installierte App; beide haben getrennte Daten. Ein angetippter Lead-Link würde also Safari koppeln statt des Torticker am Spielfeldrand. → Entscheidung: Der Lead-Link wird im Torticker unter "Mehr" → "Live-Spieltag" → "Lead-Link einfügen" eingefügt (wie "Liste einfügen" beim Kader). Öffnet jemand den Lead-Link im Browser, erklärt die Seite diesen Weg und bietet "Link kopieren" an; wer den Torticker nur im Browser nutzt, kann dort direkt koppeln (FR-L03).
 
+### Session 2026-11-04 (Umsetzung US3)
+
+Präzisierungen beim Bau des Dashboards, ohne Änderung des Verhaltens aus Review A/B:
+
+- Spieltag eines Spiels ist der Tag des ersten Anpfiffs, vor dem Anpfiff der Tag des Anlegens, jeweils in Serverzeit umgerechnet (R-L4). Ein am Vorabend angelegtes Spiel zählt so ab dem Anpfiff zum neuen Tag.
+- Läuft heute noch kein Spiel, aber das Gerät kennt Spiele früherer Tage (FR-L16), steht "Heute noch kein Spiel live" oben und die alten Karten darunter unter "Zuletzt" (Mockup "Zuletzt auf diesem Handy gesehen"); ihre Phase trägt das Datum ("Ende · 31.10.").
+- Gehören frühere Spiele zu einem anderen Tag als heute, heißt die Zeile "Außerdem am 31.10." statt "Heute außerdem".
+- Statuszeile: "Live · Stand 10:41 Uhr", bei zu vielen Verbindungen "Live, alle 30 Sekunden · Stand …", beim Verbinden "Verbinde …", ohne Netz "Keine Verbindung · Stand von 10:42 Uhr. Aktualisiert sich von selbst." (FR-L15).
+- Ein im Torticker eingefügter Zuschauer-Link öffnet das Dashboard (US1-S5); das Dashboard eines Zuschauers hat unten "Zum Torticker", damit ein Elternteil, das den Torticker später selbst nutzt, nicht festhängt (R-L6).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Live-Spieltag anlegen und Lead-Handys festlegen (Priority: P1)
@@ -130,7 +140,7 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 2. **Given** ein Lead-Handy, **When** dort "Kopplung beenden" bestätigt wird, **Then** sendet es nichts mehr; seine Spiele bleiben lokal erhalten.
 3. **Given** der Organisator wählt "Alle Links neu ausstellen" und bestätigt, **Then** erzeugt die App einen neuen Zuschauer-Link und neue Lead-Links; Meldungen über die alten Links erscheinen nicht mehr auf dem neuen Dashboard.
 4. **Given** der Organisator ändert den Titel in "Unser Spieltag E1 & E2", **Then** zeigt das Dashboard den neuen Titel.
-5. **Given** ein zweites Handy öffnet den Lead-Link für E2 (z. B. Ersatzhandy, weil der Akku leer ist), **Then** sind beide Lead für E2; erfassen beide ein Spiel, zeigt das Dashboard beide Spiele als eigene Karten.
+5. **Given** ein zweites Handy öffnet den Lead-Link für E2 (z. B. Ersatzhandy, weil der Akku leer ist), **Then** sind beide Lead für E2; erfassen beide ein Spiel, zeigt die E2-Karte beide Spiele: das laufende oben, das andere als Zeile darunter (FR-L14).
 
 ### Edge Cases
 
@@ -162,7 +172,7 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 
 - **FR-L06**: Ein Lead-Handy MUSS jedes Spiel seiner Mannschaft(en) ab dem Anlegen automatisch senden, bei jeder Änderung: Anpfiff, Tor (auch Rückgängig, Entfernen, Wiederherstellen, Bearbeiten), Uhr angehalten/fortgesetzt, Pausenpfiff, Schlusspfiff, Verlängerung, Elfmeterschießen (jeder Schuss), Gegnername, Trikotfarben, Heim/Gast, Löschen des Spiels.
 - **FR-L07**: Senden DARF die Erfassung nie verzögern oder blockieren (SC-001 aus Spec 001 gilt unverändert, auch ohne Netz). Ohne Netz wird nur der jeweils aktuelle Stand nachgereicht, sobald wieder Netz da ist; es entsteht kein Rückstau einzelner Meldungen.
-- **FR-L08**: Der Spielbildschirm eines Lead-Handys MUSS in der Kopfzeile ein Kennzeichen zeigen: "Live" (Stand übertragen), "Live: wartet auf Netz" (letzte Änderung noch nicht übertragen, länger als 30 Sekunden) oder "Nicht live" (Spiel per FR-L09 ausgenommen). Ein Tipp öffnet das Dashboard (US4); bis das Dashboard da ist (US3), öffnet er "Mehr" → "Live-Spieltag". FR-033 (iPhone SE ohne Scrollen) gilt weiter.
+- **FR-L08**: Der Spielbildschirm eines Lead-Handys MUSS in der Kopfzeile ein Kennzeichen zeigen: "Live" (Stand übertragen), "Live: wartet auf Netz" (letzte Änderung noch nicht übertragen, länger als 30 Sekunden) oder "Nicht live" (Spiel per FR-L09 ausgenommen). Ein Tipp öffnet das Dashboard (FR-L17). FR-033 (iPhone SE ohne Scrollen) gilt weiter.
 - **FR-L09**: Das "…"-Menü im Spiel MUSS auf einem Lead-Handy "Nicht live senden" bzw. "Live senden" anbieten (nur für dieses Spiel). "Nicht live senden" entfernt das Spiel vom Dashboard.
 - **FR-L10**: Übertragen werden ausschließlich: Kurzform der eigenen Mannschaft, Gegnername, Trikotfarben, Heim/Gast, Spielzeit-Schema, Spielverlauf (Anpfiff, Pausen, Abschnitte, Schlusspfiff, Verlängerung, Elfmeterschießen), Tore mit Minute und Mannschaft sowie Elfmeter- und Eigentor-Kennzeichen, Torschützen (eigene: Anzeigename aus dem Kader, also Vorname oder Kürzel, FR-020; Gegner: Freitext). Nicht übertragen werden Kader, Aufgebot, Karten, Wechsel und Lesezeichen.
 
