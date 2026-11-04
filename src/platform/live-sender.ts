@@ -103,7 +103,9 @@ export class LiveSender {
       // Nie gesendet: auch beim Löschen nichts melden (FR-L09).
       if (!team || (game && isPrivate(game))) return;
       const at = this.deps.now();
-      this.enqueue(change.id, () => tombstone(change.id, team.key, at), team);
+      // FR-L23: mit dem Übergabezähler des Spiels, sonst ignoriert das Dashboard das Löschen.
+      const h = game?.liveTakeover ?? 0;
+      this.enqueue(change.id, () => tombstone(change.id, team.key, at, h), team);
       return;
     }
     const team = this.teamFor(change.game);

@@ -96,7 +96,9 @@ export function takeoverGame(i: TakeoverInput): Game {
     schema: { ...s.schema },
     ownColor: s.ownColor,
     oppColor: s.oppColor,
-    createdAt: local(s.createdAt),
+    // Angelegt auf diesem Handy jetzt: sonst gälte ein beendetes Spiel nach einem Neustart als "vor der
+    // Kopplung" und würde nicht mehr gesendet (live-sender, R-L11).
+    createdAt: i.now,
     clockEvents,
     goals,
     events: [],

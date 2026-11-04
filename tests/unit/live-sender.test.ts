@@ -170,11 +170,18 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     t.sender.stop();
   });
 
-  it('übernommenes Spiel sendet mit dem Übergabezähler', async () => {
+  it('übernommenes Spiel sendet mit dem Übergabezähler, auch beim Löschen', async () => {
     const t = setup();
-    t.sender.handle({ kind: 'put', game: { ...newGame(), liveTakeover: 2 } });
+    const g = { ...newGame(), liveTakeover: 2 };
+    t.sender.handle({ kind: 'put', game: g });
     await vi.advanceTimersByTimeAsync(0);
     expect(t.snaps()[0]?.h).toBe(2);
+    t.sender.handle({ kind: 'delete', id: g.id, game: g });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.snaps().map((s) => [s.state, s.h])).toEqual([
+      ['live', 2],
+      ['deleted', 2],
+    ]);
     t.sender.stop();
   });
 

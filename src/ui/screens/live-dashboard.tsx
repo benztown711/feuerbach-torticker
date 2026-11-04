@@ -169,11 +169,7 @@ function useFlash(cards: BoardCard[], now: number, serverNow: number): Set<strin
 }
 
 export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean; config?: LiveConfig | null }) {
-  const receiver = useMemo(() => {
-    const r = newReceiver(view);
-    if (config) r.seed(config);
-    return r;
-  }, [view.topic, view.viewKey, view.orgPub]);
+  const receiver = useMemo(() => newReceiver(view, {}, config), [view.topic, view.viewKey, view.orgPub]);
   const [state, setState] = useState<ReceiverState>(() => receiver.get());
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   useNow(1000);

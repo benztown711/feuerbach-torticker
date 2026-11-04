@@ -12,12 +12,8 @@ import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiv
 export { handOver };
 
 /** Empfänger für den gekoppelten Live-Spieltag, mit bekannter Konfiguration. */
-function receiverFor(live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveReceiver {
-  const r = newReceiver(viewerOf(live), deps);
-  const config = configOf(live.config);
-  if (config) r.seed(config);
-  return r;
-}
+const receiverFor = (live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveReceiver =>
+  newReceiver(viewerOf(live), deps, configOf(live.config));
 
 export interface RunningGame {
   entry: BoardEntry;

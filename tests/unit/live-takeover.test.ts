@@ -94,8 +94,8 @@ describe('006 US6-S2 FR-L23 Spiel aus dem letzten Live-Stand übernehmen', () =>
       drawSettled: false,
     });
     expect(g.shootout).toBeUndefined();
-    // createdAt kam in der Uhr des alten Handys (3 Minuten vor)
-    expect(g.createdAt).toBe(T0 - min(10) - LEAD_AHEAD - SKEW);
+    // angelegt auf diesem Handy jetzt (sonst gälte es nach einem Neustart als "vor der Kopplung")
+    expect(g.createdAt).toBe(now);
   });
 
   it('Uhr auf die eigene Uhrzeit umgerechnet: dieselbe Minute wie auf dem Dashboard', () => {

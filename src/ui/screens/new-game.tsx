@@ -54,25 +54,31 @@ export function NewGameScreen() {
   };
 
   useEffect(() => {
-    let alive = true;
     void getSettings().then((s) => {
       setSettings(s);
       applyTeam(s, currentTeam(s));
-      const live = s.live;
-      if (!live) return;
-      import('../../platform/live-watch')
-        .then((m) => {
-          if (alive) watch.current = m.watchSpieltag(live);
-        })
-        .catch(() => undefined);
     });
-    return () => {
-      alive = false;
-      watch.current?.stop();
-    };
   }, []);
 
   const team = settings ? findTeam(settings, teamId) : null;
+
+  // Spec 006 US6: nur mithören, wenn das Spiel live gehen würde (nachgeladen).
+  const watchKey = team && settings?.live && liveOn ? (liveTeamFor(team.name, settings.live)?.key ?? null) : null;
+  useEffect(() => {
+    const live = settings?.live;
+    if (!watchKey || !live) return;
+    let alive = true;
+    import('../../platform/live-watch')
+      .then((m) => {
+        if (alive) watch.current = m.watchSpieltag(live);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+      watch.current?.stop();
+      watch.current = null;
+    };
+  }, [watchKey, settings?.live?.topic]);
 
   // FR-M03: eigenes Trikot folgt Heim/Auswärts, solange es nicht von Hand geändert wurde.
   useEffect(() => {
@@ -150,9 +156,13 @@ export function NewGameScreen() {
   const takeover = async (r: RunningGame): Promise<void> => {
     if (!watch.current || busy) return;
     setBusy(true);
-    const game = watch.current.takeover(r.entry, team.name, await getPlayers(), () => globalThis.crypto.randomUUID());
-    await putGame(game);
-    navigate(`/spiel/${game.id}`, true);
+    try {
+      const game = watch.current.takeover(r.entry, team.name, await getPlayers(), () => globalThis.crypto.randomUUID());
+      await putGame(game);
+      navigate(`/spiel/${game.id}`, true);
+    } catch {
+      setBusy(false);
+    }
   };
 
   return (
