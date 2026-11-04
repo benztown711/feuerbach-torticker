@@ -65,11 +65,13 @@ import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
+import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
 import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
+import { setLive } from '../../domain/live-snapshot';
 
 const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
@@ -156,6 +158,8 @@ export function GameScreen({ id }: { id: string }) {
     void putGame(g);
   };
 
+  // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
+  const liveStatus = useLiveStatus(game);
   const clock = game ? clockOf(game, now) : null;
   const status = clock?.status;
 
@@ -410,6 +414,7 @@ export function GameScreen({ id }: { id: string }) {
             Ton aus · tippen
           </button>
         )}
+        <LivePill game={game} />
         <button
           type="button"
           class="icon-btn"
@@ -694,6 +699,19 @@ export function GameScreen({ id }: { id: string }) {
               }}
             >
               Heim und Gast tauschen
+            </button>
+          )}
+          {liveStatus !== null && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-live-toggle"
+              onClick={() => {
+                setMenu(false);
+                update(setLive(game, game.live === false));
+              }}
+            >
+              {game.live === false ? 'Live senden' : 'Nicht live senden'}
             </button>
           )}
           <button

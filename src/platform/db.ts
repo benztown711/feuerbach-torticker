@@ -11,7 +11,7 @@ interface TortickerDB extends DBSchema {
 const DB_NAME = 'torticker';
 
 /** Spec 006 R-L3: Änderung an einem Spiel (für den Live-Sender). */
-export type GameChange = { kind: 'put'; game: Game } | { kind: 'delete'; id: string };
+export type GameChange = { kind: 'put'; game: Game } | { kind: 'delete'; id: string; game?: Game };
 type GameListener = (change: GameChange) => void;
 const listeners = new Set<GameListener>();
 
@@ -75,8 +75,10 @@ export async function findOpenGame(): Promise<Game | undefined> {
 
 /** FR-022: Spiel aus der Historie löschen (nach Bestätigung). */
 export async function deleteGame(id: string): Promise<void> {
-  await (await db()).delete('games', id);
-  notify({ kind: 'delete', id });
+  const d = await db();
+  const game = await d.get('games', id);
+  await d.delete('games', id);
+  notify({ kind: 'delete', id, ...(game ? { game } : {}) });
 }
 
 /** FR-024: mehrere Spiele in einer Transaktion schreiben (Wiederherstellen). */

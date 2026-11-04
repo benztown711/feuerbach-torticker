@@ -1,6 +1,9 @@
+import { webcrypto } from 'node:crypto';
+import { inflateRawSync } from 'node:zlib';
 import type { Page } from '@playwright/test';
 import { expect, type Recorded } from './fixtures';
 import { addTeam } from './helpers';
+import type { FakeRelay } from './relay';
 
 /** Spec 006: Testhelfer für den Live-Spieltag (contracts/live-link.md). */
 
@@ -60,4 +63,60 @@ export async function pasteLeadLink(page: Page, url: string, text = 'Hier dein L
   await expect(page.getByTestId('couple-dialog')).toBeVisible();
   await page.getByTestId('couple-yes').click();
   await expect(page.getByTestId('live-lead-info')).toBeVisible();
+}
+
+/* ---------- Vertragstest: unabhängige Umsetzung von contracts/live-message.md ---------- */
+
+type Json = Record<string, unknown>;
+/** base64url → Uint8Array mit eigenem ArrayBuffer (für Web Crypto). */
+const b64 = (s: string): Uint8Array<ArrayBuffer> => new Uint8Array(Buffer.from(s, 'base64url'));
+const subtle = webcrypto.subtle;
+
+async function verify(pub: string, text: string, sig: string): Promise<boolean> {
+  try {
+    const key = await subtle.importKey('raw', b64(pub), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    return await subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64(sig), new TextEncoder().encode(text));
+  } catch {
+    return false;
+  }
+}
+
+export interface Decoded {
+  content: Json | null;
+  cert: Json | null;
+  config: Json | null;
+}
+
+/** Entschlüsselt und prüft eine Meldung mit den Schlüsseln aus dem Zuschauer-Link. */
+export async function decodeMessage(viewerUrl: string, text: string): Promise<Decoded> {
+  const view = JSON.parse(
+    Buffer.from(viewerUrl.slice(viewerUrl.indexOf('/live/') + 6), 'base64url').toString('utf8'),
+  ) as Json;
+  if (!text.startsWith('t1.')) throw new Error(`Meldung ohne Präfix t1.: ${text.slice(0, 10)}`);
+  const all = b64(text.slice(3));
+  const key = await subtle.importKey('raw', b64(view.k as string), 'AES-GCM', false, ['decrypt']);
+  const packed = Buffer.from(await subtle.decrypt({ name: 'AES-GCM', iv: all.subarray(0, 12) }, key, all.subarray(12)));
+  const env = JSON.parse(inflateRawSync(packed).toString('utf8')) as Json;
+  const signed = (v: unknown) => v as { d: string; s: string } | undefined;
+  const g = signed(env.g);
+  const c = signed(env.c);
+  const config = g && (await verify(view.o as string, g.d, g.s)) ? (JSON.parse(g.d) as Json) : null;
+  const cert = c && (await verify(view.o as string, c.d, c.s)) ? (JSON.parse(c.d) as Json) : null;
+  const ok = cert && typeof env.m === 'string' && (await verify(cert.pub as string, env.m, env.s as string));
+  return { content: ok ? (JSON.parse(env.m as string) as Json) : null, cert, config };
+}
+
+/** Alle gültigen Live-Stände im Relay, älteste zuerst. */
+export async function liveStates(relay: FakeRelay, viewerUrl: string): Promise<Json[]> {
+  const out: Json[] = [];
+  for (const m of relay.all()) {
+    const d = await decodeMessage(viewerUrl, m.message);
+    if (d.content) out.push(d.content);
+  }
+  return out;
+}
+
+/** Jüngster Live-Stand (optional eines bestimmten Spiels). */
+export async function latestState(relay: FakeRelay, viewerUrl: string, gameId?: string): Promise<Json | undefined> {
+  return (await liveStates(relay, viewerUrl)).filter((s) => gameId === undefined || s.gameId === gameId).at(-1);
 }

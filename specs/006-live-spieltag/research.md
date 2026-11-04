@@ -65,3 +65,9 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 
 - Ergebnis: keine Schwachstelle mit Konfidenz ≥ 7 (Fälschen als Zuschauer, Lead-Link-Prüfung, Schlüssel im Fragment, Relay-Aufrufe, AES-GCM/ECDSA, XSS geprüft).
 - Umgesetzte Härtung: Kopplung an "denselben" Live-Spieltag nur bei gleichem Topic und gleichen Schlüsseln (sonst Rückfrage); Live-Stand nur gültig, wenn `m.team` zum geprüften Zertifikat passt.
+
+## R-L11 Sicherheitsreview US2 (04.11.2026)
+
+- Ergebnis: ein Befund mittlerer Schwere (Konfidenz 7): Nach dem Wechsel zu einem anderen Live-Spieltag konnte der Sender Stände des alten Spieltags (mit Vornamen) an das neue Topic schicken. Behoben: Bei anderem Topic oder anderen Schlüsseln startet ein neuer Sender; offene Sendungen nicht mehr gekoppelter Mannschaften werden verworfen.
+- Härtungen: Ein gestoppter Sender sendet nichts mehr (auch keine Wiederholung). Alte, beendete Spiele aus der Zeit vor der Kopplung (z. B. aus einer Sicherung) werden nicht veröffentlicht.
+- Bewusst offen: Länge und Zeitpunkt der Meldungen lassen für ntfy.sh grob erkennen, wann sich ein Stand ändert (keine Namen, keine Seite). Auffüllen auf feste Größen kostet Kontingent; entschieden: nicht nötig.
