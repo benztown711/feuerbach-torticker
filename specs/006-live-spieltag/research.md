@@ -60,3 +60,8 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 ## R-L9 Sicherheit eingehender Daten
 
 - **Decision**: Alles, was entschlüsselt ankommt, läuft durch eine strenge Prüfung in der Domäne (Typen, Längen: Namen ≤ 40 Zeichen, Torschützen ≤ 40, höchstens 200 Tore, 100 Schüsse, 50 Uhr-Ereignisse; unbekannte Felder werden verworfen). Anzeige nur als Text (Preact, kein `innerHTML`). Links werden genauso geprüft. Der private Organisator-Schlüssel verlässt das Gerät nur in der Sicherung (FR-L21), Lead-Schlüssel nur im Lead-Link.
+
+## R-L10 Sicherheitsreview US1 (04.11.2026)
+
+- Ergebnis: keine Schwachstelle mit Konfidenz ≥ 7 (Fälschen als Zuschauer, Lead-Link-Prüfung, Schlüssel im Fragment, Relay-Aufrufe, AES-GCM/ECDSA, XSS geprüft).
+- Umgesetzte Härtung: Kopplung an "denselben" Live-Spieltag nur bei gleichem Topic und gleichen Schlüsseln (sonst Rückfrage); Live-Stand nur gültig, wenn `m.team` zum geprüften Zertifikat passt.
