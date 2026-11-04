@@ -13,7 +13,7 @@ import { addGoal, goalSuffix, setPenalty, setScorer } from '../../src/domain/goa
 import { timeline } from '../../src/domain/history';
 import { anyEventFeature, defaultSettings, withSettingsDefaults } from '../../src/domain/settings';
 import { buildShareText } from '../../src/domain/share-text';
-import type { Game, NewGameInput } from '../../src/domain/types';
+import type { Game, NewGameInput, Settings } from '../../src/domain/types';
 
 /** 07.11.2026, 10:30 Uhr in Stuttgart. */
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
@@ -160,9 +160,12 @@ describe('003 FR-E01 Elfmeter-Kennzeichen', () => {
 
 describe('003 FR-E02 Schalter "Im Spiel erfassen"', () => {
   it('Standard aus; ältere Einstellungen bekommen die Schalter', () => {
-    expect(defaultSettings().features).toEqual({ cards: false, subs: false, marks: false });
+    expect(defaultSettings().features).toEqual({ cards: false, subs: false, marks: false, assists: false });
     expect(anyEventFeature(defaultSettings())).toBe(false);
-    const s = withSettingsDefaults({ features: { cards: false, subs: false, marks: true } });
+    // Ältere Einstellungen kennen den Schalter "Vorlagen" (Spec 009) noch nicht.
+    const s = withSettingsDefaults({
+      features: { cards: false, subs: false, marks: true },
+    } as unknown as Partial<Settings>);
     expect(anyEventFeature(s)).toBe(true);
     expect(withSettingsDefaults({ theme: 'dark' }).features.marks).toBe(false);
   });

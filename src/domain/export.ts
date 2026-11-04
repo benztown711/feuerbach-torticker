@@ -74,6 +74,7 @@ const isGoal = (v: unknown): boolean =>
   nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
   nullOr(v.deletedAt, isTime) &&
   (v.penalty === undefined || typeof v.penalty === 'boolean') &&
+  (v.assist === undefined || nullOr(v.assist, (x) => isStr(x, 1, 200))) &&
   isScorer(v.scorer);
 
 /** Spec 003: Lesezeichen, Karten und Wechsel (optional in älteren Sicherungen). */

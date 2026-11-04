@@ -46,6 +46,8 @@ export interface Goal {
   deletedAt: number | null;
   /** Spec 003 FR-E01: Elfmeter (fehlt bei älteren Spielen = nein). */
   penalty?: boolean;
+  /** Spec 009: Kaderspieler-ID des Vorlagengebers (fehlt bzw. null = keine Vorlage). */
+  assist?: string | null;
 }
 
 interface EventBase {
@@ -106,6 +108,8 @@ export interface EventFeatures {
   cards: boolean;
   subs: boolean;
   marks: boolean;
+  /** Spec 009 FR-V01: nach dem Torschützen nach der Vorlage fragen. */
+  assists: boolean;
 }
 
 export interface Score {

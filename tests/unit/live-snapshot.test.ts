@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addCard, addMark, addSub, setMarkComment } from '../../src/domain/events';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
-import { addGoal, removeGoal, setPenalty, setScorer } from '../../src/domain/goals';
+import { addGoal, removeGoal, setAssist, setPenalty, setScorer } from '../../src/domain/goals';
 import {
   buildSnapshot,
   parseSnapshot,
@@ -279,5 +279,67 @@ describe('006 FR-L11 R-L9 Live-Stand prüfen', () => {
         }),
     );
     expect(parseSnapshot(s)).toMatchObject({ shootout: { first: 'own', done: true } });
+  });
+});
+
+describe('009 FR-V08 Vorlage in der Live-Übertragung', () => {
+  /** Max mit Vorlage "Ben Mü." (gelöscht, bleibt lesbar), danach ein Tor ohne Vorlage. */
+  function withAssist(roster = players): LiveGameSnapshot {
+    const input = {
+      ownTeam: 'Sportvg Feuerbach E1',
+      opponent: 'TSV Musterstadt',
+      venue: 'home' as const,
+      schema: { sections: 2, sectionMinutes: 25 },
+      ownColor: 'rot',
+      oppColor: 'schwarz',
+    };
+    let g = kickoff(createGame(input, { id: 'v1', now: T0 }), T0);
+    const a = addGoal(g, 'own', T0 + min(5), () => 'a');
+    g = setAssist(setScorer(a.game, 'a', { kind: 'player', playerId: 'p-max' }), 'a', 'p-ben');
+    const b = addGoal(g, 'own', T0 + min(8), () => 'b');
+    g = setScorer(b.game, 'b', { kind: 'player', playerId: 'p-max' });
+    return buildSnapshot(g, roster, 'E1', T0 + min(9)) as LiveGameSnapshot;
+  }
+
+  it('sendet den Anzeigenamen, ohne Rückennummer; ohne Vorlage fehlt das Feld', () => {
+    const s = withAssist();
+    expect(s.goals[0]).toEqual({
+      side: 'own',
+      minute: 6,
+      stoppage: null,
+      section: 1,
+      who: 'Max',
+      penalty: false,
+      ownGoal: false,
+      assist: 'Ben Mü.',
+    });
+    expect('assist' in s.goals[1]!).toBe(false);
+  });
+
+  it('unbekannter Spieler: keine Vorlage; lange Namen höchstens 40 Zeichen', () => {
+    expect('assist' in withAssist([players[0]!]).goals[0]!).toBe(false);
+    const long = [players[0]!, { ...players[1]!, name: 'B'.repeat(50) }];
+    expect(withAssist(long).goals[0]!.assist).toBe('B'.repeat(40));
+  });
+
+  it('liest Stände mit und ohne Vorlage; ungültige Vorlage verwirft den Stand', () => {
+    const s = withAssist();
+    expect(parseSnapshot(JSON.parse(JSON.stringify(s)))).toEqual(s);
+    const copy = () => JSON.parse(JSON.stringify(s)) as { goals: Record<string, unknown>[] };
+    const none = copy();
+    none.goals[0]!.assist = null;
+    expect((parseSnapshot(none) as LiveGameSnapshot).goals[0]).not.toHaveProperty('assist');
+    for (const wrong of [7, 'x'.repeat(41)]) {
+      const bad = copy();
+      bad.goals[0]!.assist = wrong;
+      expect(parseSnapshot(bad)).toBeNull();
+    }
+  });
+
+  it('009 US3-S4 ein unbekanntes Zusatzfeld in einem Tor wird angenommen (so lesen ältere Dashboards "assist")', () => {
+    const s = withAssist();
+    const extra = JSON.parse(JSON.stringify(s)) as { goals: Record<string, unknown>[] };
+    extra.goals[1]!.zukunft = 'egal';
+    expect(parseSnapshot(extra)).toEqual(s);
   });
 });

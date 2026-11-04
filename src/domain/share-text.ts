@@ -1,7 +1,7 @@
 import { shootoutState } from './cup';
 import { gameEvents, personLabel, subText } from './events';
 import { clockOf, sectionLabel } from './game';
-import { goalRows, goalSuffix, homeAway, score, scorerLabel } from './goals';
+import { assistSuffix, goalRows, goalSuffix, homeAway, score, scorerLabel } from './goals';
 import { startedAt } from './history';
 import { formatMinute } from './minute';
 import { shortTeamName } from './team-name';
@@ -83,7 +83,8 @@ function historyLines(game: Game, players: Player[]): string[] {
   }
   for (const row of goalRows(game).reverse()) {
     if (row.removed) continue;
-    const text = `${scorerLabel(row.goal, players)}${goalSuffix(row.goal)}`.trim();
+    // Spec 009 FR-V07: Vorlage in der Zeile des Tores.
+    const text = `${scorerLabel(row.goal, players)}${assistSuffix(row.goal, players)}${goalSuffix(row.goal)}`.trim();
     lines.push({
       at: row.goal.at,
       rank: 1,
