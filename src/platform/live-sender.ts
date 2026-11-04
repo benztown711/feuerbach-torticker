@@ -18,8 +18,8 @@ export const RETRY_MS = [5_000, 10_000, 20_000, 30_000];
 /** Kader höchstens so oft neu lesen (er ändert sich im Spiel kaum). */
 export const PLAYERS_TTL_MS = 60_000;
 
-/** Kennzeichen im Spielbildschirm (FR-L08). */
-export type LiveStatus = 'on' | 'wait' | 'off';
+/** Kennzeichen im Spielbildschirm (FR-L08; "handed": übernommen, FR-L24). */
+export type LiveStatus = 'on' | 'wait' | 'off' | 'handed';
 
 export interface SenderDeps {
   now(): number;
@@ -37,8 +37,9 @@ interface Pending {
 
 const ACTIVE = new Set(['running', 'paused', 'break']);
 
-/** FR-L09: beim Anlegen ausgenommen und nie eingeschaltet. */
-const isPrivate = (game: Game): boolean => game.live === false && game.livePrivate === true;
+/** FR-L09: beim Anlegen ausgenommen und nie eingeschaltet; FR-L24: von einem anderen Handy übernommen. */
+const isPrivate = (game: Game): boolean =>
+  game.live === false && (game.livePrivate === true || game.liveHandedOver === true);
 
 export class LiveSender {
   private live: LiveSpieltag;
@@ -217,6 +218,7 @@ export class LiveSender {
   status(gameId: string): LiveStatus | null {
     const known = this.games.get(gameId);
     if (!known) return null;
+    if (known.game.liveHandedOver && known.game.live === false) return 'handed';
     if (known.game.live === false) return 'off';
     const p = this.pending.get(gameId);
     return p && this.deps.now() - p.since > WAIT_AFTER_MS ? 'wait' : 'on';
@@ -226,6 +228,7 @@ export class LiveSender {
   statusFor(game: Game): LiveStatus | null {
     if (this.games.has(game.id)) return this.status(game.id);
     if (!this.covers(game)) return null;
+    if (game.liveHandedOver && game.live === false) return 'handed';
     return game.live === false ? 'off' : 'on';
   }
 

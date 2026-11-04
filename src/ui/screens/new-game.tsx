@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
@@ -10,7 +10,8 @@ import { currentTeam, findTeam, ownColorFor, recordTeamUse, schemaFor, squadFor 
 import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
-import { getSettings, putGame, putSettings } from '../../platform/db';
+import { getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
+import type { LiveWatch, RunningGame } from '../../platform/live-watch';
 import { testSignal } from '../../platform/signal';
 import { KitRow } from '../components/kit-row';
 import { useDarkTheme, usePlayers } from '../hooks';
@@ -38,6 +39,9 @@ export function NewGameScreen() {
   const [pal, setPal] = useState<'own' | 'opp' | null>(null);
   const [busy, setBusy] = useState(false);
   const [liveOn, setLiveOn] = useState(true);
+  /** Spec 006 US6: Live-Spieltag mithören, um ein schon übertragenes Spiel zu erkennen (nachgeladen). */
+  const watch = useRef<LiveWatch | null>(null);
+  const [running, setRunning] = useState<RunningGame | null>(null);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -50,10 +54,22 @@ export function NewGameScreen() {
   };
 
   useEffect(() => {
+    let alive = true;
     void getSettings().then((s) => {
       setSettings(s);
       applyTeam(s, currentTeam(s));
+      const live = s.live;
+      if (!live) return;
+      import('../../platform/live-watch')
+        .then((m) => {
+          if (alive) watch.current = m.watchSpieltag(live);
+        })
+        .catch(() => undefined);
     });
+    return () => {
+      alive = false;
+      watch.current?.stop();
+    };
   }, []);
 
   const team = settings ? findTeam(settings, teamId) : null;
@@ -106,17 +122,36 @@ export function NewGameScreen() {
         ];
   const [home, away] = sides as [{ name: string; color: string }, { name: string; color: string }];
 
-  const create = async (): Promise<void> => {
+  const create = async (asPrivate = false): Promise<void> => {
     if (!check.ok || busy) return;
     setBusy(true);
+    // Spec 006 FR-L22: überträgt ein anderes Handy gerade ein Spiel dieser Mannschaft?
+    if (liveTeam && liveOn && !asPrivate && watch.current) {
+      const ids = (await listGames()).map((g) => g.id);
+      const other = watch.current.running(liveTeam.key, ids);
+      if (other) {
+        setRunning(other);
+        setBusy(false);
+        return;
+      }
+    }
     const now = Date.now();
     const created = createGame(check.value, { id: globalThis.crypto.randomUUID(), now });
     // Spec 006 FR-L09: "Live aufs Dashboard" aus → das Spiel wird nicht gesendet.
-    const game = liveTeam && !liveOn ? startPrivate(created) : created;
+    const game = liveTeam && (!liveOn || asPrivate) ? startPrivate(created) : created;
     await putGame(game);
     await putSettings(
       rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: chosen, now }), check.value),
     );
+    navigate(`/spiel/${game.id}`, true);
+  };
+
+  /** Spec 006 FR-L23: Spiel mit Stand, Spielzeit und Toren übernehmen. */
+  const takeover = async (r: RunningGame): Promise<void> => {
+    if (!watch.current || busy) return;
+    setBusy(true);
+    const game = watch.current.takeover(r.entry, team.name, await getPlayers(), () => globalThis.crypto.randomUUID());
+    await putGame(game);
     navigate(`/spiel/${game.id}`, true);
   };
 
@@ -389,6 +424,54 @@ export function NewGameScreen() {
           Weiter zum Anpfiff
         </button>
       </form>
+      {running && (
+        <div class="overlay overlay--bottom">
+          <div class="overlay__backdrop" onClick={() => setRunning(null)} />
+          <div
+            class="sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="takeover-title"
+            data-testid="takeover-dialog"
+          >
+            <h2 id="takeover-title" class="sheet__title">
+              {teamShortLabel(team.name)} läuft schon live
+            </h2>
+            <p class="sheet__text">
+              Das Spiel der {teamShortLabel(team.name)} überträgt bereits ein anderes Handy:{' '}
+              <strong data-testid="takeover-summary">{running.summary}</strong>.
+            </p>
+            <p class="sheet__text sheet__text--muted">
+              Beim Übernehmen kommen Gegner, Spielzeit und Tore mit; Karten, Wechsel und Lesezeichen bleiben auf dem
+              anderen Handy. Danach sendet nur noch dieses Handy.
+            </p>
+            <button
+              type="button"
+              class="btn btn--primary"
+              data-testid="takeover-yes"
+              disabled={busy}
+              onClick={() => void takeover(running)}
+            >
+              Spiel übernehmen
+            </button>
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="takeover-private"
+              disabled={busy}
+              onClick={() => {
+                setRunning(null);
+                void create(true);
+              }}
+            >
+              Nur hier erfassen (nicht live)
+            </button>
+            <button type="button" class="btn btn--quiet" data-testid="takeover-cancel" onClick={() => setRunning(null)}>
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

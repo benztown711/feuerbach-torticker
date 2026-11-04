@@ -71,7 +71,10 @@ import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
+import { teamShortLabel } from '../../domain/history';
 import { setLive } from '../../domain/live-snapshot';
+import { sendingTeamFor } from '../../domain/live-spieltag';
+import { handOver } from '../../domain/live-takeover';
 
 const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
@@ -160,6 +163,36 @@ export function GameScreen({ id }: { id: string }) {
 
   // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
   const liveStatus = useLiveStatus(game);
+
+  // Spec 006 FR-L24: merkt, wenn ein anderes Handy dieses Spiel übernimmt (nachgeladen, nur bei Live-Spielen).
+  const [handedUntil, setHandedUntil] = useState(0);
+  const liveKey = game && settings?.live ? (sendingTeamFor(game, settings.live)?.key ?? null) : null;
+  useEffect(() => {
+    const live = settings?.live;
+    if (!liveKey || !live) return;
+    let stop = (): void => undefined;
+    let alive = true;
+    import('../../platform/live-watch')
+      .then((m) => {
+        if (!alive) return;
+        stop = m.watchTakeover(
+          live,
+          liveKey,
+          () => gameRef.current,
+          () => {
+            const g = gameRef.current;
+            if (g) update(handOver(g));
+            setHandedUntil(Date.now() + 10_000);
+          },
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+      stop();
+    };
+    // Nur bei anderem Spiel, Live-Spieltag oder anderer Mannschaft neu verbinden.
+  }, [id, liveKey, settings?.live?.topic]);
   const clock = game ? clockOf(game, now) : null;
   const status = clock?.status;
 
@@ -671,6 +704,11 @@ export function GameScreen({ id }: { id: string }) {
           Schon gezählt
         </div>
       )}
+      {now < handedUntil && (
+        <div class="toast" data-testid="live-handed-over" role="status">
+          {teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.
+        </div>
+      )}
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
 
       {menu && (
@@ -701,7 +739,7 @@ export function GameScreen({ id }: { id: string }) {
               Heim und Gast tauschen
             </button>
           )}
-          {liveStatus !== null && (
+          {liveStatus !== null && liveStatus !== 'handed' && (
             <button
               type="button"
               class="btn btn--secondary"
