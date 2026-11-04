@@ -15,10 +15,10 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 2: Hilfe-Seite (US1, US2)
 
-- [ ] H007 [P] [US1] E2E `tests/e2e/hilfe.spec.ts`: 009 US1-S1 bis US1-S9 (Offline mit `context.setOffline`)
-- [ ] H008 [P] [US2] E2E in `tests/e2e/hilfe.spec.ts`: 009 US2-S1 bis US2-S5, FR-H15 Untertitel unter "Mehr"
-- [ ] H009 [US1] [US2] Router (`#/hilfe/<id>`), `src/ui/screens/help.tsx` neu, nachgeladen in `app.tsx`, Stile in `app.css`, Untertitel in `more.tsx` (macht H007 und H008 grün)
-- [ ] H010 [US1] Kontrastmatrix: Fundstelle dunkel `on-rot` auf `rot-tief` in `scripts/check-contrast.ts` (falls fehlend)
+- [x] H007 [P] [US1] E2E `tests/e2e/hilfe.spec.ts`: 009 US1-S1 bis US1-S9 (Offline mit `context.setOffline`)
+- [x] H008 [P] [US2] E2E in `tests/e2e/hilfe.spec.ts`: 009 US2-S1 bis US2-S5, FR-H15 Untertitel unter "Mehr"
+- [x] H009 [US1] [US2] Router (`#/hilfe/<id>`), `src/ui/screens/help.tsx` neu, nachgeladen in `app.tsx`, Stile in `app.css`, Untertitel in `more.tsx` (macht H007 und H008 grün)
+- [x] H010 [US1] Kontrastmatrix: Fundstelle dunkel `on-rot` auf `rot-tief` in `scripts/check-contrast.ts` (falls fehlend)
 
 ## Phase 3: Eltern-Leiste (US2)
 

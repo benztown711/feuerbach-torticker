@@ -7,10 +7,10 @@ export type Route =
   | { name: 'history' }
   | { name: 'more' }
   | { name: 'settings' }
-  | { name: 'help' }
+  | { name: 'help'; entry: string | null }
   | { name: 'live' }
   | { name: 'liveDash' }
-  | { name: 'liveView'; data: string }
+  | { name: 'liveView'; data: string; help: boolean; entry: string | null }
   | { name: 'leadLink'; data: string; kind: 'lead' | 'trainer' }
   | { name: 'game'; id: string }
   | { name: 'details'; id: string };
@@ -23,11 +23,15 @@ export function parseHash(hash: string): Route {
   if (path === '/historie') return { name: 'history' };
   if (path === '/mehr') return { name: 'more' };
   if (path === '/einstellungen') return { name: 'settings' };
-  if (path === '/hilfe') return { name: 'help' };
+  if (path === '/hilfe') return { name: 'help', entry: null };
+  // Spec 009 FR-H12: jeder Hilfe-Eintrag hat eine eigene Adresse.
+  const help = /^\/hilfe\/([a-z0-9-]+)$/.exec(path);
+  if (help?.[1]) return { name: 'help', entry: help[1] };
   if (path === '/live-spieltag') return { name: 'live' };
   if (path === '/live-spieltag/dashboard') return { name: 'liveDash' };
-  const view = /^\/live\/([A-Za-z0-9_-]+)$/.exec(path);
-  if (view?.[1]) return { name: 'liveView', data: view[1] };
+  // Zuschauer-Link, mit Eltern-Hilfe unter `/hilfe[/<id>]` (Spec 009 FR-H16).
+  const view = /^\/live\/([A-Za-z0-9_-]+)(\/hilfe(?:\/([a-z0-9-]+))?)?$/.exec(path);
+  if (view?.[1]) return { name: 'liveView', data: view[1], help: !!view[2], entry: view[3] ?? null };
   const lead = /^\/(lead|trainer)\/([A-Za-z0-9_-]+)$/.exec(path);
   if (lead?.[2]) return { name: 'leadLink', data: lead[2], kind: lead[1] === 'trainer' ? 'trainer' : 'lead' };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);

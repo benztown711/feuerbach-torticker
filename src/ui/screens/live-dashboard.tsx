@@ -275,7 +275,7 @@ const sameView = (a: ViewerLink | null, b: ViewerLink): boolean =>
   !!a && a.topic === b.topic && a.viewKey === b.viewKey && a.orgPub === b.orgPub && a.title === b.title;
 
 /** `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6). */
-export function ViewerScreen({ data }: { data: string }) {
+export function ViewerScreen({ data }: { data: string; help?: boolean; entry?: string | null }) {
   const link = useMemo(() => parseLinkPath(`/live/${data}`), [data]);
   useEffect(() => {
     if (link.kind !== 'view') return;
