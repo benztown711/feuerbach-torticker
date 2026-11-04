@@ -51,6 +51,7 @@ export class LiveSender {
   private flushing = false;
   private players: Player[] = [];
   private playersAt = Number.NEGATIVE_INFINITY;
+  private stopped = false;
 
   constructor(
     live: LiveSpieltag,
@@ -64,11 +65,17 @@ export class LiveSender {
       }) ?? (() => undefined);
   }
 
-  /** Neue Kopplung oder Konfiguration übernehmen. */
+  spieltag(): LiveSpieltag {
+    return this.live;
+  }
+
+  /** Neue Kopplung oder Konfiguration desselben Live-Spieltags übernehmen. */
   updateLive(live: LiveSpieltag): void {
     this.live = live;
     // Spiele von Mannschaften, für die das Gerät nicht mehr sendet, nicht weiter melden.
     for (const [id, { game }] of [...this.games]) if (!this.teamFor(game)) this.forget(id);
+    for (const [id, team] of [...this.teamOfPending])
+      if (!live.teams.some((t) => t.sends && t.key === team.key)) this.forget(id);
   }
 
   private forget(id: string): void {
@@ -94,7 +101,9 @@ export class LiveSender {
       return;
     }
     const team = this.teamFor(change.game);
-    if (!team) {
+    // Alte, beendete Spiele (z. B. aus einer Sicherung) nicht nachträglich veröffentlichen (FR-L06 "ab dem Anlegen").
+    const old = change.game.status === 'finished' && change.game.createdAt < this.live.createdAt;
+    if (!team || (old && !this.games.has(change.game.id))) {
       this.forget(change.game.id);
       return;
     }
@@ -120,7 +129,7 @@ export class LiveSender {
   }
 
   private schedule(delay?: number): void {
-    if (this.timer !== null || this.flushing) return;
+    if (this.timer !== null || this.flushing || this.stopped) return;
     const wait = delay ?? Math.max(0, this.lastSend + MIN_GAP_MS - this.deps.now());
     this.timer = setTimeout(() => void this.flush(), wait);
   }
@@ -219,6 +228,9 @@ export class LiveSender {
   }
 
   stop(): void {
+    this.stopped = true;
+    this.pending.clear();
+    this.teamOfPending.clear();
     if (this.timer !== null) clearTimeout(this.timer);
     clearInterval(this.heartbeat);
     this.offVisibility();
@@ -241,6 +253,9 @@ const docVisibility = {
 };
 
 export const liveSender = (): LiveSender | null => current;
+
+const sameSpieltag = (a: LiveSpieltag, b: LiveSpieltag): boolean =>
+  a.topic === b.topic && a.viewKey === b.viewKey && a.orgPub === b.orgPub;
 
 /** Meldet, wenn ein Sender startet oder endet (für das Kennzeichen im Spiel). */
 export function onSenderChange(cb: () => void): () => void {
@@ -267,6 +282,8 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
     stopLiveSender();
     return;
   }
+  // Anderer Live-Spieltag: neuer Sender, damit nichts vom alten an das neue Topic geht.
+  if (current && !sameSpieltag(current.spieltag(), live)) stopLiveSender();
   if (current) {
     current.updateLive(live);
     return;

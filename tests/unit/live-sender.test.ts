@@ -223,6 +223,43 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     t.sender.stop();
   });
 
+  it('alte, beendete Spiele aus der Zeit vor der Kopplung werden nicht gesendet', async () => {
+    const t = setup();
+    vi.setSystemTime(T0 - 86_400_000);
+    const old = endSection(
+      kickoff(
+        createGame(
+          {
+            ownTeam: E1_NAME,
+            opponent: 'X',
+            venue: 'home',
+            schema: { sections: 1, sectionMinutes: 10 },
+            ownColor: 'rot',
+            oppColor: 'schwarz',
+          },
+          { id: 'alt', now: Date.now() },
+        ),
+        Date.now(),
+      ),
+      Date.now() + 1000,
+    );
+    vi.setSystemTime(T0);
+    t.sender.handle({ kind: 'put', game: old });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(0);
+    t.sender.stop();
+  });
+
+  it('nach stop() keine weiteren Sendungen, auch keine Wiederholungen', async () => {
+    const t = setup({ online: false });
+    t.sender.handle({ kind: 'put', game: kickoff(newGame(), T0) });
+    await vi.advanceTimersByTimeAsync(0);
+    t.sender.stop();
+    t.setOnline(true);
+    await vi.advanceTimersByTimeAsync(HEARTBEAT_MS);
+    expect(t.sent).toHaveLength(0);
+  });
+
   it('Spiel wechselt auf eine nicht gekoppelte Mannschaft: wird vergessen', async () => {
     const t = setup();
     const g = kickoff(newGame(), T0);
