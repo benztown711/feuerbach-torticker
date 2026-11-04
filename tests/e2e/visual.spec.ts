@@ -66,8 +66,7 @@ test.describe('Visueller Vergleich Dashboard (006 US3)', () => {
   for (const scheme of ['light', 'dark'] as const) {
     const name = scheme === 'light' ? 'hell' : 'dunkel';
     test(`Dashboard, ${name} (E1 aufgeklappt)`, async ({ page, recorded, relay, newDevice }) => {
-      const v = await sampleDashboard(page, recorded, relay, newDevice);
-      await v.emulateMedia({ colorScheme: scheme });
+      const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
       await ready(v);
       await expect(v).toHaveScreenshot(`dashboard-${name}.png`, shot);
     });

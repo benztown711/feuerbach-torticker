@@ -80,8 +80,7 @@ test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
       relay,
       newDevice,
     }) => {
-      const v = await sampleDashboard(page, recorded, relay, newDevice);
-      await v.emulateMedia({ colorScheme: scheme });
+      const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
       await v.getByTestId('dash-toggle-E3').click();
       await expect(v.getByTestId('dash-details-E3')).toBeVisible();

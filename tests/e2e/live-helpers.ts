@@ -225,9 +225,16 @@ export const onMatchday = (relay: FakeRelay): void => {
 };
 
 /** Zuschauer-Handy mit Uhr wie die Serveruhr (Spieltag T), Zuschauer-Link geöffnet. */
-export async function openViewer(newDevice: () => Promise<Page>, relay: FakeRelay, links: LiveLinks): Promise<Page> {
+export async function openViewer(
+  newDevice: () => Promise<Page>,
+  relay: FakeRelay,
+  links: LiveLinks,
+  scheme: 'light' | 'dark' = 'light',
+): Promise<Page> {
   if (relay.offsetMs === 0) onMatchday(relay);
   const v = await newDevice();
+  // Farbschema vor dem Öffnen: ein Wechsel danach überblendet die Karten (transition) und verfälscht Messungen.
+  await v.emulateMedia({ colorScheme: scheme });
   await v.clock.setSystemTime(Date.now() + relay.offsetMs);
   await v.goto(asPath(links.viewer));
   await expect(v.getByTestId('dashboard')).toBeVisible();
@@ -300,13 +307,14 @@ export async function sampleDashboard(
   recorded: () => Promise<Recorded>,
   relay: FakeRelay,
   newDevice: () => Promise<Page>,
+  scheme: 'light' | 'dark' = 'light',
 ): Promise<Page> {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   onMatchday(relay);
   await sendAs(relay, links.lead.E1!, e1At37());
   await sendAs(relay, links.lead.E2!, { ...e2AtHalf(), goals: [goal('own', 4), goal('opp', 9)] });
   await sendAs(relay, links.lead.E3!, e3Ended());
-  const v = await openViewer(newDevice, relay, links);
+  const v = await openViewer(newDevice, relay, links, scheme);
   await expect(v.getByTestId('dash-card-E3')).toBeVisible();
   await v.getByTestId('dash-toggle-E1').click();
   await expect(v.getByTestId('dash-details-E1')).toBeVisible();
