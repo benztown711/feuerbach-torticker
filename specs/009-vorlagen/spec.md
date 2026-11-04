@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Entwurf. Review A erledigt (04.11.2026, im Chat). Review B: Feedback zu Entwurf 1 eingearbeitet, Mockup Entwurf 2: https://claude.ai/artifact/D7nnJDsmPzC2rGDxsyp9NK
+**Status**: Review A und Review B erledigt (04.11.2026), Plan und Aufgaben erstellt. Mockup (Entwurf 3): https://claude.ai/artifact/D7nnJDsmPzC2rGDxsyp9NK
 
 **Input**: User description: "Ein Trainer hat gefragt, ob wir in der App beim Liveticker auch den Assist erfassen können." Ergänzt im Chat: "Ich würde die Namen sowohl bei den Toren als auch bei den Vorlagen (in der Anzeige) ohne Rückennummer anzeigen, auch wenn diese eingetragen sind. Bei den Buttons können die Rückennummern bleiben."
 
