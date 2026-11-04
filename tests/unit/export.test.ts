@@ -47,6 +47,7 @@ function game(id: string, finishedGame = true): Game {
 
 const G1 = '33333333-3333-4333-8333-333333333333';
 const G2 = '44444444-4444-4444-8444-444444444444';
+const G3 = '55555555-5555-4555-8555-555555555555';
 
 describe('T072 FR-024 Sicherung', () => {
   it('buildBackup erzeugt JSON gemäß contracts/export.schema.json (auch offene Spiele)', () => {
@@ -154,6 +155,17 @@ describe('T072 FR-024 Sicherung', () => {
     expect(mutate((x) => (x.shootout!.done = 1))).toBe(false);
     expect(mutate((x) => (x.shootout = null))).toBe(false);
     expect(mutate((x) => (x.drawSettled = true))).toBe(true);
+  });
+
+  it('006 FR-L09 Sicherung enthält den Sendeschalter "Nicht live senden" (Schema) und lehnt ungültige ab', () => {
+    const backup = buildBackup([{ ...game(G1), live: false }, { ...game(G2), live: true }, game(G3)], players, T0);
+    expect(validate(JSON.parse(JSON.stringify(backup)))).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games.map((g) => g.live)).toEqual([false, true, undefined]);
+    const b = JSON.parse(JSON.stringify(backup)) as { games: { live?: unknown }[] };
+    b.games[0]!.live = 'ja';
+    expect(parseBackup(JSON.stringify(b)).ok).toBe(false);
+    expect(validate(b)).toBe(false);
   });
 
   it('ohne App-Version fehlt das Feld', () => {

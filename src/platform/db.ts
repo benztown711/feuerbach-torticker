@@ -9,6 +9,28 @@ interface TortickerDB extends DBSchema {
 }
 
 const DB_NAME = 'torticker';
+
+/** Spec 006 R-L3: Änderung an einem Spiel (für den Live-Sender). */
+export type GameChange = { kind: 'put'; game: Game } | { kind: 'delete'; id: string };
+type GameListener = (change: GameChange) => void;
+const listeners = new Set<GameListener>();
+
+/** Meldet jede gespeicherte oder gelöschte Partie; liefert die Abmeldung. */
+export function onGameWrite(listener: GameListener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function notify(change: GameChange): void {
+  for (const l of listeners) {
+    try {
+      l(change);
+    } catch {
+      // Ein Beobachter darf das Speichern nie stören (FR-L07).
+    }
+  }
+}
+
 const SETTINGS_KEY = 'app';
 let dbPromise: Promise<IDBPDatabase<TortickerDB>> | null = null;
 
@@ -38,6 +60,7 @@ export async function getGame(id: string): Promise<Game | undefined> {
 /** FR-010: jede Änderung wird sofort geschrieben (write-through). */
 export async function putGame(game: Game): Promise<void> {
   await (await db()).put('games', game);
+  notify({ kind: 'put', game });
 }
 
 /** Neueste zuerst. */
@@ -53,6 +76,7 @@ export async function findOpenGame(): Promise<Game | undefined> {
 /** FR-022: Spiel aus der Historie löschen (nach Bestätigung). */
 export async function deleteGame(id: string): Promise<void> {
   await (await db()).delete('games', id);
+  notify({ kind: 'delete', id });
 }
 
 /** FR-024: mehrere Spiele in einer Transaktion schreiben (Wiederherstellen). */

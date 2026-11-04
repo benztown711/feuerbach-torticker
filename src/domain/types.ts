@@ -133,6 +133,8 @@ export interface Game {
   status: GameStatus;
   finalScore: Score | null;
   halfTimeScore: Score | null;
+  /** Spec 006 FR-L09: false = "Nicht live senden"; fehlt = senden, wenn die Mannschaft gekoppelt ist. */
+  live?: boolean;
 }
 
 export interface Player {
@@ -169,6 +171,79 @@ export interface Settings {
   opponentColors: Record<string, string>;
   theme: Theme;
   installHintDismissedAt: number | null;
+  /** Spec 006: Live-Spieltag dieses Geräts (Organisator und/oder Lead), höchstens einer. */
+  live: LiveSpieltag | null;
+  /** Spec 006 R-L6: zuletzt geöffneter Zuschauer-Link. */
+  liveView: ViewerLink | null;
+}
+
+/** Spec 006: signierter JSON-Text (`d`) mit ECDSA-Signatur (`s`, base64url). */
+export interface SignedData {
+  d: string;
+  s: string;
+}
+
+/** Spec 006 FR-L19: Titel und Mannschaften (Kurzlabel), signiert vom Organisator. */
+export interface LiveConfig {
+  title: string;
+  teams: string[];
+  iat: number;
+}
+
+/** Spec 006 R-L5: Lead-Zertifikat einer Mannschaft. */
+export interface LeadCert {
+  /** Kurzlabel, z. B. "E1". */
+  key: string;
+  /** Voller Name aus "Meine Mannschaften". */
+  name: string;
+  homeColor: string;
+  awayColor: string;
+  /** Öffentlicher Lead-Schlüssel, roh (65 Byte), base64url. */
+  pub: string;
+  iat: number;
+}
+
+/** Privater ECDSA-P-256-Schlüssel als JWK-Teile (base64url). */
+export interface PrivateKeyParts {
+  d: string;
+  x: string;
+  y: string;
+}
+
+/** Spec 006: eine Mannschaft des Live-Spieltags mit Sende-Berechtigung. */
+export interface LiveTeamCred {
+  key: string;
+  name: string;
+  homeColor: string;
+  awayColor: string;
+  leadKey: PrivateKeyParts;
+  cert: SignedData;
+  /** Dieses Gerät sendet für die Mannschaft. */
+  sends: boolean;
+}
+
+/** Spec 006: Live-Spieltag (data-model.md). */
+export interface LiveSpieltag {
+  v: 1;
+  /** Topic bei ntfy.sh (22 Zeichen base64url). */
+  topic: string;
+  /** AES-GCM-256, roh, base64url. */
+  viewKey: string;
+  /** Öffentlicher Organisator-Schlüssel, roh, base64url. */
+  orgPub: string;
+  /** Nur auf dem Organisator-Gerät. */
+  orgKey?: PrivateKeyParts;
+  config: SignedData;
+  teams: LiveTeamCred[];
+  createdAt: number;
+}
+
+/** Spec 006: Inhalt eines Zuschauer-Links. */
+export interface ViewerLink {
+  topic: string;
+  viewKey: string;
+  orgPub: string;
+  title: string;
 }
 
 export interface NewGameInput {
