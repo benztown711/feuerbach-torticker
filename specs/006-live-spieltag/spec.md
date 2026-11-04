@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A erledigt (04.11.2026), Mockup offen (Review B). Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A erledigt (04.11.2026), Review B offen. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -165,7 +165,7 @@ Atti ergänzt im Laufe der Saison E3, gibt ein Ersatzhandy frei oder stellt alle
 - **FR-L15**: Das Dashboard MUSS sich ohne Neuladen aktualisieren, neue Tore für einige Sekunden hervorheben (ohne Ton) und den Verbindungsstatus zeigen: bei eigener fehlender Verbindung "Keine Verbindung · Stand von <Uhrzeit>", bei laufendem Spiel ohne Meldung seit mehr als 5 Minuten "Letzte Meldung vor <n> Min" auf der Karte.
 - **FR-L16**: Der Zuschauer-Link MUSS die ganze Saison gelten (bis "Alle Links neu ausstellen"). Ein Spiel bleibt sichtbar, bis seine Mannschaft ein neues Spiel an einem anderen Tag anlegt: für Zuschauer, die das Dashboard bereits geöffnet hatten, ohne Zeitgrenze (das Gerät merkt sich den letzten Stand); für Zuschauer, die es erst später öffnen, so lange der Vermittlungsdienst die letzte Meldung vorhält (rund 12 Stunden). Das Dashboard kann als Lesezeichen bzw. auf dem Home-Bildschirm gespeichert werden.
 - **FR-L17**: Im Torticker MUSS das Dashboard eines gekoppelten Live-Spieltags unter "Mehr" → "Live-Spieltag" erreichbar sein, auf Lead-Handys zusätzlich per Tipp auf das Kennzeichen "Live" (FR-L08).
-- **FR-L18**: Das Dashboard MUSS dem Vereinsdesign folgen (Constitution VII, `design/`), hell und dunkel nach Systemeinstellung, im Hochformat ab 375 pt Breite ohne waagrechtes Scrollen, Kontrast wie SC-006 aus Spec 001; Trikotfarben als Farbpunkte wie im Teilen-Text (Spec 005).
+- **FR-L18**: Das Dashboard MUSS dem Vereinsdesign folgen (Constitution VII, `design/`), hell und dunkel nach Systemeinstellung, im Hochformat ab 375 pt Breite ohne waagrechtes Scrollen, Kontrast wie SC-006 aus Spec 001; Trikotfarben als kleine Farbmarken wie im Spielbildschirm (keine Emojis in der Oberfläche, `design/README.md`).
 
 **Verwalten (Organisator)**
 
