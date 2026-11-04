@@ -1997,3 +1997,56 @@
 .sheet__text--muted {
   color: var(--color-ink-muted);
 }
+
+/* Spec 006 FR-L08: Kennzeichen "Live" im Spielbildschirm */
+.live-pill {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.live-pill--on {
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+}
+
+.live-pill--wait {
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+}
+
+.live-pill--off {
+  border: 1px solid var(--color-line);
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+}
+
+.live-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-pill__dot {
+    animation: none;
+  }
+}

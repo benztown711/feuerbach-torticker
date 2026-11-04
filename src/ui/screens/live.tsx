@@ -57,7 +57,7 @@ function Topbar({ title, onBack }: { title: string; onBack: () => void }) {
 function PreviewNote() {
   return (
     <p class="hint" data-testid="live-preview-note">
-      Im Aufbau: Das automatische Senden und das Dashboard für Eltern kommen mit den nächsten Updates.
+      Im Aufbau: Lead-Handys senden bereits automatisch. Das Dashboard für Eltern kommt mit dem nächsten Update.
     </p>
   );
 }

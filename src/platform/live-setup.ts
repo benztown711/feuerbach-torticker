@@ -14,6 +14,7 @@ import { shortTeamName } from '../domain/team-name';
 import type { LeadCert, LiveConfig, LiveSpieltag, Settings } from '../domain/types';
 import { getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
+import { startLiveSender } from './live-sender';
 import { publish } from './relay';
 import { shareText, type ShareResult } from './share';
 
@@ -40,6 +41,7 @@ export async function createLive(input: LiveInput): Promise<Settings> {
   const next = { ...settings, live };
   await putSettings(next);
   void publishConfig(live);
+  void startLiveSender(next);
   return next;
 }
 
@@ -74,6 +76,7 @@ export async function verifyLeadLink(lead: LeadLinkData): Promise<VerifiedLead |
 export async function coupleLead(lead: LeadLinkData, cert: LeadCert): Promise<Settings> {
   const next = applyLeadLink(await getSettings(), lead, cert, { now: Date.now(), newId: () => crypto.randomUUID() });
   await putSettings(next);
+  void startLiveSender(next);
   return next;
 }
 
