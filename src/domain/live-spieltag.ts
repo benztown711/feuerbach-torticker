@@ -151,11 +151,6 @@ export function trainerLinkFor(live: LiveSpieltag): TrainerLinkData | null {
   };
 }
 
-export function leadLinkFor(live: LiveSpieltag, key: string): LeadLinkData | null {
-  const cred = live.teams.find((t) => t.key === key);
-  return cred ? { view: viewerOf(live), cert: cred.cert, key: cred.leadKey, config: live.config } : null;
-}
-
 /** Prüft den Inhalt eines Lead-Zertifikats (Signatur prüft die Plattform). */
 export function parseLeadCert(v: unknown): LeadCert | null {
   if (!isObj(v) || !isText(v.key, MAX_KEY) || !isText(v.name, MAX_TITLE)) return null;

@@ -1,3 +1,5 @@
+import { joinList } from '../../domain/format';
+
 interface Props {
   /** Trainer-Link: sendet für alle Mannschaften und darf verwalten; sonst Lead-Link einer Mannschaft. */
   trainer: boolean;
@@ -14,13 +16,9 @@ interface Props {
   onNo: () => void;
 }
 
-/** "E1, E2 und E3" */
-const andList = (xs: string[]): string =>
-  xs.length > 1 ? `${xs.slice(0, -1).join(', ')} und ${xs[xs.length - 1]}` : xs.join('');
-
 /** Spec 006 FR-L03: Rückfrage vor dem Koppeln mit Trainer- oder Lead-Link. */
 export function CoupleDialog({ trainer, teams, title, replace, adds, losesOrganizer, busy, onYes, onNo }: Props) {
-  const names = andList(teams);
+  const names = joinList(teams);
   return (
     <div class="overlay overlay--bottom">
       <div class="overlay__backdrop" onClick={onNo} />
@@ -39,7 +37,7 @@ export function CoupleDialog({ trainer, teams, title, replace, adds, losesOrgani
         )}
         {adds.length > 0 && (
           <p class="sheet__text sheet__text--muted">
-            {andList(adds)} {adds.length > 1 ? 'werden' : 'wird'} zu „Meine Mannschaften“ hinzugefügt.
+            {joinList(adds)} {adds.length > 1 ? 'werden' : 'wird'} zu „Meine Mannschaften“ hinzugefügt.
           </p>
         )}
         {replace && !losesOrganizer && (
@@ -49,7 +47,9 @@ export function CoupleDialog({ trainer, teams, title, replace, adds, losesOrgani
         )}
         {losesOrganizer && (
           <p class="hint" data-testid="couple-replace">
-            <strong>Achtung:</strong> Dieses Handy ist Trainer-Handy für „{losesOrganizer}“. Diese Kopplung endet hier.
+            <strong>Achtung:</strong> Dieses Handy ist Trainer-Handy für „{losesOrganizer}“. Kopplung und Verwaltung
+            dafür enden hier. Hat noch niemand den Trainer-Link dafür, teile ihn vorher, sonst kann niemand den
+            Live-Spieltag mehr verwalten.
           </p>
         )}
         <button type="button" class="btn btn--primary" data-testid="couple-yes" disabled={busy} onClick={onYes}>

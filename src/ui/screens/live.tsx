@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
-import { findLink, viewerLinkPath, type LeadLinkData, type TrainerLinkData } from '../../domain/live-link';
+import { findLink, viewerLinkPath } from '../../domain/live-link';
 import {
   couplingKind,
   DEFAULT_LIVE_TITLE,
@@ -10,20 +10,19 @@ import {
   MAX_LIVE_TEAMS,
   replacesOrganizer,
   titleOf,
-  trainerTeamsOf,
   validateLiveInput,
 } from '../../domain/live-spieltag';
 import { shortTeamName } from '../../domain/team-name';
-import type { LeadCert, LiveSpieltag, Settings } from '../../domain/types';
+import type { LiveSpieltag, Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import {
-  coupleLead,
-  coupleTrainer,
+  coupleLink,
   createLive,
+  linkOf,
   shareTrainerLink,
   shareViewerLink,
-  verifyLeadLink,
-  verifyTrainerLink,
+  verifyLink,
+  type VerifiedLink,
 } from '../../platform/live-setup';
 import type { ShareResult } from '../../platform/share';
 import { CoupleDialog } from '../components/couple-dialog';
@@ -33,13 +32,7 @@ import { navigate } from '../router';
 
 type View = 'main' | 'form' | 'paste';
 /** Geprüfter Link, der auf Bestätigung wartet; Titel aus der geprüften Konfiguration. */
-type Pending =
-  | { kind: 'lead'; lead: LeadLinkData; cert: LeadCert; title: string }
-  | { kind: 'trainer'; trainer: TrainerLinkData; title: string };
-
-/** Mannschaften (Name und Trikots) eines wartenden Links. */
-const pendingTeams = (p: Pending): { name: string; homeColor: string }[] =>
-  p.kind === 'lead' ? [p.cert] : trainerTeamsOf(p.trainer);
+type Pending = VerifiedLink;
 
 const SHARE_MSG: Record<ShareResult, string> = {
   shared: '',
@@ -104,9 +97,7 @@ export function LiveScreen() {
     if (!pending || coupling) return;
     setCoupling(true);
     try {
-      setSettings(
-        await (pending.kind === 'lead' ? coupleLead(pending.lead, pending.cert) : coupleTrainer(pending.trainer)),
-      );
+      setSettings(await coupleLink(pending));
       setView('main');
     } catch {
       setMsg('Koppeln hat nicht geklappt. Bitte erneut versuchen.');
@@ -169,17 +160,11 @@ export function LiveScreen() {
       {pending && (
         <CoupleDialog
           trainer={pending.kind === 'trainer'}
-          teams={pendingTeams(pending).map((t) => shortTeamName(t.name))}
+          teams={pending.teams.map((t) => shortTeamName(t.name))}
           title={pending.title}
-          replace={couplingKind(settings, pending.kind === 'lead' ? pending.lead : pending.trainer) === 'replace'}
-          adds={pendingTeams(pending)
-            .filter((t) => !knowsTeam(settings, t.name))
-            .map((t) => shortTeamName(t.name))}
-          losesOrganizer={
-            live && replacesOrganizer(settings, pending.kind === 'lead' ? pending.lead : pending.trainer)
-              ? titleOf(live)
-              : null
-          }
+          replace={couplingKind(settings, linkOf(pending)) === 'replace'}
+          adds={pending.teams.filter((t) => !knowsTeam(settings, t.name)).map((t) => shortTeamName(t.name))}
+          losesOrganizer={live && replacesOrganizer(settings, linkOf(pending)) ? titleOf(live) : null}
           busy={coupling}
           onYes={() => void couple()}
           onNo={() => setPending(null)}
@@ -401,18 +386,9 @@ function PasteLink({ onCancel, onLink }: { onCancel: () => void; onLink: (p: Pen
       setError('Kein gültiger Link. Bitte den ganzen Link aus WhatsApp kopieren.');
       return;
     }
-    if (link.kind === 'trainer') {
-      const config = await verifyTrainerLink(link.trainer);
-      if (config) onLink({ kind: 'trainer', trainer: link.trainer, title: config.title });
-      else setError('Dieser Trainer-Link ist nicht gültig.');
-      return;
-    }
-    const verified = await verifyLeadLink(link.lead);
-    if (!verified) {
-      setError('Dieser Lead-Link ist nicht gültig.');
-      return;
-    }
-    onLink({ kind: 'lead', lead: link.lead, cert: verified.cert, title: verified.config.title });
+    const verified = await verifyLink(link);
+    if (verified) onLink(verified);
+    else setError(`Dieser ${link.kind === 'trainer' ? 'Trainer-Link' : 'Lead-Link'} ist nicht gültig.`);
   };
 
   return (

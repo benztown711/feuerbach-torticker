@@ -128,6 +128,7 @@ const isGame = (v: unknown): boolean =>
   (v.schema.extraMinutes === undefined || isInt(v.schema.extraMinutes, 1, 30)) &&
   (v.drawSettled === undefined || typeof v.drawSettled === 'boolean') &&
   (v.live === undefined || typeof v.live === 'boolean') &&
+  (v.livePrivate === undefined || typeof v.livePrivate === 'boolean') &&
   (v.shootout === undefined || isShootout(v.shootout)) &&
   isStr(v.ownColor, 1, 40) &&
   isStr(v.oppColor, 1, 40) &&

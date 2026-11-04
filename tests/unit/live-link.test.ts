@@ -8,11 +8,11 @@ import {
 } from '../../src/domain/base64url';
 import {
   findLink,
-  leadLinkPath,
   linkUrl,
   parseLinkPath,
   trainerLinkPath,
   viewerLinkPath,
+  type LeadLinkData,
   type TrainerLinkData,
 } from '../../src/domain/live-link';
 import type { PrivateKeyParts, SignedData, ViewerLink } from '../../src/domain/types';
@@ -26,6 +26,9 @@ const key: PrivateKeyParts = { d: B43, x: B43, y: B43 };
 const config: SignedData = { d: '{"title":"Unser Spieltag"}', s: B86 };
 
 const encode = (o: unknown): string => textToBase64Url(JSON.stringify(o));
+/** Lead-Link der ersten Version (wird nicht mehr erzeugt, bleibt aber gültig). */
+const leadLinkPath = (lead: LeadLinkData): string =>
+  `/lead/${encode({ v: 1, t: lead.view.topic, k: lead.view.viewKey, o: lead.view.orgPub, n: lead.view.title, c: lead.cert, p: lead.key, g: lead.config })}`;
 const rawView = { v: 1, t: view.topic, k: view.viewKey, o: view.orgPub, n: view.title };
 
 describe('006 FR-L02 base64url', () => {
@@ -149,6 +152,16 @@ describe('006 FR-L02 FR-L03 Zuschauer- und Lead-Link (contracts/live-link.md)', 
     ['Heimfarbe nicht aus der Palette', { ...rawTrainer, m: [['E1', 'E1', 'pink', 'rot']] }],
     ['Auswärtsfarbe nicht aus der Palette', { ...rawTrainer, m: [['E1', 'E1', 'rot', '#fff']] }],
     ['Zuschauerteil ungültig', { ...rawTrainer, k: 'x' }],
+    [
+      'doppeltes Kurzlabel',
+      {
+        ...rawTrainer,
+        m: [
+          ['E1', 'Sportvg Feuerbach E1', 'rot', 'rot'],
+          ['E1', 'Feuerbach E1', 'rot', 'rot'],
+        ],
+      },
+    ],
   ])('Trainer-Link ungültig: %s', (_, raw) => {
     expect(parseLinkPath(`/trainer/${encode(raw)}`).kind).toBe('invalid');
   });

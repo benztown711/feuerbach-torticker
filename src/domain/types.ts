@@ -135,6 +135,11 @@ export interface Game {
   halfTimeScore: Score | null;
   /** Spec 006 FR-L09: false = "Nicht live senden"; fehlt = senden, wenn die Mannschaft gekoppelt ist. */
   live?: boolean;
+  /**
+   * Spec 006 FR-L09: beim Anlegen "Live aufs Dashboard" aus und seitdem nie eingeschaltet. Von diesem Spiel
+   * ging nie etwas an den Vermittlungsdienst, darum auch kein "off" und beim Löschen kein "deleted".
+   */
+  livePrivate?: boolean;
 }
 
 export interface Player {

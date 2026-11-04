@@ -1,4 +1,11 @@
-import { linkUrl, trainerLinkPath, viewerLinkPath, type LeadLinkData, type TrainerLinkData } from '../domain/live-link';
+import {
+  linkUrl,
+  trainerLinkPath,
+  viewerLinkPath,
+  type LeadLinkData,
+  type ParsedLink,
+  type TrainerLinkData,
+} from '../domain/live-link';
 import {
   applyLeadLink,
   applyTrainerLink,
@@ -83,6 +90,27 @@ export async function verifyTrainerLink(trainer: TrainerLinkData): Promise<LiveC
   return (await keyMatches(trainer.orgKey, trainer.view.orgPub)) ? config : null;
 }
 
+/** Geprüfter Trainer- oder Lead-Link mit Titel und Mannschaften für die Rückfrage (FR-L03). */
+export type VerifiedLink =
+  | { kind: 'lead'; lead: LeadLinkData; cert: LeadCert; title: string; teams: { name: string }[] }
+  | { kind: 'trainer'; trainer: TrainerLinkData; title: string; teams: { name: string }[] };
+
+/** Prüft einen eingefügten oder angetippten Trainer- bzw. Lead-Link; sonst null. */
+export async function verifyLink(link: ParsedLink): Promise<VerifiedLink | null> {
+  if (link.kind === 'trainer') {
+    const config = await verifyTrainerLink(link.trainer);
+    return config
+      ? { kind: 'trainer', trainer: link.trainer, title: config.title, teams: trainerTeamsOf(link.trainer) }
+      : null;
+  }
+  if (link.kind !== 'lead') return null;
+  const v = await verifyLeadLink(link.lead);
+  return v ? { kind: 'lead', lead: link.lead, cert: v.cert, title: v.config.title, teams: [v.cert] } : null;
+}
+
+/** Zuschauerteil des Links (für die Frage, ob es derselbe Live-Spieltag ist). */
+export const linkOf = (v: VerifiedLink): { view: LeadLinkData['view'] } => (v.kind === 'lead' ? v.lead : v.trainer);
+
 /** FR-L03: Trainer-Handy werden (fehlende Mannschaften werden übernommen). */
 export async function coupleTrainer(trainer: TrainerLinkData): Promise<Settings> {
   const next = await applyTrainerLink(await getSettings(), trainer, deps());
@@ -122,3 +150,7 @@ export function shareTrainerLink(live: LiveSpieltag): Promise<ShareResult> {
     `Nur in der Trainergruppe teilen. Im Torticker unter Mehr → Live-Spieltag → "Link einfügen" einfügen:\n${url}`;
   return shareText(text, `Trainer-Link ${titleOf(live)}`);
 }
+
+/** FR-L03: koppelt mit einem geprüften Link. */
+export const coupleLink = (v: VerifiedLink): Promise<Settings> =>
+  v.kind === 'lead' ? coupleLead(v.lead, v.cert) : coupleTrainer(v.trainer);

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGame, endSection, kickoff } from '../../src/domain/game';
 import { addGoal } from '../../src/domain/goals';
 import type { LiveGameSnapshot, LiveSnapshot } from '../../src/domain/live-snapshot';
-import { setLive } from '../../src/domain/live-snapshot';
+import { setLive, startPrivate } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag, Player } from '../../src/domain/types';
 import type { MessageParts } from '../../src/platform/live-crypto';
 import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
@@ -127,14 +127,36 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
 
   it('FR-L09 "Live aufs Dashboard" beim Anlegen aus: nichts senden, Status "off"; einschalten sendet', async () => {
     const t = setup();
-    const g = { ...newGame(), live: false };
+    const g = startPrivate(newGame());
     t.sender.handle({ kind: 'put', game: g });
     await vi.advanceTimersByTimeAsync(60_000);
     expect(t.sent).toHaveLength(0);
     expect(t.sender.status('g1')).toBe('off');
-    t.sender.handle({ kind: 'put', game: { ...g, live: true } });
+    t.sender.handle({ kind: 'put', game: setLive(g, true) });
     await vi.advanceTimersByTimeAsync(0);
     expect(t.snaps().map((s) => s.state)).toEqual(['live']);
+    t.sender.stop();
+  });
+
+  it('FR-L09 nie gesendetes Spiel löschen schickt nichts, auch nach einem Neustart', async () => {
+    const t = setup();
+    const g = startPrivate(newGame());
+    t.sender.handle({ kind: 'put', game: g });
+    t.sender.handle({ kind: 'delete', id: g.id, game: g });
+    const fresh = setup();
+    fresh.sender.handle({ kind: 'delete', id: 'g9', game: { ...startPrivate(newGame()), id: 'g9' } });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(t.sent).toHaveLength(0);
+    expect(fresh.sent).toHaveLength(0);
+    t.sender.stop();
+    fresh.sender.stop();
+  });
+
+  it('FR-L09 "Nicht live senden" ohne Netz, dann Neustart: "off" wird trotzdem gesendet', async () => {
+    const t = setup();
+    t.sender.handle({ kind: 'put', game: setLive(newGame(), false) });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps().map((s) => s.state)).toEqual(['off']);
     t.sender.stop();
   });
 

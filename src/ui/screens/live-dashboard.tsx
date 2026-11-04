@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
 import { boardView, formatClockTime, formatDay, type BoardCard } from '../../domain/live-board';
 import { parseLinkPath } from '../../domain/live-link';
@@ -47,10 +48,6 @@ function Chevron() {
     </svg>
   );
 }
-
-/** "E1, E2 oder E3" */
-const orList = (keys: string[]): string =>
-  keys.length > 1 ? `${keys.slice(0, -1).join(', ')} oder ${keys[keys.length - 1]}` : keys.join('');
 
 const STATE_TEXT: Record<RelayState, string> = {
   live: 'Live',
@@ -235,7 +232,8 @@ export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean;
         <section class="dash-empty" data-testid="dash-empty">
           <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>
           <p class="dash-empty__text">
-            Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${orList(v.teams)}` : ''} anlegt, erscheint es hier.
+            Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${joinList(v.teams, 'oder')}` : ''} anlegt,
+            erscheint es hier.
           </p>
           {v.cards.length > 0 && <p class="dash-empty__label t-label">ZULETZT</p>}
         </section>

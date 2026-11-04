@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
-import { setLive } from '../../domain/live-snapshot';
+import { startPrivate } from '../../domain/live-snapshot';
 import { liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
@@ -112,7 +112,7 @@ export function NewGameScreen() {
     const now = Date.now();
     const created = createGame(check.value, { id: globalThis.crypto.randomUUID(), now });
     // Spec 006 FR-L09: "Live aufs Dashboard" aus → das Spiel wird nicht gesendet.
-    const game = liveTeam && !liveOn ? setLive(created, false) : created;
+    const game = liveTeam && !liveOn ? startPrivate(created) : created;
     await putGame(game);
     await putSettings(
       rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: chosen, now }), check.value),

@@ -1,7 +1,6 @@
 import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
-import { sendsFor } from '../domain/live-spieltag';
+import { liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
-import { normalizeName } from '../domain/validation';
 import { findOpenGame, getPlayers, getSettings, onGameWrite, type GameChange } from './db';
 import { MAX_MESSAGE, sealMessage, type MessageParts } from './live-crypto';
 import { publish } from './relay';
@@ -37,6 +36,9 @@ interface Pending {
 }
 
 const ACTIVE = new Set(['running', 'paused', 'break']);
+
+/** FR-L09: beim Anlegen ausgenommen und nie eingeschaltet. */
+const isPrivate = (game: Game): boolean => game.live === false && game.livePrivate === true;
 
 export class LiveSender {
   private live: LiveSpieltag;
@@ -87,16 +89,18 @@ export class LiveSender {
 
   /** Mannschaft dieses Spiels, für die das Gerät sendet (unabhängig von "Nicht live senden"). */
   private teamFor(game: Game): LiveTeamCred | null {
-    const name = normalizeName(game.ownTeam);
-    return this.live.teams.find((t) => sendsFor(this.live, t) && normalizeName(t.name) === name) ?? null;
+    return liveTeamFor(game.ownTeam, this.live);
   }
 
   handle(change: GameChange): void {
     if (change.kind === 'delete') {
       // Auch Spiele, die dieser Sender (z. B. nach einem Neustart) noch nicht gesehen hat.
-      const team = this.games.get(change.id)?.team ?? (change.game ? this.teamFor(change.game) : null);
+      const known = this.games.get(change.id);
+      const team = known?.team ?? (change.game ? this.teamFor(change.game) : null);
+      const game = known?.game ?? change.game;
       this.forget(change.id);
-      if (!team) return;
+      // Nie gesendet: auch beim Löschen nichts melden (FR-L09).
+      if (!team || (game && isPrivate(game))) return;
       const at = this.deps.now();
       this.enqueue(change.id, () => tombstone(change.id, team.key, at), team);
       return;
@@ -108,10 +112,10 @@ export class LiveSender {
       this.forget(change.game.id);
       return;
     }
-    const known = this.games.has(change.game.id);
     this.games.set(change.game.id, { game: change.game, team });
-    // FR-L09: Beim Anlegen "Live aufs Dashboard" aus: nichts senden, auch keinen Grabstein.
-    if (!known && change.game.live === false) {
+    // FR-L09: beim Anlegen "Live aufs Dashboard" aus und nie eingeschaltet: nichts senden, auch kein "off".
+    if (isPrivate(change.game)) {
+      this.pending.delete(change.game.id);
       this.notify();
       return;
     }

@@ -62,9 +62,6 @@ const viewFields = (v: ViewerLink) => ({ v: 1, t: v.topic, k: v.viewKey, o: v.or
 export const viewerLinkPath = (view: ViewerLink): string =>
   `/live/${textToBase64Url(JSON.stringify(viewFields(view)))}`;
 
-export const leadLinkPath = (lead: LeadLinkData): string =>
-  `/lead/${textToBase64Url(JSON.stringify({ ...viewFields(lead.view), c: lead.cert, p: lead.key, g: lead.config }))}`;
-
 export const trainerLinkPath = (t: TrainerLinkData): string =>
   `/trainer/${textToBase64Url(
     JSON.stringify({
@@ -100,6 +97,8 @@ function trainerOf(raw: Obj, view: ViewerLink): ParsedLink {
   const list = raw.m as unknown[];
   const teams = list.map(trainerTeam);
   if (list.length === 0 || list.length > MAX_LIVE_TEAMS || teams.some((t) => t === null)) return INVALID;
+  // Jedes Kurzlabel höchstens einmal (eindeutige Zuordnung Spiel → Mannschaft).
+  if (new Set(teams.map((t) => t?.key)).size !== teams.length) return INVALID;
   return {
     kind: 'trainer',
     trainer: {

@@ -6,6 +6,7 @@ import {
   buildSnapshot,
   parseSnapshot,
   setLive,
+  startPrivate,
   tombstone,
   type LiveGameSnapshot,
 } from '../../src/domain/live-snapshot';
@@ -178,6 +179,10 @@ describe('006 FR-L06 FR-L10 Live-Stand bauen (contracts/live-message.md)', () =>
       sentAt: T0 + 2,
     });
     expect(setLive(setLive(game(), false), true).live).toBe(true);
+    const priv = startPrivate(game());
+    expect([priv.live, priv.livePrivate]).toEqual([false, true]);
+    expect(setLive(priv, false).livePrivate).toBe(true);
+    expect('livePrivate' in setLive(priv, true)).toBe(false);
   });
 });
 

@@ -7,7 +7,6 @@ import {
   DEFAULT_LIVE_TITLE,
   isOrganizer,
   knowsTeam,
-  leadLinkFor,
   liveTeamOptions,
   sendsFor,
   trainerLinkFor,
@@ -23,10 +22,17 @@ import {
   viewerOf,
   type LiveDeps,
 } from '../../src/domain/live-spieltag';
+import type { LeadLinkData } from '../../src/domain/live-link';
 import { defaultSettings } from '../../src/domain/settings';
 import type { LiveSpieltag, PrivateKeyParts, SignedData, Team } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
+
+/** Lead-Link der ersten Version (wird nicht mehr erzeugt, bleibt aber gültig). */
+function leadLinkFor(live: LiveSpieltag, key: string): LeadLinkData | null {
+  const cred = live.teams.find((t) => t.key === key);
+  return cred ? { view: viewerOf(live), cert: cred.cert, key: cred.leadKey, config: live.config } : null;
+}
 const B43 = 'A'.repeat(42) + 'Q';
 const B87 = 'C'.repeat(86) + 'A';
 /** Gültiger öffentlicher Schlüssel (65 Byte) mit Nummer. */
