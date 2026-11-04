@@ -16,7 +16,8 @@ test.describe('US3 Torschütze', () => {
     await expect(picker).toBeHidden();
     const row = page.getByTestId('goal-list').getByRole('button').first();
     await expect(row).toContainText("12'");
-    await expect(row).toContainText('Feuerbach, Max');
+    // Spec 009 FR-V11: mit Torschütze ohne Mannschaftsnamen.
+    await expect(row.locator('.goal-row__team')).toHaveText('Max');
   });
 
   test('US3-S2 Schnellauswahl schließt nach 8 s ohne Torschützen; Rückgängig bleibt erreichbar', async ({ page }) => {
@@ -39,7 +40,9 @@ test.describe('US3 Torschütze', () => {
     const picker = page.getByTestId('scorer-picker');
     await expect(picker.getByTestId('scorer-skip')).toHaveCount(0);
     await picker.getByRole('button', { name: '3 Ben', exact: true }).click();
-    await expect(page.getByTestId('goal-list').getByRole('button').first()).toContainText('Feuerbach, Ben');
+    await expect(page.getByTestId('goal-list').getByRole('button').first().locator('.goal-row__team')).toHaveText(
+      'Ben',
+    );
   });
 
   test('US3-S4 Gegentor: Freitext mit Platzhalter "Name oder Rückennummer"', async ({ page }) => {
@@ -51,13 +54,15 @@ test.describe('US3 Torschütze', () => {
     await expect(input).toHaveAttribute('placeholder', 'Name oder Rückennummer');
     await input.fill('Nr. 9');
     await page.getByTestId('scorer-text-save').click();
-    await expect(page.getByTestId('goal-list').getByRole('button').first()).toContainText('TSV Musterstadt, Nr. 9');
+    await expect(page.getByTestId('goal-list').getByRole('button').first()).toContainText('Nr. 9 (TSV Musterstadt)');
   });
 
   test('US3-S5 Eigentor Gegner', async ({ page }) => {
     await page.getByTestId('btn-goal-own').click();
     await page.getByTestId('scorer-own-goal').click();
     await expect(page.getByTestId('score')).toHaveText('1 : 0');
-    await expect(page.getByTestId('goal-list').getByRole('button').first()).toContainText('Feuerbach, Eigentor');
+    await expect(page.getByTestId('goal-list').getByRole('button').first().locator('.goal-row__team')).toHaveText(
+      'Eigentor',
+    );
   });
 });

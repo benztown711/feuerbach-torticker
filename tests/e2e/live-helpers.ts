@@ -189,6 +189,8 @@ export interface GoalSpec {
   section?: number;
   who?: string | null;
   penalty?: boolean;
+  /** Spec 009: Anzeigename des Vorlagengebers. */
+  assist?: string;
 }
 
 /** Live-Stand (contracts/live-message.md); Zeiten relativ zu `now` in Minuten vorher. */
@@ -228,6 +230,7 @@ export function liveSnap(o: {
       who: g.who ?? null,
       penalty: g.penalty ?? false,
       ownGoal: false,
+      ...(g.assist ? { assist: g.assist } : {}),
     })),
     shootout: null,
     drawSettled: false,
