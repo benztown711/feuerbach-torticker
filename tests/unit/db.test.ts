@@ -90,7 +90,11 @@ describe('006 FR-L06 Beobachter für Spieländerungen', () => {
   it('meldet nach putGame das Spiel und nach deleteGame die ID; Abmelden wirkt', async () => {
     const seen: string[] = [];
     const off = onGameWrite((change) => {
-      seen.push(change.kind === 'put' ? `put:${change.game.id}:${change.game.status}` : `delete:${change.id}`);
+      seen.push(
+        change.kind === 'put'
+          ? `put:${change.game.id}:${change.game.status}`
+          : `delete:${change.id}:${change.game?.id}`,
+      );
     });
     const g = createGame(input, { id: 'a', now: T0 });
     await putGame(g);
@@ -99,7 +103,7 @@ describe('006 FR-L06 Beobachter für Spieländerungen', () => {
     await putGames([createGame(input, { id: 'r', now: T0 })]);
     off();
     await putGame(g);
-    expect(seen).toEqual(['put:a:created', 'put:a:running', 'delete:a', 'put:r:created']);
+    expect(seen).toEqual(['put:a:created', 'put:a:running', 'delete:a:a', 'put:r:created']);
   });
 
   it('ein fehlerhafter Beobachter stört weder das Speichern noch andere Beobachter', async () => {

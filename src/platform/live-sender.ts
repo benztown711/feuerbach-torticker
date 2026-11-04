@@ -15,6 +15,8 @@ export const MIN_GAP_MS = 5_000;
 export const WAIT_AFTER_MS = 30_000;
 export const HEARTBEAT_MS = 180_000;
 export const RETRY_MS = [5_000, 10_000, 20_000, 30_000];
+/** Kader höchstens so oft neu lesen (er ändert sich im Spiel kaum). */
+export const PLAYERS_TTL_MS = 60_000;
 
 /** Kennzeichen im Spielbildschirm (FR-L08). */
 export type LiveStatus = 'on' | 'wait' | 'off';
@@ -48,6 +50,7 @@ export class LiveSender {
   private retry = 0;
   private flushing = false;
   private players: Player[] = [];
+  private playersAt = Number.NEGATIVE_INFINITY;
 
   constructor(
     live: LiveSpieltag,
@@ -64,6 +67,14 @@ export class LiveSender {
   /** Neue Kopplung oder Konfiguration übernehmen. */
   updateLive(live: LiveSpieltag): void {
     this.live = live;
+    // Spiele von Mannschaften, für die das Gerät nicht mehr sendet, nicht weiter melden.
+    for (const [id, { game }] of [...this.games]) if (!this.teamFor(game)) this.forget(id);
+  }
+
+  private forget(id: string): void {
+    this.games.delete(id);
+    this.pending.delete(id);
+    this.teamOfPending.delete(id);
   }
 
   /** Mannschaft dieses Spiels, für die das Gerät sendet (unabhängig von "Nicht live senden"). */
@@ -74,15 +85,19 @@ export class LiveSender {
 
   handle(change: GameChange): void {
     if (change.kind === 'delete') {
-      const known = this.games.get(change.id);
-      if (!known) return;
-      this.games.delete(change.id);
+      // Auch Spiele, die dieser Sender (z. B. nach einem Neustart) noch nicht gesehen hat.
+      const team = this.games.get(change.id)?.team ?? (change.game ? this.teamFor(change.game) : null);
+      this.forget(change.id);
+      if (!team) return;
       const at = this.deps.now();
-      this.enqueue(change.id, () => tombstone(change.id, known.team.key, at), known.team);
+      this.enqueue(change.id, () => tombstone(change.id, team.key, at), team);
       return;
     }
     const team = this.teamFor(change.game);
-    if (!team) return;
+    if (!team) {
+      this.forget(change.game.id);
+      return;
+    }
     this.games.set(change.game.id, { game: change.game, team });
     this.enqueueGame(change.game, team);
   }
@@ -119,7 +134,17 @@ export class LiveSender {
     });
     if (text.length <= MAX_MESSAGE) return text;
     // Sehr lange Spiele: ohne Konfiguration und ohne Namen (R-L1, Grenze 4 KB je Meldung).
-    const lean = snap.state === 'live' ? { ...snap, goals: snap.goals.map((g) => ({ ...g, who: null })) } : snap;
+    const lean =
+      snap.state === 'live'
+        ? {
+            ...snap,
+            goals: snap.goals.map((g) => ({ ...g, who: null })),
+            shootout: snap.shootout && {
+              ...snap.shootout,
+              shots: snap.shootout.shots.map(([side, hit]) => [side, hit, null] as [typeof side, boolean, null]),
+            },
+          }
+        : snap;
     text = await this.deps.seal(this.live.viewKey, { ...parts, content: JSON.stringify(lean) });
     return text.length <= MAX_MESSAGE ? text : null;
   }
@@ -129,7 +154,10 @@ export class LiveSender {
     this.flushing = true;
     let failed = false;
     try {
-      this.players = await this.deps.getPlayers();
+      if (this.deps.now() - this.playersAt > PLAYERS_TTL_MS) {
+        this.players = await this.deps.getPlayers();
+        this.playersAt = this.deps.now();
+      }
       for (const [id, entry] of [...this.pending]) {
         const team = this.teamOfPending.get(id) as LiveTeamCred;
         const text = await this.seal(entry.build(), team);

@@ -3,7 +3,7 @@ import type { Game } from '../../domain/types';
 import { liveSender, onSenderChange, type LiveStatus } from '../../platform/live-sender';
 
 /** Aktueller Sendestatus eines Spiels; null, wenn das Gerät für diese Mannschaft nicht sendet. */
-export function useLiveStatus(game: Game): LiveStatus | null {
+export function useLiveStatus(game: Game | null | undefined): LiveStatus | null {
   const [, setTick] = useState(0);
   useEffect(() => {
     const bump = () => setTick((n) => n + 1);
@@ -21,7 +21,7 @@ export function useLiveStatus(game: Game): LiveStatus | null {
       clearInterval(t);
     };
   }, []);
-  return liveSender()?.statusFor(game) ?? null;
+  return game ? (liveSender()?.statusFor(game) ?? null) : null;
 }
 
 const LABEL: Record<LiveStatus, string> = { on: 'Live', wait: 'Wartet auf Netz', off: 'Nicht live' };

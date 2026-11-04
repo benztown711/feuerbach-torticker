@@ -8,6 +8,7 @@ import type { MessageParts } from '../../src/platform/live-crypto';
 import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
+const E1_NAME = 'Sportvg Feuerbach E1';
 const players: Player[] = [{ id: 'p1', name: 'Max', number: 7, deletedAt: null }];
 
 const cred = (key: string, name: string, sends: boolean) => ({
@@ -202,15 +203,56 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     t.sender.stop();
   });
 
+  it('Löschen eines noch nicht gesehenen Spiels (nach Neustart) schickt trotzdem deleted', async () => {
+    const t = setup();
+    t.sender.handle({ kind: 'delete', id: 'alt', game: newGame(E1_NAME, 'alt') });
+    t.sender.handle({ kind: 'delete', id: 'fremd', game: newGame('Sportvg Feuerbach E3', 'fremd') });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps()).toEqual([expect.objectContaining({ state: 'deleted', gameId: 'alt', team: 'E1' })]);
+    t.sender.stop();
+  });
+
+  it('nicht mehr gekoppelte Mannschaft: kein Lebenszeichen mehr, Spiel vergessen', async () => {
+    const t = setup();
+    t.sender.handle({ kind: 'put', game: kickoff(newGame(), T0) });
+    await vi.advanceTimersByTimeAsync(0);
+    t.sender.updateLive({ ...live, teams: [cred('E2', 'Sportvg Feuerbach E2', true)] });
+    expect(t.sender.status('g1')).toBeNull();
+    await vi.advanceTimersByTimeAsync(HEARTBEAT_MS * 2);
+    expect(t.sent).toHaveLength(1);
+    t.sender.stop();
+  });
+
+  it('Spiel wechselt auf eine nicht gekoppelte Mannschaft: wird vergessen', async () => {
+    const t = setup();
+    const g = kickoff(newGame(), T0);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(0);
+    t.sender.handle({ kind: 'put', game: { ...g, ownTeam: 'Sportvg Feuerbach E3' } });
+    expect(t.sender.status('g1')).toBeNull();
+    await vi.advanceTimersByTimeAsync(HEARTBEAT_MS);
+    expect(t.sent).toHaveLength(1);
+    t.sender.stop();
+  });
+
   it('zu große Meldung: ohne Konfiguration und ohne Namen; neue Kopplung wird übernommen', async () => {
     const t = setup({ big: true });
     let g = kickoff(newGame(), T0);
     g = addGoal(g, 'own', T0 + 60_000, () => 'a').game;
-    g = { ...g, goals: g.goals.map((x) => ({ ...x, scorer: { kind: 'player' as const, playerId: 'p1' } })) };
+    g = {
+      ...g,
+      goals: g.goals.map((x) => ({ ...x, scorer: { kind: 'player' as const, playerId: 'p1' } })),
+      shootout: {
+        first: 'own',
+        done: false,
+        shots: [{ side: 'own', hit: true, who: { kind: 'player', playerId: 'p1' }, at: T0 }],
+      },
+    };
     t.sender.handle({ kind: 'put', game: g });
     await vi.advanceTimersByTimeAsync(0);
     expect(t.sent[0]?.parts.config).toBeUndefined();
     expect((t.snaps()[0] as LiveGameSnapshot).goals[0]?.who).toBeNull();
+    expect((t.snaps()[0] as LiveGameSnapshot).shootout?.shots).toEqual([['own', true, null]]);
     t.sender.updateLive({ ...live, teams: [cred('E3', 'Sportvg Feuerbach E3', true)] });
     t.sender.handle({ kind: 'put', game: newGame('Sportvg Feuerbach E3', 'g3') });
     await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
