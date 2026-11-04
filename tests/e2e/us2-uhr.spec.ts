@@ -175,6 +175,7 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     await page.getByTestId('btn-new-game').click();
     await expect(page.getByTestId('btn-test-signal')).toHaveText('Ton testen');
     await page.getByTestId('btn-test-signal').click();
-    expect((await recorded()).sounds).toBe(1);
+    // Spec 008 FR-K03: ohne Wahl der Pfiff
+    expect(await recorded()).toMatchObject({ sounds: 1, lastSound: 'pfiff' });
   });
 });

@@ -6,13 +6,14 @@ import { startPrivate } from '../../domain/live-snapshot';
 import { liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
+import { signalSoundName } from '../../domain/signal-sound';
 import { currentTeam, findTeam, ownColorFor, recordTeamUse, schemaFor, squadFor } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
 import type { LiveWatch, RunningGame } from '../../platform/live-watch';
-import { testSignal } from '../../platform/signal';
+import { setSignalSound, testSignal } from '../../platform/signal';
 import { KitRow } from '../components/kit-row';
 import { useDarkTheme, usePlayers } from '../hooks';
 import { navigate } from '../router';
@@ -57,6 +58,8 @@ export function NewGameScreen() {
     void getSettings().then((s) => {
       setSettings(s);
       applyTeam(s, currentTeam(s));
+      // Spec 008 FR-K05: "Ton testen" spielt den gewählten Ton.
+      setSignalSound(s.signalSound);
     });
   }, []);
 
@@ -379,8 +382,9 @@ export function NewGameScreen() {
           >
             Ton testen
           </button>
-          <p class="t-klein signal-test__hint">
-            Tipp: Lautstärke mit den Tasten am Handy einstellen, solange die App offen ist.
+          <p class="t-klein signal-test__hint" data-testid="signal-test-hint">
+            Signalton: {signalSoundName(settings.signalSound)}, änderbar unter „Mehr“ → „Einstellungen“. Lautstärke mit
+            den Tasten am Handy einstellen, solange die App offen ist.
           </p>
         </div>
 
