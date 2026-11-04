@@ -51,6 +51,10 @@ Prüfreihenfolge beim Empfänger: entschlüsseln → entpacken → JSON → `g` 
 
 Nie enthalten: Kader, Aufgebot, Karten, Wechsel, Lesezeichen, Nachnamen.
 
+### Übergabezähler `h` (US6, FR-L23)
+
+Live-Stand und Grabstein dürfen `"h": <0 bis 100>` enthalten (fehlt = 0). Je Spiel gilt der Stand mit dem größten `h`, bei gleichem `h` der mit dem größten `sentAt`. Übernimmt ein anderes Trainer-Handy ein Spiel, sendet es mit `h + 1`; spätere Meldungen des alten Handys (kleineres `h`) ändern das Dashboard nicht.
+
 ## Konfiguration (`g.d`, FR-L19)
 
 ```json
