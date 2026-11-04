@@ -130,6 +130,12 @@ describe('009 FR-V06 FR-V09 Anzeige der Vorlage', () => {
     expect(assistLabel(own(g), [])).toBe('?');
   });
 
+  it('eingelesene ungültige Vorlage (Gegentor, gleich Torschütze) wird nicht angezeigt', () => {
+    const g = game();
+    expect(assistSuffix({ ...opp(g), assist: 'ben' }, players)).toBe('');
+    expect(assistSuffix({ ...own(byMax()), assist: 'max' }, players)).toBe('');
+  });
+
   it('ältere Tore ohne Feld haben keine Vorlage', () => {
     const g = byMax();
     const old = { ...own(g) };

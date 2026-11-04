@@ -1,6 +1,7 @@
 import { isPaletteColor } from './jersey-colors';
 import { isObj, isText, isTime, MAX_KEY, MAX_TITLE, type Obj } from './live-validate';
 import { shortTeamName } from './team-name';
+import { assistLabel } from './goals';
 import type { ClockEventType, EventPerson, Game, Player, Schema, Scorer, Side, Venue } from './types';
 
 /** Spec 006 FR-L06, FR-L10: Live-Stand eines Spiels (contracts/live-message.md). */
@@ -137,7 +138,7 @@ export function buildSnapshot(game: Game, players: Player[], team: string, sentA
         who: scorerName(g.scorer, players),
         penalty: g.penalty === true,
         ownGoal: g.scorer?.kind === 'ownGoal',
-        ...assistOf(g.assist, players),
+        ...assistOf(assistLabel(g, players) ? g.assist : null, players),
       })),
     shootout: game.shootout
       ? {

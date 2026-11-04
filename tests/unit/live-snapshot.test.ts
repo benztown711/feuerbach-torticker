@@ -316,6 +316,28 @@ describe('009 FR-V08 Vorlage in der Live-Übertragung', () => {
     expect('assist' in s.goals[1]!).toBe(false);
   });
 
+  it('ungültige Vorlage aus einer Sicherung wird nicht gesendet', () => {
+    const s = withAssist();
+    expect(s.goals[0]!.assist).toBe('Ben Mü.');
+    const g = kickoff(
+      createGame(
+        {
+          ownTeam: 'Sportvg Feuerbach E1',
+          opponent: 'X',
+          venue: 'home',
+          schema: { sections: 1, sectionMinutes: 20 },
+          ownColor: 'rot',
+          oppColor: 'weiss',
+        },
+        { id: 'v2', now: T0 },
+      ),
+      T0,
+    );
+    const a = addGoal(g, 'opp', T0 + min(1), () => 'x');
+    const bad = { ...a.game, goals: a.game.goals.map((x) => ({ ...x, assist: 'p-max' })) };
+    expect('assist' in (buildSnapshot(bad, players, 'E1', T0) as LiveGameSnapshot).goals[0]!).toBe(false);
+  });
+
   it('unbekannter Spieler: keine Vorlage; lange Namen höchstens 40 Zeichen', () => {
     expect('assist' in withAssist([players[0]!]).goals[0]!).toBe(false);
     const long = [players[0]!, { ...players[1]!, name: 'B'.repeat(50) }];

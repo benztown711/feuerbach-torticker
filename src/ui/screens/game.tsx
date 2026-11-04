@@ -35,6 +35,7 @@ import {
   score,
   scorerLabel,
   setAssist,
+  scorerPlayerId,
   setPenalty,
   setScorer,
   undoGoal,
@@ -85,8 +86,6 @@ const PICKER_MS = 8_000;
 /** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
 const ASSIST_MS = 5_000;
 
-const isScorer = (goal: Goal, playerId: string): boolean =>
-  goal.scorer?.kind === 'player' && goal.scorer.playerId === playerId;
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
 
@@ -350,6 +349,9 @@ export function GameScreen({ id }: { id: string }) {
     setPicker(null);
   };
   const pickerGoal = picker && !pickerExpired ? game.goals.find((g) => g.id === picker.goalId) : undefined;
+  /** Spec 009 FR-V02: "Vorlage von?" ohne den Torschützen. */
+  const notScorer = (p: { id: string }): boolean =>
+    picker?.kind !== 'assist' || !pickerGoal || scorerPlayerId(pickerGoal) !== p.id;
   const roster = players ?? [];
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
@@ -1207,12 +1209,8 @@ export function GameScreen({ id }: { id: string }) {
             picker.kind === 'assist' ? ` · ${scorerLabel(pickerGoal, roster)}` : ''
           }`}
           // Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
-          squad={squadPlayers(roster, game.squad).filter(
-            (p) => picker.kind === 'scorer' || !isScorer(pickerGoal, p.id),
-          )}
-          others={otherPlayers(roster, game.squad).filter(
-            (p) => picker.kind === 'scorer' || !isScorer(pickerGoal, p.id),
-          )}
+          squad={squadPlayers(roster, game.squad).filter(notScorer)}
+          others={otherPlayers(roster, game.squad).filter(notScorer)}
           onPick={(scorer) =>
             picker.kind === 'scorer' ? pickScorer(pickerGoal.id, scorer) : pickAssist(pickerGoal.id, scorer)
           }

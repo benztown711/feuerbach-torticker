@@ -41,16 +41,20 @@ export function undoGoal(game: Game, goalId: string): Game {
   return { ...game, goals: game.goals.filter((g) => g.id !== goalId) };
 }
 
-const scorerPlayerId = (goal: Goal): string | null => (goal.scorer?.kind === 'player' ? goal.scorer.playerId : null);
+/** Kaderspieler-ID des Torschützen, sonst null. */
+export const scorerPlayerId = (goal: Goal): string | null =>
+  goal.scorer?.kind === 'player' ? goal.scorer.playerId : null;
 
 /** Spec 009 FR-V05: Vorlage nur an eigenen Toren mit Spieler als Torschützen und ohne Elfmeter. */
 export const canHaveAssist = (goal: Goal): boolean =>
   goal.side === 'own' && scorerPlayerId(goal) !== null && goal.penalty !== true;
 
 /** FR-V05: Eine Vorlage, die nach einer Änderung nicht mehr passt, wird entfernt. */
+const validAssist = (goal: Goal): boolean => canHaveAssist(goal) && scorerPlayerId(goal) !== goal.assist;
+
 function withValidAssist(goal: Goal): Goal {
   if (goal.assist == null) return goal;
-  return canHaveAssist(goal) && scorerPlayerId(goal) !== goal.assist ? goal : { ...goal, assist: null };
+  return validAssist(goal) ? goal : { ...goal, assist: null };
 }
 
 const patchGoal = (game: Game, goalId: string, patch: Partial<Goal>): Game => ({
@@ -107,7 +111,8 @@ export function setAssist(game: Game, goalId: string, playerId: string | null): 
 
 /** Spec 009 FR-V09: Anzeigename des Vorlagengebers ohne Rückennummer, "" ohne Vorlage; gelöschte bleiben lesbar. */
 export function assistLabel(goal: Goal, players: Player[]): string {
-  if (goal.assist == null) return '';
+  // Auch eingelesene Daten (Sicherung) zeigen nur eine Vorlage, die FR-V05 erfüllt.
+  if (goal.assist == null || !validAssist(goal)) return '';
   return resolvePlayer(players, goal.assist)?.name ?? '?';
 }
 
