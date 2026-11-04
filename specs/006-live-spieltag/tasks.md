@@ -56,7 +56,7 @@
 - [x] L030 [US3] `src/platform/live-receiver.ts` (macht L029 grün)
 - [x] L031 [P] [US3] E2E `tests/e2e/live-us3.spec.ts`: 006 US1-S5 Zuschauer-Link im Torticker zeigt nur das Dashboard, 006 US3-S1 bis S10 (zwei Karten in 5 s; Minute läuft per `page.clock`; Hervorhebung bei Tor; aufklappen/zuklappen; Leerzustand; Verbindung weg; "Letzte Meldung vor 7 Min"; beendetes Spiel bleibt; "Heute außerdem"; keine Bedienelemente, gefälschte Meldung mit falscher Signatur wird ignoriert); 429 → Abfrage; Start ohne Daten öffnet gemerktes Dashboard; Organisator öffnet über `btn-live-dashboard` das Dashboard in der App mit Navigationsleiste (FR-L17); Karte ab 375 pt ohne waagrechtes Scrollen (FR-L18)
 - [x] L032 [US3] `src/ui/screens/live-dashboard.tsx` nach Mockup "Eltern" (Entwurf 2) mit Test-IDs aus `contracts/ui-contract.md`, Stile mit Tokens; `src/ui/screens/start.tsx` öffnet gemerktes Dashboard ohne eigene Daten (R-L6) (macht L031 grün)
-- [ ] L033 [US3] `tests/e2e/a11y.spec.ts` und `tests/e2e/visual.spec.ts` um das Dashboard (hell/dunkel, auf- und zugeklappt) erweitern; Qualitätstore lokal; Screenshots an Atti
+- [x] L033 [US3] `tests/e2e/a11y.spec.ts` und `tests/e2e/visual.spec.ts` um das Dashboard (hell/dunkel, auf- und zugeklappt) erweitern; Qualitätstore lokal; Screenshots an Atti
 
 ## Phase 6: US4 Blick auf das andere Spiel (P2, PR 4)
 
