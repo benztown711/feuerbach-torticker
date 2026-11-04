@@ -61,7 +61,8 @@ Kopplungsfrage (Sheet `couple-dialog`): "Live senden für <Mannschaften>?", `cou
 
 | Element | Test-ID | Verhalten |
 |---|---|---|
-| Kennzeichen | `live-pill` | `data-state="on"` ("Live"), `"wait"` ("Live: wartet auf Netz"), `"off"` ("Nicht live"); Tipp öffnet das Dashboard |
+| Kennzeichen | `live-pill` | `data-state="on"` ("Live"), `"wait"` ("Live: wartet auf Netz"), `"off"` ("Nicht live"), `"handed"` ("Übergeben", US6); Tipp öffnet das Dashboard |
+| Übernommen | `live-handed-over` | Hinweis (10 s): "<Kurzlabel> überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst."; `menu-live-toggle` entfällt |
 | Andere Spiele | `live-others` | eine Zeile, je Spiel `live-other-<key>`; Tipp öffnet das Dashboard; Hervorhebung bei neuem Tor |
 | Menü | `menu-live-toggle` | "Nicht live senden" bzw. "Live senden" |
 
@@ -71,3 +72,7 @@ Kopplungsfrage (Sheet `couple-dialog`): "Live senden für <Mannschaften>?", `cou
 |---|---|---|
 | Zeile | `new-live-row` | nur, wenn die gewählte Mannschaft zum Live-Spieltag gehört |
 | Schalter "Live aufs Dashboard" | `new-live-switch` | `role="switch"`, Vorgabe an; aus → Spiel mit "Nicht live senden" angelegt |
+| Rückfrage "läuft schon live" | `takeover-dialog`, `takeover-summary` | US6-S1: "Das Spiel der <Kurzlabel> überträgt bereits ein anderes Handy: <Heim> <Stand> <Gast> · <Phase>." |
+| Spiel übernehmen | `takeover-yes` | legt das Spiel aus dem letzten Stand an und öffnet es (US6-S2) |
+| Nur hier erfassen | `takeover-private` | legt das Spiel wie mit "Live aufs Dashboard" aus an (US6-S4) |
+| Abbrechen | `takeover-cancel` | schließt die Rückfrage |

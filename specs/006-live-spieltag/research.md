@@ -91,3 +91,10 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 
 - Ergebnis: keine Schwachstelle mit Konfidenz ≥ 8. Geprüft: Organisator-Schlüssel `q` gehört zu `o` (Probesignatur), Konfiguration `g` von `o` signiert, nur Mannschaften der signierten Konfiguration werden gekoppelt und angezeigt, Rückfrage nennt Titel, alle Mannschaften und das Ersetzen einer Kopplung, Topic-Prüfung, kein Organisator-Schlüssel in Sicherung, Protokoll oder Meldungen, `livePrivate` (nie gesendet, Sicherung kann vorhandene Spiele nicht umstellen), XSS.
 - Bewusst so (R-L13): Bestehende Organisator-Handys senden nach dem Update automatisch für alle Mannschaften ihres Live-Spieltags.
+
+## R-L15 Spiel übernehmen (US6, 04.11.2026)
+
+- **Decision**: Live-Stand und Grabstein tragen einen Übergabezähler `h` (contracts/live-message.md). Das Dashboard ordnet je Spiel nach `h`, dann nach `sentAt`. "Spiel übernehmen" legt das Spiel mit derselben Spiel-ID aus dem letzten Live-Stand an (Uhr über Serverzeit und eigenen Uhrenabgleich auf die eigene Uhr umgerechnet, R-L4) und sendet mit `h + 1`. Das alte Handy hört während eines Live-Spiels mit (nachgeladener Empfänger, wie das Dashboard) und hört auf zu senden, sobald es ein größeres `h` sieht; auch ohne das (kein Netz, gesperrt) ändern seine Meldungen das Dashboard nicht mehr.
+- **Erkennen beim Anlegen**: "Neues Spiel" hört auf einem Trainer-Handy mit. Ein fremdes Spiel derselben Mannschaft gilt als laufend, wenn es heute ist, nicht beendet und die letzte Meldung höchstens 30 Minuten alt ist.
+- **Grenzen**: Übernommen wird nur, was übertragen wird (FR-L10): keine Karten, Wechsel, Lesezeichen, kein Aufgebot. Torschützen werden über den Namen dem eigenen Kader zugeordnet. Die Uhrzeit der Tore wird aus Minute und Anpfiff geschätzt, höchstens der Zeitpunkt der Meldung (sonst gälte ein späteres Tor als Doppeltipp).
+- **Alternatives**: Explizite Übergabe-Meldung an das alte Handy (braucht Empfang auf beiden Seiten, ohne Mehrwert gegenüber `h`); Sperre "nur ein Handy je Mannschaft" (verhindert die gewünschte Übergabe).
