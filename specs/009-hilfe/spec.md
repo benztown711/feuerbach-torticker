@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A erledigt (04.11.2026), Review B Runde 1 erledigt, Runde 2 offen. Mockup: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
+**Status**: Review A und Review B erledigt (04.11.2026), Plan und Aufgaben erstellt. Mockup: https://claude.ai/artifact/TfSS1AHKmfGeD3otJ66P6j Voraussetzung: Constitution 2.1.0 (Prinzip IX, Hilfe ist Teil jeder Funktion).
 
 **Input**: User description: "bitte erstelle eine Hilfe seite in der app mit Suchfunktion und verankere dies in unserem Vorgehensmodell von Open-Spec, dass diese immer aktuell gehalten werden muss"
 
