@@ -196,6 +196,15 @@ export function HelpView({
   const [query, setQuery] = useState(mem.query);
   const input = useRef<HTMLInputElement>(null);
 
+  // Wer die Hilfe verlässt (z. B. über die Leiste), kommt beim nächsten Mal oben in der Liste an.
+  useEffect(
+    () => () => {
+      mem.fromList = false;
+      mem.scroll = 0;
+    },
+    [],
+  );
+
   // Beim Öffnen eines Eintrags nach oben, beim Zurückkehren zur Liste die alte Position (FR-H12).
   useEffect(() => {
     if (entry) window.scrollTo(0, 0);

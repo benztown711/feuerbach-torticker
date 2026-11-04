@@ -193,7 +193,8 @@ export function Dashboard({
   }, [view.topic, view.viewKey, view.orgPub]);
   const [state, setState] = useState<ReceiverState>(() => receiver.get());
   const [open, setOpen] = useState<Set<string>>(() => new Set());
-  useNow(1000);
+  // Ausgeblendet (Eltern-Hilfe offen) reicht ein seltener Takt; die Verbindung bleibt trotzdem bestehen.
+  useNow(hidden ? 60_000 : 1000);
   useEffect(() => {
     setState(receiver.get());
     const off = receiver.onChange(() => setState(receiver.get()));
@@ -309,6 +310,8 @@ export function ViewerScreen({
   const link = useMemo(() => parseLinkPath(`/live/${data}`), [data]);
   const [info, setInfo] = useState<{ title: string; teams: string[] } | null>(null);
   const [msg, setMsg] = useState('');
+  const msgTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(msgTimer.current), []);
   useEffect(() => {
     if (link.kind !== 'view') return;
     void getSettings()
@@ -332,8 +335,9 @@ export function ViewerScreen({
       viewerShareText(info?.title ?? (link.view.title || DEFAULT_LIVE_TITLE), info?.teams ?? [], url),
     );
     const text = res === 'copied' ? 'Link kopiert.' : res === 'failed' ? 'Teilen hat nicht geklappt.' : '';
+    clearTimeout(msgTimer.current);
     setMsg(text);
-    if (text) setTimeout(() => setMsg(''), 4000);
+    if (text) msgTimer.current = setTimeout(() => setMsg(''), 4000);
   };
   return (
     <>

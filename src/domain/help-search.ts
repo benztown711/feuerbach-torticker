@@ -123,6 +123,18 @@ function hits(n: { text: string; map: number[] }, token: string): Hit[] {
 
 const bodyOf = (e: HelpEntry): string => [e.answer, ...(e.steps ?? [])].join(' ');
 
+type Normalized = { text: string; map: number[] };
+/** Normalisierte Felder je Eintrag nur einmal berechnen, nicht bei jedem Tastendruck. */
+const fieldCache = new WeakMap<HelpEntry, Normalized[]>();
+function fieldsOf(entry: HelpEntry): Normalized[] {
+  let f = fieldCache.get(entry);
+  if (!f) {
+    f = [normalize(entry.title), normalize(entry.keywords), normalize(bodyOf(entry))];
+    fieldCache.set(entry, f);
+  }
+  return f;
+}
+
 /** Punkte eines Suchworts: Titel vor Suchbegriffen vor Text, ganzes Wort +1 (FR-H05). */
 function tokenScore(fields: { text: string; map: number[] }[], token: string): number {
   const weights = [6, 4, 2];
@@ -139,7 +151,7 @@ export function searchHelp(query: string, entries: readonly HelpEntry[]): Search
   if (tokens.length === 0) return null;
   const scored: { entry: HelpEntry; score: number; order: number }[] = [];
   entries.forEach((entry, order) => {
-    const fields = [normalize(entry.title), normalize(entry.keywords), normalize(bodyOf(entry))];
+    const fields = fieldsOf(entry);
     let score = 0;
     for (const t of tokens) {
       const s = tokenScore(fields, t);

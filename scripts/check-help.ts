@@ -38,11 +38,22 @@ export function specRequirements(text: string): Set<string> {
   return new Set([...text.matchAll(/\*\*(FR-[A-Z]*\d+[a-z]?)\*\*/g)].map((m) => m[1] as string));
 }
 
-/** "006 US3" für jeden Test mit Szenario-ID "006 US3-S1"; ohne Spec-Nummer zählt Spec 001. */
+/**
+ * "006 US3" für jeden Test mit Szenario-ID "006 US3-S1". Ohne Spec-Nummer gilt die Nummer der unmittelbar
+ * davor stehenden ID ("006 US1-S2 US1-S3"), sonst Spec 001.
+ */
 export function implementedStories(tests: string[]): Set<string> {
   const out = new Set<string>();
-  for (const t of tests)
-    for (const m of t.matchAll(/(?<![\w-])(?:(\d{3}) )?US(\d+)-S\d+/g)) out.add(`${m[1] ?? '001'} US${m[2]}`);
+  for (const t of tests) {
+    let prev: { spec: string; end: number } | null = null;
+    for (const m of t.matchAll(/(?<![\w-])(?:(\d{3}) )?US(\d+)-S\d+/g)) {
+      const start = m.index;
+      const follows: boolean = prev !== null && /^\s+$/.test(t.slice(prev.end, start));
+      const spec: string = m[1] ?? (follows && prev ? prev.spec : '001');
+      out.add(`${spec} US${m[2]}`);
+      prev = { spec, end: start + m[0].length };
+    }
+  }
   return out;
 }
 

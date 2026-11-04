@@ -511,8 +511,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'probleme',
     title: 'Warum höre ich keinen Pfiff?',
     answer:
-      'Eine Web-App kann nur Ton abspielen, solange sie im Vordergrund ist und der Bildschirm an ist. Lass den Torticker während des Spiels offen. Steht oben „Ton aus · tippen“, tippe einmal irgendwo auf den Spielbildschirm. Mit „Ton testen“ beim Anlegen des Spiels prüfst du den Ton vorher.',
-    keywords: 'pfiff ton signal pfeife leise lautlos laut hören',
+      'Eine Web-App kann nur Ton abspielen, solange sie im Vordergrund ist und der Bildschirm an ist. Lass den Torticker während des Spiels offen. Der Pfiff kommt auch bei eingeschaltetem Lautlos-Schalter; die Lautstärke regelst du mit den Lautstärketasten. Steht oben „Ton aus · tippen“, tippe einmal irgendwo auf den Spielbildschirm. Mit „Ton testen“ beim Anlegen des Spiels prüfst du den Ton vorher.',
+    keywords: 'pfiff ton signal pfeife leise lautlos lautstärke laut hören',
     sources: ['001 FR-036', '001 FR-039'],
     related: ['bildschirm', 'nachspielzeit'],
   },

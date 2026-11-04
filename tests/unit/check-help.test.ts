@@ -58,6 +58,16 @@ describe('009 FR-H21 Bausteine', () => {
     expect([...implementedStories(tests)].sort()).toEqual(['001 US1', '003 US2', '006 US3']);
   });
 
+  it('IDs ohne Nummer direkt hinter einer ID mit Nummer gehören zu derselben Spec', () => {
+    // Spec 099 gibt es nicht: diese Beispiel-IDs zählen in der echten Prüfung nicht mit.
+    expect([...implementedStories(["test('099 US4-S1 US5-S2 Titel US2-S1')"])].sort()).toEqual([
+      '001 US2',
+      '099 US4',
+      '099 US5',
+    ]);
+    expect([...implementedStories(["test('099 US4-S1 dann US1-S1')"])].sort()).toEqual(['001 US1', '099 US4']);
+  });
+
   it('erkennt Quellen der Form "006 US3" und "001 FR-036"', () => {
     expect(parseSource('006 US3')).toEqual({ spec: '006', kind: 'US', id: '3' });
     expect(parseSource('001 FR-036')).toEqual({ spec: '001', kind: 'FR', id: 'FR-036' });
