@@ -41,6 +41,8 @@ function Lazy<P extends object>({ load, props }: { load: () => Promise<FunctionC
 
 const loadLive = () => import('./screens/live').then((m) => m.LiveScreen);
 const loadLeadLink = () => import('./screens/lead-link').then((m) => m.LeadLinkScreen);
+const loadViewer = () => import('./screens/live-dashboard').then((m) => m.ViewerScreen);
+const loadAppDashboard = () => import('./screens/live-dashboard').then((m) => m.AppDashboardScreen);
 
 export function App() {
   const route = useRoute();
@@ -57,7 +59,9 @@ export function App() {
       {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}
       {route.name === 'live' && <Lazy load={loadLive} props={{}} />}
       {route.name === 'leadLink' && <Lazy load={loadLeadLink} props={{ data: route.data }} />}
-      {route.name !== 'leadLink' && <NavBar route={route} />}
+      {route.name === 'liveView' && <Lazy key={route.data} load={loadViewer} props={{ data: route.data }} />}
+      {route.name === 'liveDash' && <Lazy load={loadAppDashboard} props={{}} />}
+      {route.name !== 'leadLink' && route.name !== 'liveView' && <NavBar route={route} />}
       <UpdatePrompt blocked={route.name === 'game'} />
     </>
   );
