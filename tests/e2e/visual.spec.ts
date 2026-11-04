@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import { MIN, SEC, confirmYes, forward, startGame } from './helpers';
+import { sampleDashboard } from './live-helpers';
 
 /**
  * T083 Screenshot-Vergleich der Kernbildschirme in allen Profilen (iPhone, iPhone SE, Android).
@@ -57,4 +58,18 @@ test.describe('Visueller Vergleich Spielbildschirm (T083)', () => {
     await ready(page);
     await expect(page).toHaveScreenshot('spiel-halbzeit-hell.png', shot);
   });
+});
+
+test.describe('Visueller Vergleich Dashboard (006 US3)', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    const name = scheme === 'light' ? 'hell' : 'dunkel';
+    test(`Dashboard, ${name} (E1 aufgeklappt)`, async ({ page, recorded, relay, newDevice }) => {
+      const v = await sampleDashboard(page, recorded, relay, newDevice);
+      await v.emulateMedia({ colorScheme: scheme });
+      await ready(v);
+      await expect(v).toHaveScreenshot(`dashboard-${name}.png`, shot);
+    });
+  }
 });
