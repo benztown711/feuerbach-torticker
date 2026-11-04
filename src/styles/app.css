@@ -672,6 +672,89 @@
   transform: translateX(24px);
 }
 
+/* Spec 008: Signalton-Auswahl, eckig wie die Schalter */
+.sound-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-line);
+}
+
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sound-row__check {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+}
+
+.sound-row__check .icon {
+  visibility: hidden;
+  stroke: var(--color-surface);
+  stroke-width: 3;
+}
+
+.sound-row[aria-checked='true'] .sound-row__check {
+  background: var(--color-ink);
+}
+
+.sound-row[aria-checked='true'] .sound-row__check .icon {
+  visibility: visible;
+}
+
+.sound-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sound-row__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.sound-row__help {
+  margin-top: 2px;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.sound-row__play {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+}
+
+.sound-row__play svg {
+  fill: var(--color-ink);
+}
+
 .goal-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

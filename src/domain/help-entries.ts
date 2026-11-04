@@ -172,7 +172,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was passiert, wenn die Spielzeit abgelaufen ist?',
     answer:
-      'Du hörst einen Pfiff, und die Uhr läuft als Nachspielzeit in Rot weiter. Tore darin stehen zum Beispiel als „25+1’“ in der Liste. Jede volle Minute kommt erneut ein Signal, bis du „Pausenpfiff“ oder „Schlusspfiff“ tippst.',
+      'Du hörst den Signalton, und die Uhr läuft als Nachspielzeit in Rot weiter. Tore darin stehen zum Beispiel als „25+1’“ in der Liste. Jede volle Minute kommt erneut ein Signal, bis du „Pausenpfiff“ oder „Schlusspfiff“ tippst.',
     keywords: 'nachspielzeit rot überzogen signal abgelaufen',
     sources: ['001 US2'],
     related: ['kein-pfiff', 'pausenpfiff'],
@@ -483,6 +483,17 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['kein-pfiff'],
   },
   {
+    id: 'signalton',
+    topic: 'einstellungen',
+    title: 'Wie wähle ich den Signalton?',
+    answer:
+      'In den Einstellungen wählst du unter „Signalton“ zwischen Pfiff, Glocke und Gong; beim Antippen hörst du ihn sofort. Der Pfiff ist am lautesten, der Gong passt gut in die Halle. Der Ton kommt bei Spielzeitende und zu jeder vollen Nachspielminute. „Ton testen“ beim Anlegen des Spiels spielt ihn ebenfalls.',
+    keywords: 'signalton ton pfiff glocke gong klang pfeife halle ändern',
+    sources: ['008 US1'],
+    open: { label: 'Einstellungen', path: '/einstellungen' },
+    related: ['kein-pfiff', 'nachspielzeit'],
+  },
+  {
     id: 'sichern',
     topic: 'einstellungen',
     title: 'Wie sichere ich meine Spiele?',
@@ -511,10 +522,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'probleme',
     title: 'Warum höre ich keinen Pfiff?',
     answer:
-      'Eine Web-App kann nur Ton abspielen, solange sie im Vordergrund ist und der Bildschirm an ist. Lass den Torticker während des Spiels offen. Der Pfiff kommt auch bei eingeschaltetem Lautlos-Schalter; die Lautstärke regelst du mit den Lautstärketasten. Steht oben „Ton aus · tippen“, tippe einmal irgendwo auf den Spielbildschirm. Mit „Ton testen“ beim Anlegen des Spiels prüfst du den Ton vorher.',
+      'Eine Web-App kann nur Ton abspielen, solange sie im Vordergrund ist und der Bildschirm an ist. Lass den Torticker während des Spiels offen. Der Signalton kommt auch bei eingeschaltetem Lautlos-Schalter; die Lautstärke regelst du mit den Lautstärketasten. Steht oben „Ton aus · tippen“, tippe einmal irgendwo auf den Spielbildschirm. Mit „Ton testen“ beim Anlegen des Spiels prüfst du den Ton vorher.',
     keywords: 'pfiff ton signal pfeife leise lautlos lautstärke laut hören',
     sources: ['001 FR-036', '001 FR-039'],
-    related: ['bildschirm', 'nachspielzeit'],
+    related: ['signalton', 'bildschirm', 'nachspielzeit'],
   },
   {
     id: 'bildschirm',

@@ -100,6 +100,8 @@ const CATALOG: [string, string][] = [
   ['video', 'lesezeichen'],
   ['halbzeit beenden', 'pausenpfiff'],
   ['tor', 'tor'],
+  ['glocke', 'signalton'],
+  ['ton ändern', 'signalton'],
 ];
 
 describe('009 SC-H01 Fragenkatalog', () => {
