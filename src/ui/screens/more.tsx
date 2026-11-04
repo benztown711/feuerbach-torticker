@@ -14,7 +14,7 @@ export function MoreScreen() {
       title: 'Live-Spieltag',
       text: 'Dashboard für Eltern, Trainer-Link',
     },
-    { href: '#/hilfe', testId: 'more-help', title: 'Hilfe', text: 'Tipps für das iPhone am Spielfeldrand' },
+    { href: '#/hilfe', testId: 'more-help', title: 'Hilfe', text: 'Suchen, Anleitungen, Tipps' },
   ];
   return (
     <main class="page">

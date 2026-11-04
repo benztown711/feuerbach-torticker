@@ -19,4 +19,5 @@
 - [ ] Keine echten Kindernamen (nur fiktive Namen wie Max, Ben, Tom)
 - [ ] Keine Farbwerte, Schriften oder Logos außerhalb von `design/`
 - [ ] Spec, Plan und Tasks passen zum Code
+- [ ] Hilfe aktualisiert (Einträge: …) oder keine für Nutzer sichtbare Änderung (Constitution IX)
 - [ ] CI grün (Sammel-Check `ci`)
