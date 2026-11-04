@@ -45,13 +45,13 @@ function newGame(ownTeam = 'Sportvg Feuerbach E1', id = 'g1'): Game {
 }
 
 /** Fake-Abhängigkeiten: "Versiegeln" liefert lesbares JSON, Senden zeichnet auf. */
-function setup(o: { online?: boolean; big?: boolean } = {}) {
+function setup(o: { online?: boolean; big?: boolean; live?: LiveSpieltag } = {}) {
   const sent: { topic: string; parts: MessageParts & { snap: LiveSnapshot } }[] = [];
   const attempts: number[] = [];
   let online = o.online ?? true;
   const hidden = { value: false };
   const visCbs = new Set<() => void>();
-  const sender = new LiveSender(live, {
+  const sender = new LiveSender(o.live ?? live, {
     now: () => Date.now(),
     getPlayers: async () => players,
     seal: async (_key, parts) => {
@@ -112,6 +112,29 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     await vi.advanceTimersByTimeAsync(60_000);
     expect(t.sent).toHaveLength(0);
     expect(t.sender.status('g1')).toBeNull();
+    t.sender.stop();
+  });
+
+  it('FR-L04 Trainer-Handy sendet je Spiel für jede Mannschaft des Live-Spieltags, ohne Umstellen', async () => {
+    const t = setup({ live: { ...live, orgKey: { d: 'org', x: 'x', y: 'y' } } });
+    t.sender.handle({ kind: 'put', game: newGame('Sportvg Feuerbach E2', 'g2') });
+    t.sender.handle({ kind: 'put', game: newGame('Sportvg Feuerbach E3', 'g3') });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps().map((s) => [s.gameId, s.team])).toEqual([['g2', 'E2']]);
+    expect(t.sent[0]?.parts).toMatchObject({ leadKey: { d: 'd-E2' }, cert: { d: 'cert-E2' } });
+    t.sender.stop();
+  });
+
+  it('FR-L09 "Live aufs Dashboard" beim Anlegen aus: nichts senden, Status "off"; einschalten sendet', async () => {
+    const t = setup();
+    const g = { ...newGame(), live: false };
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(t.sent).toHaveLength(0);
+    expect(t.sender.status('g1')).toBe('off');
+    t.sender.handle({ kind: 'put', game: { ...g, live: true } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps().map((s) => s.state)).toEqual(['live']);
     t.sender.stop();
   });
 
