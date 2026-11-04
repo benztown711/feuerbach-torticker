@@ -17,6 +17,7 @@ describe('T095 FR-014 Kurzform und Einstellungen (Mannschaften siehe teams.test.
       lastOwnColor: null,
       opponentColors: {},
       theme: 'system',
+      signalSound: 'pfiff',
       installHintDismissedAt: null,
       teams: [],
       features: { cards: false, subs: false, marks: false },

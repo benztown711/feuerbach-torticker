@@ -8,6 +8,9 @@ export type Side = 'own' | 'opp';
 export type GameStatus = 'created' | 'running' | 'paused' | 'break' | 'finished';
 export type Theme = 'system' | 'light' | 'dark';
 
+/** Spec 008 FR-K01. */
+export type SignalSound = 'pfiff' | 'glocke' | 'gong';
+
 export interface Schema {
   /** Anzahl Abschnitte, 1 bis 4. */
   sections: number;
@@ -170,6 +173,8 @@ export interface Settings {
   /** Zuletzt genutzte Farbe je Gegnername (normalisiert). */
   opponentColors: Record<string, string>;
   theme: Theme;
+  /** Spec 008 FR-K03: gewählter Signalton, Vorgabe Pfiff. */
+  signalSound: SignalSound;
   installHintDismissedAt: number | null;
   /** Spec 006: Live-Spieltag dieses Geräts (Organisator und/oder Lead), höchstens einer. */
   live: LiveSpieltag | null;
