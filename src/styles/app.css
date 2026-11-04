@@ -1185,6 +1185,38 @@
   stroke-linecap: round;
 }
 
+.nav__item--button {
+  padding: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 14px;
+  cursor: pointer;
+}
+
+.dash[hidden] {
+  display: none;
+}
+
+.viewer-toast {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-2));
+  left: var(--space-4);
+  z-index: 11;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
 .nav__live {
   color: var(--color-rot-text);
   font-weight: 700;

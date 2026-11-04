@@ -2,14 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
 import { boardView, formatClockTime, formatDay, type BoardCard } from '../../domain/live-board';
-import { parseLinkPath } from '../../domain/live-link';
+import { linkUrl, parseLinkPath, viewerShareText } from '../../domain/live-link';
 import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
 import type { LiveConfig, ViewerLink } from '../../domain/types';
 import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
+import { shareText } from '../../platform/share';
+import { ViewerNav } from '../components/viewer-nav';
 import { useNow } from '../hooks';
 import { navigate } from '../router';
+import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */
 
@@ -168,7 +171,21 @@ function useFlash(cards: BoardCard[], now: number, serverNow: number): Set<strin
   return new Set(Object.keys(until).filter((id) => (until[id] ?? 0) > now));
 }
 
-export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean; config?: LiveConfig | null }) {
+export function Dashboard({
+  view,
+  inApp,
+  config,
+  hidden = false,
+  onInfo,
+}: {
+  view: View;
+  inApp: boolean;
+  config?: LiveConfig | null;
+  /** Spec 009: bleibt beim Wechsel zur Eltern-Hilfe eingehängt, damit die Verbindung bestehen bleibt. */
+  hidden?: boolean;
+  /** Titel und Mannschaften für "Teilen" in der Eltern-Leiste (FR-H17). */
+  onInfo?: (info: { title: string; teams: string[] }) => void;
+}) {
   const receiver = useMemo(() => {
     const r = newReceiver(view);
     if (config) r.seed(config);
@@ -192,6 +209,8 @@ export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean;
   const v = boardView(state.board, serverNow);
   const flash = useFlash(v.cards, now, serverNow);
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
+  const teamsKey = v.teams.join('|');
+  useEffect(() => onInfo?.({ title, teams: v.teams }), [title, teamsKey]);
   const toggle = (key: string): void =>
     setOpen((s) => {
       const n = new Set(s);
@@ -201,7 +220,7 @@ export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean;
     });
 
   return (
-    <main class="page dash" data-testid="dashboard">
+    <main class="page dash" data-testid="dashboard" hidden={hidden}>
       <header class="dash__head">
         <img
           class="dash__wappen"
@@ -274,9 +293,22 @@ export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean;
 const sameView = (a: ViewerLink | null, b: ViewerLink): boolean =>
   !!a && a.topic === b.topic && a.viewKey === b.viewKey && a.orgPub === b.orgPub && a.title === b.title;
 
-/** `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6). */
-export function ViewerScreen({ data }: { data: string; help?: boolean; entry?: string | null }) {
+/**
+ * `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6).
+ * Spec 009: Eltern-Leiste mit "Spieltag", "Teilen" und Eltern-Hilfe unter `#/live/<Daten>/hilfe[/<id>]`.
+ */
+export function ViewerScreen({
+  data,
+  help = false,
+  entry = null,
+}: {
+  data: string;
+  help?: boolean;
+  entry?: string | null;
+}) {
   const link = useMemo(() => parseLinkPath(`/live/${data}`), [data]);
+  const [info, setInfo] = useState<{ title: string; teams: string[] } | null>(null);
+  const [msg, setMsg] = useState('');
   useEffect(() => {
     if (link.kind !== 'view') return;
     void getSettings()
@@ -293,7 +325,28 @@ export function ViewerScreen({ data }: { data: string; help?: boolean; entry?: s
       </main>
     );
   }
-  return <Dashboard view={link.view} inApp={false} />;
+  const path = `/live/${data}`;
+  const share = async (): Promise<void> => {
+    const url = linkUrl(`${window.location.origin}${base}`, path);
+    const res = await shareText(
+      viewerShareText(info?.title ?? (link.view.title || DEFAULT_LIVE_TITLE), info?.teams ?? [], url),
+    );
+    const text = res === 'copied' ? 'Link kopiert.' : res === 'failed' ? 'Teilen hat nicht geklappt.' : '';
+    setMsg(text);
+    if (text) setTimeout(() => setMsg(''), 4000);
+  };
+  return (
+    <>
+      <Dashboard view={link.view} inApp={false} hidden={help} onInfo={setInfo} />
+      {help && <HelpView mode="parents" base={`${path}/hilfe`} entryId={entry} />}
+      <ViewerNav active={help ? 'help' : 'dash'} base={path} onShare={() => void share()} />
+      {msg && (
+        <p class="viewer-toast" role="status" data-testid="viewer-msg">
+          {msg}
+        </p>
+      )}
+    </>
+  );
 }
 
 /** `#/live-spieltag/dashboard`: Dashboard des eigenen Live-Spieltags in der App (FR-L17). */

@@ -22,8 +22,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 3: Eltern-Leiste (US2)
 
-- [ ] H011 [P] [US2] E2E `tests/e2e/hilfe-eltern.spec.ts`: 009 US2-S6 Leiste, US2-S7 Eltern-Hilfe mit Suche und zurück zum Spieltag ohne Neuladen, US2-S8 Teilen (Teilen-Menü aufgezeichnet bzw. Zwischenablage)
-- [ ] H012 [US2] Router `#/live/<Daten>/hilfe[/<id>]`, `src/ui/components/viewer-nav.tsx`, `ViewerScreen` mit Reitern (Dashboard bleibt eingehängt) (macht H011 grün)
+- [x] H011 [P] [US2] E2E `tests/e2e/hilfe-eltern.spec.ts`: 009 US2-S6 Leiste, US2-S7 Eltern-Hilfe mit Suche und zurück zum Spieltag ohne Neuladen, US2-S8 Teilen (Teilen-Menü aufgezeichnet bzw. Zwischenablage)
+- [x] H012 [US2] Router `#/live/<Daten>/hilfe[/<id>]`, `src/ui/components/viewer-nav.tsx`, `ViewerScreen` mit Reitern (Dashboard bleibt eingehängt) (macht H011 grün)
 - [ ] H013 [US2] Screenshot-Vergleich `dashboard-hell/dunkel` mit Leiste neu aufnehmen (bewusste Änderung, alle drei Profile)
 
 ## Phase 4: Prüfung Hilfe-Abdeckung (US3)
