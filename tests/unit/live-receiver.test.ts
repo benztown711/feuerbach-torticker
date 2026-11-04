@@ -143,6 +143,19 @@ describe('006 US3 Empfänger', () => {
     expect(states).toEqual(['live', 'offline', 'polling']);
   });
 
+  it('erfolgreiche Abfragen halten "Stand von" aktuell; bekannte Konfiguration gilt sofort', () => {
+    const { r, relay, setNow, changes } = setup();
+    setNow(T0 + 30_000);
+    relay().onAlive?.();
+    expect(r.get().liveAt).toBe(T0 + 30_000);
+    r.seed(config);
+    expect(r.get().board.config).toEqual(config);
+    changes.mockClear();
+    r.seed({ ...config, iat: T0 - 1 });
+    expect(r.get().board.config).toEqual(config);
+    expect(changes).not.toHaveBeenCalled();
+  });
+
   it('FR-L16: merkt den Stand im Gerät und lädt ihn beim nächsten Öffnen', async () => {
     const { storage, msg } = setup();
     await msg({ config, content: snap() });

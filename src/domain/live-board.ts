@@ -1,5 +1,4 @@
 import { deriveClock, type ClockState } from './clock';
-import { formatTime } from './format';
 import { homeAway } from './goals';
 import { parseSnapshot, type LiveGameSnapshot, type LiveGoal, type LiveSnapshot } from './live-snapshot';
 import { newerConfig, parseConfig } from './live-spieltag';
@@ -39,13 +38,47 @@ const idOf = (s: { team: string; gameId: string }): string => `${s.team}/${s.gam
 
 /** Zeitpunkt des Lead-Handys in Serverzeit. */
 const real = (e: BoardEntry, leadAt: number): number => leadAt - (e.snap.sentAt - e.at);
+/** Erster Anpfiff seit dem letzten Zurücksetzen auf den ersten Abschnitt (Zeit des Lead-Handys). */
+function kickoffOf(s: LiveGameSnapshot): number | null {
+  let at: number | null = null;
+  for (const [type, t, section] of s.clock) {
+    if (type === 'reset' && section === 1) at = null;
+    else if (type === 'kickoff' && at === null) at = t;
+  }
+  return at;
+}
+
 /** Erster Anpfiff, sonst Anlegezeit (wie in der Historie), in Serverzeit. */
-const startOf = (e: BoardEntry): number =>
-  real(e, e.snap.clock.find(([type]) => type === 'kickoff')?.[1] ?? e.snap.createdAt);
+const startOf = (e: BoardEntry): number => real(e, kickoffOf(e.snap) ?? e.snap.createdAt);
+
+/** Formate je Zeitzone nur einmal anlegen: das Dashboard rechnet jede Sekunde neu. */
+function perZone(make: (timeZone?: string) => Intl.DateTimeFormat): (timeZone?: string) => Intl.DateTimeFormat {
+  const cache = new Map<string | undefined, Intl.DateTimeFormat>();
+  return (timeZone) => {
+    const known = cache.get(timeZone);
+    if (known) return known;
+    const made = make(timeZone);
+    cache.set(timeZone, made);
+    return made;
+  };
+}
+
+const dayFormat = perZone(
+  (timeZone) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone }),
+);
+const dateFormat = perZone(
+  (timeZone) =>
+    new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', timeZone }),
+);
+const clockFormat = perZone(
+  (timeZone) => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone }),
+);
 
 /** Kalendertag, z. B. "2026-11-07". */
-export const dayKey = (ms: number, timeZone?: string): string =>
-  new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone }).format(ms);
+export const dayKey = (ms: number, timeZone?: string): string => dayFormat(timeZone).format(ms);
+
+/** Uhrzeit "10:41". */
+export const formatClockTime = (ms: number, timeZone?: string): string => clockFormat(timeZone).format(ms);
 
 interface DateParts {
   weekday: string;
@@ -55,13 +88,7 @@ interface DateParts {
 }
 
 function dateParts(ms: number, timeZone?: string): DateParts {
-  const parts = new Intl.DateTimeFormat('de-DE', {
-    weekday: 'short',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone,
-  }).formatToParts(ms);
+  const parts = dateFormat(timeZone).formatToParts(ms);
   return Object.fromEntries(parts.map((p) => [p.type, p.value])) as unknown as DateParts;
 }
 
@@ -154,6 +181,8 @@ export interface BoardCard {
   goals: GoalLine[];
   staleMinutes: number | null;
   earlier: string | null;
+  /** Serverzeit der letzten Meldung (ms): nur frische Tore werden hervorgehoben. */
+  updatedAt: number;
 }
 
 export interface BoardView {
@@ -220,27 +249,32 @@ function whoOf(g: LiveGoal, s: LiveGameSnapshot): string {
 }
 
 function goalLines(s: LiveGameSnapshot): GoalLine[] {
+  const running = { own: 0, opp: 0 };
   return s.goals
-    .map((g, i) => ({
-      side: g.side,
-      minute: formatMinute(g.minute, g.stoppage),
-      score: scoreOf(s, s.goals.slice(0, i + 1)),
-      who: whoOf(g, s),
-    }))
+    .map((g) => {
+      running[g.side] += 1;
+      const ha = homeAway(s.venue, running);
+      return {
+        side: g.side,
+        minute: formatMinute(g.minute, g.stoppage),
+        score: `${ha.home}:${ha.away}`,
+        who: whoOf(g, s),
+      };
+    })
     .reverse();
 }
 
 function infoOf(st: GameState, key: string, timeZone?: string): string {
   const e = st.entry;
   const s = e.snap;
-  const at = (t: number): string => `${formatTime(real(e, t), timeZone, false)} Uhr`;
-  const kickoff = s.clock.find(([type]) => type === 'kickoff');
+  const at = (t: number): string => `${formatClockTime(real(e, t), timeZone)} Uhr`;
+  const kickoff = kickoffOf(s);
   const fullTime = s.clock.filter(([type]) => type === 'fullTime').pop();
   const halfDone = s.schema.sections > 1 && s.clock.some(([type, , section]) => type === 'sectionEnd' && section === 1);
   return [
     key,
     st.group === 'finished' || !st.today ? formatDay(startOf(e), timeZone) : '',
-    kickoff ? `Anpfiff ${at(kickoff[1])}` : '',
+    kickoff !== null ? `Anpfiff ${at(kickoff)}` : '',
     fullTime && st.group === 'finished' ? `Schlusspfiff ${at(fullTime[1])}` : '',
     halfDone
       ? `Halbzeit ${scoreOf(
@@ -291,6 +325,7 @@ function cardOf(key: string, main: GameState, rest: GameState[], serverNow: numb
     goals: goalLines(s),
     staleMinutes: main.live && silent > STALE_MS ? Math.floor(silent / 60_000) : null,
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
+    updatedAt: main.entry.at,
   };
 }
 

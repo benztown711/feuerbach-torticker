@@ -2,7 +2,7 @@ import { applyConfig, applySnapshot, emptyBoard, parseBoard, type Board } from '
 import { parseSnapshot } from '../domain/live-snapshot';
 import { parseConfig } from '../domain/live-spieltag';
 import { isTime } from '../domain/live-validate';
-import type { ViewerLink } from '../domain/types';
+import type { LiveConfig, ViewerLink } from '../domain/types';
 import { openMessage, type OpenedMessage } from './live-crypto';
 import { subscribe, type RelayMessage, type RelayState, type SubscribeOptions } from './relay';
 
@@ -95,9 +95,16 @@ export class LiveReceiver {
       since: '12h',
       onMessage: (m) => void this.receive(m),
       onServerTime: (sec) => this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() }),
+      onAlive: () => this.update({ liveAt: this.deps.now() }),
       onState: (relay) =>
         this.update(relay === 'live' || relay === 'polling' ? { relay, liveAt: this.deps.now() } : { relay }),
     });
+  }
+
+  /** Konfiguration, die das Gerät schon kennt (Organisator, Lead-Handy), bevor Meldungen kommen. */
+  seed(config: LiveConfig): void {
+    const board = applyConfig(this.state.board, config);
+    if (board !== this.state.board) this.update({ board });
   }
 
   stop(): void {

@@ -9,6 +9,11 @@ export const POLL_MS = 30_000;
 /** Nach so vielen Abfragen (5 Minuten) wird wieder der Stream versucht. */
 export const POLLS_BEFORE_STREAM = 10;
 const MAX_BACKOFF_MS = 30_000;
+/**
+ * ntfy schickt alle 45 s ein keepalive. Kommt so lange gar nichts, hängt der Stream (iOS hält ihn
+ * manchmal still offen): abbrechen und neu verbinden, damit "Stand von" stimmt (FR-L15).
+ */
+export const STALL_MS = 90_000;
 
 export interface RelayMessage {
   id: string;
@@ -38,6 +43,8 @@ export interface SubscribeOptions {
   /** Serverzeit (Sekunden) aus `open`/`keepalive` für den Uhrenabgleich (R-L4). */
   onServerTime?: (seconds: number) => void;
   onState?: (s: RelayState) => void;
+  /** Jede erfolgreiche Antwort des Dienstes (auch eine Abfrage ohne neue Meldungen). */
+  onAlive?: () => void;
   fetchImpl?: FetchLike;
   /** Sichtbarkeit der Seite; Vorgabe `document`. */
   visibility?: { hidden(): boolean; onChange(cb: () => void): () => void };
@@ -103,21 +110,28 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
     }
   };
 
-  async function readLines(body: ReadableStream<Uint8Array>): Promise<void> {
+  async function readLines(body: ReadableStream<Uint8Array>, abort: AbortController): Promise<void> {
     const reader = body.getReader();
     const dec = new TextDecoder();
     let buf = '';
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let nl = buf.indexOf('\n');
-      while (nl >= 0) {
-        const line = buf.slice(0, nl).trim();
-        buf = buf.slice(nl + 1);
-        if (line) handle(line);
-        nl = buf.indexOf('\n');
+    let watchdog = setTimeout(() => abort.abort(), STALL_MS);
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        clearTimeout(watchdog);
+        if (done) break;
+        watchdog = setTimeout(() => abort.abort(), STALL_MS);
+        buf += dec.decode(value, { stream: true });
+        let nl = buf.indexOf('\n');
+        while (nl >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (line) handle(line);
+          nl = buf.indexOf('\n');
+        }
       }
+    } finally {
+      clearTimeout(watchdog);
     }
     if (buf.trim()) handle(buf.trim());
   }
@@ -129,10 +143,11 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
         await sleep(MAX_BACKOFF_MS);
         continue;
       }
-      ctrl = new AbortController();
+      const abort = new AbortController();
+      ctrl = abort;
       const url = `${RELAY_ORIGIN}/${topic}/json?since=${encodeURIComponent(since)}${polling ? '&poll=1' : ''}`;
       try {
-        const res = await fetchImpl(url, { signal: ctrl.signal, cache: 'no-store' });
+        const res = await fetchImpl(url, { signal: abort.signal, cache: 'no-store' });
         if (res.status === 429) {
           polling = true;
           setState('polling');
@@ -141,7 +156,8 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
         }
         if (!res.ok || !res.body) throw new Error(`Status ${res.status}`);
         setState(polling ? 'polling' : 'live');
-        await readLines(res.body);
+        opts.onAlive?.();
+        await readLines(res.body, abort);
         backoff = 1000;
         if (polling && ++polls >= POLLS_BEFORE_STREAM) {
           polling = false;

@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { Game } from '../../domain/types';
 import { findOpenGame, getSettings, listGames } from '../../platform/db';
-import { navigate } from '../router';
+import { navigate, parseHash } from '../router';
 
 const base = import.meta.env.BASE_URL;
 
-/** Nur beim ersten Start prüfen, ob das gemerkte Dashboard geöffnet wird (R-L6). */
-let redirectChecked = false;
+const atStart = (): boolean => parseHash(window.location.hash).name === 'start';
 
-/** Das Dashboard wurde schon geöffnet: "Zum Torticker" führt dann wirklich zum Start. */
-export function skipViewerRedirect(): void {
-  redirectChecked = true;
-}
+/** Nur wenn die App auf dem Startbildschirm startet, öffnet sie ggf. das gemerkte Dashboard (R-L6). */
+let redirectChecked = !atStart();
 
 /**
  * Spec 006 R-L6 (FR-L16): Startet der Torticker ohne eigene Spiele und Mannschaften, aber mit einem
@@ -32,7 +29,10 @@ export function StartScreen() {
     void findOpenGame().then(setOpen);
     if (redirectChecked) return;
     redirectChecked = true;
-    void viewerToOpen().then((path) => path && navigate(path, true));
+    void viewerToOpen()
+      // Nur umleiten, wenn noch niemand weitergetippt hat ("Neues Spiel").
+      .then((path) => path && atStart() && navigate(path, true))
+      .catch(() => undefined);
   }, []);
   return (
     <main class="start">

@@ -7,6 +7,7 @@ import {
   boardView,
   dayKey,
   emptyBoard,
+  formatClockTime,
   formatDay,
   parseBoard,
   type Board,
@@ -239,6 +240,25 @@ describe('006 FR-L12 FR-L14 Karten', () => {
     );
   });
 
+  it('Anpfiff zählt erst nach dem letzten Zurücksetzen auf den ersten Abschnitt', () => {
+    const undone: Clock = [
+      ['kickoff', T0 - DAY, 1],
+      ['reset', T0 - DAY + 1000, 1],
+    ];
+    const c = one(snap({ clock: undone, createdAt: T0 - min(5) }), T0);
+    expect([c.phase, c.info, c.today]).toEqual(['noch nicht angepfiffen', 'E1', true]);
+    const again = one(snap({ clock: [...undone, ['kickoff', T0, 1]] }), T0 + min(3));
+    expect([again.phase, again.info]).toEqual(["4'", 'E1 · Anpfiff 10:00 Uhr']);
+    // Zurücksetzen eines späteren Abschnitts ändert den Anpfiff nicht.
+    const second: Clock = [...atHalf, ['kickoff', T0 + min(30), 2], ['reset', T0 + min(31), 2]];
+    expect(one(snap({ clock: second }), T0 + min(32)).info).toBe('E1 · Anpfiff 10:00 Uhr · Halbzeit 0:0');
+  });
+
+  it('Karte kennt die Serverzeit der letzten Meldung', () => {
+    const b = put(emptyBoard(), snap({ clock: kicked(), sentAt: T0 + 5000 }), T0 + 9000);
+    expect(view(b, T0 + min(1)).cards[0]!.updatedAt).toBe(T0 + 9000);
+  });
+
   it('SC-L04 R-L4: Minute und Uhrzeiten stimmen, auch wenn die Uhr des Lead-Handys falsch geht', () => {
     const skew = min(63); // Lead-Handy geht 63 Minuten vor
     const s = snap({
@@ -341,6 +361,8 @@ describe('006 FR-L14 FR-L16 Tageslogik', () => {
     expect(formatDay(T0, TZ)).toBe('Sa, 07.11.2026');
     expect(dayKey(T0, TZ)).toBe('2026-11-07');
     expect(dayKey(Date.UTC(2026, 10, 7, 23, 30), TZ)).toBe('2026-11-08');
+    expect(formatClockTime(T0, TZ)).toBe('10:00');
+    expect(formatClockTime(T0, 'UTC')).toBe('09:00');
   });
 });
 

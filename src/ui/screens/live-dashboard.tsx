@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { formatTime } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
-import { boardView, formatDay, type BoardCard } from '../../domain/live-board';
+import { boardView, formatClockTime, formatDay, type BoardCard } from '../../domain/live-board';
 import { parseLinkPath } from '../../domain/live-link';
-import { DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
-import type { ViewerLink } from '../../domain/types';
+import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
+import type { LiveConfig, ViewerLink } from '../../domain/types';
 import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { useNow } from '../hooks';
 import { navigate } from '../router';
-import { skipViewerRedirect } from './start';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */
 
 const base = import.meta.env.BASE_URL;
 /** FR-L15: Hervorhebung nach neuem Tor. */
 const FLASH_MS = 5000;
+/** Nur Tore aus frischen Meldungen hervorheben, nicht beim Nachladen der letzten 12 Stunden. */
+const FRESH_MS = 60_000;
 
 type View = Pick<ViewerLink, 'topic' | 'viewKey' | 'orgPub' | 'title'>;
 
@@ -52,12 +52,19 @@ function Chevron() {
 const orList = (keys: string[]): string =>
   keys.length > 1 ? `${keys.slice(0, -1).join(', ')} oder ${keys[keys.length - 1]}` : keys.join('');
 
-function statusText(relay: RelayState, liveAt: number | null, now: number): string {
-  const since = liveAt === null ? '' : ` · Stand von ${formatTime(liveAt, undefined, false)} Uhr`;
-  if (relay === 'offline') return `Keine Verbindung${since}. Aktualisiert sich von selbst.`;
-  if (relay === 'connecting') return `Verbinde …${since}`;
-  const stand = ` · Stand ${formatTime(now, undefined, false)} Uhr`;
-  return relay === 'polling' ? `Live, alle 30 Sekunden${stand}` : `Live${stand}`;
+const STATE_TEXT: Record<RelayState, string> = {
+  live: 'Live',
+  polling: 'Live, alle 30 Sekunden',
+  connecting: 'Verbinde …',
+  offline: 'Keine Verbindung',
+};
+
+/** "Stand" ist die letzte bestätigte Verbindung (keepalive, Abfrage, Meldung), nicht die Uhrzeit (FR-L15). */
+function statusDetail(relay: RelayState, liveAt: number | null): string {
+  const time = liveAt === null ? '' : `${formatClockTime(liveAt)} Uhr`;
+  if (relay === 'live' || relay === 'polling') return time && ` · Stand ${time}`;
+  const since = time && ` · Stand von ${time}`;
+  return relay === 'offline' ? `${since}. Aktualisiert sich von selbst.` : since;
 }
 
 function Card({
@@ -145,7 +152,7 @@ function Card({
 }
 
 /** Merkt sich die Toranzahl je Spiel und hebt neue Tore einige Sekunden hervor (ohne Ton). */
-function useFlash(cards: BoardCard[], now: number): Set<string> {
+function useFlash(cards: BoardCard[], now: number, serverNow: number): Set<string> {
   const counts = useRef<Map<string, number> | null>(null);
   const [until, setUntil] = useState<Record<string, number>>({});
   const signature = cards.map((c) => `${c.gameId}:${c.goals.length}`).join('|');
@@ -154,7 +161,9 @@ function useFlash(cards: BoardCard[], now: number): Set<string> {
     const next = new Map(cards.map((c) => [c.gameId, c.goals.length]));
     counts.current = next;
     if (!prev) return;
-    const fresh = cards.filter((c) => c.goals.length > (prev.get(c.gameId) ?? c.goals.length));
+    const fresh = cards.filter(
+      (c) => c.goals.length > (prev.get(c.gameId) ?? c.goals.length) && serverNow - c.updatedAt < FRESH_MS,
+    );
     if (fresh.length > 0)
       setUntil((u) => ({ ...u, ...Object.fromEntries(fresh.map((c) => [c.gameId, Date.now() + FLASH_MS])) }));
     // Nur bei geänderter Toranzahl (signature), nicht bei jedem neuen Array.
@@ -162,8 +171,12 @@ function useFlash(cards: BoardCard[], now: number): Set<string> {
   return new Set(Object.keys(until).filter((id) => (until[id] ?? 0) > now));
 }
 
-export function Dashboard({ view, inApp }: { view: View; inApp: boolean }) {
-  const receiver = useMemo(() => newReceiver(view), [view.topic, view.viewKey, view.orgPub]);
+export function Dashboard({ view, inApp, config }: { view: View; inApp: boolean; config?: LiveConfig | null }) {
+  const receiver = useMemo(() => {
+    const r = newReceiver(view);
+    if (config) r.seed(config);
+    return r;
+  }, [view.topic, view.viewKey, view.orgPub]);
   const [state, setState] = useState<ReceiverState>(() => receiver.get());
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   useNow(1000);
@@ -180,7 +193,7 @@ export function Dashboard({ view, inApp }: { view: View; inApp: boolean }) {
   const now = Date.now();
   const serverNow = now + state.skew;
   const v = boardView(state.board, serverNow);
-  const flash = useFlash(v.cards, now);
+  const flash = useFlash(v.cards, now, serverNow);
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const toggle = (key: string): void =>
     setOpen((s) => {
@@ -213,7 +226,10 @@ export function Dashboard({ view, inApp }: { view: View; inApp: boolean }) {
         data-state={state.relay}
       >
         {state.relay === 'offline' ? <NoSignal /> : <span class="live-pill__dot" aria-hidden="true" />}
-        <span role="status">{statusText(state.relay, state.liveAt, now)}</span>
+        <span>
+          <span role="status">{STATE_TEXT[state.relay]}</span>
+          {statusDetail(state.relay, state.liveAt)}
+        </span>
       </div>
       {!v.today && (
         <section class="dash-empty" data-testid="dash-empty">
@@ -265,7 +281,6 @@ const sameView = (a: ViewerLink | null, b: ViewerLink): boolean =>
 export function ViewerScreen({ data }: { data: string }) {
   const link = useMemo(() => parseLinkPath(`/live/${data}`), [data]);
   useEffect(() => {
-    skipViewerRedirect();
     if (link.kind !== 'view') return;
     void getSettings()
       .then((s) => (sameView(s.liveView, link.view) ? undefined : putSettings({ ...s, liveView: link.view })))
@@ -286,9 +301,14 @@ export function ViewerScreen({ data }: { data: string }) {
 
 /** `#/live-spieltag/dashboard`: Dashboard des eigenen Live-Spieltags in der App (FR-L17). */
 export function AppDashboardScreen() {
-  const [view, setView] = useState<View | null | undefined>(undefined);
+  const [view, setView] = useState<{ view: View; config: LiveConfig | null } | null | undefined>(undefined);
   useEffect(() => {
-    void getSettings().then((s) => setView(s.live ? viewerOf(s.live) : s.liveView));
+    getSettings()
+      .then((s) => {
+        if (s.live) setView({ view: viewerOf(s.live), config: configOf(s.live.config) });
+        else setView(s.liveView ? { view: s.liveView, config: null } : null);
+      })
+      .catch(() => setView(null));
   }, []);
   if (view === undefined) return <main class="page" aria-busy="true" />;
   if (view === null) {
@@ -301,5 +321,5 @@ export function AppDashboardScreen() {
       </main>
     );
   }
-  return <Dashboard view={view} inApp />;
+  return <Dashboard view={view.view} config={view.config} inApp />;
 }

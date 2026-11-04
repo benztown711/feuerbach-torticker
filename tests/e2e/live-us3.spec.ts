@@ -129,23 +129,27 @@ test('006 US3-S3 neues Tor hebt die Karte hervor und steht oben im Torverlauf', 
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
   const clock: [string, number, number][] = [['kickoff', 10, 1]];
+  // Ältere Stände werden beim Öffnen nachgeladen und nicht hervorgehoben.
+  await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T - 60_000, clock: [['kickoff', 9, 1]] }));
   await sendAs(relay, links.lead.E1!, liveSnap({ team: 'E1', now: T, clock, goals: [{ side: 'own', minute: 4 }] }));
+  relay.offsetMs += 2 * MIN;
   const v = await openViewer(newDevice, relay, links);
   const card = v.getByTestId('dash-card-E1');
   await expect(v.getByTestId('dash-score-E1')).toHaveText('1:0');
+  await v.clock.runFor(1_000);
   await expect(card).not.toHaveClass(/card--flash/);
 
-  const now = T + 30_000;
+  const now = T + 2 * MIN + 30_000;
   await sendAs(
     relay,
     links.lead.E1!,
     liveSnap({
       team: 'E1',
       now,
-      clock: [['kickoff', 10.5, 1]],
+      clock: [['kickoff', 12.5, 1]],
       goals: [
         { side: 'own', minute: 4 },
-        { side: 'own', minute: 11, who: 'Leo' },
+        { side: 'own', minute: 13, who: 'Leo' },
       ],
     }),
   );
@@ -153,7 +157,7 @@ test('006 US3-S3 neues Tor hebt die Karte hervor und steht oben im Torverlauf', 
   await expect(card).toHaveClass(/card--flash/);
   await v.getByTestId('dash-toggle-E1').click();
   const first = v.getByTestId('dash-details-E1').getByTestId('dash-goal').first();
-  await expect(first).toContainText("11'");
+  await expect(first).toContainText("13'");
   await expect(first).toContainText('2:0');
   await expect(first).toContainText('Leo');
   await v.clock.runFor(6_000);
