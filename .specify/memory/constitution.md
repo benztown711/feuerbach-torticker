@@ -53,6 +53,14 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Entwicklung, Betrieb und Nutzung bleiben dauerhaft kostenlos: öffentliches Repository, GitHub Actions und Pages im Gratis-Kontingent, freie Schriften, keine Bezahl-Accounts (z. B. Apple Developer), keine kostenpflichtigen Dienste oder APIs.
 - Eine Lösung, die Kosten verursacht, ist ausgeschlossen, auch wenn sie technisch besser wäre.
 
+### IX. Hilfe ist Teil jeder Funktion
+
+- Die App enthält eine durchsuchbare Hilfe, die jede umgesetzte Funktion in kurzen Fragen und Antworten erklärt (Spec 009).
+- Jede für Nutzer sichtbare Funktion oder Verhaltensänderung aktualisiert die Hilfe **im selben Pull Request**. Das gilt auch für kleine Änderungen (Fehlerbehebung, Text), sobald sich Bedienung oder Wortlaut in der App ändern.
+- Jede Spec nennt im Abschnitt "Hilfe", welche Einträge neu dazukommen, sich ändern oder entfallen; `tasks.md` enthält dafür je User Story eine Aufgabe.
+- Jeder Hilfe-Eintrag nennt seine Quellen (Spec und User Story bzw. Anforderung). Eine automatische Prüfung blockiert den Merge, wenn eine umgesetzte User Story keinen Eintrag hat oder ein Eintrag auf etwas verweist, das es nicht mehr gibt.
+- Die Hilfe verwendet die Bezeichnungen der App wörtlich, nur fiktive Namen und funktioniert offline.
+
 ## Technische Rahmenbedingungen
 
 - Auslieferung als Progressive Web App (PWA), installierbar über "Zum Home-Bildschirm" auf iOS (Safari) und Android (Chrome).
@@ -63,7 +71,7 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 ## Entwicklungsablauf und Qualitätstore
 
 - Arbeit erfolgt auf Feature-Branches (`###-feature-name`) mit Pull Request gegen `main`.
-- CI läuft bei jedem Pull Request: Lint, Typprüfung, Unit-Tests, E2E-Tests, Lighthouse-PWA-Prüfung.
+- CI läuft bei jedem Pull Request: Lint, Typprüfung, Unit-Tests (einschließlich Hilfe-Abdeckung, Prinzip IX), E2E-Tests, Lighthouse-PWA-Prüfung.
 - Merge nach `main` löst automatisch das Deployment auf GitHub Pages aus.
 - Releases werden über Conventional Commits versioniert (automatisiertes Changelog).
 
@@ -73,6 +81,6 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-04
+**Version**: 2.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-04
 
-Änderungshistorie: 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
+Änderungshistorie: 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 009). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
