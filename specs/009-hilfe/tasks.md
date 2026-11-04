@@ -28,9 +28,9 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 4: Prüfung Hilfe-Abdeckung (US3)
 
-- [ ] H014 [P] [US3] `tests/unit/check-help.test.ts`: 009 US3-S1 fehlende Abdeckung mit Meldung "006 US3 ohne Hilfe-Eintrag", 009 US3-S2 unbekannte Quelle, 009 US3-S3 doppelte ID und fehlende Felder, 009 US3-S4 alles abgedeckt; Tests ohne Spec-Nummer zählen für 001; FR-Quellen; unbekannter "Siehe auch"-Verweis
-- [ ] H015 [US3] `scripts/check-help.ts` (macht H014 grün)
-- [ ] H016 [US3] `tests/unit/help-coverage.test.ts` am echten Repository (FR-H21); Lücken im Grundbestand schließen, bis grün
+- [x] H014 [P] [US3] `tests/unit/check-help.test.ts`: 009 US3-S1 fehlende Abdeckung mit Meldung "006 US3 ohne Hilfe-Eintrag", 009 US3-S2 unbekannte Quelle, 009 US3-S3 doppelte ID und fehlende Felder, 009 US3-S4 alles abgedeckt; Tests ohne Spec-Nummer zählen für 001; FR-Quellen; unbekannter "Siehe auch"-Verweis
+- [x] H015 [US3] `scripts/check-help.ts` (macht H014 grün)
+- [x] H016 [US3] `tests/unit/help-coverage.test.ts` am echten Repository (FR-H21); Lücken im Grundbestand schließen, bis grün
 
 ## Phase 5: Abschluss
 
