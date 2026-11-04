@@ -1,5 +1,8 @@
-import { decodedLength, isBase64Url, textFromBase64Url, textToBase64Url } from './base64url';
+import { textFromBase64Url, textToBase64Url } from './base64url';
+import { isKey, isObj, isPrivateKeyParts, isSignedData, isText, MAX_TITLE, type Obj } from './live-validate';
 import type { PrivateKeyParts, SignedData, ViewerLink } from './types';
+
+export { isPrivateKeyParts, isSignedData };
 
 /** Inhalt eines Lead-Links (contracts/live-link.md). */
 export interface LeadLinkData {
@@ -15,26 +18,10 @@ export type ParsedLink =
 
 const INVALID: ParsedLink = { kind: 'invalid' };
 const TOPIC = /^[A-Za-z0-9_-]{22}$/;
-const MAX_TITLE = 40;
-const MAX_SIGNED = 2000;
-
-type Obj = Record<string, unknown>;
-const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
-/** base64url mit genau `bytes` Byte Inhalt. */
-const isKey = (v: unknown, bytes: number): v is string =>
-  typeof v === 'string' && isBase64Url(v) && decodedLength(v) === bytes;
-const isTitle = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= MAX_TITLE;
-
-/** Signierter JSON-Text mit ECDSA-P-256-Signatur (64 Byte). */
-export const isSignedData = (v: unknown): v is SignedData =>
-  isObj(v) && typeof v.d === 'string' && v.d.length > 0 && v.d.length <= MAX_SIGNED && isKey(v.s, 64);
-
-export const isPrivateKeyParts = (v: unknown): v is PrivateKeyParts =>
-  isObj(v) && isKey(v.d, 32) && isKey(v.x, 32) && isKey(v.y, 32);
 
 function viewOf(raw: Obj): ViewerLink | null {
   if (raw.v !== 1 || typeof raw.t !== 'string' || !TOPIC.test(raw.t)) return null;
-  if (!isKey(raw.k, 32) || !isKey(raw.o, 65) || !isTitle(raw.n)) return null;
+  if (!isKey(raw.k, 32) || !isKey(raw.o, 65) || !isText(raw.n, MAX_TITLE)) return null;
   return { topic: raw.t, viewKey: raw.k, orgPub: raw.o, title: raw.n };
 }
 

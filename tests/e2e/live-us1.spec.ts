@@ -101,7 +101,7 @@ test('006 US1-S2 Abbrechen koppelt nicht; ungültige und veränderte Links werde
   expect((await readStored<{ live: unknown }>(b, 'settings', 'app'))?.live ?? null).toBeNull();
 });
 
-test('006 US1-S2 Handy mit anderem Live-Spieltag: Hinweis, dass die alte Kopplung endet', async ({
+test('006 US1-S2 Organisator eines anderen Live-Spieltags: Warnung, dass die Rolle verloren geht', async ({
   page,
   recorded,
   newDevice,
@@ -113,7 +113,7 @@ test('006 US1-S2 Handy mit anderem Live-Spieltag: Hinweis, dass die alte Kopplun
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill(links.lead.E1!);
   await b.getByTestId('paste-link-apply').click();
-  await expect(b.getByTestId('couple-replace')).toBeVisible();
+  await expect(b.getByTestId('couple-replace')).toContainText('Du organisierst „D-Jugend“');
   await b.getByTestId('couple-yes').click();
   await expect(b.getByTestId('live-lead-info')).toContainText('Feuerbach E1');
 });

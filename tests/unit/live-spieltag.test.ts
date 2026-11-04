@@ -6,11 +6,13 @@ import {
   createSpieltag,
   DEFAULT_LIVE_TITLE,
   isOrganizer,
+  knowsTeam,
   leadLinkFor,
   liveTeamOptions,
   newerConfig,
   parseConfig,
   parseLeadCert,
+  replacesOrganizer,
   sendingTeamFor,
   titleOf,
   validateLiveInput,
@@ -238,6 +240,43 @@ describe('006 FR-L03 FR-L04 Kopplung aus Lead-Link', () => {
     ]);
     s = applyLeadLink(s, leadLinkFor(live, 'E2')!, certOf(live, 'E2'), { now: T0, newId: () => 'c' });
     expect(s.live?.teams).toHaveLength(2);
+  });
+
+  it('erneut eingefügter Link derselben Mannschaft ersetzt Schlüssel und Zertifikat (der Link gilt)', async () => {
+    const { live } = await organizer();
+    const s0 = applyLeadLink(defaultSettings(), leadLinkFor(live, 'E2')!, certOf(live, 'E2'), {
+      now: T0,
+      newId: () => 'a',
+    });
+    const fresh = {
+      ...leadLinkFor(live, 'E2')!,
+      key: { d: 'neu-d', x: 'neu-x', y: 'neu-y' },
+      cert: { d: 'neues Zertifikat', s: 'x' },
+    };
+    const s1 = applyLeadLink(s0, fresh, certOf(live, 'E2'), { now: T0, newId: () => 'b' });
+    expect(s1.live?.teams).toEqual([
+      expect.objectContaining({ key: 'E2', leadKey: fresh.key, cert: fresh.cert, sends: true }),
+    ]);
+  });
+
+  it('knowsTeam vergleicht Namen ohne Groß-/Kleinschreibung und Leerzeichen', () => {
+    const s = { ...defaultSettings(), teams: [E1] };
+    expect(knowsTeam(s, '  sportvg feuerbach   e1 ')).toBe(true);
+    expect(knowsTeam(s, 'Sportvg Feuerbach E2')).toBe(false);
+  });
+
+  it('replacesOrganizer warnt nur, wenn ein organisierter Live-Spieltag ersetzt würde', async () => {
+    const { live } = await organizer();
+    const other: LiveSpieltag = { ...live, topic: 'zzzzzzzzzzzzzzzzzzzzzz' };
+    const organizerSettings = { ...defaultSettings(), live, teams: [E1, E2] };
+    expect(replacesOrganizer(organizerSettings, leadLinkFor(other, 'E1')!)).toBe(true);
+    expect(replacesOrganizer(organizerSettings, leadLinkFor(live, 'E2')!)).toBe(false);
+    expect(replacesOrganizer(defaultSettings(), leadLinkFor(other, 'E1')!)).toBe(false);
+    const leadOnly = applyLeadLink(defaultSettings(), leadLinkFor(live, 'E2')!, certOf(live, 'E2'), {
+      now: T0,
+      newId: () => 'a',
+    });
+    expect(replacesOrganizer(leadOnly, leadLinkFor(other, 'E1')!)).toBe(false);
   });
 
   it('Organisator koppelt sich selbst für eine weitere Mannschaft: Schlüssel bleiben, sends wird gesetzt', async () => {

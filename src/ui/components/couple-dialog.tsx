@@ -7,12 +7,15 @@ interface Props {
   replace: boolean;
   /** Mannschaft fehlt noch in "Meine Mannschaften". */
   addsTeam: boolean;
+  /** Titel des Live-Spieltags, den dieses Gerät organisiert und der verloren ginge. */
+  losesOrganizer: string | null;
+  busy: boolean;
   onYes: () => void;
   onNo: () => void;
 }
 
 /** Spec 006 FR-L03: Rückfrage vor dem Koppeln als Lead-Handy. */
-export function CoupleDialog({ cert, title, replace, addsTeam, onYes, onNo }: Props) {
+export function CoupleDialog({ cert, title, replace, addsTeam, losesOrganizer, busy, onYes, onNo }: Props) {
   const team = shortTeamName(cert.name);
   return (
     <div class="overlay overlay--bottom">
@@ -26,12 +29,18 @@ export function CoupleDialog({ cert, title, replace, addsTeam, onYes, onNo }: Pr
           Stand, Minute und Torschützen (Vornamen).
         </p>
         {addsTeam && <p class="sheet__text sheet__text--muted">{team} wird zu „Meine Mannschaften“ hinzugefügt.</p>}
-        {replace && (
+        {replace && !losesOrganizer && (
           <p class="hint" data-testid="couple-replace">
             Dieses Handy ist schon mit einem anderen Live-Spieltag gekoppelt. Die alte Kopplung endet.
           </p>
         )}
-        <button type="button" class="btn btn--primary" data-testid="couple-yes" onClick={onYes}>
+        {losesOrganizer && (
+          <p class="hint" data-testid="couple-replace">
+            <strong>Achtung:</strong> Du organisierst „{losesOrganizer}“. Diese Rolle und alle Lead-Links dafür gehen
+            auf diesem Handy verloren.
+          </p>
+        )}
+        <button type="button" class="btn btn--primary" data-testid="couple-yes" disabled={busy} onClick={onYes}>
           Ja, live senden
         </button>
         <button type="button" class="btn btn--secondary" data-testid="couple-no" onClick={onNo}>

@@ -5,13 +5,15 @@ import {
   couplingKind,
   DEFAULT_LIVE_TITLE,
   isOrganizer,
+  knowsTeam,
   liveTeamOptions,
+  MAX_LIVE_TEAMS,
+  replacesOrganizer,
   titleOf,
   validateLiveInput,
 } from '../../domain/live-spieltag';
 import { shortTeamName } from '../../domain/team-name';
 import type { LeadCert, LiveSpieltag, Settings } from '../../domain/types';
-import { normalizeName } from '../../domain/validation';
 import { getSettings } from '../../platform/db';
 import { coupleLead, createLive, shareLeadLink, shareViewerLink, verifyLeadLink } from '../../platform/live-setup';
 import type { ShareResult } from '../../platform/share';
@@ -24,6 +26,8 @@ type View = 'main' | 'form' | 'paste';
 interface Pending {
   lead: LeadLinkData;
   cert: LeadCert;
+  /** Titel aus der geprüften Konfiguration. */
+  title: string;
 }
 
 const SHARE_MSG: Record<ShareResult, string> = {
@@ -63,6 +67,7 @@ export function LiveScreen() {
   const [view, setView] = useState<View>('main');
   const [msg, setMsg] = useState('');
   const [pending, setPending] = useState<Pending | null>(null);
+  const [coupling, setCoupling] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -79,10 +84,17 @@ export function LiveScreen() {
   const back = () => (view === 'main' ? navigate('/mehr') : setView('main'));
 
   const couple = async (): Promise<void> => {
-    if (!pending) return;
-    setSettings(await coupleLead(pending.lead, pending.cert));
-    setPending(null);
-    setView('main');
+    if (!pending || coupling) return;
+    setCoupling(true);
+    try {
+      setSettings(await coupleLead(pending.lead, pending.cert));
+      setView('main');
+    } catch {
+      setMsg('Koppeln hat nicht geklappt. Bitte erneut versuchen.');
+    } finally {
+      setPending(null);
+      setCoupling(false);
+    }
   };
 
   return (
@@ -138,9 +150,11 @@ export function LiveScreen() {
       {pending && (
         <CoupleDialog
           cert={pending.cert}
-          title={pending.lead.view.title}
+          title={pending.title}
           replace={couplingKind(settings, pending.lead) === 'replace'}
-          addsTeam={!settings.teams.some((t) => normalizeName(t.name) === normalizeName(pending.cert.name))}
+          addsTeam={!knowsTeam(settings, pending.cert.name)}
+          losesOrganizer={live && replacesOrganizer(settings, pending.lead) ? titleOf(live) : null}
+          busy={coupling}
           onYes={() => void couple()}
           onNo={() => setPending(null)}
         />
@@ -160,7 +174,8 @@ function LiveForm({
 }) {
   const options = liveTeamOptions(settings.teams);
   const [title, setTitle] = useState(DEFAULT_LIVE_TITLE);
-  const [ids, setIds] = useState<string[]>(options.map((o) => o.team.id));
+  const [ids, setIds] = useState<string[]>(options.slice(0, MAX_LIVE_TEAMS).map((o) => o.team.id));
+  const [failed, setFailed] = useState(false);
   const [self, setSelf] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const check = validateLiveInput({ title, teamIds: ids, selfTeamId: self }, settings.teams);
@@ -190,7 +205,13 @@ function LiveForm({
     setTried(true);
     if (!check.ok || busy) return;
     setBusy(true);
-    onCreated(await createLive({ title, teamIds: ids, selfTeamId: self }));
+    setFailed(false);
+    try {
+      onCreated(await createLive({ title, teamIds: ids, selfTeamId: self }));
+    } catch {
+      setFailed(true);
+      setBusy(false);
+    }
   };
 
   return (
@@ -266,6 +287,11 @@ function LiveForm({
             ))}
         </div>
       </div>
+      {failed && (
+        <p class="field__error" role="alert">
+          Anlegen hat nicht geklappt. Bitte erneut versuchen.
+        </p>
+      )}
       <button type="submit" class="btn btn--primary" data-testid="btn-live-save" disabled={busy}>
         Anlegen
       </button>
@@ -372,12 +398,12 @@ function PasteLink({ onCancel, onLead }: { onCancel: () => void; onLead: (p: Pen
       setError('Kein gültiger Link. Bitte den ganzen Link aus WhatsApp kopieren.');
       return;
     }
-    const cert = await verifyLeadLink(link.lead);
-    if (!cert) {
+    const verified = await verifyLeadLink(link.lead);
+    if (!verified) {
       setError('Dieser Lead-Link ist nicht gültig.');
       return;
     }
-    onLead({ lead: link.lead, cert });
+    onLead({ lead: link.lead, cert: verified.cert, title: verified.config.title });
   };
 
   return (

@@ -83,6 +83,7 @@ export async function deleteGame(id: string): Promise<void> {
 export async function putGames(games: Game[]): Promise<void> {
   const tx = (await db()).transaction('games', 'readwrite');
   await Promise.all([...games.map((g) => tx.store.put(g)), tx.done]);
+  for (const game of games) notify({ kind: 'put', game });
 }
 
 export async function getPlayers(): Promise<Player[]> {

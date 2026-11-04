@@ -16,13 +16,26 @@ import { StartScreen } from './screens/start';
 /** Spec 006 R-L7: selten genutzte Bildschirme werden nachgeladen (Bundle-Budget). */
 function Lazy<P extends object>({ load, props }: { load: () => Promise<FunctionComponent<P>>; props: P }) {
   const [Comp, setComp] = useState<FunctionComponent<P> | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     let alive = true;
-    void load().then((c) => alive && setComp(() => c));
+    load()
+      .then((c) => alive && setComp(() => c))
+      .catch(() => alive && setFailed(true));
     return () => {
       alive = false;
     };
   }, [load]);
+  if (failed) {
+    return (
+      <main class="page form" data-testid="lazy-failed">
+        <p class="hint">Dieser Bereich konnte nicht geladen werden. Mit Netz neu laden.</p>
+        <button type="button" class="btn btn--primary" onClick={() => window.location.reload()}>
+          Neu laden
+        </button>
+      </main>
+    );
+  }
   return Comp ? <Comp {...props} /> : <main class="page" aria-busy="true" />;
 }
 

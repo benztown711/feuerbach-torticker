@@ -11,9 +11,9 @@ import {
   type LiveInput,
 } from '../domain/live-spieltag';
 import { shortTeamName } from '../domain/team-name';
-import type { LeadCert, LiveSpieltag, Settings } from '../domain/types';
+import type { LeadCert, LiveConfig, LiveSpieltag, Settings } from '../domain/types';
 import { getSettings, putSettings } from './db';
-import { newSigningKey, newTopic, newViewKey, sealMessage, signData, verifySigned } from './live-crypto';
+import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
 import { publish } from './relay';
 import { shareText, type ShareResult } from './share';
 
@@ -43,11 +43,31 @@ export async function createLive(input: LiveInput): Promise<Settings> {
   return next;
 }
 
-/** Prüft Zertifikat und Konfiguration eines Lead-Links mit dem Organisator-Schlüssel. */
-export async function verifyLeadLink(lead: LeadLinkData): Promise<LeadCert | null> {
+export interface VerifiedLead {
+  cert: LeadCert;
+  /** Geprüfte Konfiguration; ihr Titel gilt (nicht der ungeprüfte Titel im Link). */
+  config: LiveConfig;
+}
+
+/** Passt der private Schlüssel im Link zum öffentlichen Schlüssel im Zertifikat? */
+async function keyMatches(lead: LeadLinkData, pub: string): Promise<boolean> {
+  try {
+    const probe = `probe:${pub}`;
+    return await verify(pub, probe, await sign(lead.key, probe));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Prüft einen Lead-Link: Zertifikat und Konfiguration vom Organisator signiert, die Mannschaft steht in
+ * der Konfiguration, und der private Schlüssel gehört zum Zertifikat (sonst würden alle Meldungen verworfen).
+ */
+export async function verifyLeadLink(lead: LeadLinkData): Promise<VerifiedLead | null> {
   const cert = parseLeadCert(await verifySigned(lead.view.orgPub, lead.cert));
   const config = parseConfig(await verifySigned(lead.view.orgPub, lead.config));
-  return cert && config ? cert : null;
+  if (!cert || !config || !config.teams.includes(cert.key)) return null;
+  return (await keyMatches(lead, cert.pub)) ? { cert, config } : null;
 }
 
 /** FR-L03: Kopplung speichern (Mannschaft wird bei Bedarf in "Meine Mannschaften" übernommen). */

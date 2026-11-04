@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { POLL_MS, publish, subscribe, type RelayMessage, type RelayState } from '../../src/platform/relay';
+import {
+  POLL_MS,
+  POLLS_BEFORE_STREAM,
+  publish,
+  subscribe,
+  type RelayMessage,
+  type RelayState,
+} from '../../src/platform/relay';
 
 type Reply =
   { kind: 'lines'; chunks: string[] } | { kind: 'hang' } | { kind: 'status'; status: number } | { kind: 'error' };
@@ -165,6 +172,27 @@ describe('006 FR-L07 FR-L15 SC-L08 Empfangen (research.md R-L2)', () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(f.calls[2]?.url).toBe('https://ntfy.sh/t/json?since=m1&poll=1');
     expect(states).toEqual(['connecting', 'polling']);
+    stop();
+  });
+
+  it('nach 10 Abfragen (5 Minuten) wird wieder der Stream versucht', async () => {
+    const replies: Reply[] = [{ kind: 'status', status: 429 }];
+    for (let i = 0; i < POLLS_BEFORE_STREAM; i++) replies.push({ kind: 'lines', chunks: [] });
+    replies.push({ kind: 'hang' });
+    const f = fakeFetch(replies);
+    const states: RelayState[] = [];
+    const stop = subscribe('t', {
+      fetchImpl: f.impl,
+      visibility: visibility(),
+      onMessage: () => undefined,
+      onState: (s) => states.push(s),
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    for (let i = 0; i < POLLS_BEFORE_STREAM; i++) await vi.advanceTimersByTimeAsync(POLL_MS);
+    expect(f.calls.slice(1, -1).every((c) => c.url.endsWith('&poll=1'))).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(f.calls.at(-1)?.url).toBe('https://ntfy.sh/t/json?since=12h');
+    expect(states.at(-1)).toBe('live');
     stop();
   });
 

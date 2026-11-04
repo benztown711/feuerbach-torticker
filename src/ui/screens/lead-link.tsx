@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { parseLinkPath, type LeadLinkData } from '../../domain/live-link';
-import { couplingKind } from '../../domain/live-spieltag';
+import { couplingKind, knowsTeam, replacesOrganizer, titleOf } from '../../domain/live-spieltag';
 import { shortTeamName } from '../../domain/team-name';
 import type { LeadCert, Settings } from '../../domain/types';
-import { normalizeName } from '../../domain/validation';
 import { getSettings } from '../../platform/db';
 import { coupleLead, verifyLeadLink } from '../../platform/live-setup';
 import { CoupleDialog } from '../components/couple-dialog';
@@ -17,20 +16,29 @@ const base = import.meta.env.BASE_URL;
  */
 export function LeadLinkScreen({ data }: { data: string }) {
   const [state, setState] = useState<
-    { kind: 'loading' } | { kind: 'invalid' } | { kind: 'ok'; lead: LeadLinkData; cert: LeadCert; settings: Settings }
+    | { kind: 'loading' }
+    | { kind: 'invalid' }
+    | { kind: 'ok'; lead: LeadLinkData; cert: LeadCert; title: string; settings: Settings }
   >({ kind: 'loading' });
   const [ask, setAsk] = useState(false);
   const [copied, setCopied] = useState('');
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     void (async () => {
       const link = parseLinkPath(`/lead/${data}`);
-      const cert = link.kind === 'lead' ? await verifyLeadLink(link.lead) : null;
-      if (link.kind !== 'lead' || !cert) {
+      const verified = link.kind === 'lead' ? await verifyLeadLink(link.lead) : null;
+      if (link.kind !== 'lead' || !verified) {
         setState({ kind: 'invalid' });
         return;
       }
-      setState({ kind: 'ok', lead: link.lead, cert, settings: await getSettings() });
+      setState({
+        kind: 'ok',
+        lead: link.lead,
+        cert: verified.cert,
+        title: verified.config.title,
+        settings: await getSettings(),
+      });
     })();
   }, [data]);
 
@@ -63,8 +71,8 @@ export function LeadLinkScreen({ data }: { data: string }) {
           <>
             <h2 class="live__title t-zwischentitel">Lead-Link für {shortTeamName(state.cert.name)}</h2>
             <p class="live__text">
-              Damit sendet das Handy am Spielfeldrand die Spiele von {shortTeamName(state.cert.name)} an „
-              {state.lead.view.title}“.
+              Damit sendet das Handy am Spielfeldrand die Spiele von {shortTeamName(state.cert.name)} an „{state.title}
+              “.
             </p>
             <ol class="live__steps">
               <li>„Link kopieren“ tippen.</li>
@@ -89,10 +97,24 @@ export function LeadLinkScreen({ data }: { data: string }) {
       {state.kind === 'ok' && ask && (
         <CoupleDialog
           cert={state.cert}
-          title={state.lead.view.title}
+          title={state.title}
           replace={couplingKind(state.settings, state.lead) === 'replace'}
-          addsTeam={!state.settings.teams.some((t) => normalizeName(t.name) === normalizeName(state.cert.name))}
-          onYes={() => void coupleLead(state.lead, state.cert).then(() => navigate('/live-spieltag', true))}
+          addsTeam={!knowsTeam(state.settings, state.cert.name)}
+          losesOrganizer={
+            state.settings.live && replacesOrganizer(state.settings, state.lead) ? titleOf(state.settings.live) : null
+          }
+          busy={busy}
+          onYes={() => {
+            if (busy) return;
+            setBusy(true);
+            void coupleLead(state.lead, state.cert)
+              .then(() => navigate('/live-spieltag', true))
+              .catch(() => {
+                setBusy(false);
+                setAsk(false);
+                setCopied('Koppeln hat nicht geklappt. Bitte erneut versuchen.');
+              });
+          }}
           onNo={() => setAsk(false)}
         />
       )}

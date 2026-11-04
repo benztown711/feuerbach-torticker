@@ -6,6 +6,8 @@
 
 export const RELAY_ORIGIN = 'https://ntfy.sh';
 export const POLL_MS = 30_000;
+/** Nach so vielen Abfragen (5 Minuten) wird wieder der Stream versucht. */
+export const POLLS_BEFORE_STREAM = 10;
 const MAX_BACKOFF_MS = 30_000;
 
 export interface RelayMessage {
@@ -56,6 +58,7 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
   const vis = opts.visibility ?? docVisibility;
   let since = opts.since ?? '12h';
   let polling = false;
+  let polls = 0;
   let stopped = false;
   let backoff = 1000;
   let ctrl: AbortController | null = null;
@@ -140,6 +143,10 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
         setState(polling ? 'polling' : 'live');
         await readLines(res.body);
         backoff = 1000;
+        if (polling && ++polls >= POLLS_BEFORE_STREAM) {
+          polling = false;
+          polls = 0;
+        }
         await sleep(polling ? POLL_MS : 1000);
       } catch {
         if (stopped) break;

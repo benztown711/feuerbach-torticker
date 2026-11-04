@@ -7,6 +7,7 @@ import {
   closeDb,
   deleteGame,
   findOpenGame,
+  putGames,
   getGame,
   getPlayers,
   getSettings,
@@ -95,9 +96,10 @@ describe('006 FR-L06 Beobachter für Spieländerungen', () => {
     await putGame(g);
     await putGame(kickoff(g, T0 + 1000));
     await deleteGame('a');
+    await putGames([createGame(input, { id: 'r', now: T0 })]);
     off();
     await putGame(g);
-    expect(seen).toEqual(['put:a:created', 'put:a:running', 'delete:a']);
+    expect(seen).toEqual(['put:a:created', 'put:a:running', 'delete:a', 'put:r:created']);
   });
 
   it('ein fehlerhafter Beobachter stört weder das Speichern noch andere Beobachter', async () => {

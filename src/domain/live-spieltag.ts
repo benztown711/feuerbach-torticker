@@ -1,7 +1,7 @@
-import { decodedLength, isBase64Url } from './base64url';
 import { teamShortLabel } from './history';
 import { isPaletteColor } from './jersey-colors';
 import type { LeadLinkData } from './live-link';
+import { isKey, isObj, isText, isTime, MAX_KEY, MAX_TITLE } from './live-validate';
 import { normalizeName } from './validation';
 import type {
   Game,
@@ -19,9 +19,7 @@ import type {
 /** Spec 006: Live-Spieltag anlegen, koppeln und Spiele zuordnen (FR-L01 bis FR-L04, FR-L06, FR-L09). */
 
 export const MAX_LIVE_TEAMS = 6;
-export const MAX_TITLE = 40;
 export const DEFAULT_LIVE_TITLE = 'Unser Spieltag';
-const MAX_KEY = 20;
 
 /** Schlüssel und Signaturen kommen von außen (Web Crypto in der Plattform, Fakes in Tests). */
 export interface LiveDeps {
@@ -138,18 +136,12 @@ export function leadLinkFor(live: LiveSpieltag, key: string): LeadLinkData | nul
   return cred ? { view: viewerOf(live), cert: cred.cert, key: cred.leadKey, config: live.config } : null;
 }
 
-type Obj = Record<string, unknown>;
-const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
-const isText = (v: unknown, max: number): v is string =>
-  typeof v === 'string' && v.trim().length > 0 && v.length <= max;
-const isTime = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
-
 /** Prüft den Inhalt eines Lead-Zertifikats (Signatur prüft die Plattform). */
 export function parseLeadCert(v: unknown): LeadCert | null {
   if (!isObj(v) || !isText(v.key, MAX_KEY) || !isText(v.name, MAX_TITLE)) return null;
   if (typeof v.homeColor !== 'string' || !isPaletteColor(v.homeColor)) return null;
   if (typeof v.awayColor !== 'string' || !isPaletteColor(v.awayColor)) return null;
-  if (typeof v.pub !== 'string' || !isBase64Url(v.pub) || decodedLength(v.pub) !== 65 || !isTime(v.iat)) return null;
+  if (!isKey(v.pub, 65) || !isTime(v.iat)) return null;
   return { key: v.key, name: v.name, homeColor: v.homeColor, awayColor: v.awayColor, pub: v.pub, iat: v.iat };
 }
 
@@ -167,6 +159,10 @@ export function newerConfig(a: LiveConfig | null, b: LiveConfig | null): LiveCon
   return b.iat > a.iat ? b : a;
 }
 
+/** Steht die Mannschaft schon in "Meine Mannschaften"? (Name ohne Groß-/Kleinschreibung und Leerzeichen) */
+export const knowsTeam = (settings: Settings, name: string): boolean =>
+  settings.teams.some((t) => normalizeName(t.name) === normalizeName(name));
+
 export type CouplingKind = 'new' | 'same' | 'replace';
 
 /** Neu koppeln, zum bestehenden Live-Spieltag hinzufügen oder (nach Rückfrage) ersetzen. */
@@ -174,6 +170,10 @@ export function couplingKind(settings: Settings, lead: LeadLinkData): CouplingKi
   if (!settings.live) return 'new';
   return settings.live.topic === lead.view.topic ? 'same' : 'replace';
 }
+
+/** Ersetzt der Lead-Link den Live-Spieltag, den dieses Gerät organisiert? Dann gehen dessen Schlüssel verloren. */
+export const replacesOrganizer = (settings: Settings, lead: LeadLinkData): boolean =>
+  couplingKind(settings, lead) === 'replace' && settings.live !== null && isOrganizer(settings.live);
 
 /**
  * FR-L03, FR-L04: übernimmt einen (geprüften) Lead-Link. Fehlt die Mannschaft in "Meine Mannschaften",
@@ -197,8 +197,9 @@ export function applyLeadLink(
   const current = couplingKind(settings, lead) === 'same' ? settings.live : null;
   let live: LiveSpieltag;
   if (current) {
+    // Der eingefügte Link gilt: Schlüssel und Zertifikat werden ersetzt (z. B. nach neuem Zertifikat).
     const keep = current.teams.some((t) => t.key === cred.key)
-      ? current.teams.map((t) => (t.key === cred.key ? { ...cred, leadKey: t.leadKey, cert: t.cert } : t))
+      ? current.teams.map((t) => (t.key === cred.key ? cred : t))
       : [...current.teams, cred];
     const fromLink = configOf(lead.config);
     const newer = newerConfig(configOf(current.config), fromLink) === fromLink;
@@ -214,8 +215,7 @@ export function applyLeadLink(
       createdAt: deps.now,
     };
   }
-  const known = settings.teams.some((t) => normalizeName(t.name) === normalizeName(cert.name));
-  const teams: Team[] = known
+  const teams: Team[] = knowsTeam(settings, cert.name)
     ? settings.teams
     : [
         ...settings.teams,

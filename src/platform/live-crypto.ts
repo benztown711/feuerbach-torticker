@@ -1,4 +1,5 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
+import { isSignedData } from '../domain/live-validate';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
 
 /**
@@ -132,12 +133,6 @@ export interface OpenedMessage {
   config: unknown;
 }
 
-const asSigned = (v: unknown): SignedData | null => {
-  if (typeof v !== 'object' || v === null) return null;
-  const o = v as Record<string, unknown>;
-  return typeof o.d === 'string' && typeof o.s === 'string' ? { d: o.d, s: o.s } : null;
-};
-
 const parseJson = (text: string): unknown => {
   try {
     return JSON.parse(text) as unknown;
@@ -158,11 +153,11 @@ export async function openMessage(
   const env = plain === null ? null : parseJson(plain);
   if (typeof env !== 'object' || env === null || Array.isArray(env)) return null;
   const e = env as Record<string, unknown>;
-  const g = asSigned(e.g);
+  const g = isSignedData(e.g) ? e.g : null;
   const config = g ? await verifySigned(view.orgPub, g) : null;
   let content: unknown = null;
   let cert: unknown = null;
-  const c = asSigned(e.c);
+  const c = isSignedData(e.c) ? e.c : null;
   if (typeof e.m === 'string' && typeof e.s === 'string' && c) {
     const certValue = await verifySigned(view.orgPub, c);
     const pub = (certValue as { pub?: unknown } | null)?.pub;
