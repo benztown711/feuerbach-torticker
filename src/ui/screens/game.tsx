@@ -27,11 +27,15 @@ import {
 } from '../../domain/events';
 import {
   addGoal,
+  canHaveAssist,
+  goalWho,
   homeAway,
   removeGoal,
   restoreGoal,
   score,
   scorerLabel,
+  setAssist,
+  scorerPlayerId,
   setPenalty,
   setScorer,
   undoGoal,
@@ -79,6 +83,9 @@ const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
 /** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
 const PICKER_MS = 8_000;
+/** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
+const ASSIST_MS = 5_000;
+
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
 
@@ -120,7 +127,10 @@ export function GameScreen({ id }: { id: string }) {
   const [players] = usePlayers();
   const [shareMsg, setShareMsg] = useState('');
   /** Torschützen-Auswahl: `until` gesetzt = direkt nach dem Tor (mit Auto-Schließen), null = Nachtragen. */
-  const [picker, setPicker] = useState<{ goalId: string; until: number | null } | null>(null);
+  /** Torschützen- bzw. (Spec 009) Vorlagen-Auswahl; `until` nur direkt nach dem Tor (Countdown). */
+  const [picker, setPicker] = useState<{ goalId: string; until: number | null; kind: 'scorer' | 'assist' } | null>(
+    null,
+  );
   const [textEdit, setTextEdit] = useState<{ goalId: string; value: string } | null>(null);
   const gameRef = useRef<Game | null>(null);
   // Spec 003: Ereignisse (Teil 1: Lesezeichen)
@@ -242,7 +252,7 @@ export function GameScreen({ id }: { id: string }) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
       if (side === 'own' && visiblePlayers(players ?? []).length > 0)
-        setPicker({ goalId: r.goal.id, until: t + PICKER_MS });
+        setPicker({ goalId: r.goal.id, until: t + PICKER_MS, kind: 'scorer' });
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
     }
@@ -326,10 +336,23 @@ export function GameScreen({ id }: { id: string }) {
     setPicker(null);
   };
   const pickScorer = (goalId: string, scorer: Scorer): void => {
-    update(setScorer(cur(), goalId, scorer));
+    const next = setScorer(cur(), goalId, scorer);
+    update(next);
+    // Spec 009 FR-V02, FR-V03: in der Schnellauswahl mit Schalter "Vorlagen" folgt "Vorlage von?".
+    const goal = next.goals.find((g) => g.id === goalId);
+    const quick = picker?.until != null;
+    if (quick && settings?.features.assists && goal && canHaveAssist(goal))
+      setPicker({ goalId, until: Date.now() + ASSIST_MS, kind: 'assist' });
+    else setPicker(null);
+  };
+  const pickAssist = (goalId: string, scorer: Scorer): void => {
+    update(setAssist(cur(), goalId, scorer?.kind === 'player' ? scorer.playerId : null));
     setPicker(null);
   };
   const pickerGoal = picker && !pickerExpired ? game.goals.find((g) => g.id === picker.goalId) : undefined;
+  /** Spec 009 FR-V02: "Vorlage von?" ohne den Torschützen. */
+  const notScorer = (p: { id: string }): boolean =>
+    picker?.kind !== 'assist' || !pickerGoal || scorerPlayerId(pickerGoal) !== p.id;
   const roster = players ?? [];
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
@@ -596,7 +619,7 @@ export function GameScreen({ id }: { id: string }) {
           )}
           <GoalList
             game={game}
-            ownName={ownShort}
+
             players={roster}
             onOpen={(g) => setSheetGoal(g.id)}
             events={allEvents}
@@ -1106,9 +1129,7 @@ export function GameScreen({ id }: { id: string }) {
 
       {selected && !ask && (
         <Sheet
-          title={`${formatMinute(selected.minute, selected.stoppage)} ${selected.side === 'own' ? ownShort : game.opponent}${
-            selected.scorer ? `, ${scorerLabel(selected, roster)}` : ''
-          }`}
+          title={`${formatMinute(selected.minute, selected.stoppage)} ${goalWho(game, selected, roster)}`}
           subtitle={`erfasst um ${formatTime(selected.at)} Uhr${selected.deletedAt !== null ? ' · entfernt' : ''}`}
           testId="goal-actions"
           onClose={() => setSheetGoal(null)}
@@ -1154,7 +1175,7 @@ export function GameScreen({ id }: { id: string }) {
             data-testid="goal-edit-scorer"
             onClick={() => {
               setSheetGoal(null);
-              if (selected.side === 'own') setPicker({ goalId: selected.id, until: null });
+              if (selected.side === 'own') setPicker({ goalId: selected.id, until: null, kind: 'scorer' });
               else
                 setTextEdit({
                   goalId: selected.id,
@@ -1164,20 +1185,44 @@ export function GameScreen({ id }: { id: string }) {
           >
             Torschütze ändern
           </button>
+          {settings?.features.assists && selected.deletedAt === null && canHaveAssist(selected) && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="goal-edit-assist"
+              onClick={() => {
+                setSheetGoal(null);
+                setPicker({ goalId: selected.id, until: null, kind: 'assist' });
+              }}
+            >
+              Vorlage ändern
+            </button>
+          )}
         </Sheet>
       )}
 
-      {pickerGoal && (
+      {pickerGoal && picker && (
         <ScorerPicker
-          subtitle={`Tor in Minute ${formatMinute(pickerGoal.minute, pickerGoal.stoppage)}`}
-          squad={squadPlayers(roster, game.squad)}
-          others={otherPlayers(roster, game.squad)}
-          onPick={(scorer) => pickScorer(pickerGoal.id, scorer)}
+          // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
+          key={picker.kind}
+          kind={picker.kind}
+          subtitle={`Tor in Minute ${formatMinute(pickerGoal.minute, pickerGoal.stoppage)}${
+            picker.kind === 'assist' ? ` · ${scorerLabel(pickerGoal, roster)}` : ''
+          }`}
+          // Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
+          squad={squadPlayers(roster, game.squad).filter(notScorer)}
+          others={otherPlayers(roster, game.squad).filter(notScorer)}
+          onPick={(scorer) =>
+            picker.kind === 'scorer' ? pickScorer(pickerGoal.id, scorer) : pickAssist(pickerGoal.id, scorer)
+          }
           onClose={() => setPicker(null)}
-          {...(picker?.until != null
+          {...(picker.until != null
             ? {
-                // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 s anzeigen.
-                countdown: Math.min(PICKER_MS / 1000, Math.max(1, Math.ceil((picker.until - now) / 1000))),
+                // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 bzw. 5 s anzeigen.
+                countdown: Math.min(
+                  (picker.kind === 'scorer' ? PICKER_MS : ASSIST_MS) / 1000,
+                  Math.max(1, Math.ceil((picker.until - now) / 1000)),
+                ),
                 ...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {}),
               }
             : {})}

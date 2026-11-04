@@ -226,6 +226,12 @@ describe('006 FR-L12 FR-L14 Karten', () => {
     ]);
   });
 
+  it('009 US3-S3 Torverlauf mit Vorlage "Max (Vorlage: Ben)"', () => {
+    const goals = [goal('own', 6, { who: 'Max', assist: 'Ben' }), goal('own', 9, { who: 'Tom' })];
+    const c = one(snap({ clock: kicked(), goals }), T0 + min(12));
+    expect(c.goals.map((g) => g.who)).toEqual(['Tom', 'Max (Vorlage: Ben)']);
+  });
+
   it('Details: Kürzel, Anpfiff, Halbzeitstand nur bei mehr als einem Abschnitt; beendet mit Datum und Schlusspfiff', () => {
     expect(one(snap(), T0).info).toBe('E1');
     const goals = [goal('own', 6), goal('opp', 30, { section: 2 })];

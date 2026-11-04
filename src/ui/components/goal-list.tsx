@@ -1,5 +1,5 @@
 import { cardText, subText } from '../../domain/events';
-import { goalRows, goalSuffix, scorerLabel, type GoalRow } from '../../domain/goals';
+import { goalRows, goalWho, type GoalRow } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import type { Game, GameEvent, Goal, Player } from '../../domain/types';
 import { BookmarkIcon, CardGlyph, SubIcon } from './event-icons';
@@ -8,7 +8,6 @@ export { BookmarkIcon } from './event-icons';
 
 interface Props {
   game: Game;
-  ownName: string;
   players: Player[];
   onOpen: (goal: Goal) => void;
   /** Spec 003 FR-E06: Lesezeichen, Karten und Wechsel erscheinen mit in der Liste. */
@@ -52,7 +51,7 @@ function EventRow({
 }
 
 /** Tore und Ereignisse, neuestes oben, in sich scrollbar (FR-034, FR-E06); entfernte Tore durchgestrichen (FR-008). */
-export function GoalList({ game, ownName, players, onOpen, events = [], onOpenEvent }: Props) {
+export function GoalList({ game, players, onOpen, events = [], onOpenEvent }: Props) {
   const items: Item[] = [
     ...goalRows(game).map((row) => ({ at: row.goal.at, row })),
     ...events.map((ev) => ({ at: ev.at, ev })),
@@ -79,11 +78,8 @@ export function GoalList({ game, ownName, players, onOpen, events = [], onOpenEv
           >
             <span class="goal-row__minute">{it.row.label}</span>
             <span class="goal-row__score">{it.row.score}</span>
-            <span class="goal-row__team">
-              {it.row.goal.side === 'own' ? ownName : game.opponent}
-              {it.row.goal.scorer && `, ${scorerLabel(it.row.goal, players)}`}
-              {goalSuffix(it.row.goal)}
-            </span>
+            {/* Spec 009 FR-V11: mit Torschütze ohne Mannschaftsnamen, z. B. "Max (Vorlage: Ben)". */}
+            <span class="goal-row__team">{goalWho(game, it.row.goal, players)}</span>
             {it.row.removed && <span class="goal-row__tag">entfernt</span>}
           </button>
         ),

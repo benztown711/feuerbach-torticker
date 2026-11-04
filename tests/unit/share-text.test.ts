@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/game';
-import { addGoal, removeGoal, setScorer } from '../../src/domain/goals';
+import { addGoal, removeGoal, setAssist, setScorer } from '../../src/domain/goals';
 import { buildShareText, oppSymbol, shareBlocks } from '../../src/domain/share-text';
 import type { Game, NewGameInput, Player, Side } from '../../src/domain/types';
 
@@ -292,5 +292,41 @@ describe('005 FR-S07 Vorschau wie im Chat', () => {
       { kind: 'line', text: 'x', bold: false },
       { kind: 'mono', lines: ['c'] },
     ]);
+  });
+});
+
+describe('009 FR-V07 Vorlage im Teilen-Text', () => {
+  /** Heimspiel 1 × 12: Max mit Vorlage Ben (3'), Gegentor (5'), Tom ohne Vorlage (8'). */
+  function withAssist(): Game {
+    let g = kickoff(
+      createGame({ ...base, venue: 'home', schema: { sections: 1, sectionMinutes: 12 } }, { id: 'v', now: T0 }),
+      T0,
+    );
+    g = goal(g, 'own', T0 + min(2) + sec(10), 'p-max');
+    g = setAssist(g, g.goals[0]!.id, 'p-ben');
+    g = goal(g, 'opp', T0 + min(4));
+    return goal(g, 'own', T0 + min(7), 'p-tom');
+  }
+
+  it('009 US3-S1 Zeile des Tores "Max (Vorlage: Ben)", ohne Rückennummer', () => {
+    const g = endSection(withAssist(), T0 + min(12));
+    expect(table(buildShareText(g, players, TZ))).toEqual([
+      "🔴 3'  1:0  Max (Vorlage: Ben)",
+      "⚫ 5'  1:1",
+      "🔴 8'  2:1  Tom",
+    ]);
+  });
+
+  it('009 US3-S2 Zeile "Torschützen" unverändert, keine eigene Zeile für Vorlagen', () => {
+    const lines = buildShareText(endSection(withAssist(), T0 + min(12)), players, TZ).split('\n');
+    expect(lines.slice(-2)).toEqual(['*Torschützen*', 'Max ⚽ · Tom ⚽']);
+    expect(lines.filter((l) => l.includes('Vorlage'))).toHaveLength(1);
+  });
+
+  it('Zwischenstand enthält die Vorlage; entfernte Tore samt Vorlage fehlen', () => {
+    const g = withAssist();
+    expect(table(buildShareText(g, players, TZ, T0 + min(9)))[0]).toBe("🔴 3'  1:0  Max (Vorlage: Ben)");
+    const removed = endSection(removeGoal(g, g.goals[0]!.id, T0 + min(9)), T0 + min(12));
+    expect(buildShareText(removed, players, TZ)).not.toContain('Vorlage');
   });
 });

@@ -245,7 +245,9 @@ const scoreOf = (s: LiveGameSnapshot, goals: LiveGoal[] = s.goals): string => {
 /** Torschütze wie im Teilen-Text: Vorname bzw. Kürzel, Gegner mit "(Gegner)", sonst Mannschaft. */
 function whoOf(g: LiveGoal, s: LiveGameSnapshot): string {
   const base = g.side === 'opp' ? (g.who ? `${g.who} (Gegner)` : s.opp) : g.ownGoal ? 'Eigentor' : (g.who ?? s.own);
-  return g.penalty ? `${base} (Elfmeter)` : base;
+  // Spec 009 FR-V08: "Max (Vorlage: Ben)".
+  const assist = g.assist ? ` (Vorlage: ${g.assist})` : '';
+  return g.penalty ? `${base}${assist} (Elfmeter)` : `${base}${assist}`;
 }
 
 function goalLines(s: LiveGameSnapshot): GoalLine[] {

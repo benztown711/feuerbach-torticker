@@ -314,6 +314,15 @@
                 "penalty": {
                   "type": "boolean",
                   "description": "Spec 003 FR-E01: Elfmeter (optional)"
+                },
+                "assist": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Spec 009 FR-V10: Kaderspieler-ID des Vorlagengebers (optional, null = keine)"
                 }
               }
             }

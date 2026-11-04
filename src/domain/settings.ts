@@ -16,7 +16,7 @@ export function defaultSettings(): Settings {
     signalSound: DEFAULT_SIGNAL_SOUND,
     installHintDismissedAt: null,
     teams: [],
-    features: { cards: false, subs: false, marks: false },
+    features: { cards: false, subs: false, marks: false, assists: false },
     live: null,
     liveView: null,
   };

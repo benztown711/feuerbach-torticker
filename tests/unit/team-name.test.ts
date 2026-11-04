@@ -20,7 +20,7 @@ describe('T095 FR-014 Kurzform und Einstellungen (Mannschaften siehe teams.test.
       signalSound: 'pfiff',
       installHintDismissedAt: null,
       teams: [],
-      features: { cards: false, subs: false, marks: false },
+      features: { cards: false, subs: false, marks: false, assists: false },
       live: null,
       liveView: null,
     });

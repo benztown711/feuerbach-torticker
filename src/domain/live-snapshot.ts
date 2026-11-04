@@ -1,6 +1,7 @@
 import { isPaletteColor } from './jersey-colors';
 import { isObj, isText, isTime, MAX_KEY, MAX_TITLE, type Obj } from './live-validate';
 import { shortTeamName } from './team-name';
+import { assistLabel } from './goals';
 import type { ClockEventType, EventPerson, Game, Player, Schema, Scorer, Side, Venue } from './types';
 
 /** Spec 006 FR-L06, FR-L10: Live-Stand eines Spiels (contracts/live-message.md). */
@@ -15,6 +16,8 @@ export interface LiveGoal {
   penalty: boolean;
   /** "Eigentor Gegner" (zählt für Feuerbach). */
   ownGoal: boolean;
+  /** Spec 009 FR-V08: Anzeigename des Vorlagengebers; fehlt ohne Vorlage. */
+  assist?: string;
 }
 
 export interface LiveShootout {
@@ -77,6 +80,12 @@ function scorerName(scorer: Scorer, players: Player[]): string | null {
   return scorer.kind === 'text' ? nameOrNull(scorer.text) : playerName(players, scorer.playerId);
 }
 
+/** Spec 009 FR-V08: nur mit bekanntem Spieler, sonst kein Feld (ältere Dashboards ignorieren es ohnehin). */
+function assistOf(assist: string | null | undefined, players: Player[]): { assist?: string } {
+  const name = assist == null ? null : playerName(players, assist);
+  return name === null ? {} : { assist: name };
+}
+
 function personName(who: EventPerson, players: Player[]): string | null {
   if (who === null) return null;
   return who.kind === 'text' ? nameOrNull(who.text) : playerName(players, who.playerId);
@@ -129,6 +138,7 @@ export function buildSnapshot(game: Game, players: Player[], team: string, sentA
         who: scorerName(g.scorer, players),
         penalty: g.penalty === true,
         ownGoal: g.scorer?.kind === 'ownGoal',
+        ...assistOf(assistLabel(g, players) ? g.assist : null, players),
       })),
     shootout: game.shootout
       ? {
@@ -171,6 +181,8 @@ function parseGoal(v: unknown): LiveGoal | null {
   if (!isObj(v) || !isSide(v.side) || !isInt(v.minute, 1, 240) || !isInt(v.section, 1, 6)) return null;
   if (!(v.stoppage === null || isInt(v.stoppage, 1, 60)) || !isName(v.who)) return null;
   if (typeof v.penalty !== 'boolean' || typeof v.ownGoal !== 'boolean') return null;
+  // Spec 009: Vorlage optional; fehlt bei älteren Trainer-Handys.
+  if (!(v.assist === undefined || isName(v.assist))) return null;
   return {
     side: v.side,
     minute: v.minute,
@@ -179,6 +191,7 @@ function parseGoal(v: unknown): LiveGoal | null {
     who: v.who,
     penalty: v.penalty,
     ownGoal: v.ownGoal,
+    ...(typeof v.assist === 'string' ? { assist: v.assist } : {}),
   };
 }
 

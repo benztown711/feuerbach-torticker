@@ -1,6 +1,7 @@
 import { deriveClock } from './clock';
 import { formatMinute } from './minute';
 import { resolvePlayer } from './roster';
+import { shortTeamName } from './team-name';
 import type { Game, Goal, Player, Score, Scorer, Side, Venue } from './types';
 import { validateOpponentScorerText } from './validation';
 
@@ -40,9 +41,25 @@ export function undoGoal(game: Game, goalId: string): Game {
   return { ...game, goals: game.goals.filter((g) => g.id !== goalId) };
 }
 
+/** Kaderspieler-ID des Torschützen, sonst null. */
+export const scorerPlayerId = (goal: Goal): string | null =>
+  goal.scorer?.kind === 'player' ? goal.scorer.playerId : null;
+
+/** Spec 009 FR-V05: Vorlage nur an eigenen Toren mit Spieler als Torschützen und ohne Elfmeter. */
+export const canHaveAssist = (goal: Goal): boolean =>
+  goal.side === 'own' && scorerPlayerId(goal) !== null && goal.penalty !== true;
+
+/** FR-V05: Eine Vorlage, die nach einer Änderung nicht mehr passt, wird entfernt. */
+const validAssist = (goal: Goal): boolean => canHaveAssist(goal) && scorerPlayerId(goal) !== goal.assist;
+
+function withValidAssist(goal: Goal): Goal {
+  if (goal.assist == null) return goal;
+  return validAssist(goal) ? goal : { ...goal, assist: null };
+}
+
 const patchGoal = (game: Game, goalId: string, patch: Partial<Goal>): Game => ({
   ...game,
-  goals: game.goals.map((g) => (g.id === goalId ? { ...g, ...patch } : g)),
+  goals: game.goals.map((g) => (g.id === goalId ? withValidAssist({ ...g, ...patch }) : g)),
 });
 
 /** FR-008: Tor entfernen; bleibt durchgestrichen sichtbar und zählt nicht. */
@@ -80,6 +97,31 @@ export function setPenalty(game: Game, goalId: string, penalty: boolean): Game {
   return patchGoal(game, goalId, clearOwnGoal ? { penalty, scorer: null } : { penalty });
 }
 
+/**
+ * Spec 009 FR-V02, FR-V04: Vorlagengeber setzen (Kaderspieler-ID) bzw. mit null entfernen.
+ * Ungültiges (Gegentor, ohne Spieler als Torschützen, Elfmeter, Vorlagengeber = Torschütze) ändert nichts.
+ */
+export function setAssist(game: Game, goalId: string, playerId: string | null): Game {
+  const goal = game.goals.find((g) => g.id === goalId);
+  if (!goal) return game;
+  if (playerId === null) return patchGoal(game, goalId, { assist: null });
+  if (!canHaveAssist(goal) || scorerPlayerId(goal) === playerId) return game;
+  return patchGoal(game, goalId, { assist: playerId });
+}
+
+/** Spec 009 FR-V09: Anzeigename des Vorlagengebers ohne Rückennummer, "" ohne Vorlage; gelöschte bleiben lesbar. */
+export function assistLabel(goal: Goal, players: Player[]): string {
+  // Auch eingelesene Daten (Sicherung) zeigen nur eine Vorlage, die FR-V05 erfüllt.
+  if (goal.assist == null || !validAssist(goal)) return '';
+  return resolvePlayer(players, goal.assist)?.name ?? '?';
+}
+
+/** Spec 009 FR-V06: " (Vorlage: Ben)" hinter dem Torschützen, sonst "". */
+export function assistSuffix(goal: Goal, players: Player[]): string {
+  const name = assistLabel(goal, players);
+  return name ? ` (Vorlage: ${name})` : '';
+}
+
 /** Zusatz hinter Torschütze bzw. Minute in Liste und Teilen-Text. */
 export const goalSuffix = (goal: Goal): string => (goal.penalty ? ' (Elfmeter)' : '');
 
@@ -90,6 +132,17 @@ export function scorerLabel(goal: Goal, players: Player[]): string {
   if (s.kind === 'ownGoal') return 'Eigentor';
   if (s.kind === 'text') return s.text;
   return resolvePlayer(players, s.playerId)?.name ?? '?';
+}
+
+/**
+ * Spec 009 FR-V11: Beschriftung eines Tores in Torliste, Tor-Fenster und Spieldetails. Mit Torschütze ohne
+ * Mannschaftsnamen ("Max (Vorlage: Ben)", Gegner "Nr. 9 (TSV Musterstadt)"), sonst die Mannschaft.
+ */
+export function goalWho(game: Game, goal: Goal, players: Player[]): string {
+  if (goal.scorer === null)
+    return (goal.side === 'own' ? shortTeamName(game.ownTeam) : game.opponent) + goalSuffix(goal);
+  const opp = goal.side === 'opp' ? ` (${game.opponent})` : '';
+  return `${scorerLabel(goal, players)}${opp}${assistSuffix(goal, players)}${goalSuffix(goal)}`;
 }
 
 export function score(game: Game): Score {
