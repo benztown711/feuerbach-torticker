@@ -47,8 +47,12 @@ export class LiveReceiver {
     this.state = { board: saved.board, relay: 'connecting', skew: 0, liveAt: saved.liveAt };
   }
 
+  /**
+   * Gemerkter Stand gilt nur für denselben Organisator-Schlüssel: Ein Link mit fremdem Schlüssel und
+   * gleichem Topic darf den Stand des echten Dashboards nicht füllen (R-L12).
+   */
   private get key(): string {
-    return STORAGE_PREFIX + this.view.topic;
+    return `${STORAGE_PREFIX}${this.view.topic}:${this.view.orgPub}`;
   }
 
   private load(): { board: Board; liveAt: number | null } {

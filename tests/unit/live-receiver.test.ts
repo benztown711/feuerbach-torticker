@@ -9,6 +9,7 @@ import type { RelayState, SubscribeOptions } from '../../src/platform/relay';
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 const TOPIC = 'abcdefghijklmnopqrstuv';
 const view = { topic: TOPIC, viewKey: 'view', orgPub: 'org' };
+const KEY = `${STORAGE_PREFIX}${TOPIC}:org`;
 
 const snap = (p: Partial<LiveGameSnapshot> = {}): LiveGameSnapshot => ({
   v: 1,
@@ -160,13 +161,23 @@ describe('006 US3 Empfänger', () => {
     const { storage, msg } = setup();
     await msg({ config, content: snap() });
     await flush();
-    const saved = JSON.parse(storage.data[STORAGE_PREFIX + TOPIC] ?? '{}') as { games: unknown[]; liveAt: number };
+    const saved = JSON.parse(storage.data[KEY] ?? '{}') as { games: unknown[]; liveAt: number };
     expect(saved.games).toHaveLength(1);
     expect(saved.liveAt).toBe(T0);
     const again = new LiveReceiver(view, { ...setup().deps, storage });
     expect(again.get().board.games).toHaveLength(1);
     expect(again.get().board.config?.title).toBe('Unser Spieltag');
     expect(again.get().liveAt).toBe(T0);
+  });
+
+  it('R-L12: gemerkter Stand gilt nur für denselben Organisator-Schlüssel', async () => {
+    const { storage, msg } = setup();
+    await msg({ config, content: snap() });
+    await flush();
+    const other = new LiveReceiver({ ...view, orgPub: 'fremd' }, { ...setup().deps, storage });
+    expect(other.get().board.games).toEqual([]);
+    expect(other.get().board.config).toBeNull();
+    expect(new LiveReceiver(view, { ...setup().deps, storage }).get().board.games).toHaveLength(1);
   });
 
   it('Fehler beim Speicherzugriff werden ignoriert', async () => {
@@ -187,9 +198,9 @@ describe('006 US3 Empfänger', () => {
     await noStore.msg({ content: snap() });
     await flush();
     expect(noStore.r.get().board.games).toHaveLength(1);
-    const bad = memoryStore({ [STORAGE_PREFIX + TOPIC]: '{"games":[],"removed":[],"liveAt":"x"}' });
+    const bad = memoryStore({ [KEY]: '{"games":[],"removed":[],"liveAt":"x"}' });
     expect(new LiveReceiver(view, { ...setup().deps, storage: bad }).get().liveAt).toBeNull();
-    const garbage = memoryStore({ [STORAGE_PREFIX + TOPIC]: '{kaputt' });
+    const garbage = memoryStore({ [KEY]: '{kaputt' });
     expect(new LiveReceiver(view, { ...setup().deps, storage: garbage }).get().board.games).toEqual([]);
   });
 
