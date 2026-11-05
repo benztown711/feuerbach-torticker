@@ -3,7 +3,7 @@ import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag } from '../../src/domain/types';
 import type { OpenedMessage } from '../../src/platform/live-crypto';
 import type { SubscribeOptions } from '../../src/platform/relay';
-import { watchGame, watchSpieltag } from '../../src/platform/live-watch';
+import { watchGame, watchLive, watchSpieltag } from '../../src/platform/live-watch';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 const live = {
@@ -46,6 +46,10 @@ function fakeDeps() {
     stop,
     send: async (s: LiveGameSnapshot, time = (T0 + 60_000) / 1000) => {
       opts?.onMessage({ id: String(Math.random()), time, message: JSON.stringify(s) });
+      await new Promise((r) => setTimeout(r, 0));
+    },
+    sendRaw: async (message: string) => {
+      opts?.onMessage({ id: String(Math.random()), time: (T0 + 60_000) / 1000, message });
       await new Promise((r) => setTimeout(r, 0));
     },
     deps: {
@@ -135,5 +139,31 @@ describe('006 US4 andere Spiele', () => {
     expect(changed).not.toHaveBeenCalled();
     expect(w.others('eigen', 'E1')[0]?.score).toBe('0:0');
     w.stop();
+  });
+});
+
+describe('006 US5 Übersicht und Übernahme der Konfiguration', () => {
+  it('zuletzt gesendet je Mannschaft; jüngere signierte Konfiguration geht an onConfig', async () => {
+    const f = fakeDeps();
+    const onConfig = vi.fn();
+    const newer = { d: JSON.stringify({ title: 'Neu', teams: ['E1', 'E2'], iat: T0 + 1 }), s: 'sig' };
+    const w = watchLive(live, {
+      ...f.deps,
+      onConfig,
+      open: async (_v, text) =>
+        text === 'config'
+          ? { content: null, cert: null, config: JSON.parse(newer.d) as unknown, signedConfig: newer }
+          : { content: JSON.parse(text) as unknown, cert: null, config: null },
+    });
+    const changed = vi.fn();
+    w.onChange(changed);
+    expect(w.lastSent('E2')).toBeNull();
+    await f.send(snap());
+    expect(w.lastSent('E2')).toBe(T0 + 60_000);
+    expect(changed).toHaveBeenCalled();
+    await f.sendRaw('config');
+    expect(onConfig).toHaveBeenCalledWith(newer);
+    w.stop();
+    expect(f.stop).toHaveBeenCalled();
   });
 });

@@ -205,6 +205,28 @@ describe('006 US3 Empfänger', () => {
     expect(new LiveReceiver(view, { ...setup().deps, storage: garbage }).get().board.games).toEqual([]);
   });
 
+  it('US5-S1: meldet jede jüngere signierte Konfiguration einmal (Trainer-Handys übernehmen sie)', async () => {
+    const onConfig = vi.fn();
+    const { r, msg } = setup({ onConfig });
+    r.seed(config);
+    const signed = (iat: number) => ({ d: JSON.stringify({ ...config, iat }), s: `s${iat}` });
+    await msg({ config, signedConfig: signed(T0) });
+    await flush();
+    expect(onConfig).not.toHaveBeenCalled();
+    const newer = { ...config, title: 'Neu', iat: T0 + 1 };
+    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 'm2');
+    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 'm3');
+    await flush();
+    expect(onConfig).toHaveBeenCalledTimes(1);
+    expect(onConfig).toHaveBeenCalledWith(signed(T0 + 1));
+    expect(r.get().board.config?.title).toBe('Neu');
+    // ohne Rückruf (Zuschauer) keine Weitergabe
+    const viewer = setup();
+    await viewer.msg({ config: newer, signedConfig: signed(T0 + 1) });
+    await flush();
+    expect(viewer.r.get().board.config?.title).toBe('Neu');
+  });
+
   it('stop beendet die Verbindung; spätere Meldungen und zweites start ändern nichts', async () => {
     const { r, relay, stop, changes } = setup();
     r.start();

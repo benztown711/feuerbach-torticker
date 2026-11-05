@@ -6,7 +6,7 @@ import { addShot, endShootout, startExtraTime, startShootout } from '../../src/d
 import { createGame, endSection, kickoff } from '../../src/domain/game';
 import { addCard, addMark, addSub, setMarkComment } from '../../src/domain/events';
 import { addGoal, setAssist, setPenalty, setScorer } from '../../src/domain/goals';
-import type { Game, MarkEvent, Player } from '../../src/domain/types';
+import type { Game, LiveSpieltag, MarkEvent, Player } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
 const min = (n: number): number => n * 60_000;
@@ -310,5 +310,76 @@ describe('T072 FR-024 Sicherung', () => {
     expect(r.newGames.map((g) => g.id)).toEqual([G2]);
     expect(r.skippedGames).toBe(1);
     expect(r.newPlayers.map((p) => p.id)).toEqual([players[1]!.id]);
+  });
+});
+
+describe('006 FR-L21 Sicherung mit Live-Spieltag', () => {
+  const B43 = 'A'.repeat(42) + 'Q';
+  const B87 = 'C'.repeat(86) + 'A';
+  const SIG = 'B'.repeat(85) + 'A';
+  const keyParts = { d: B43, x: B43, y: B43 };
+  const live: LiveSpieltag = {
+    v: 1,
+    topic: 'abcdefghijklmnopqrstuv',
+    viewKey: B43,
+    orgPub: B87,
+    orgKey: keyParts,
+    config: { d: JSON.stringify({ title: 'Unser Spieltag', teams: ['E1'], iat: T0 }), s: SIG },
+    teams: [
+      {
+        key: 'E1',
+        name: 'Sportvg Feuerbach E1',
+        homeColor: 'rot',
+        awayColor: 'schwarz',
+        leadKey: keyParts,
+        cert: { d: '{"key":"E1"}', s: SIG },
+        sends: true,
+      },
+    ],
+    createdAt: T0,
+  };
+
+  it('enthält den Live-Spieltag (Schema) und liest ihn wieder ein; ohne Live-Spieltag fehlt das Feld', () => {
+    const backup = buildBackup([game(G1)], players, T0, '0.3.0', live);
+    const json = JSON.parse(JSON.stringify(backup)) as unknown;
+    expect(validate(json), JSON.stringify(validate.errors)).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.live).toEqual(live);
+    expect('live' in buildBackup([], players, T0, undefined, null)).toBe(false);
+    // Lead-Handy der ersten Version: ohne Organisator-Schlüssel, keine Mannschaft mehr
+    const lead = { ...live, orgKey: undefined, teams: [] };
+    const leadBackup = JSON.parse(JSON.stringify(buildBackup([], players, T0, undefined, lead))) as unknown;
+    expect(validate(leadBackup)).toBe(true);
+    const back = parseBackup(JSON.stringify(leadBackup));
+    expect(back.ok && back.backup.live).toEqual({ ...lead, orgKey: undefined });
+  });
+
+  it('beschädigter Live-Spieltag wird abgelehnt (Schema und Prüfung)', () => {
+    const cred = live.teams[0]!;
+    const broken: unknown[] = [
+      'x',
+      { ...live, v: 2 },
+      { ...live, topic: 'kurz' },
+      { ...live, viewKey: 'x' },
+      { ...live, orgPub: B43 },
+      { ...live, orgKey: { d: 'x', x: B43, y: B43 } },
+      { ...live, config: { d: '', s: SIG } },
+      { ...live, createdAt: 'gestern' },
+      { ...live, teams: 'E1' },
+      { ...live, teams: [{ ...cred, key: '' }] },
+      { ...live, teams: [{ ...cred, name: 'x'.repeat(41) }] },
+      { ...live, teams: [{ ...cred, homeColor: 'pink' }] },
+      { ...live, teams: [{ ...cred, awayColor: 'pink' }] },
+      { ...live, teams: [{ ...cred, leadKey: {} }] },
+      { ...live, teams: [{ ...cred, cert: {} }] },
+      { ...live, teams: [{ ...cred, sends: 'ja' }] },
+      { ...live, teams: [cred, cred] },
+      { ...live, teams: Array.from({ length: 7 }, (_, i) => ({ ...cred, key: `E${i}` })) },
+    ];
+    for (const l of broken) {
+      const text = JSON.stringify({ ...buildBackup([], players, T0), live: l });
+      expect(parseBackup(text)).toEqual({ ok: false, error: 'Der Live-Spieltag in der Sicherung ist beschädigt.' });
+      expect(validate(JSON.parse(text)), JSON.stringify(l).slice(0, 80)).toBe(false);
+    }
   });
 });

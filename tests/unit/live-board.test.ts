@@ -9,6 +9,7 @@ import {
   emptyBoard,
   formatClockTime,
   formatDay,
+  lastSentAt,
   otherGames,
   parseBoard,
   runningElsewhere,
@@ -509,5 +510,18 @@ describe('006 US4 andere Spiele im Spielbildschirm', () => {
     // Mannschaft nicht im Live-Spieltag: nur das eigene Spiel fehlt.
     expect(otherGames(b, 'nur-hier', null, T0 + min(60), TZ).map((c) => c.gameId)).toEqual(['heute-frueher']);
     expect(otherGames(emptyBoard(), 'eigen', 'E1', T0, TZ)).toEqual([]);
+  });
+});
+
+describe('006 US5 zuletzt gesendet je Mannschaft', () => {
+  it('jüngste Meldung (Serverzeit) über alle Handys; ohne Meldung null', () => {
+    const b = [
+      snap({ gameId: 'a', sentAt: T0 }),
+      snap({ gameId: 'b', sentAt: T0 + min(5) }),
+      snap({ team: 'E2', gameId: 'c', sentAt: T0 + min(2) }),
+    ].reduce((acc, x) => put(acc, x, x.sentAt + 1000), emptyBoard());
+    expect(lastSentAt(b, 'E1')).toBe(T0 + min(5) + 1000);
+    expect(lastSentAt(b, 'E2')).toBe(T0 + min(2) + 1000);
+    expect(lastSentAt(b, 'E3')).toBeNull();
   });
 });
