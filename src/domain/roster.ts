@@ -36,7 +36,10 @@ export const resolvePlayer = (players: Player[], id: string): Player | undefined
 /** Spec 013 R-K1: Groß-/Kleinschreibung egal, Umlaute nach deutscher Regel ("Ömer" neben "Oskar"). */
 const collator = new Intl.Collator('de', { sensitivity: 'base' });
 
+/** Feste Reihenfolge auch bei "Ben"/"ben": zuletzt exakter Vergleich (gleich auf jedem Gerät). */
+const exact = new Intl.Collator('de', { sensitivity: 'variant' });
 const byName = (a: Player, b: Player): number => collator.compare(a.name, b.name);
+const byExactName = (a: Player, b: Player): number => exact.compare(a.name, b.name);
 
 /** Nach Nummer aufsteigend; ohne Nummer zuletzt. */
 const byNumber = (a: Player, b: Player): number => {
@@ -48,9 +51,9 @@ const byNumber = (a: Player, b: Player): number => {
 
 const COMPARE: Record<RosterSort, (a: Player, b: Player) => number> = {
   /** Spec 013 FR-K03: Vorname, bei Gleichstand Nummer. */
-  name: (a, b) => byName(a, b) || byNumber(a, b),
+  name: (a, b) => byName(a, b) || byNumber(a, b) || byExactName(a, b),
   /** Spec 013 FR-K04: Nummer, ohne Nummer zuletzt, bei Gleichstand Vorname. */
-  number: (a, b) => byNumber(a, b) || byName(a, b),
+  number: (a, b) => byNumber(a, b) || byName(a, b) || byExactName(a, b),
 };
 
 /** Spec 013 FR-K03, FR-K04, FR-K06: neue, sortierte Liste; die Eingabe bleibt unverändert. */

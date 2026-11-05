@@ -102,6 +102,9 @@ describe('Spec 013 Kader sortieren', () => {
   it('013 FR-K03 ohne Beachtung von Groß-/Kleinschreibung, Umlaute nach deutscher Regel', () => {
     const list = [p('a', 'Paul', 1), p('b', 'ömer', 2), p('c', 'Oskar', 3), p('d', 'ben', 4), p('e', 'Anton', 5)];
     expect(names(sortPlayers(list, 'name'))).toEqual(['Anton', 'ben', 'ömer', 'Oskar', 'Paul']);
+    const tie = [p('x', 'Léo', null), p('y', 'Leo', null)];
+    expect(sortPlayers(tie, 'name').map((x) => x.id)).toEqual(sortPlayers([...tie].reverse(), 'name').map((x) => x.id));
+    expect(sortPlayers(tie, 'number').map((x) => x.id)).toEqual(['y', 'x']);
     const same = [p('x', 'ben', 9), p('y', 'Ben', 3)];
     expect(sortPlayers(same, 'name').map((x) => x.id)).toEqual(['y', 'x']);
   });
