@@ -1,5 +1,5 @@
 import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
-import { liveTeamFor, sendsFor } from '../domain/live-spieltag';
+import { isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
 import { findOpenGame, getPlayers, getSettings, onGameWrite, type GameChange } from './db';
 import { MAX_MESSAGE, sealMessage, type MessageParts } from './live-crypto';
@@ -294,7 +294,8 @@ export function stopLiveSender(): void {
 export async function startLiveSender(settings?: Settings): Promise<void> {
   const s = settings ?? (await getSettings());
   const live = s.live;
-  if (!live || !live.teams.some((t) => sendsFor(live, t))) {
+  // US5-S3: neu ausgestellt (auf einem anderen Trainer-Handy): nichts mehr senden.
+  if (!live || isRetired(live) || !live.teams.some((t) => sendsFor(live, t))) {
     stopLiveSender();
     return;
   }

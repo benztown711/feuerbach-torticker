@@ -236,6 +236,13 @@ export function Dashboard({
           {statusDetail(state.relay, state.liveAt)}
         </span>
       </div>
+      {v.retired && (
+        <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
+          {inApp
+            ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live-Spieltag).`
+            : `„${title}“ wurde neu ausgestellt. Bitte den neuen Link aus der Elterngruppe öffnen.`}
+        </p>
+      )}
       {!v.today && (
         <section class="dash-empty" data-testid="dash-empty">
           <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>

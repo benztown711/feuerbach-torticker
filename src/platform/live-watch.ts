@@ -3,6 +3,7 @@ import {
   lastSentAt,
   otherGames,
   runningElsewhere,
+  sentLabel,
   type Board,
   type BoardCard,
   type BoardEntry,
@@ -33,8 +34,8 @@ const receiverFor = (live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveRecei
   );
 
 export interface LiveOverviewWatch {
-  /** US5: Serverzeit der jüngsten Meldung einer Mannschaft, sonst null. */
-  lastSent(team: string): number | null;
+  /** US5: "zuletzt gesendet …" je Mannschaft (über alle Handys). */
+  sent(team: string): string;
   onChange(cb: () => void): () => void;
   stop(): void;
 }
@@ -44,7 +45,7 @@ export function watchLive(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {}):
   const r = receiverFor(live, deps);
   r.start();
   return {
-    lastSent: (team) => lastSentAt(r.get().board, team),
+    sent: (team) => sentLabel(lastSentAt(r.get().board, team), r.serverNow(), deps.timeZone),
     onChange: (cb) => r.onChange(cb),
     stop: () => r.stop(),
   };

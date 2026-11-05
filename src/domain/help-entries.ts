@@ -488,7 +488,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Was tue ich, wenn ein Link in falsche Hände geraten ist?',
     answer:
-      'Tippe unter „Mehr“ und „Live-Spieltag“ auf „Alle Links neu ausstellen …“. Die alten Links zeigen danach nichts Neues mehr. Schick den neuen Zuschauer-Link an die Elterngruppe und den neuen Trainer-Link an eure Trainergruppe; die anderen Trainer fügen ihn ein. Das gilt auch, wenn jemand die Trainergruppe verlässt.',
+      'Tippe unter „Mehr“ und „Live-Spieltag“ auf „Alle Links neu ausstellen …“. Schick den neuen Zuschauer-Link an die Elterngruppe und den neuen Trainer-Link an eure Trainergruppe. Handys mit dem alten Trainer-Link senden nichts mehr und bitten um den neuen; wer den alten Zuschauer-Link öffnet, sieht einen Hinweis. Das gilt auch, wenn jemand die Trainergruppe verlässt.',
     keywords: 'link falsch weitergeleitet geleakt sicherheit neu ausstellen trainer verlässt gruppe',
     sources: ['006 US5'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },

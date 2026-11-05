@@ -26,6 +26,7 @@ import {
   renameSpieltag,
   reissueSpieltag,
   restoreLive,
+  retireConfig,
 } from '../domain/live-manage';
 import type { LiveTeamOption } from '../domain/live-spieltag';
 import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData } from '../domain/types';
@@ -194,8 +195,21 @@ export const addTeamToLive = (option: LiveTeamOption): Promise<Settings> =>
 export const removeTeamFromLive = (key: string): Promise<Settings> =>
   manage((live) => removeLiveTeam(live, key, deps()));
 
-/** US5-S3: alle Links neu ausstellen (neues Topic, neue Schlüssel). */
-export const reissueLive = (): Promise<Settings> => manage((live) => reissueSpieltag(live, deps()));
+/**
+ * US5-S3: alle Links neu ausstellen (neues Topic, neue Schlüssel). Auf dem alten Topic geht danach einmal der
+ * Hinweis "neu ausgestellt" hinaus, ohne die neuen Links (Variante C, research.md R-L17).
+ */
+export async function reissueLive(): Promise<Settings> {
+  const old = (await getSettings()).live;
+  const next = await manage((live) => reissueSpieltag(live, deps()));
+  if (old) {
+    const retired = await retireConfig(old, deps());
+    void sealMessage(old.viewKey, { config: retired })
+      .then((text) => publish(old.topic, text))
+      .catch(() => false);
+  }
+  return next;
+}
 
 /** US5-S2 FR-L20: Kopplung beenden; die Spiele bleiben auf dem Handy. */
 export async function endCoupling(): Promise<Settings> {

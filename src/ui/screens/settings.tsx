@@ -4,7 +4,8 @@ import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
 import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
-import type { EventFeatures, Settings, Team, Theme } from '../../domain/types';
+import { titleOf } from '../../domain/live-spieltag';
+import type { EventFeatures, LiveSpieltag, Settings, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
 import { previewSignal } from '../../platform/signal';
@@ -156,7 +157,8 @@ export function SettingsScreen() {
 
   const doExport = async (): Promise<void> => {
     const now = Date.now();
-    const backup = buildBackup(await listGames(), await getPlayers(), now, APP_VERSION);
+    // Spec 006 FR-L21: mit Live-Spieltag, damit ein Handywechsel ohne neue Links geht.
+    const backup = buildBackup(await listGames(), await getPlayers(), now, APP_VERSION, (await getSettings()).live);
     const r = await shareFile(JSON.stringify(backup, null, 1), backupFileName(now));
     setExportMsg(
       r === 'shared'
@@ -167,6 +169,20 @@ export function SettingsScreen() {
             ? ''
             : 'Sicherung konnte nicht erstellt werden.',
     );
+  };
+
+  /** FR-L21: Live-Spieltag aus der Sicherung (nachgeladen), nur ohne eigenen. */
+  const restoreLive = async (live: LiveSpieltag): Promise<string> => {
+    const r = await import('../../platform/live-setup')
+      .then((m) => m.restoreLiveFromBackup(live))
+      .catch(() => 'invalid' as const);
+    if (r === 'restored') {
+      setSettings(await getSettings());
+      return ` Live-Spieltag „${titleOf(live)}“ übernommen.`;
+    }
+    return r === 'kept'
+      ? ' Live-Spieltag nicht übernommen: Auf diesem Handy ist schon einer eingerichtet.'
+      : ' Live-Spieltag nicht übernommen: Er ist beschädigt.';
   };
 
   const doImport = async (file: File | undefined): Promise<void> => {
@@ -181,8 +197,9 @@ export function SettingsScreen() {
     await putPlayers(merged.newPlayers);
     const skipped =
       merged.skippedGames > 0 ? `, ${plural(merged.skippedGames, 'Spiel', 'Spiele')} schon vorhanden` : '';
+    const live = parsed.backup.live ? await restoreLive(parsed.backup.live) : '';
     setImportMsg(
-      `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.`,
+      `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.${live}`,
     );
   };
 
@@ -380,7 +397,17 @@ export function SettingsScreen() {
               />
             </label>
           </div>
-          <p class="field__help">Alle Spiele und der Kader als Datei, z. B. in iCloud Drive.</p>
+          <p class="field__help">
+            {settings.live
+              ? 'Alle Spiele, der Kader und der Live-Spieltag als Datei, z. B. in iCloud Drive.'
+              : 'Alle Spiele und der Kader als Datei, z. B. in iCloud Drive.'}
+          </p>
+          {settings.live && (
+            <p class="field__help" data-testid="backup-live-hint">
+              Die Datei enthält auch den Trainer-Schlüssel: nur für dich aufbewahren, nicht in Gruppen teilen. Auf einem
+              neuen Handy stellt „Wiederherstellen“ den Live-Spieltag ohne neue Links her.
+            </p>
+          )}
           <p class="settings__result" role="status" data-testid="import-result">
             {importMsg || exportMsg}
           </p>

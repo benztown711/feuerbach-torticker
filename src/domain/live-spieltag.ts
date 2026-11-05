@@ -190,10 +190,14 @@ export function parseConfig(v: unknown): LiveConfig | null {
   const teams = v.teams as unknown[];
   if (teams.length === 0 || teams.length > MAX_LIVE_TEAMS || !teams.every((t) => isText(t, MAX_KEY))) return null;
   const config: LiveConfig = { title: v.title, teams: teams as string[], iat: v.iat };
-  if (v.m === undefined) return config;
   const m = v.m;
-  if (!Array.isArray(m) || m.length > MAX_LIVE_TEAMS || !m.every(isTeamDetail)) return null;
-  return { ...config, m: m as TeamDetail[] };
+  if (m !== undefined && (!Array.isArray(m) || m.length > MAX_LIVE_TEAMS || !m.every(isTeamDetail))) return null;
+  if (v.retired !== undefined && v.retired !== true) return null;
+  return {
+    ...config,
+    ...(m !== undefined ? { m: m as TeamDetail[] } : {}),
+    ...(v.retired ? { retired: true } : {}),
+  };
 }
 
 /** US5: Kurzlabel, Name und zwei Trikotfarben der Palette. */
@@ -376,9 +380,12 @@ export async function applyTrainerLink(
   return { ...settings, live, teams: adoptTeams(settings, teams, deps.newId) };
 }
 
+/** US5-S3: Der Live-Spieltag wurde auf einem anderen Trainer-Handy neu ausgestellt; dieses Handy sendet nicht mehr. */
+export const isRetired = (live: LiveSpieltag): boolean => configOf(live.config)?.retired === true;
+
 /** FR-L04: Mannschaft, für die dieses Gerät Spiele mit dieser eigenen Mannschaft sendet, sonst null. */
 export function liveTeamFor(ownTeam: string, live: LiveSpieltag | null): LiveTeamCred | null {
-  if (!live) return null;
+  if (!live || isRetired(live)) return null;
   const name = normalizeName(ownTeam);
   return live.teams.find((t) => sendsFor(live, t) && normalizeName(t.name) === name) ?? null;
 }

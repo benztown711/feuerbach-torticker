@@ -3,7 +3,7 @@ import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
 import { startPrivate } from '../../domain/live-snapshot';
-import { liveTeamFor, titleOf } from '../../domain/live-spieltag';
+import { isRetired, liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
 import { signalSoundName } from '../../domain/signal-sound';
@@ -232,6 +232,12 @@ export function NewGameScreen() {
               onClick={() => setLiveOn(!liveOn)}
             />
           </div>
+        )}
+        {settings.live && isRetired(settings.live) && (
+          <p class="field__help" data-testid="new-live-retired">
+            „{titleOf(settings.live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link unter „Mehr“ → „Live-Spieltag“
+            ein, um wieder live zu senden.
+          </p>
         )}
         {settings.teams.length === 0 && (
           <p class="hint" data-testid="hint-teams">

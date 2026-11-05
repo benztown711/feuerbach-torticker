@@ -211,6 +211,8 @@ export interface LiveConfig {
    * neue Mannschaft übernehmen können. Fehlt bei Konfigurationen älterer Versionen.
    */
   m?: TeamDetail[];
+  /** Spec 006 US5-S3: Live-Spieltag wurde neu ausgestellt (Hinweis auf dem alten Topic, ohne neue Links). */
+  retired?: true;
 }
 
 /** Spec 006: Mannschaft in Trainer-Link und Konfiguration: Kurzlabel, Name, Heim-, Auswärtstrikot. */

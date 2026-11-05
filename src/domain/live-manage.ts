@@ -135,6 +135,21 @@ export async function reissueSpieltag(live: LiveSpieltag, deps: LiveDeps): Promi
 }
 
 /**
+ * US5-S3 (Variante C): Hinweis "neu ausgestellt" für das alte Topic, signiert mit dem alten
+ * Organisator-Schlüssel; er enthält keine neuen Links.
+ */
+export async function retireConfig(live: LiveSpieltag, deps: SignDeps): Promise<SignedData> {
+  const config: LiveConfig = {
+    title: titleOf(live),
+    teams: live.teams.map((t) => t.key),
+    iat: nextIat(live, deps.now),
+    m: detailsOf(live.teams),
+    retired: true,
+  };
+  return deps.signData(orgKeyOf(live), config);
+}
+
+/**
  * US5-S1: übernimmt eine jüngere, bereits geprüfte Konfiguration eines anderen Trainer-Handys. Neue Mannschaften
  * bekommen ein eigenes Zertifikat und landen in "Meine Mannschaften", entfernte fallen weg. Ein Lead-Handy der
  * ersten Version (ohne Organisator-Schlüssel) übernimmt nur Titel und Entfernen. null: nichts zu tun.
