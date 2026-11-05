@@ -4,7 +4,7 @@
 
 ## Summary
 
-Ein Live-Spieltag besteht aus einem zufälligen Topic beim kostenlosen Vermittlungsdienst ntfy.sh und drei Schlüsselarten: Zuschauer (AES-GCM, lesen), Organisator (ECDSA, Zertifikate und Konfiguration signieren) und je Mannschaft ein Lead-Schlüssel (ECDSA, Stände signieren). Lead-Handys senden bei jeder Änderung eines Spiels ihrer Mannschaft den vollständigen Stand, verschlüsselt und signiert, gebündelt höchstens alle 5 s, dazu alle 3 Minuten ein Lebenszeichen. Das Dashboard läuft im Torticker selbst (eigene Route, ohne Navigationsleiste), liest den JSON-Stream von ntfy, prüft jede Meldung und berechnet die Minute mit derselben Uhrlogik wie das Lead-Handy. Kein eigener Server, keine neue Laufzeit-Abhängigkeit (Web Crypto, `fetch`, `CompressionStream`). Umsetzung in fünf PRs, einer je User Story.
+Ein Live-Spieltag besteht aus einem zufälligen Topic beim kostenlosen Vermittlungsdienst ntfy.sh und drei Schlüsselarten: Zuschauer (AES-GCM, lesen), Organisator (ECDSA, Zertifikate und Konfiguration signieren) und je Mannschaft ein Lead-Schlüssel (ECDSA, Stände signieren). Seit der Änderung "Trainergruppe" (research.md R-L13) trägt jedes Trainer-Handy den Organisator-Schlüssel aus dem Trainer-Link, signiert seine Zertifikate selbst und sendet je Spiel für die Mannschaft des Spiels. Ein Trainer-Handy sendet bei jeder Änderung eines Spiels den vollständigen Stand, verschlüsselt und signiert, gebündelt höchstens alle 5 s, dazu alle 3 Minuten ein Lebenszeichen. Das Dashboard läuft im Torticker selbst (eigene Route, ohne Navigationsleiste), liest den JSON-Stream von ntfy, prüft jede Meldung und berechnet die Minute mit derselben Uhrlogik wie das sendende Handy. Trainer-Handys hören im Spiel und beim Anlegen mit: für die anderen Spiele (US4), das Übernehmen eines Spiels (US6) und Änderungen am Live-Spieltag (US5). Kein eigener Server, keine neue Laufzeit-Abhängigkeit (Web Crypto, `fetch`, `CompressionStream`). Umsetzung in sieben PRs (siehe Phasen).
 
 ## Technical Context
 
@@ -48,14 +48,17 @@ Ein Live-Spieltag besteht aus einem zufälligen Topic beim kostenlosen Vermittlu
 ### Ablauf
 
 ```text
-Organisator-Handy                Lead-Handy (E2)                 ntfy.sh               Zuschauer (Browser)
-Live-Spieltag anlegen ──Lead-Link (WhatsApp, einfügen)──▶ koppeln
+Trainer-Handy A                  Trainer-Handy B                 ntfy.sh               Zuschauer (Browser)
+Live-Spieltag anlegen ──Trainer-Link (WhatsApp, einfügen)──▶ koppeln (eigene Zertifikate)
        │──Zuschauer-Link (WhatsApp)──────────────────────────────────────────────────▶ öffnen
        │                         Spiel ändert sich (putGame)
        │                         Live-Stand → signieren → packen → verschlüsseln
        │                                ──POST /<topic>──────────▶ 12 h vorhalten
        │                                                          ──GET /<topic>/json──▶ prüfen → Board → Karten
+       │◀── mithören (US4 andere Spiele, US5 Konfiguration, US6 Übernahme) ──────────── GET /<topic>/json
 ```
+
+Lead-Links der ersten Version (je Mannschaft) bleiben gültig, werden aber nicht mehr erzeugt (contracts/live-link.md).
 
 ### Module
 
@@ -64,17 +67,24 @@ Live-Spieltag anlegen ──Lead-Link (WhatsApp, einfügen)──▶ koppeln
 | `src/domain/types.ts` | `LiveSpieltag`, `LiveTeamCred`, `LeadCert`, `LiveConfig`, `ViewerLink`; `Settings.live`, `Settings.liveView`; `Game.live` | Haupt |
 | `src/domain/live-snapshot.ts` | `buildSnapshot(game, players, now)` (FR-L10), `parseSnapshot(unknown)` (strenge Prüfung, R-L9) | Haupt |
 | `src/domain/live-spieltag.ts` | Anlegen, Mannschaften, Zuordnung Spiel → gekoppelte Mannschaft (`sendingTeamFor`), Konfiguration wählen (jüngste gewinnt), Kopplung übernehmen inkl. Mannschaft in "Meine Mannschaften" (FR-L03) | Haupt |
-| `src/domain/live-link.ts` | Zuschauer- und Lead-Link kodieren, dekodieren, prüfen (`contracts/live-link.md`) | Haupt |
+| `src/domain/live-link.ts` | Zuschauer-, Trainer- und Lead-Link kodieren, dekodieren, prüfen (`contracts/live-link.md`) | Haupt |
+| `src/domain/live-manage.ts` | US5: Titel, Mannschaft hinzufügen/entfernen, neu ausstellen, Hinweis "neu ausgestellt", jüngere Konfiguration übernehmen, Wiederherstellen (R-L17) | nachgeladen |
+| `src/domain/live-takeover.ts` | US6: Spiel aus dem letzten Live-Stand anlegen, Übernahme erkennen (R-L15) | nachgeladen |
+| `src/domain/live-validate.ts` | gemeinsame Prüfungen für Links, Zertifikate, Meldungen und Sicherung (R-L9) | Haupt |
 | `src/domain/live-board.ts` | Board aus geprüften Meldungen: jüngster Stand je Spiel, Karte je Mannschaft, "Heute außerdem", Reihenfolge (FR-L14), Phase und Minute (FR-L12, R-L4), "Letzte Meldung vor n Min" (FR-L15), Tagesgrenze und Merken (FR-L16) | Haupt |
 | `src/platform/live-crypto.ts` | Schlüssel erzeugen/ein-/auslesen, signieren/prüfen, packen (deflate-raw) und AES-GCM, base64url | Haupt |
 | `src/platform/relay.ts` | `publish(topic, text)`, `subscribe(topic, {since, onMessage, onState})` mit Stream, Neuverbindung, 429-Rückfall auf Abfrage, Pause bei verborgener Seite (R-L2) | Haupt |
 | `src/platform/live-sender.ts` | Beobachter an `db.ts`, Bündelung 5 s, Wiederholung, Lebenszeichen 3 min, Vordergrund, Status für das Kennzeichen (R-L3) | Haupt |
 | `src/platform/db.ts` | `onGameWrite(listener)`: Benachrichtigung nach `putGame`/`deleteGame` | Haupt |
+| `src/platform/live-receiver.ts` | Empfänger: prüfen, Board führen, gemerkter Stand, Serverzeit, jüngere Konfiguration melden | nachgeladen |
+| `src/platform/live-setup.ts` | anlegen, Links prüfen und koppeln, teilen, verwalten, Übernahme einer Konfiguration, Wiederherstellen (nacheinander, nie gleichzeitig) | nachgeladen |
+| `src/platform/live-watch.ts` | Mithören in "Neues Spiel", im Spielbildschirm und in der Übersicht (US4, US5, US6) | nachgeladen |
+| `src/platform/live-events.ts` | meldet geänderte Live-Einstellungen an offene Bildschirme (ohne Krypto, fürs Hauptbundle) | Haupt |
 | `src/ui/components/live-pill.tsx` | Kennzeichen "Live" / "Live: wartet auf Netz" / "Nicht live" (FR-L08) | Haupt |
 | `src/ui/components/live-others.tsx` | Zeile mit den anderen Spielen im Spielbildschirm (US4) | Haupt |
-| `src/ui/screens/live.tsx` | "Mehr" → "Live-Spieltag": leer, anlegen, Übersicht (Organisator), Lead-Ansicht, Link einfügen, Kopplungsfrage | nachgeladen |
+| `src/ui/screens/live.tsx` | "Mehr" → "Live-Spieltag": leer, anlegen, Übersicht mit Verwalten (Trainer-Handy), Lead-Ansicht, "neu ausgestellt", Link einfügen, Kopplungsfrage | nachgeladen |
 | `src/ui/screens/live-dashboard.tsx` | Dashboard für Zuschauer (`#/live/…`) und in der App (`#/live-spieltag/dashboard`); aufklappbare Karten | nachgeladen |
-| `src/ui/screens/lead-link.tsx` | Lead-Link im Browser: Anleitung, "Link kopieren", "Hier im Browser koppeln" | nachgeladen |
+| `src/ui/screens/lead-link.tsx` | Trainer- oder Lead-Link im Browser: Anleitung, "Link kopieren", "Hier im Browser koppeln" | nachgeladen |
 | `src/ui/router.ts`, `src/ui/app.tsx`, `nav-bar.tsx`, `more.tsx`, `game.tsx` | neue Routen, Leiste auf Zuschauer- und Lead-Link-Seite ausgeblendet, Menüeintrag, Kennzeichen, Zeile, "Nicht live senden" | Haupt |
 
 ### Wichtige Entscheidungen
@@ -89,11 +99,13 @@ Live-Spieltag anlegen ──Lead-Link (WhatsApp, einfügen)──▶ koppeln
 
 | PR | Inhalt | Akzeptanzszenarien |
 |---|---|---|
-| 1 | Grundlagen (Typen, Links, Krypto, Relay-Client, Fixture `relay`) und US1: Live-Spieltag anlegen, Links teilen, Lead-Link einfügen bzw. im Browser öffnen, koppeln | 006 US1-S1 bis S4, S6 |
-| 2 | US2: Live-Stand, Sender, Kennzeichen, "Nicht live senden", Löschen | 006 US2-S1 bis S7 |
-| 3 | US3: Dashboard (Zuschauer-Route, Board, aufklappbare Karten, Status, Abfrage-Rückfall, Start ohne Daten) | 006 US1-S5, US3-S1 bis S10 |
-| 4 | US4: Zeile mit anderen Spielen, Tipp öffnet Dashboard | 006 US4-S1 bis S3 |
-| 5 | US5: Verwalten (Titel, Mannschaft hinzufügen/entfernen, neu ausstellen, Kopplung beenden), Sicherung | 006 US5-S1 bis S5 |
+| #26 | Grundlagen (Typen, Links, Krypto, Relay-Client, Fixture `relay`) und US1: Live-Spieltag anlegen, Links teilen, Lead-Link einfügen bzw. im Browser öffnen, koppeln | 006 US1-S1 bis S4, S6 |
+| #27 | US2: Live-Stand, Sender, Kennzeichen, "Nicht live senden", Löschen | 006 US2-S1 bis S7 |
+| #28 | US3: Dashboard (Zuschauer-Route, Board, aufklappbare Karten, Status, Abfrage-Rückfall, Start ohne Daten) | 006 US1-S5, US3-S1 bis S10 |
+| #29 | Änderung Trainergruppe: ein Trainer-Link, Senden je Spiel, Schalter "Live aufs Dashboard" (R-L13) | 006 US1, US2-S8, S9 |
+| #33 | US6: Spiel übernehmen, kein doppeltes Senden (R-L15) | 006 US6-S1 bis S5 |
+| #35 | US4: Zeile mit anderen Spielen, Tipp öffnet Dashboard | 006 US4-S1 bis S3 |
+| #37 | US5: Verwalten (Titel, Mannschaft hinzufügen/entfernen, neu ausstellen mit Hinweis, Kopplung beenden), Sicherung mit Live-Spieltag (R-L17, R-L18) | 006 US5-S1 bis S5 |
 
 ## Project Structure
 
@@ -107,7 +119,7 @@ specs/006-live-spieltag/
 ├── data-model.md
 ├── quickstart.md
 ├── contracts/
-│   ├── live-link.md     # Zuschauer- und Lead-Link
+│   ├── live-link.md     # Zuschauer-, Trainer- und Lead-Link
 │   ├── live-message.md  # Meldung, Live-Stand, Konfiguration, Zertifikat
 │   └── ui-contract.md   # Routen und Test-IDs
 ├── checklists/requirements.md

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US4, US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; US5 in Umsetzung. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; offen ist der Gerätetest (quickstart.md, G-1 bis G-10). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -231,7 +231,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 **Verwalten (jedes Trainer-Handy)**
 
-- **FR-L19**: Jedes Trainer-Handy MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Bei Änderungen von mehreren Handys gilt die jüngste. Hinzufügen und Entfernen ändern weder Zuschauer- noch Trainer-Link; Neuausstellen macht alle bisherigen Links wirkungslos.
+- **FR-L19**: Jedes Trainer-Handy MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Bei Änderungen von mehreren Handys gilt die jüngste. Hinzufügen und Entfernen ändern den Zuschauer-Link nicht, und der bisherige Trainer-Link bleibt gültig (gleiches Topic, gleiche Schlüssel; ein neu geteilter Trainer-Link nennt zusätzlich die aktuelle Mannschaftsliste); Neuausstellen macht alle bisherigen Links wirkungslos.
 - **FR-L20**: Ein Trainer- oder Lead-Handy MUSS die Kopplung beenden können (mit Bestätigung); lokal gespeicherte Spiele bleiben unverändert.
 - **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten (mit Schlüsseln, Hinweis "nur für dich aufbewahren"), damit ein Handywechsel ohne neue Links möglich ist. Wiederherstellen übernimmt den Live-Spieltag nur, wenn das Handy noch keinen hat, und erst nach einer Rückfrage mit Titel und Mannschaften (wie beim Koppeln per Link).
 
@@ -272,7 +272,7 @@ Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit 
 - Lead-Handys sind während des Spiels im Vordergrund (Bildschirm bleibt an, FR-013).
 - Die Trainergruppe ist klein (4 bis 5 Personen) und vertrauenswürdig; der Trainer-Link wird nur dort geteilt.
 - Die Constitution wird auf Version 2.0.0 angehoben (Prinzip II erlaubt die Live-Kopplung); das Qualitätstor "Netzwerk-Wächter" lässt genau den Vermittlungsdienst und nur bei aktiver Kopplung zu.
-- Spiele werden nicht zwischen Geräten übernommen: Das Dashboard ist eine Anzeige, die Historie bleibt auf dem Lead-Handy.
+- Spiele werden nicht zwischen Geräten abgeglichen: Das Dashboard ist eine Anzeige, die Historie bleibt auf dem Handy, das das Spiel erfasst hat. Einzige Ausnahme ist "Spiel übernehmen" (US6): Dabei legt ein zweites Handy das laufende Spiel aus dem letzten Live-Stand an (ohne Karten, Wechsel, Lesezeichen und Aufgebot).
 
 ## Offene Fragen
 

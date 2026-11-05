@@ -4,7 +4,7 @@
 
 **Tests**: Pflicht (Constitution IV). Jeder Test entsteht vor dem Code und schlägt zuerst fehl. E2E-Namen beginnen mit "006 USx-Sy", Unit-Tests nennen die FR-L- bzw. SC-L-Nummer im `describe` (jede FR-L hat mindestens einen Test, siehe Zuordnung unten). [P] = parallel möglich (andere Datei, keine offene Abhängigkeit). Ein PR je User Story (plan.md, "Phasen und Pull Requests"); Phase 1 und 2 gehören zum PR von US1.
 
-## Phase 1: Setup (PR 1)
+## Phase 1: Setup (PR #26)
 
 - [x] L001 (FR-L01, FR-L09) Typen in `src/domain/types.ts` nach `data-model.md`: `LiveSpieltag`, `LiveTeamCred` (`key`, `name` "1 bis 40", `homeColor`, `awayColor`, `leadPriv`, `cert`, `sends`), `SignedConfig`, `SignedCert`, `LiveConfig` (`title` "1 bis 40 Zeichen", `teams` "1 bis 6", `iat`), `LeadCert`, `ViewerLink`, `LiveSnapshot`; `Settings.live` und `Settings.liveView` mit Vorgabe `null` in `src/domain/settings.ts`; `Game.live?: boolean`
 - [x] L002 [P] `tests/unit/export.test.ts`: Sicherung mit `Game.live` (true, false, fehlt) wird angenommen, `live: "ja"` abgelehnt; danach `isGame` in `src/domain/export.ts` und `specs/001-spiel-erfassen/contracts/export.schema.json` ergänzen
@@ -12,7 +12,7 @@
 - [x] L004 [P] (FR-L05, SC-L06) E2E-Fixture `tests/e2e/relay.ts` (research.md R-L8): Nachbau von ntfy über `context.route('https://ntfy.sh/**')` mit Speicher je Topic, `POST /<topic>` (Antwort mit `id`, `time`), `GET /<topic>/json?since=…&poll=…` (Zeile `open` mit Serverzeit, dann Meldungen seit `since`, dann Ende), Schalter `fail` (Netz weg) und `tooMany` (429); `tests/e2e/fixtures.ts`: Netzwerk-Wächter lässt `https://ntfy.sh` nur zu, wenn ein Test die Fixture `relay` nutzt
 - [x] L005 [P] Testhelfer `tests/e2e/live-helpers.ts`: `createLive()` legt per Oberfläche einen Live-Spieltag an und liefert Zuschauer- und Lead-Links aus der Teilen-Aufzeichnung, `pasteLeadLink()`, `recordedOf()`; Fixture `newDevice` für weitere Handys (eigener Kontext). Der Vertragstest-Entschlüsseler folgt mit L024
 
-## Phase 2: Grundlagen (PR 1)
+## Phase 2: Grundlagen (PR #26)
 
 - [x] L006 [P] (FR-L11) `tests/unit/live-crypto.test.ts`: base64url hin und zurück; Schlüssel erzeugen, als roh/JWK aus- und einlesen; signieren/prüfen (verändertes `m` scheitert); `seal`/`open` mit AES-GCM und deflate-raw, Präfix `t1.`, falscher Schlüssel scheitert; Umschlag bauen und in der Prüfreihenfolge aus `contracts/live-message.md` öffnen (ungültiges `g` verworfen, Live-Stand bleibt; ungültiges `c` oder `s` verwirft den Live-Stand; `m.team` ≠ `c.key` verworfen)
 - [x] L007 `src/platform/live-crypto.ts` (macht L006 grün)
@@ -21,7 +21,7 @@
 - [x] L010 [P] (FR-L07, FR-L15, SC-L08) `tests/unit/relay.test.ts` (Fake-`fetch`, Fake-Timer): `publish` sendet `POST`; `subscribe` liest Zeilen auch über Chunk-Grenzen, `open`/`keepalive` liefern die Serverzeit, `message` ruft `onMessage`, Neuverbindung mit `since=<letzte ID>` nach 1, 2, 4 … 30 s, 429 schaltet auf `poll=1` alle 30 s, `stop()` bricht ab, verborgene Seite schließt den Stream und öffnet ihn beim Zurückkehren (R-L2)
 - [x] L011 `src/platform/relay.ts` (macht L010 grün)
 
-## Phase 3: US1 Live-Spieltag anlegen und Lead-Handys festlegen (P1, PR 1)
+## Phase 3: US1 Live-Spieltag anlegen und koppeln (P1, PR #26)
 
 **Ziel**: Organisator legt an und teilt Links; ein zweites Handy koppelt per Einfügen. **Unabhängiger Test**: Gerät A legt an, Gerät B fügt Lead-Link E2 ein und zeigt "Lead für Feuerbach E2".
 
@@ -34,7 +34,7 @@
 - [x] L018 [US1] `src/ui/screens/lead-link.tsx` (macht 006 US1-S6 grün)
 - [x] L019 [US1] Verweis auf `specs/006-live-spieltag/contracts/ui-contract.md` in `specs/001-spiel-erfassen/contracts/ui-contract.md`; Lint, Typen, Unit mit Coverage, Budget, E2E lokal; Screenshots iPhone SE hell/dunkel (Leerzustand, Formular, Übersicht, Kopplungsfrage) an Atti
 
-## Phase 4: US2 Lead-Handy sendet automatisch (P1, PR 2)
+## Phase 4: US2 Trainer-Handy sendet automatisch (P1, PR #27)
 
 **Ziel**: Jede Änderung eines Spiels der gekoppelten Mannschaft kommt verschlüsselt beim Dienst an. **Unabhängiger Test**: Lead-Handy pfeift an und erfasst ein Tor; der Vertragstest-Helfer entschlüsselt im Relay den richtigen Stand.
 
@@ -46,7 +46,7 @@
 - [x] L025 [US2] `src/ui/components/live-pill.tsx` im Kopf von `src/ui/screens/game.tsx`, Menüeintrag `menu-live-toggle` (macht L024 grün)
 - [x] L026 [US2] `tests/e2e/us2-layout-se.spec.ts` um das Kennzeichen erweitern (FR-033); Qualitätstore lokal; Screenshots iPhone SE hell/dunkel (Spiel mit Kennzeichen, "wartet auf Netz", Menü) an Atti
 
-## Phase 5: US3 Eltern schauen zu (P1, PR 3)
+## Phase 5: US3 Eltern schauen zu (P1, PR #28)
 
 **Ziel**: Zuschauer-Link zeigt alle Spiele aufklappbar mit laufender Minute. **Unabhängiger Test**: Relay mit Ständen von E1 (37') und E2 (Halbzeit) befüllen, Zuschauer-Link auf drittem Gerät öffnen.
 
@@ -58,7 +58,7 @@
 - [x] L032 [US3] `src/ui/screens/live-dashboard.tsx` nach Mockup "Eltern" (Entwurf 2) mit Test-IDs aus `contracts/ui-contract.md`, Stile mit Tokens; `src/ui/screens/start.tsx` öffnet gemerktes Dashboard ohne eigene Daten (R-L6) (macht L031 grün)
 - [x] L033 [US3] `tests/e2e/a11y.spec.ts` und `tests/e2e/visual.spec.ts` um das Dashboard (hell/dunkel, auf- und zugeklappt) erweitern; Qualitätstore lokal; Screenshots an Atti
 
-## Phase 5b: Änderung Trainergruppe (P1, PR 4, Clarifications 04.11.2026, research.md R-L13)
+## Phase 5b: Änderung Trainergruppe (P1, PR #29, Clarifications 04.11.2026, research.md R-L13)
 
 - [x] L043 [P] (FR-L02 bis FR-L04) `tests/unit/live-link.test.ts`, `tests/unit/live-spieltag.test.ts`: Trainer-Link kodieren, dekodieren, finden, ungültige Felder; Anlegen ohne "Dieses Handy sendet für" (Trainer-Handy sendet für alle); `trainerLinkFor`; `applyTrainerLink` (eigener Lead-Schlüssel, Zertifikate je Mannschaft, Mannschaften übernehmen, gleicher Live-Spieltag behält Anlegezeit und jüngere Konfiguration, anderer ersetzt); `sendsFor`, `liveTeamFor`
 - [x] L044 Domäne in `src/domain/live-link.ts`, `src/domain/live-spieltag.ts` (macht L043 grün, 100 % Branch-Coverage)
@@ -67,7 +67,7 @@
 - [x] L047 E2E: `live-us1.spec.ts` auf Trainer-Link umgestellt (US1-S1 bis S7), `live-us2.spec.ts` um US2-S8 und US2-S9 ergänzt, `live-us3.spec.ts` sendet wie Trainer-Handys
 - [x] L048 Verträge, research.md R-L13, Gerätetest G-1/G-2; `/code-review`, `/security-review`; Screenshots iPhone SE hell/dunkel an Atti
 
-## Phase 5c: US6 Spiel übernehmen (P2, PR 5, research.md R-L15)
+## Phase 5c: US6 Spiel übernehmen (P2, PR #33, research.md R-L15)
 
 - [x] L049 [P] [US6] (FR-L22 bis FR-L24) Unit: Übergabezähler in `live-snapshot` (bauen, prüfen, fehlt = 0), `live-board` (größeres `h` gilt, Grabsteine mit `h`, gemerkte Stände ohne `h`, `runningElsewhere`), `tests/unit/live-takeover.test.ts` (Übernehmen mit Uhr, Toren, Torschützen, Elfmeterschießen, Schwellen; `takenOver`, `handOver`), Sender (übernommene Spiele senden nichts, Zähler in Meldungen), Sicherung
 - [x] L050 [US6] Domäne `src/domain/live-takeover.ts`, `live-board.ts`, `live-snapshot.ts`, `export.ts` (macht L049 grün, 100 % Branch-Coverage)
@@ -75,14 +75,14 @@
 - [x] L052 [US6] E2E `tests/e2e/live-us6.spec.ts`: 006 US6-S1 bis S5 mit zwei Trainer-Handys und Zuschauer
 - [x] L053 [US6] `/code-review`, `/security-review`, Screenshots iPhone SE hell/dunkel an Atti
 
-## Phase 6: US4 Blick auf das andere Spiel (P2, PR 4)
+## Phase 6: US4 Blick auf das andere Spiel (P2, PR #35)
 
 **Ziel**: Lead-Handy sieht die anderen Spiele im Spielbildschirm. **Unabhängiger Test**: Gerät A (Lead E1) im Spiel, Gerät B (Lead E2) erfasst ein Tor, A zeigt den neuen Stand.
 
 - [x] L034 [P] [US4] E2E `tests/e2e/live-us4.spec.ts`: 006 US4-S1 Tipp auf `live-pill` öffnet Dashboard, "Spiel" führt zurück, Uhr läuft weiter; 006 US4-S2 Zeile `live-others` mit "E2 2:1 · 31'"; 006 US4-S3 Hervorhebung ohne Ton (`recorded().sounds` unverändert); iPhone SE ohne Scrollen
 - [x] L035 [US4] `src/ui/components/live-others.tsx` im Spielbildschirm, nutzt `live-receiver` nur solange der Spielbildschirm offen und das Handy gekoppelt ist (macht L034 grün); eine Verbindung für US4 und FR-L24 (`watchGame` in `src/platform/live-watch.ts`, Auswahl `otherGames` in `src/domain/live-board.ts`); Screenshots an Atti
 
-## Phase 7: US5 Live-Spieltag verwalten (P3, PR 5)
+## Phase 7: US5 Live-Spieltag verwalten (P3, PR #37)
 
 **Ziel**: Titel, Mannschaften, Neuausstellen, Kopplung beenden, Sicherung. **Unabhängiger Test**: E3 hinzufügen; bestehender Zuschauer-Link zeigt E3-Spiele.
 
@@ -94,24 +94,25 @@
 ## Phase 8: Abschluss
 
 - [x] L040 [P] Hilfe-Text "Live-Spieltag" (erledigt mit Spec 010: Einträge im Thema "Live-Spieltag" in `src/domain/help-entries.ts`, Eltern-Hilfe über die Eltern-Leiste)
-- [ ] L041 `/code-review` und `/security-review` je PR (Eingaben aus Links und Meldungen, keine HTML-Einschleusung, Schlüssel nur im Fragment); `/speckit-analyze` nach jeder Phase ohne kritische Befunde
-- [ ] L042 Gerätetest G-1 bis G-7 aus `quickstart.md` mit Atti (Review C); Ergebnis von G-3 in research.md R-L6 nachtragen
+- [x] L041 `/code-review` und `/security-review` je PR (Eingaben aus Links und Meldungen, keine HTML-Einschleusung, Schlüssel nur im Fragment); `/speckit-analyze` nach jeder Phase ohne kritische Befunde
+- [ ] L042 Gerätetest G-1 bis G-10 aus `quickstart.md` mit Atti (Review C, Checkliste https://claude.ai/artifact/B6AGLutstmPXiDyRnmVx6p); Ergebnis von G-3 in research.md R-L6 nachtragen
 
 ## Zuordnung Anforderungen → Aufgaben
 
 | Anforderung | Aufgaben |
 |---|---|
-| FR-L01, FR-L02 | L001, L008, L012, L014, L017 |
-| FR-L03, FR-L04 | L008, L012, L014, L018 |
+| FR-L01, FR-L02 | L001, L008, L012, L014, L017, L043 bis L048 (Trainer-Link) |
+| FR-L03, FR-L04 | L008, L012, L014, L018, L043 bis L048 (Senden je Spiel) |
 | FR-L05 | L004, L014 |
 | FR-L06, FR-L07 | L003, L020, L022, L024 |
-| FR-L08, FR-L09 | L022, L024, L025, L026 |
+| FR-L08, FR-L09 | L022, L024, L025, L026, L046, L047 ("Live aufs Dashboard") |
 | FR-L10 | L020, L024 |
 | FR-L11 | L006, L029, L031 |
 | FR-L12 bis FR-L16 | L027, L029, L031, L032 |
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |
+| FR-L22 bis FR-L24 | L049, L050, L051, L052, L053 |
 | SC-L01, SC-L03 | L022, L024 |
 | SC-L02, SC-L04 | L027, L031 |
 | SC-L05, SC-L07 | L042 (Gerätetest), Constitution VIII |
@@ -121,11 +122,12 @@
 ## Abhängigkeiten
 
 ```text
-Phase 1 → Phase 2 → US1 → US2 → US3 → US4 → US5 → Abschluss
+Phase 1 → Phase 2 → US1 → US2 → US3 → Trainergruppe (5b) → US6 (5c) → US4 → US5 → Abschluss
                          └────────────┘ (US3 braucht Meldungen aus US2 nur für E2E; Board und Empfänger sind unabhängig)
 ```
 
-- US4 nutzt `live-receiver` aus US3; US5 nutzt ihn für "zuletzt gesendet".
+- US4 nutzt `live-receiver` aus US3; US5 nutzt ihn für "zuletzt gesendet" und die Übernahme einer jüngeren Konfiguration.
+- US6 und US4 teilen sich im Spielbildschirm einen Empfänger (`watchGame` in `src/platform/live-watch.ts`).
 - Innerhalb jeder Phase: Tests ([P]) zuerst, dann Domäne, dann Plattform, dann Oberfläche.
 
 ## Parallel möglich
