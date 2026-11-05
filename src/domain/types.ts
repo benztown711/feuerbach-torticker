@@ -11,6 +11,9 @@ export type Theme = 'system' | 'light' | 'dark';
 /** Spec 008 FR-K01. */
 export type SignalSound = 'pfiff' | 'glocke' | 'gong';
 
+/** Spec 013 FR-K01: Reihenfolge des Kaders, "Vorname" oder "Rückennummer". */
+export type RosterSort = 'name' | 'number';
+
 export interface Schema {
   /** Anzahl Abschnitte, 1 bis 4. */
   sections: number;
@@ -188,6 +191,8 @@ export interface Settings {
   theme: Theme;
   /** Spec 008 FR-K03: gewählter Signalton, Vorgabe Pfiff. */
   signalSound: SignalSound;
+  /** Spec 013 FR-K02: Sortierung des Kaders, Vorgabe Vorname. */
+  rosterSort: RosterSort;
   installHintDismissedAt: number | null;
   /** Spec 006: Live-Spieltag dieses Geräts (Organisator und/oder Lead), höchstens einer. */
   live: LiveSpieltag | null;

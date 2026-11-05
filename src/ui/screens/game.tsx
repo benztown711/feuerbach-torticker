@@ -55,7 +55,7 @@ import {
 import { getColor } from '../../domain/jersey-colors';
 import { formatMinute, minuteFor } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
-import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
+import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
 import type { CardColor, EventPerson, Game, Goal, Scorer, Settings, Side } from '../../domain/types';
@@ -340,7 +340,7 @@ export function GameScreen({ id }: { id: string }) {
     if (r.added && r.goal) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
-      if (side === 'own' && visiblePlayers(players ?? []).length > 0)
+      if (side === 'own' && activePlayers(players ?? []).length > 0)
         setPicker({ goalId: r.goal.id, until: t + PICKER_MS, kind: 'scorer' });
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
@@ -462,7 +462,7 @@ export function GameScreen({ id }: { id: string }) {
     const r = addGoalAt(cur(), addSheet.side, opt, t, () => globalThis.crypto.randomUUID());
     update(r.game);
     setAddSheet(null);
-    if (addSheet.side === 'own' && visiblePlayers(players ?? []).length > 0)
+    if (addSheet.side === 'own' && activePlayers(players ?? []).length > 0)
       setPicker({ goalId: r.goal.id, until: null, kind: 'scorer' });
   };
   const minuteGoal = minuteSheet ? game.goals.find((g) => g.id === minuteSheet.goalId) : undefined;
@@ -487,8 +487,10 @@ export function GameScreen({ id }: { id: string }) {
     const c = clockOf(game, at);
     return formatMinute(c.minute, c.stoppage);
   };
-  const squadPl = squadPlayers(roster, game.squad);
-  const otherPl = otherPlayers(roster, game.squad);
+  // Spec 013 FR-K05: jede Spieler-Auswahl in der Reihenfolge aus den Einstellungen.
+  const sort = settings?.rosterSort ?? 'name';
+  const squadPl = squadPlayers(roster, game.squad, sort);
+  const otherPl = otherPlayers(roster, game.squad, sort);
   const evUndoObj = evUndo && now < evUndo.until ? allEvents.find((e) => e.id === evUndo.id) : undefined;
   const evSel = evSheet ? allEvents.find((e) => e.id === evSheet) : undefined;
   const saveCard = (who: EventPerson): void => {
@@ -611,6 +613,7 @@ export function GameScreen({ id }: { id: string }) {
         <ShootoutView
           game={game}
           players={roster}
+          sort={sort}
           ownName={ownShort}
           dark={dark}
           onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
@@ -1041,7 +1044,7 @@ export function GameScreen({ id }: { id: string }) {
           {cardDraft.side === 'own' ? (
             <>
               <div class="scorer__grid">
-                {(cardDraft.others ? visiblePlayers(roster) : squadPl).map((pl) => (
+                {(cardDraft.others ? visiblePlayers(roster, sort) : squadPl).map((pl) => (
                   <button
                     type="button"
                     key={pl.id}
@@ -1101,7 +1104,7 @@ export function GameScreen({ id }: { id: string }) {
           onClose={() => setSubDraft(null)}
         >
           {(() => {
-            const pool = subDraft.others ? visiblePlayers(roster) : squadPl;
+            const pool = subDraft.others ? visiblePlayers(roster, sort) : squadPl;
             const name = (id: string | null): string => roster.find((pl) => pl.id === id)?.name ?? '…';
             const ready = subDraft.out !== null && subDraft.inn !== null;
             return (
@@ -1392,8 +1395,8 @@ export function GameScreen({ id }: { id: string }) {
             picker.kind === 'assist' ? ` · ${scorerLabel(pickerGoal, roster)}` : ''
           }`}
           // Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
-          squad={squadPlayers(roster, game.squad).filter(notScorer)}
-          others={otherPlayers(roster, game.squad).filter(notScorer)}
+          squad={squadPl.filter(notScorer)}
+          others={otherPl.filter(notScorer)}
           onPick={(scorer) =>
             picker.kind === 'scorer' ? pickScorer(pickerGoal.id, scorer) : pickAssist(pickerGoal.id, scorer)
           }
