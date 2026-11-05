@@ -417,8 +417,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
     answer:
-      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen.',
-    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen',
+      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen. Sie setzen den Text genauso über „Liste einfügen“ ein; Kürzel wie „Max Mü.“ bleiben dabei erhalten.',
+    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung',
     sources: ['001 US7'],
     open: { label: 'Kader', path: '/kader' },
     related: ['kader'],

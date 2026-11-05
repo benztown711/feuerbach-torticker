@@ -295,6 +295,15 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [x] T108 [P] E2E `tests/e2e/us4-teilen.spec.ts`: "Zwischenstand teilen" im "…"-Menü während des Spiels, nicht vor dem Anpfiff (FR-042)
 - [x] T109 Menüeintrag `menu-share-interim` in `src/ui/screens/game.tsx` (macht T108 grün)
 
+## Phase 14: Geteilten Kader wieder einfügen (Session 2026-11-05)
+
+**Goal**: Der Text aus "Kader teilen" ergibt auf einem zweiten Gerät denselben Kader, ohne Warnungen (FR-025, FR-028, US7-S8).
+
+- [x] T110 [P] Unit-Tests in `tests/unit/roster-parse.test.ts`, `roster-names.test.ts`, `roster-merge.test.ts`: Kürzel "Mü." erkannt, unverändert übernommen (auch einzeln oder länger als nötig), keine Warnung "nachname", gleiches Kürzel wie ein bestehender Spieler → "Name doppelt" (FR-025, FR-028)
+- [x] T111 [P] E2E in `tests/e2e/us7-kader-import.spec.ts`: Kader mit "Max Me."/"Max Mü." teilen, auf frischem Gerät einfügen, keine Warnungen, Namen unverändert, erneutes Einfügen ohne Duplikate (US7-S7, US7-S8)
+- [x] T112 `src/domain/roster-parse.ts` (Merkmal `abbreviated`), `roster-names.ts` (Eintrag `kept`, Eindeutigkeit: verschiedene Nachnamen nie gleicher Name), `roster-merge.ts` (macht T110 und T111 grün)
+- [x] T113 Hilfe-Eintrag `kader-liste` in `src/domain/help-entries.ts`: Kollegen fügen den geteilten Text genauso ein, Kürzel bleiben erhalten (Constitution IX)
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
