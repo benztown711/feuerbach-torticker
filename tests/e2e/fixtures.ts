@@ -74,6 +74,9 @@ async function newDeviceContext(browser: Browser, testInfo: TestInfo, baseURL?: 
 export interface Recorded {
   shares: { text?: string; title?: string; files?: number; fileName?: string; fileText?: string }[];
   clipboard?: string;
+  /** Spec 012: Lesen der Zwischenablage abgelehnt (simuliert) und Anzahl der Leseversuche. */
+  clipboardBlocked?: boolean;
+  clipboardReads?: number;
   sounds: number;
   /** Spec 008: Ton (`data-sound`) des zuletzt hörbar gestarteten Signals. */
   lastSound?: string;
@@ -108,12 +111,18 @@ export async function installMocks(page: Page): Promise<void> {
       },
     });
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
-    // Spec 006: Zwischenablage aufzeichnen ("Link kopieren").
+    // Spec 006: Zwischenablage aufzeichnen ("Link kopieren"); Spec 012: lesen, `clipboardBlocked` simuliert Ablehnung.
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: {
         writeText: async (text: string) => {
           (rec as { clipboard?: string }).clipboard = text;
+        },
+        readText: async () => {
+          const r = rec as { clipboard?: string; clipboardBlocked?: boolean; clipboardReads?: number };
+          r.clipboardReads = (r.clipboardReads ?? 0) + 1;
+          if (r.clipboardBlocked) throw new DOMException('blocked', 'NotAllowedError');
+          return r.clipboard ?? '';
         },
       },
     });

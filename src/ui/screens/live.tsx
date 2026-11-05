@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
-import { findLink, viewerLinkPath } from '../../domain/live-link';
 import { addableTeams } from '../../domain/live-manage';
 import {
   checkTitle,
@@ -31,13 +30,13 @@ import {
   renameLive,
   shareTrainerLink,
   shareViewerLink,
-  verifyLink,
   type VerifiedLink,
 } from '../../platform/live-setup';
 import type { LiveOverviewWatch } from '../../platform/live-watch';
 import type { ShareResult } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { CoupleDialog } from '../components/couple-dialog';
+import { PasteLink } from '../components/paste-link';
 import { Sheet } from '../components/sheet';
 import { navigate } from '../router';
 
@@ -174,17 +173,21 @@ export function LiveScreen() {
               Kader, Karten und Lesezeichen bleiben auf dem Handy.
             </p>
           </div>
-          <button type="button" class="btn btn--primary" data-testid="btn-live-create" onClick={() => setView('form')}>
-            Live-Spieltag anlegen
+          {/* Spec 012 FR-S05: Einfügen zuerst; Anlegen nur einmal für alle Mannschaften. */}
+          <button type="button" class="btn btn--primary" data-testid="btn-paste-link" onClick={() => setView('paste')}>
+            Trainer-Link einfügen
           </button>
           <button
             type="button"
             class="btn btn--secondary"
-            data-testid="btn-paste-link"
-            onClick={() => setView('paste')}
+            data-testid="btn-live-create"
+            onClick={() => setView('form')}
           >
-            Trainer-Link einfügen
+            Live-Spieltag anlegen
           </button>
+          <p class="field__help" data-testid="live-create-hint">
+            Nur einmal für alle Mannschaften. Gibt es schon einen, füge den Trainer-Link ein.
+          </p>
         </div>
       )}
       {view === 'main' && live && isRetired(live) && (
@@ -734,68 +737,5 @@ function AddSheet({
         Hinzufügen
       </button>
     </Sheet>
-  );
-}
-
-function PasteLink({ onCancel, onLink }: { onCancel: () => void; onLink: (p: Pending) => void }) {
-  const [text, setText] = useState('');
-  const [error, setError] = useState('');
-
-  const apply = async (): Promise<void> => {
-    const link = findLink(text);
-    if (link.kind === 'view') {
-      // US1-S5: Ein Zuschauer-Link macht das Handy nicht zum Lead-Handy, er zeigt nur das Dashboard.
-      navigate(viewerLinkPath(link.view));
-      return;
-    }
-    if (link.kind === 'invalid') {
-      setError('Kein gültiger Link. Bitte den ganzen Link aus WhatsApp kopieren.');
-      return;
-    }
-    const verified = await verifyLink(link);
-    if (verified) onLink(verified);
-    else setError(`Dieser ${link.kind === 'trainer' ? 'Trainer-Link' : 'Lead-Link'} ist nicht gültig.`);
-  };
-
-  return (
-    <form
-      class="form live"
-      onSubmit={(e) => {
-        e.preventDefault();
-        void apply();
-      }}
-    >
-      <div class="field">
-        <label class="field__label t-label" for="paste-link">
-          LINK
-        </label>
-        <textarea
-          id="paste-link"
-          class="textarea"
-          rows={4}
-          data-testid="paste-link-input"
-          placeholder="Link aus WhatsApp hier einfügen"
-          value={text}
-          onInput={(e) => {
-            setText((e.target as HTMLTextAreaElement).value);
-            setError('');
-          }}
-        />
-        <p class="field__help">
-          Lange auf den Link in WhatsApp tippen, „Kopieren“, dann hier lange tippen und „Einsetzen“.
-        </p>
-        {error && (
-          <p class="field__error" data-testid="paste-link-error">
-            {error}
-          </p>
-        )}
-      </div>
-      <button type="submit" class="btn btn--primary" data-testid="paste-link-apply">
-        Übernehmen
-      </button>
-      <button type="button" class="btn btn--secondary" onClick={onCancel}>
-        Abbrechen
-      </button>
-    </form>
   );
 }
