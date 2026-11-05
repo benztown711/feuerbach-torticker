@@ -561,7 +561,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie lege ich den Spieltag auf den Home-Bildschirm?',
     answer:
-      'Der Zuschauer-Link gilt die ganze Saison. Lege ihn auf den Home-Bildschirm, dann bist du mit einem Tipp dabei.',
+      'Der Zuschauer-Link gilt die ganze Saison. Lege ihn auf den Home-Bildschirm, dann bist du mit einem Tipp dabei. Zeigt ein älteres Symbol „Neues Spiel“ statt des Spieltags, lösche es und lege den Link neu ab.',
     steps: [
       'iPhone: Link in Safari öffnen, auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.',
       'Android: Link in Chrome öffnen, Menü, dann „Zum Startbildschirm hinzufügen“.',

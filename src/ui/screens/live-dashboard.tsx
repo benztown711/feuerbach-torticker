@@ -9,6 +9,7 @@ import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { shareText } from '../../platform/share';
+import { pointManifestTo } from '../../platform/web-manifest';
 import { ViewerNav } from '../components/viewer-nav';
 import { useGoalFlash, useNow } from '../hooks';
 import { navigate } from '../router';
@@ -299,7 +300,8 @@ const sameView = (a: ViewerLink | null, b: ViewerLink): boolean =>
   !!a && a.topic === b.topic && a.viewKey === b.viewKey && a.orgPub === b.orgPub && a.title === b.title;
 
 /**
- * `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6).
+ * `#/live/<Daten>`: Zuschauer-Link (US1-S5, FR-L12); merkt sich den Link für den Start (R-L6) und nennt ihn im
+ * Manifest als Startadresse (FR-L16).
  * Spec 010: Eltern-Leiste mit "Spieltag", "Teilen" und Eltern-Hilfe unter `#/live/<Daten>/hilfe[/<id>]`.
  */
 export function ViewerScreen({
@@ -316,6 +318,8 @@ export function ViewerScreen({
   const [msg, setMsg] = useState('');
   const msgTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(msgTimer.current), []);
+  // FR-L16: "Zum Home-Bildschirm" legt den Zuschauer-Link ab (iOS nimmt die Startadresse des Manifests).
+  useEffect(() => (link.kind === 'view' ? pointManifestTo(`/live/${data}`) : undefined), [link, data]);
   useEffect(() => {
     if (link.kind !== 'view') return;
     void getSettings()
