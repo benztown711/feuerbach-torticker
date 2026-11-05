@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.2.0...feuerbach-torticker-v0.3.0) (2026-11-05)
+
+
+### Neue Funktionen
+
+* **hilfe:** Hilfe mit Suche und Eltern-Leiste (010), Constitution 2.1.0 ([#32](https://github.com/benztown711/feuerbach-torticker/issues/32)) ([04ce863](https://github.com/benztown711/feuerbach-torticker/commit/04ce8637dd22670742ab792f4cbdda84671a7fd1))
+* **live:** andere Spiele im Spielbildschirm (006 US4) ([#35](https://github.com/benztown711/feuerbach-torticker/issues/35)) ([75413ae](https://github.com/benztown711/feuerbach-torticker/commit/75413ae5a7f4244fdfb4beceb0dca594389e9642))
+
 ## [0.2.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.1.0...feuerbach-torticker-v0.2.0) (2026-11-04)
 
 
