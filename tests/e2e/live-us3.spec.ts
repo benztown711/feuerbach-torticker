@@ -337,6 +337,51 @@ test('006 R-L6 Start ohne eigene Daten öffnet das gemerkte Dashboard', async ({
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
 });
 
+/** Manifest, auf das die Seite gerade verweist: data:-Adresse entpackt, sonst der Verweis selbst. */
+const manifestOf = async (p: Page): Promise<{ start_url?: string; scope?: string; id?: string } | string> => {
+  const href = (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '';
+  return href.startsWith('data:') ? JSON.parse(decodeURIComponent(href.slice(href.indexOf(',') + 1))) : href;
+};
+
+test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den Startbildschirm', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+  browserName,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
+  onMatchday(relay);
+  const v = await openViewer(newDevice, relay, links);
+  const app = new URL('./', v.url()).href;
+  // iOS übernimmt die Startadresse aus dem Manifest: Sie ist der Zuschauer-Link, die App bleibt dieselbe.
+  await expect.poll(() => manifestOf(v)).toMatchObject({ start_url: links.viewer, scope: app, id: app });
+  if (browserName === 'chromium') {
+    // Der Browser liest das Manifest ohne Fehler (Android: "App installieren" mit derselben Startadresse).
+    const cdp = await v.context().newCDPSession(v);
+    const read = await cdp.send('Page.getAppManifest');
+    expect(read.url.startsWith('data:application/manifest+json,')).toBe(true);
+    expect(read.errors).toEqual([]);
+  }
+  // Auch aus der Eltern-Hilfe heraus bleibt die Startadresse das Dashboard.
+  await v.getByTestId('viewer-nav-help').click();
+  await expect(v.getByTestId('viewer-nav-help')).toHaveAttribute('aria-current', 'page');
+  expect(await manifestOf(v)).toMatchObject({ start_url: links.viewer });
+
+  // Die Home-Bildschirm-App hat eigene, leere Daten und startet mit der Startadresse: Dashboard.
+  const home = await newDevice();
+  await home.clock.setSystemTime(Date.now() + relay.offsetMs);
+  await home.goto(links.viewer);
+  await expect(home.getByTestId('dashboard')).toBeVisible();
+  await expect(home.getByTestId('btn-new-game')).toHaveCount(0);
+
+  // "Zum Torticker": wieder das Manifest der App mit ihrer eigenen Startadresse.
+  await v.getByTestId('viewer-nav-dash').click();
+  await v.getByRole('link', { name: 'Zum Torticker' }).click();
+  await expect(v.getByTestId('btn-new-game')).toBeVisible();
+  await expect.poll(() => manifestOf(v)).toBe('/feuerbach-torticker/manifest.webmanifest');
+});
+
 test('006 FR-L17 Lead-Handy: "Live" und "Dashboard ansehen" öffnen das Dashboard mit Navigationsleiste', async ({
   page,
   recorded,
