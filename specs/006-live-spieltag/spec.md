@@ -233,7 +233,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 - **FR-L19**: Jedes Trainer-Handy MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Bei Änderungen von mehreren Handys gilt die jüngste. Hinzufügen und Entfernen ändern weder Zuschauer- noch Trainer-Link; Neuausstellen macht alle bisherigen Links wirkungslos.
 - **FR-L20**: Ein Trainer- oder Lead-Handy MUSS die Kopplung beenden können (mit Bestätigung); lokal gespeicherte Spiele bleiben unverändert.
-- **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten (mit Schlüsseln, Hinweis "nur für dich aufbewahren"), damit ein Handywechsel ohne neue Links möglich ist. Wiederherstellen übernimmt den Live-Spieltag nur, wenn das Handy noch keinen hat.
+- **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten (mit Schlüsseln, Hinweis "nur für dich aufbewahren"), damit ein Handywechsel ohne neue Links möglich ist. Wiederherstellen übernimmt den Live-Spieltag nur, wenn das Handy noch keinen hat, und erst nach einer Rückfrage mit Titel und Mannschaften (wie beim Koppeln per Link).
 
 **Übernehmen (US6)**
 

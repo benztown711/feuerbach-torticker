@@ -4,6 +4,7 @@ import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
 import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
+import { joinList } from '../../domain/format';
 import { titleOf } from '../../domain/live-spieltag';
 import type { EventFeatures, LiveSpieltag, Settings, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
@@ -143,6 +144,8 @@ export function SettingsScreen() {
   const [settings, setSettings] = useState<Settings | undefined>(undefined);
   const [exportMsg, setExportMsg] = useState('');
   const [importMsg, setImportMsg] = useState('');
+  /** FR-L21: Live-Spieltag aus der Sicherung wartet auf Bestätigung (wie beim Koppeln per Link). */
+  const [pendingLive, setPendingLive] = useState<{ live: LiveSpieltag; base: string } | null>(null);
   const [editTeam, setEditTeam] = useState<{ team: Team; isNew: boolean } | null>(null);
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -197,10 +200,14 @@ export function SettingsScreen() {
     await putPlayers(merged.newPlayers);
     const skipped =
       merged.skippedGames > 0 ? `, ${plural(merged.skippedGames, 'Spiel', 'Spiele')} schon vorhanden` : '';
-    const live = parsed.backup.live ? await restoreLive(parsed.backup.live) : '';
-    setImportMsg(
-      `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.${live}`,
-    );
+    const base = `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.`;
+    const live = parsed.backup.live;
+    if (live && (await getSettings()).live) {
+      setImportMsg(`${base} Live-Spieltag nicht übernommen: Auf diesem Handy ist schon einer eingerichtet.`);
+      return;
+    }
+    setImportMsg(base);
+    if (live) setPendingLive({ live, base });
   };
 
   return (
@@ -414,6 +421,26 @@ export function SettingsScreen() {
         </section>
       </div>
       <p class="settings__footer">Feuerbach Torticker · kostenlos · keine Daten verlassen dein Handy</p>
+      {pendingLive && (
+        <Confirm
+          title={`Live-Spieltag „${titleOf(pendingLive.live)}“ übernehmen?`}
+          text={`${
+            pendingLive.live.teams.length > 0
+              ? `Dieses Handy sendet dann Spiele von ${joinList(pendingLive.live.teams.map((t) => shortTeamName(t.name)))} an „${titleOf(pendingLive.live)}“.`
+              : `Dieses Handy wird mit „${titleOf(pendingLive.live)}“ gekoppelt.`
+          } Nur übernehmen, wenn die Sicherung von dir stammt.`}
+          yesLabel="Übernehmen"
+          onNo={() => {
+            setImportMsg(`${pendingLive.base} Live-Spieltag nicht übernommen.`);
+            setPendingLive(null);
+          }}
+          onYes={() => {
+            const p = pendingLive;
+            setPendingLive(null);
+            void restoreLive(p.live).then((m) => setImportMsg(p.base + m));
+          }}
+        />
+      )}
       {editTeam && (
         <TeamSheet
           team={editTeam.team}

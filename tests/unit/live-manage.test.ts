@@ -248,15 +248,19 @@ describe('006 FR-L21 Live-Spieltag aus der Sicherung', () => {
   it('nur ohne eigenen Live-Spieltag; Mannschaften kommen in "Meine Mannschaften"', async () => {
     const live = await spieltag();
     const empty: Settings = { ...defaultSettings(), teams: [E1] };
-    const r = restoreLive(empty, live, () => 'neu-id');
+    const r = restoreLive(empty, live, () => 'neu-id', T0 + 5_000);
     expect(r.restored).toBe(true);
-    expect(r.settings.live).toEqual(live);
+    // Anlegezeit mindestens Wiederherstellen: ältere, beendete Spiele bleiben unveröffentlicht (R-L11)
+    expect(r.settings.live).toEqual({ ...live, createdAt: T0 + 5_000 });
+    expect(restoreLive(empty, { ...live, createdAt: T0 + 9_000 }, () => 'x', T0).settings.live?.createdAt).toBe(
+      T0 + 9_000,
+    );
     expect(r.settings.teams.map((t) => [t.id, t.name])).toEqual([
       ['t1', E1.name],
       ['neu-id', E2.name],
     ]);
     const other = await reissueSpieltag(live, deps());
-    const kept = restoreLive({ ...empty, live: other }, live, () => 'x');
+    const kept = restoreLive({ ...empty, live: other }, live, () => 'x', T0);
     expect(kept).toEqual({ settings: { ...empty, live: other }, restored: false });
   });
 });
@@ -282,6 +286,20 @@ describe('006 US5-S3 Hinweis "neu ausgestellt" auf dem alten Live-Spieltag (Vari
     expect(isRetired(next.live!)).toBe(true);
     expect(next.live!.teams).toEqual(live.teams);
     expect(liveTeamFor(E1.name, next.live)).toBeNull();
+  });
+
+  it('"neu ausgestellt" ist endgültig und gilt auch bei vorgehender Uhr des anderen Handys', async () => {
+    const live = await spieltag();
+    const s: Settings = { ...defaultSettings(), teams: [E1, E2], live };
+    // Dieses Handy kennt schon eine Konfiguration mit größerem iat (Uhr ging vor) als der Hinweis.
+    const ahead = await renameSpieltag(live, 'Vorgegangen', deps(T0 + 3_600_000));
+    const notice = await retireConfig(live, deps(T0 + 5));
+    const retired = (await adoptConfig({ ...s, live: ahead }, notice, deps()))!;
+    expect(isRetired(retired.live!)).toBe(true);
+    // Eine spätere Konfiguration (z. B. vom alten Trainer-Link) schaltet das Handy nicht wieder ein.
+    const later = await renameSpieltag(ahead, 'Wieder an', deps(T0 + 7_200_000));
+    expect(await adoptConfig(retired, later.config, deps())).toBeNull();
+    expect(await adoptConfig(retired, await retireConfig(live, deps(T0 + 9)), deps())).toBeNull();
   });
 
   it('Prüfung: nur "true" ist erlaubt', () => {

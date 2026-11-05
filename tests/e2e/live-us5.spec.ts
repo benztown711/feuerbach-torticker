@@ -247,6 +247,10 @@ test('006 FR-L21 Sicherung mit Live-Spieltag: neues Handy ist ohne neue Links ge
   await d
     .getByTestId('input-import')
     .setInputFiles({ name: 'sicherung.json', mimeType: 'application/json', buffer: Buffer.from(file) });
+  // Wie beim Koppeln per Link: erst nach Rückfrage (Sicherheitsreview US5)
+  await expect(d.getByTestId('confirm-dialog')).toContainText('Live-Spieltag „Saison 26/27“ übernehmen?');
+  await expect(d.getByTestId('confirm-dialog')).toContainText('Spiele von Feuerbach E1 und Feuerbach E2');
+  await d.getByTestId('confirm-yes').click();
   await expect(d.getByTestId('import-result')).toContainText('Live-Spieltag „Saison 26/27“ übernommen');
   await openLive(d);
   await expect(d.getByTestId('live-title')).toHaveText('Saison 26/27');

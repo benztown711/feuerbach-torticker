@@ -86,5 +86,6 @@ Kopplungsfrage (Sheet `couple-dialog`): "Live senden für <Mannschaften>?", `cou
 | Element | Test-ID | Verhalten |
 |---|---|---|
 | Hinweis | `backup-live-hint` | nur mit Live-Spieltag: "Die Datei enthält auch den Trainer-Schlüssel: nur für dich aufbewahren …" |
+| Rückfrage | `confirm-dialog` | ohne eigenen Live-Spieltag: "Live-Spieltag „<Titel>“ übernehmen?" mit den Mannschaften, die dieses Handy dann sendet; `confirm-yes` ("Übernehmen") |
 | Ergebnis | `import-result` | zusätzlich "Live-Spieltag „<Titel>“ übernommen." bzw. "Live-Spieltag nicht übernommen: …" |
 

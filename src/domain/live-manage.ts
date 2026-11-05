@@ -162,7 +162,9 @@ export async function adoptConfig(
   const live = settings.live;
   const next = configOf(signed);
   const current = live ? configOf(live.config) : null;
-  if (!live || !next || (current && next.iat <= current.iat)) return null;
+  if (!live || !next || current?.retired) return null;
+  // "neu ausgestellt" gilt auch, wenn die Uhr dieses Handys vorging (größeres iat); sonst die jüngere.
+  if (!next.retired && current && next.iat <= current.iat) return null;
   const teams = live.teams.filter((t) => next.teams.includes(t.key));
   const added: TrainerTeam[] = [];
   for (const [key, name, homeColor, awayColor] of next.m ?? []) {
@@ -175,12 +177,18 @@ export async function adoptConfig(
   return { ...settings, live: { ...live, config: signed, teams }, teams: adoptTeams(settings, added, deps.newId) };
 }
 
-/** FR-L21: Live-Spieltag aus einer Sicherung, nur wenn das Handy noch keinen hat (sonst bleibt der eigene). */
+/**
+ * FR-L21: Live-Spieltag aus einer Sicherung, nur wenn das Handy noch keinen hat (sonst bleibt der eigene). Die
+ * Anlegezeit ist mindestens der Zeitpunkt des Wiederherstellens: früher beendete Spiele bleiben unveröffentlicht
+ * (R-L11), auch wenn die Datei etwas anderes behauptet.
+ */
 export function restoreLive(
   settings: Settings,
   live: LiveSpieltag,
   newId: () => string,
+  now: number,
 ): { settings: Settings; restored: boolean } {
   if (settings.live) return { settings, restored: false };
-  return { settings: { ...settings, live, teams: adoptTeams(settings, live.teams, newId) }, restored: true };
+  const restored = { ...live, createdAt: Math.max(live.createdAt, now) };
+  return { settings: { ...settings, live: restored, teams: adoptTeams(settings, live.teams, newId) }, restored: true };
 }

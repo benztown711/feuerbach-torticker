@@ -253,7 +253,7 @@ export async function restoreLiveFromBackup(live: LiveSpieltag): Promise<'restor
   const config = parseConfig(await verifySigned(live.orgPub, live.config));
   if (!config || (live.orgKey && !(await keyMatches(live.orgKey, live.orgPub)))) return 'invalid';
   return serial(async () => {
-    const r = restoreLive(await getSettings(), live, () => crypto.randomUUID());
+    const r = restoreLive(await getSettings(), live, () => crypto.randomUUID(), Date.now());
     if (!r.restored) return 'kept';
     await save(r.settings, false);
     return 'restored';
