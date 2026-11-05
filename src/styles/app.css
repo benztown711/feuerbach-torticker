@@ -2900,14 +2900,17 @@ body:has(.page:not(.dash, .lead-link)) {
   padding: var(--space-4);
 }
 
-/* Listen in Karten: keine Linie oben, keine unter der letzten Zeile */
+/*
+ * Listen in Karten: keine Linie oben, keine unter der letzten Zeile. Die Zeile ist entweder das li selbst
+ * oder sein einziges Kind (Link, Knopf); Schalter und Knöpfe neben Text behalten ihren vollen Rahmen.
+ */
 .card > :is(ul, ol) {
   border-top: 0;
 }
 
-.card > li:last-child > *,
+.card > li:last-child > :only-child,
 .card > :is(ul, ol) > li:last-child,
-.card > :is(ul, ol) > li:last-child > * {
+.card > :is(ul, ol) > li:last-child > :only-child {
   border-bottom: 0;
 }
 
