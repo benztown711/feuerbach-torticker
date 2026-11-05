@@ -413,6 +413,17 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['kader-liste', 'aufgebot', 'namen'],
   },
   {
+    id: 'kader-sortierung',
+    topic: 'kader',
+    title: 'Wie sortiere ich den Kader?',
+    answer:
+      'In den Einstellungen wählst du unter „Kader“ bei „Sortieren nach“ zwischen „Vorname“ und „Rückennummer“. Vorgabe ist „Vorname“. Die Reihenfolge gilt für die Kaderliste, das Aufgebot, „Kader teilen“ und alle Spieler-Auswahlen im Spiel: Torschütze, Vorlage, Karte, Wechsel und Elfmeterschießen. Bei „Rückennummer“ stehen Spieler ohne Nummer am Ende.',
+    keywords: 'sortieren sortierung reihenfolge alphabetisch vorname rückennummer nummer kader torschütze',
+    sources: ['013 US1'],
+    open: { label: 'Einstellungen', path: '/einstellungen' },
+    related: ['kader', 'torschuetze'],
+  },
+  {
     id: 'kader-liste',
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
