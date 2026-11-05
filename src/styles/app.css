@@ -1523,6 +1523,118 @@ body:has(.page:not(.dash, .lead-link)) {
   font-size: 13px;
 }
 
+/* Spec 013: Auswahlmodus der Historie (Häkchen je Zeile, Aktionsleiste, Rückgängig) */
+.history__mode {
+  flex-shrink: 0;
+  min-width: 96px;
+  min-height: 44px;
+}
+
+.history__hint {
+  margin: 0;
+  padding: var(--space-2) var(--space-4) 0;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.history__item--select {
+  width: 100%;
+  margin: 0;
+  padding-inline: var(--space-1);
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.history__item--select[aria-checked='true'] {
+  background: var(--color-tonal);
+}
+
+.history__item--select[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.history__check {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  color: var(--color-card);
+}
+
+.history__tick {
+  visibility: hidden;
+  stroke-width: 3;
+}
+
+[aria-checked='true'] > .history__check {
+  background: var(--color-ink);
+}
+
+[aria-checked='true'] > .history__check > .history__tick {
+  visibility: visible;
+}
+
+.history__check--none {
+  border-color: transparent;
+  background: none;
+}
+
+.history__actions {
+  position: fixed;
+  right: 0;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 9;
+  padding: var(--space-2) calc(var(--space-4) + env(safe-area-inset-right)) var(--space-2)
+    calc(var(--space-4) + env(safe-area-inset-left));
+  border-top: 1px solid var(--color-line);
+  background: var(--color-card);
+}
+
+.history__actions-inner {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  max-width: 448px;
+  margin: 0 auto;
+}
+
+.undo-bar.history__undo {
+  position: fixed;
+  right: max(var(--space-4), calc((100% - 448px) / 2));
+  bottom: calc(var(--nav-h) + var(--space-2) + env(safe-area-inset-bottom));
+  left: max(var(--space-4), calc((100% - 448px) / 2));
+  z-index: 9;
+}
+
+/* Platz unter der Liste, damit die letzte Zeile über Leisten und Navigation hinaus scrollt (SC-D04). */
+.history-page--select {
+  padding-bottom: calc(var(--space-4) + var(--history-actions-h));
+}
+
+.history-page--undo {
+  padding-bottom: calc(var(--space-4) + 64px);
+}
+
+.history-page--select.history-page--undo {
+  padding-bottom: calc(var(--space-4) + var(--history-actions-h) + 64px);
+}
+
+.history-page--select .history__undo {
+  bottom: calc(var(--nav-h) + var(--history-actions-h) + var(--space-2) + env(safe-area-inset-bottom));
+}
+
 /* ---------- Spieldetails (Zeitleiste, Teilen) ---------- */
 
 .details__head {

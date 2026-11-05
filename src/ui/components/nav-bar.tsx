@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { liveLabel } from '../../domain/history';
 import type { Game } from '../../domain/types';
 import { findOpenGame } from '../../platform/db';
+import { onTrashChange, trashedIds } from '../../platform/trash';
 import { useNow } from '../hooks';
 import type { Route } from '../router';
 
@@ -29,10 +30,13 @@ export function NavBar({ route }: { route: Exclude<Route, { name: 'leadLink' | '
   const active = TAB_OF[route.name];
   const now = useNow(1000);
   const [open, setOpen] = useState<Game | undefined>();
+  const [trashVersion, setTrashVersion] = useState(0);
   const routeKey = route.name === 'game' || route.name === 'details' ? `${route.name}:${route.id}` : route.name;
+  useEffect(() => onTrashChange(() => setTrashVersion((v) => v + 1)), []);
   useEffect(() => {
-    void findOpenGame().then(setOpen);
-  }, [routeKey]);
+    // Spec 013: ein gerade gelöschtes (vorgemerktes) Spiel zeigt kein "Läuft …", nach "Rückgängig" wieder.
+    void findOpenGame().then((g) => setOpen(g && !trashedIds().has(g.id) ? g : undefined));
+  }, [routeKey, trashVersion]);
 
   const onGameScreen = route.name === 'game';
   const live = open && !onGameScreen ? liveLabel(open, now) : null;

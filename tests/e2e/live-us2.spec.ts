@@ -136,7 +136,11 @@ test('006 US2-S6 "Nicht live senden" schickt off, "Live senden" wieder den Stand
   await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBe('live');
 });
 
-test('006 US2-S7 Löschen eines Spiels schickt deleted', async ({ page, relay, recorded }) => {
+test('006 US2-S7 013 US3-S7 Löschen eines Spiels schickt deleted, erst wenn es endgültig ist', async ({
+  page,
+  relay,
+  recorded,
+}) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   await newGame(page, { ownTeam: E1 });
   await settle(page);
@@ -144,8 +148,34 @@ test('006 US2-S7 Löschen eines Spiels schickt deleted', async ({ page, relay, r
   await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
   await page.getByTestId('btn-delete-game').click();
   await confirmYes(page);
+  await expect(page.getByTestId('history-undo')).toBeVisible();
+  // Spec 013 FR-D08: während "Rückgängig" (10 s) bleibt das Spiel auf dem Dashboard.
+  await settle(page);
+  expect((await latestState(relay, links.viewer))?.state).not.toBe('deleted');
   await settle(page);
   await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBe('deleted');
+});
+
+test('013 US3-S7 nach "Rückgängig" bleibt das Spiel ohne Unterbrechung auf dem Dashboard', async ({
+  page,
+  relay,
+  recorded,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
+  await newGame(page, { ownTeam: E1 });
+  await settle(page);
+  const before = (await latestState(relay, links.viewer))?.state;
+  expect(before).toBeDefined();
+  await page.getByTestId('nav-history').click();
+  await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
+  await page.getByTestId('btn-delete-game').click();
+  await confirmYes(page);
+  await page.getByTestId('btn-history-undo').click();
+  await settle(page);
+  await settle(page);
+  await page.getByTestId('nav-more').click();
+  await settle(page);
+  expect((await latestState(relay, links.viewer))?.state).toBe(before);
 });
 
 test('006 SC-L06 Meldungen enthalten weder Mannschafts- noch Spielernamen im Klartext', async ({

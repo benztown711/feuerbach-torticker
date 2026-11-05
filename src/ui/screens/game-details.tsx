@@ -9,7 +9,8 @@ import { startedAt, teamShortLabel, timeline } from '../../domain/history';
 import { buildShareText } from '../../domain/share-text';
 import { shortTeamName } from '../../domain/team-name';
 import type { ClockEvent, Game, Player } from '../../domain/types';
-import { deleteGame, getGame, getPlayers } from '../../platform/db';
+import { getGame, getPlayers } from '../../platform/db';
+import { trashGames } from '../../platform/trash';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
@@ -275,12 +276,14 @@ export function GameDetailsScreen({ id }: { id: string }) {
       {askDelete && (
         <Confirm
           title="Spiel wirklich löschen?"
-          text={`${home} : ${away} verschwindet aus der Historie. Das lässt sich nur über eine Sicherung zurückholen.`}
+          text={`${home} : ${away} verschwindet aus der Historie. Du kannst das gleich danach rückgängig machen, später nur über eine Sicherung.`}
           yesLabel="Löschen"
           onNo={() => setAskDelete(false)}
           onYes={() => {
             setAskDelete(false);
-            void deleteGame(game.id).then(() => navigate('/historie'));
+            // Spec 013 US3-S6: vormerken, die Historie zeigt "1 Spiel gelöscht" mit "Rückgängig".
+            void trashGames([game.id]);
+            navigate('/historie');
           }}
         />
       )}
