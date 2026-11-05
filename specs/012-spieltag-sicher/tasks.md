@@ -31,5 +31,5 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 ## Phase 5: Abschluss
 
-- [ ] S014 Lint, Typen, Unit mit Coverage, Hilfe-Abdeckung, Kontrast, Budget, E2E lokal (Android-Profil)
-- [ ] S015 Screenshots iPhone hell/dunkel an Atti (Review C)
+- [x] S014 Lint, Typen, Unit mit Coverage, Hilfe-Abdeckung, Kontrast, Budget, E2E lokal (Android-Profil)
+- [x] S015 Screenshots iPhone hell/dunkel an Atti (Review C)
