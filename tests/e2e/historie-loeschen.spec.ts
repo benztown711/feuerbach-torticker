@@ -122,8 +122,9 @@ test.describe('014 US1 mehrere Spiele auswählen und löschen', () => {
     expect(bar!.y + bar!.height).toBeLessThanOrEqual(nav!.y + 1);
     for (const id of ['history-select-all', 'history-delete', 'history-select'])
       expect((await page.getByTestId(id).boundingBox())!.height).toBeGreaterThanOrEqual(44);
-    // Die letzte Zeile lässt sich über Leiste und Navigation hinaus scrollen.
-    await item(page, 't1').scrollIntoViewIfNeeded();
+    // Die letzte Zeile lässt sich über Leiste und Navigation hinaus scrollen: ganz nach unten scrollen wie ein
+    // Nutzer (scrollIntoViewIfNeeded verhält sich in WebKit und Chromium unterschiedlich).
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     const last = await item(page, 't1').boundingBox();
     expect(last!.y + last!.height).toBeLessThanOrEqual(bar!.y + 1);
   });
