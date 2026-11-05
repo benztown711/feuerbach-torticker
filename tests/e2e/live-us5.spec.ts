@@ -4,7 +4,9 @@ import { confirmYes, forward, MIN, startGame } from './helpers';
 import {
   asPath,
   createLive,
+  decodeMessage,
   latestState,
+  linkData,
   liveSnap,
   MATCHDAY,
   onMatchday,
@@ -75,8 +77,12 @@ test('006 US5-S1 E3 hinzufügen: anderes Trainer-Handy übernimmt E3, der Zuscha
   await page.getByTestId('team-add-chip-E3').click();
   await page.getByTestId('team-add-save').click();
   await expect(page.getByTestId('live-team-row-E3')).toBeVisible();
-  // Zuschauer- und Trainer-Link bleiben gleich
-  expect(await currentLinks(page)).toEqual(links);
+  // Der Zuschauer-Link bleibt gleich; der Trainer-Link nennt jetzt auch E3, der alte bleibt gültig
+  // (gleiches Topic, gleiche Schlüssel).
+  const now = await currentLinks(page);
+  expect(now.viewer).toBe(links.viewer);
+  const [before, after] = [linkData(links.trainer), linkData(now.trainer)];
+  expect([after.t, after.k, after.o, after.q]).toEqual([before.t, before.k, before.o, before.q]);
 
   // B kennt E3 noch nicht; "Neues Spiel" empfängt die neue Mannschaftsliste und zeigt E3 mit Live-Schalter.
   await b.goto('./#/neu');
@@ -146,7 +152,7 @@ test('006 US5-S2 Kopplung beenden: das Handy sendet nichts mehr, die Spiele blei
   await expect(page.getByTestId('history-list')).toContainText('TSV Musterstadt');
 });
 
-test('006 US5-S3 alle Links neu ausstellen: neue Links, Meldungen über die alten erscheinen nicht', async ({
+test('006 US5-S3 alle Links neu ausstellen: neue Links, alte Handys und Dashboards bekommen nur einen Hinweis', async ({
   page,
   recorded,
   relay,
@@ -154,12 +160,32 @@ test('006 US5-S3 alle Links neu ausstellen: neue Links, Meldungen über die alte
 }) => {
   const old = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   onMatchday(relay);
+  const b = await newDevice();
+  await pasteLink(b, old.trainer);
   await page.getByTestId('btn-live-reissue').click();
   await confirmYes(page);
   await expect(page.getByTestId('live-reissued')).toBeVisible();
   const links = await currentLinks(page);
   expect(links.viewer).not.toBe(old.viewer);
   expect(links.trainer).not.toBe(old.trainer);
+  // Der Hinweis auf dem alten Topic ("retired") verrät die neuen Links nicht.
+  const fresh = linkData(links.trainer);
+  const oldTopic = linkData(old.viewer).t as string;
+  const opened = await Promise.all(relay.messages(oldTopic).map((m) => decodeMessage(old.viewer, m.message)));
+  expect(opened.some((d) => d.config?.retired === true)).toBe(true);
+  for (const d of opened) {
+    for (const secret of [fresh.t, fresh.k, fresh.o, (fresh.q as { d: string }).d] as string[])
+      expect(JSON.stringify(d)).not.toContain(secret);
+  }
+
+  // B (alter Trainer-Link) erfährt "neu ausgestellt", sendet nichts mehr und bittet um den neuen Trainer-Link.
+  await b.goto('./#/live-spieltag');
+  await expect(b.getByTestId('live-retired')).toBeVisible();
+  await expect(b.getByTestId('btn-share-trainer')).toHaveCount(0);
+  await b.goto('./#/neu');
+  await b.getByTestId('team-chips').getByRole('button', { name: 'E2', exact: true }).click();
+  await expect(b.getByTestId('new-live-retired')).toBeVisible();
+  await expect(b.getByTestId('new-live-row')).toHaveCount(0);
 
   // Wer den alten Trainer-Link hat, erreicht das neue Dashboard nicht mehr.
   await sendAs(relay, old.trainer, liveSnap({ team: 'E2', now: MATCHDAY, clock: [['kickoff', 10, 1]] }));
@@ -168,10 +194,12 @@ test('006 US5-S3 alle Links neu ausstellen: neue Links, Meldungen über die alte
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-card-E1')).toBeVisible();
   await expect(v.getByTestId('dash-card-E2')).toHaveCount(0);
-  // Der alte Zuschauer-Link zeigt das neue Spiel nicht.
+  await expect(v.getByTestId('dash-retired')).toHaveCount(0);
+  // Der alte Zuschauer-Link zeigt das neue Spiel nicht, aber den Hinweis auf den neuen Link.
   const w = await newDevice();
   await w.clock.setSystemTime(Date.now() + relay.offsetMs);
   await w.goto(asPath(old.viewer));
+  await expect(w.getByTestId('dash-retired')).toContainText('Bitte den neuen Link aus der Elterngruppe öffnen.');
   await expect(w.getByTestId('dash-card-E2')).toBeVisible();
   await expect(w.getByTestId('dash-card-E1')).toHaveCount(0);
 });

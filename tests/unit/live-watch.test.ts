@@ -157,9 +157,9 @@ describe('006 US5 Übersicht und Übernahme der Konfiguration', () => {
     });
     const changed = vi.fn();
     w.onChange(changed);
-    expect(w.lastSent('E2')).toBeNull();
+    expect(w.sent('E2')).toBe('noch nichts gesendet');
     await f.send(snap());
-    expect(w.lastSent('E2')).toBe(T0 + 60_000);
+    expect(w.sent('E2')).toMatch(/^zuletzt gesendet heute \d\d:\d\d Uhr$/);
     expect(changed).toHaveBeenCalled();
     await f.sendRaw('config');
     expect(onConfig).toHaveBeenCalledWith(newer);

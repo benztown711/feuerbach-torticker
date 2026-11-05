@@ -8,8 +8,16 @@ import {
   renameSpieltag,
   reissueSpieltag,
   restoreLive,
+  retireConfig,
 } from '../../src/domain/live-manage';
-import { configOf, createSpieltag, parseConfig, type LiveDeps } from '../../src/domain/live-spieltag';
+import {
+  configOf,
+  createSpieltag,
+  isRetired,
+  liveTeamFor,
+  parseConfig,
+  type LiveDeps,
+} from '../../src/domain/live-spieltag';
 import { defaultSettings } from '../../src/domain/settings';
 import type { LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData, Team } from '../../src/domain/types';
 
@@ -250,5 +258,36 @@ describe('006 FR-L21 Live-Spieltag aus der Sicherung', () => {
     const other = await reissueSpieltag(live, deps());
     const kept = restoreLive({ ...empty, live: other }, live, () => 'x');
     expect(kept).toEqual({ settings: { ...empty, live: other }, restored: false });
+  });
+});
+
+describe('006 US5-S3 Hinweis "neu ausgestellt" auf dem alten Live-Spieltag (Variante C)', () => {
+  it('signiert mit dem alten Organisator-Schlüssel, gleicher Titel und Mannschaften, ohne neue Links', async () => {
+    const live = await spieltag();
+    const signed = await retireConfig(live, deps(T0 + 5));
+    expect(signed.s).toBe(`sig-${live.orgKey!.d}`);
+    expect(configOf(signed)).toEqual({ ...cfg(live), iat: T0 + 5, retired: true });
+    expect(signed.d).not.toContain('topic');
+    await expect(retireConfig({ ...live, orgKey: undefined }, deps())).rejects.toThrow(
+      'Nur ein Trainer-Handy kann den Live-Spieltag verwalten.',
+    );
+  });
+
+  it('ein anderes Trainer-Handy übernimmt den Hinweis: sendet für keine Mannschaft mehr', async () => {
+    const live = await spieltag();
+    const s: Settings = { ...defaultSettings(), teams: [E1, E2], live };
+    expect(isRetired(live)).toBe(false);
+    expect(liveTeamFor(E1.name, live)?.key).toBe('E1');
+    const next = (await adoptConfig(s, await retireConfig(live, deps(T0 + 5)), deps()))!;
+    expect(isRetired(next.live!)).toBe(true);
+    expect(next.live!.teams).toEqual(live.teams);
+    expect(liveTeamFor(E1.name, next.live)).toBeNull();
+  });
+
+  it('Prüfung: nur "true" ist erlaubt', () => {
+    const base = { title: 'T', teams: ['E1'], iat: T0 };
+    expect(parseConfig({ ...base, retired: true })).toEqual({ ...base, retired: true });
+    expect(parseConfig({ ...base, retired: false })).toBeNull();
+    expect(parseConfig({ ...base, retired: 'ja' })).toBeNull();
   });
 });
