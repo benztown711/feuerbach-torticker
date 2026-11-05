@@ -87,8 +87,9 @@ Atti sucht nach einem Tor schnell den Torschützen. Er kennt die Kinder beim Vor
 
 | Eintrag | Änderung | Quelle |
 |---|---|---|
-| `kader-sortierung` "Wie sortiere ich den Kader?" | neu: Einstellungen, "KADER", "Sortieren nach: Vorname oder Rückennummer"; gilt für Kader, Aufgebot und alle Spieler-Auswahlen | 013 US1 |
-| `kader` "Wie pflege ich den Kader?" | geändert: `related` um `kader-sortierung` ergänzt (Wortlaut bleibt) | 001 US5, 013 US1 |
+| `kader-sortierung` "Wie sortiere ich den Kader?" | neu: Einstellungen, "KADER", "Sortieren nach: Vorname oder Rückennummer"; gilt für Kader, Aufgebot und alle Spieler-Auswahlen; verwandt mit `kader` und `torschuetze` | 013 US1 |
+
+`kader` bleibt unverändert: Er hat schon drei verwandte Einträge (Höchstzahl laut Spec 010 FR-H11).
 
 ## Success Criteria *(mandatory)*
 

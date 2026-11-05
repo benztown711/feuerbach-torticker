@@ -20,7 +20,7 @@ Wie Spec 001; keine neue Abhängigkeit. Sortierung mit `Intl.Collator('de', { se
 | IV. Spec-first und Test-first | Unit-Tests "013 FR-K0x", E2E "013 US1-Sx" vor dem Code, 100 % Branch-Coverage in `src/domain` | erfüllt |
 | VI. Einfachheit | Zwei feste Werte, kein zweiter Umschalter, keine absteigende Sortierung | erfüllt |
 | VII. Vereinsdesign | Segmente wie "Darstellung" (`.segmented--2`), nur Tokens | erfüllt |
-| IX. Hilfe | Neuer Eintrag `kader-sortierung`, `kader` verweist darauf | erfüllt |
+| IX. Hilfe | Neuer Eintrag `kader-sortierung` (verwandt mit `kader`, `torschuetze`) | erfüllt |
 
 ## Research
 
@@ -44,7 +44,7 @@ Wie Spec 001; keine neue Abhängigkeit. Sortierung mit `Intl.Collator('de', { se
 - `src/ui/screens/new-game.tsx`: Aufgebot mit `settings.rosterSort`.
 - `src/ui/screens/game.tsx`: Torschützen, Vorlagen, Karten, Wechsel mit `settings.rosterSort`; "gibt es Spieler?" über `activePlayers`.
 - `src/ui/components/shootout.tsx`: neuer Prop `sort`.
-- `src/domain/help-entries.ts`: Eintrag `kader-sortierung` (Thema "Mannschaften und Kader", Quelle "013 US1"), `kader.related` ergänzt.
+- `src/domain/help-entries.ts`: Eintrag `kader-sortierung` (Thema "Mannschaften und Kader", Quelle "013 US1"); `kader` bleibt, weil er schon drei verwandte Einträge hat (010 FR-H11).
 - Spec 001 US5-S2: "sortiert nach Nummer" → "sortiert nach der Einstellung aus Spec 013".
 
 ## Tests
