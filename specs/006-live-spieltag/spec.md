@@ -69,6 +69,7 @@ Mockup: https://claude.ai/artifact/SDGYEMUyn2u5uarWLYeGFo
 
 - Befund (Atti, Gerätetest G-3 im Alltag): Ein Elternteil öffnet den Zuschauer-Link aus WhatsApp in Safari, das Dashboard erscheint. Nach "Zum Home-Bildschirm" öffnet das Symbol aber den Startbildschirm mit "Neues Spiel" statt des Dashboards. Ursache: iOS übernimmt die Startadresse aus dem Manifest der App (`/feuerbach-torticker/`), nicht die aktuelle Adresse; die Vorkehrung aus R-L6 (gemerkter Zuschauer-Link) greift nicht, weil die Home-Bildschirm-App getrennte Daten hat und den in Safari gemerkten Link nicht kennt.
 - Entscheidung (Fehlerbehebung, ohne Mockup): Auf der Seite des Zuschauer-Links nennt das Manifest den Zuschauer-Link als Startadresse (FR-L16, US3-S11). Symbole, die vorher angelegt wurden, behalten die alte Startadresse; sie müssen einmal gelöscht und neu angelegt werden (Hilfe-Eintrag `eltern-home`).
+- Nachtest (Atti, Geschäfts-iPhone, 05.11.2026 nach PR #45): weiterhin "Neues Spiel". Gründe: Die Auslieferung war blockiert (CI auf `main` rot wegen doppelter Spec-Nummer 013), und laut WebKit-Quellcode hätte die erste Fassung in Safari ohnehin nicht gewirkt (Manifest wird beim ersten Verweis geladen und behalten; `data:`-Adresse scheitert im CORS-Modus). Zweite Fassung siehe research.md R-L6.
 
 ## User Scenarios & Testing *(mandatory)*
 
