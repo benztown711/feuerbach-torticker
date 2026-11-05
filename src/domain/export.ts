@@ -1,4 +1,5 @@
-import type { Game, Player } from './types';
+import { parseLiveSpieltag } from './live-spieltag';
+import type { Game, LiveSpieltag, Player } from './types';
 
 /** Sicherung aller Spiele und des Kaders (FR-024, contracts/export.schema.json). */
 export const BACKUP_FORMAT = 'feuerbach-torticker-backup';
@@ -10,9 +11,17 @@ export interface Backup {
   appVersion?: string;
   games: Game[];
   players: Player[];
+  /** Spec 006 FR-L21: Live-Spieltag mit Schlüsseln, damit ein Handywechsel ohne neue Links geht. */
+  live?: LiveSpieltag;
 }
 
-export function buildBackup(games: Game[], players: Player[], now: number, appVersion?: string): Backup {
+export function buildBackup(
+  games: Game[],
+  players: Player[],
+  now: number,
+  appVersion?: string,
+  live?: LiveSpieltag | null,
+): Backup {
   return {
     format: BACKUP_FORMAT,
     schemaVersion: 1,
@@ -20,6 +29,7 @@ export function buildBackup(games: Game[], players: Player[], now: number, appVe
     ...(appVersion ? { appVersion } : {}),
     games,
     players,
+    ...(live ? { live } : {}),
   };
 }
 
@@ -161,7 +171,10 @@ export function parseBackup(text: string): ParseResult {
   if (!arrayOf(data.players, isPlayer)) return { ok: false, error: 'Der Kader in der Sicherung ist beschädigt.' };
   if (!arrayOf(data.games, isGame))
     return { ok: false, error: 'Mindestens ein Spiel in der Sicherung ist beschädigt.' };
-  return { ok: true, backup: data as unknown as Backup };
+  if (data.live === undefined) return { ok: true, backup: data as unknown as Backup };
+  const live = parseLiveSpieltag(data.live);
+  if (!live) return { ok: false, error: 'Der Live-Spieltag in der Sicherung ist beschädigt.' };
+  return { ok: true, backup: { ...(data as unknown as Backup), live } };
 }
 
 export interface MergeResult {

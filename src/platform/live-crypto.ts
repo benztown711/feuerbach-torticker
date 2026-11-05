@@ -132,6 +132,8 @@ export interface OpenedMessage {
   cert: unknown;
   /** Geprüfte Konfiguration (JSON-Wert) oder null. */
   config: unknown;
+  /** Die geprüfte Konfiguration wie signiert, zum Weitergeben (Spec 006 US5); fehlt ohne gültiges g. */
+  signedConfig?: SignedData;
 }
 
 const parseJson = (text: string): unknown => {
@@ -168,5 +170,6 @@ export async function openMessage(
       content = parsed;
     }
   }
-  return { content, cert, config };
+  // Eine geprüfte Konfiguration stammt immer aus g.
+  return config === null ? { content, cert, config } : { content, cert, config, signedConfig: g as SignedData };
 }

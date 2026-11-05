@@ -1,5 +1,6 @@
 import {
   boardView,
+  lastSentAt,
   otherGames,
   runningElsewhere,
   type Board,
@@ -10,6 +11,7 @@ import { configOf, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
+import { adoptReceived } from './live-setup';
 
 /**
  * Spec 006 US4 und US6: Trainer-Handys hören beim Anlegen und im Spielbildschirm mit: Läuft dasselbe Spiel
@@ -19,9 +21,34 @@ import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiv
 
 export { handOver };
 
-/** Empfänger für den gekoppelten Live-Spieltag, mit bekannter Konfiguration. */
+/**
+ * Empfänger für den gekoppelten Live-Spieltag, mit bekannter Konfiguration. Eine jüngere Konfiguration eines
+ * anderen Trainer-Handys übernimmt dieses Handy (US5-S1).
+ */
 const receiverFor = (live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveReceiver =>
-  newReceiver(viewerOf(live), deps, configOf(live.config));
+  newReceiver(
+    viewerOf(live),
+    { onConfig: (signed) => void adoptReceived(signed, live), ...deps },
+    configOf(live.config),
+  );
+
+export interface LiveOverviewWatch {
+  /** US5: Serverzeit der jüngsten Meldung einer Mannschaft, sonst null. */
+  lastSent(team: string): number | null;
+  onChange(cb: () => void): () => void;
+  stop(): void;
+}
+
+/** US5: Übersicht "Live-Spieltag" ("zuletzt gesendet" je Mannschaft), solange sie offen ist. */
+export function watchLive(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {}): LiveOverviewWatch {
+  const r = receiverFor(live, deps);
+  r.start();
+  return {
+    lastSent: (team) => lastSentAt(r.get().board, team),
+    onChange: (cb) => r.onChange(cb),
+    stop: () => r.stop(),
+  };
+}
 
 export interface RunningGame {
   entry: BoardEntry;

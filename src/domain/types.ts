@@ -206,7 +206,15 @@ export interface LiveConfig {
   title: string;
   teams: string[];
   iat: number;
+  /**
+   * Spec 006 US5: Kurzlabel, Name, Heim- und Auswärtstrikot je Mannschaft, damit andere Trainer-Handys eine
+   * neue Mannschaft übernehmen können. Fehlt bei Konfigurationen älterer Versionen.
+   */
+  m?: TeamDetail[];
 }
+
+/** Spec 006: Mannschaft in Trainer-Link und Konfiguration: Kurzlabel, Name, Heim-, Auswärtstrikot. */
+export type TeamDetail = [key: string, name: string, homeColor: string, awayColor: string];
 
 /** Spec 006 R-L5: Lead-Zertifikat einer Mannschaft. */
 export interface LeadCert {

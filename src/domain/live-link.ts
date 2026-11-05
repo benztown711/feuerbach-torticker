@@ -7,6 +7,7 @@ import {
   isPrivateKeyParts,
   isSignedData,
   isText,
+  isTopic,
   MAX_KEY,
   MAX_LIVE_TEAMS,
   MAX_TITLE,
@@ -50,10 +51,9 @@ export type ParsedLink =
   | { kind: 'invalid' };
 
 const INVALID: ParsedLink = { kind: 'invalid' };
-const TOPIC = /^[A-Za-z0-9_-]{22}$/;
 
 function viewOf(raw: Obj): ViewerLink | null {
-  if (raw.v !== 1 || typeof raw.t !== 'string' || !TOPIC.test(raw.t)) return null;
+  if (raw.v !== 1 || !isTopic(raw.t)) return null;
   if (!isKey(raw.k, 32) || !isKey(raw.o, 65) || !isText(raw.n, MAX_TITLE)) return null;
   return { topic: raw.t, viewKey: raw.k, orgPub: raw.o, title: raw.n };
 }

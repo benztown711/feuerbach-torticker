@@ -373,6 +373,12 @@ export function otherGames(
   return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId && c.key !== team);
 }
 
+/** Spec 006 US5: Serverzeit der jüngsten Meldung einer Mannschaft (von irgendeinem Handy), sonst null. */
+export function lastSentAt(board: Board, team: string): number | null {
+  const times = board.games.filter((e) => e.snap.team === team).map((e) => e.at);
+  return times.length > 0 ? Math.max(...times) : null;
+}
+
 /** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */
 export const ACTIVE_MS = 30 * 60_000;
 
