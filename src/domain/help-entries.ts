@@ -170,7 +170,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
   {
     id: 'pfiff-zuruecknehmen',
     topic: 'spiel',
-    title: 'Wie nehme ich einen Pfiff zurück?',
+    title: 'Wie nehme ich einen Pausen- oder Schlusspfiff zurück?',
     answer:
       'Zu früh „Pausenpfiff“ oder „Schlusspfiff“ getippt? Tippe auf „…“ und „Pausenpfiff zurücknehmen“ bzw. „Schlusspfiff zurücknehmen“. Die Uhr läuft weiter, als wäre nicht gepfiffen worden. Das geht bis 10 Minuten nach dem Pfiff, solange noch nicht wieder angepfiffen ist.',
     keywords: 'pfiff zurück versehentlich zu früh abgepfiffen halbzeit schlusspfiff rückgängig',

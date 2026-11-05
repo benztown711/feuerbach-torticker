@@ -191,7 +191,7 @@ Spielt E1 schon und E2 noch nicht, sehen die E2-Eltern auf dem Dashboard, dass E
 | `live-anlegen` "Wie richte ich einen Live-Spieltag ein?" | geändert: nur einmal für alle Mannschaften | 006 US1, 012 US1 |
 | `tor-nachtragen` "Wie trage ich ein vergessenes Tor nach?" | neu | 012 US2 |
 | `tor-minute` "Wie ändere ich die Minute eines Tores?" | neu | 012 US2 |
-| `pfiff-zuruecknehmen` "Wie nehme ich einen Pfiff zurück?" | neu | 012 US3 |
+| `pfiff-zuruecknehmen` "Wie nehme ich einen Pausen- oder Schlusspfiff zurück?" | neu | 012 US3 |
 | `uhr-korrigieren` "Was tue ich, wenn die Uhr falsch geht?" | neu | 012 US4 |
 | `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: "heute noch kein Spiel" | 006 US3, 012 US5 |
 | `daten-weg` "Warum sind meine Spiele weg?" | geändert: Trainer-Link erneut antippen koppelt wieder | 001 FR-023, 012 US1 |
