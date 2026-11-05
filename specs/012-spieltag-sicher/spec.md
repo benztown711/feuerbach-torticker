@@ -146,7 +146,7 @@ Spielt E1 schon und E2 noch nicht, sehen die E2-Eltern auf dem Dashboard, dass E
 **Koppeln ohne Suchen (US1)**
 
 - **FR-S01**: Der Startbildschirm MUSS ohne Kopplung oder bei neu ausgestelltem Live-Spieltag unter "Neues Spiel" eine Karte mit "Trainer? Füge den Trainer-Link aus der Trainergruppe ein." (bzw. dem Satz zum Neu-Ausstellen) und dem Knopf "Trainer-Link einfügen" zeigen. Ein Handy, das nur einen Zuschauer-Link kennt, zeigt die Karte ebenfalls.
-- **FR-S02**: "Trainer-Link einfügen" MUSS zuerst die Zwischenablage lesen (nur nach diesem Tipp). Enthält sie einen gültigen Trainer- oder Lead-Link, folgt die Kopplungsfrage aus Spec 006; ein Zuschauer-Link öffnet das Dashboard; sonst öffnet das Einfügefeld.
+- **FR-S02**: "Trainer-Link einfügen" MUSS zuerst die Zwischenablage lesen (nur nach diesem Tipp). Enthält sie einen gültigen Trainer- oder Lead-Link, folgt die Kopplungsfrage aus Spec 006; ein Zuschauer-Link öffnet das Dashboard; sonst öffnet das Einfügefeld, bei ungültigem Link bzw. dem alten Link eines neu ausgestellten Live-Spieltags mit Hinweis.
 - **FR-S03**: Nach dem Koppeln über den Startbildschirm oder über die Seite des Trainer-Links MUSS der Startbildschirm erscheinen. Koppeln unter "Live-Spieltag" bleibt dort.
 - **FR-S04**: Ein gekoppeltes Handy MUSS auf dem Startbildschirm unter "Neues Spiel" "Live: <Titel> · <Mannschaften>" zeigen (Kurzformen wie auf den Mannschafts-Chips); ein Tipp öffnet "Live-Spieltag".
 - **FR-S05**: "Live-Spieltag" ohne Kopplung MUSS "Trainer-Link einfügen" als Hauptknopf vor "Live-Spieltag anlegen" (Zweitknopf mit Hinweis aus US1-S6) zeigen.
@@ -159,12 +159,12 @@ Spielt E1 schon und E2 noch nicht, sehen die E2-Eltern auf dem Dashboard, dass E
 - **FR-S12**: Das Tor-Blatt (Tipp auf ein Tor) MUSS "Minute ändern" mit derselben Auswahl anbieten; Torschütze, Vorlage und Kennzeichen bleiben.
 - **FR-S13**: Tore MÜSSEN in Torliste, Spieldetails, Teilen-Text und Dashboard nach Spielzeit geordnet sein. Ein nachgetragenes oder verschobenes Tor erhält als Uhrzeit den Zeitpunkt im Spielverlauf, zu dem die Uhr diese Minute zeigte (Mitte der Minute, höchstens das Abschnittsende).
 - **FR-S14**: Halbzeitstand und Endstand MÜSSEN jeder Tor-Korrektur folgen (Nachtragen, Minute ändern, Entfernen, Wiederherstellen).
-- **FR-S15**: Das "…"-Menü MUSS in der Pause bzw. nach dem Schlusspfiff "Pausenpfiff zurücknehmen" bzw. "Schlusspfiff zurücknehmen" anbieten, solange der Pfiff das letzte Uhr-Ereignis ist, höchstens 10 Minuten nach dem Pfiff, und nicht nach Wahl von Verlängerung oder Elfmeterschießen. Nach der Rückfrage (US3-S5) entfällt der Pfiff: Die Uhr läuft weiter, als wäre nicht gepfiffen worden; Halbzeit- bzw. Endstand und "Unentschieden bestätigt" werden zurückgesetzt.
+- **FR-S15**: Das "…"-Menü MUSS in der Pause bzw. nach dem Schlusspfiff "Pausenpfiff zurücknehmen" bzw. "Schlusspfiff zurücknehmen" anbieten, solange der Pfiff das letzte Uhr-Ereignis ist, höchstens 10 Minuten nach dem Pfiff, und nicht nach Wahl von Verlängerung oder Elfmeterschießen. Nach der Rückfrage (US3-S5) entfällt der Pfiff: Die Uhr läuft weiter, als wäre nicht gepfiffen worden; Halbzeit- bzw. Endstand und "Unentschieden bestätigt" werden zurückgesetzt; Signalschwellen, die seit dem Pfiff erreicht wurden, lösen kein Signal aus (das nächste kommt zur nächsten vollen Nachspielminute).
 
 **Uhr (US4)**
 
 - **FR-S20**: Das "…"-Menü MUSS bei laufender oder angehaltener Uhr "Uhr korrigieren" anbieten. Das Blatt zeigt die Spielminute groß mit "−1 Min" und "+1 Min" und "Übernehmen".
-- **FR-S21**: Die Korrektur MUSS den Anpfiff des laufenden Abschnitts verschieben (Constitution V: weiterhin Berechnung aus Zeitstempeln); erlaubt nur, solange der Anpfiff nach dem vorigen Uhr-Ereignis und vor der ersten Unterbrechung des Abschnitts liegt und die gespielte Zeit nicht negativ wird.
+- **FR-S21**: Die Korrektur MUSS den Anpfiff des laufenden Abschnitts verschieben (Constitution V: weiterhin Berechnung aus Zeitstempeln); erlaubt nur, solange der Anpfiff nach dem vorigen Uhr-Ereignis (ohne vorheriges höchstens 60 Minuten früher) und nicht nach der ersten Unterbrechung, dem ersten Tor oder Ereignis des Abschnitts liegt und die gespielte Zeit nicht negativ wird. Gibt es keinen Spielraum, fehlt der Eintrag.
 - **FR-S22**: Minuten von Toren, Karten, Wechseln und Lesezeichen des laufenden Abschnitts MÜSSEN aus ihrer Uhrzeit neu berechnet werden; frühere Abschnitte bleiben unverändert.
 - **FR-S23**: Signale des laufenden Abschnitts (FR-007), die nach der Korrektur noch nicht erreicht sind, MÜSSEN erneut fällig werden.
 

@@ -970,7 +970,6 @@ body:has(.page:not(.dash, .lead-link)) {
   line-height: 26px;
 }
 
-.dialog__text,
 /* Spec 012 FR-S10: Mannschaft beim Nachtragen, zwei gleich breite Knöpfe mit Trikotfarbe. */
 .add-goal__side {
   display: inline-flex;
@@ -999,6 +998,7 @@ body:has(.page:not(.dash, .lead-link)) {
   text-align: center;
 }
 
+.dialog__text,
 .sheet__subtitle {
   margin: 0;
   color: var(--color-ink-muted);

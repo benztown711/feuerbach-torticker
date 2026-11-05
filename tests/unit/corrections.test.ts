@@ -481,6 +481,15 @@ describe('012 FR-S15 Pfiff zurücknehmen', () => {
     expect(addGoal(u, 'own', now, ids).added).toBe(true);
   });
 
+  it('012 US3-S2 FR-S15 kein Signal beim Zurücknehmen: seit dem Pfiff erreichte Schwellen gelten als signalisiert', () => {
+    const g = finished();
+    const now = FULL + min(3);
+    const u = undoWhistle(g, now);
+    expect(deriveClock(u.clockEvents, now, u.schema, u.signalledThresholds).dueThresholds).toEqual([]);
+    // Die nächste volle Nachspielminute signalisiert wieder.
+    expect(deriveClock(u.clockEvents, now + min(1), u.schema, u.signalledThresholds).dueThresholds).toHaveLength(1);
+  });
+
   it('012 US3-S3 höchstens 10 Minuten nach dem Pfiff und nur, solange er das letzte Uhr-Ereignis ist', () => {
     const g = finished();
     expect(canUndoWhistle(g, FULL + min(10))).toBe(true);

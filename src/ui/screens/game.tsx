@@ -42,6 +42,7 @@ import {
 } from '../../domain/goals';
 import {
   addGoalAt,
+  canAddLateGoal,
   canUndoWhistle,
   clockShiftRange,
   defaultOption,
@@ -468,12 +469,16 @@ export function GameScreen({ id }: { id: string }) {
   const saveMinute = (): void => {
     if (!minuteSheet) return;
     const t = Date.now();
+    const goal = cur().goals.find((g) => g.id === minuteSheet.goalId);
     const opt = minuteOptions(cur(), t).find((o) => o.label === minuteSheet.label);
-    if (opt) update(setGoalMinute(cur(), minuteSheet.goalId, opt, t));
+    // Unveränderte Minute: nichts tun, damit Tore derselben Minute ihre Reihenfolge behalten.
+    const same = goal && formatMinute(goal.minute, goal.stoppage) === minuteSheet.label;
+    if (opt && !same) update(setGoalMinute(cur(), minuteSheet.goalId, opt, t));
     setMinuteSheet(null);
   };
-  // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr.
-  const shiftRange = goalsOpen ? clockShiftRange(game, now) : null;
+  // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
+  const range = goalsOpen ? clockShiftRange(game, now) : null;
+  const shiftRange = range && (range.min < 0 || range.max > 0) ? range : null;
 
   // Spec 003 FR-E09: Knopfzeile ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
   const allEvents = gameEvents(game);
@@ -857,7 +862,7 @@ export function GameScreen({ id }: { id: string }) {
               Zwischenstand teilen
             </button>
           ) : null}
-          {status !== 'created' && !game.shootout && (
+          {canAddLateGoal(game, now) && (
             <button
               type="button"
               class="btn btn--secondary"

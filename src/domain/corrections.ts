@@ -225,7 +225,8 @@ export function canUndoWhistle(game: Game, now: number): boolean {
 
 /**
  * FR-S15: Pfiff zurücknehmen; die Uhr läuft weiter, als wäre nicht gepfiffen worden. Halbzeitstand (Ende des
- * 1. Abschnitts) bzw. Endstand und "Unentschieden bestätigt" werden zurückgesetzt. Nicht erlaubt: unverändert.
+ * 1. Abschnitts) bzw. Endstand und "Unentschieden bestätigt" werden zurückgesetzt; seit dem Pfiff erreichte
+ * Signalschwellen lösen kein Signal aus. Nicht erlaubt: unverändert.
  */
 export function undoWhistle(game: Game, now: number): Game {
   if (!canUndoWhistle(game, now)) return game;
@@ -237,7 +238,15 @@ export function undoWhistle(game: Game, now: number): Game {
       : whistle.section === 1
         ? { halfTimeScore: null }
         : {};
-  return { ...game, ...patch, clockEvents, status: deriveClock(clockEvents, now, game.schema).status };
+  // Schwellen, die seit dem Pfiff erreicht wurden, gelten als signalisiert: kein Signal beim Zurücknehmen.
+  const clock = deriveClock(clockEvents, now, game.schema, game.signalledThresholds);
+  return {
+    ...game,
+    ...patch,
+    clockEvents,
+    status: clock.status,
+    signalledThresholds: [...game.signalledThresholds, ...clock.dueThresholds],
+  };
 }
 
 interface ShiftBase {

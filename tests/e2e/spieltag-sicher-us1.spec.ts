@@ -65,6 +65,17 @@ test('012 US1-S3 leere oder gesperrte Zwischenablage: Einfügefeld, danach Start
   await setClipboard(c, null);
   await c.getByTestId('btn-start-paste').click();
   await expect(c.getByTestId('paste-link-input')).toBeVisible();
+  // Ungültiger Link in der Zwischenablage: Einfügefeld mit Hinweis.
+  await c.getByTestId('paste-link-cancel').click();
+  await c.evaluate(() => {
+    const rec = (window as unknown as { __rec: { clipboard?: string; clipboardBlocked?: boolean } }).__rec;
+    rec.clipboardBlocked = false;
+    rec.clipboard = 'https://example.org/#/trainer/kaputt';
+  });
+  await c.getByTestId('btn-start-paste').click();
+  await expect(c.getByTestId('paste-link-error')).toHaveText(
+    'Der Link in der Zwischenablage ist nicht gültig. Bitte den ganzen Link aus der Trainergruppe kopieren.',
+  );
   // Abbrechen schließt das Feld, nichts ist gekoppelt.
   await c.getByTestId('paste-link-cancel').click();
   await expect(c.getByTestId('paste-link-input')).toHaveCount(0);

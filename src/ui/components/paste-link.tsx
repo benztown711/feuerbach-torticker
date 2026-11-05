@@ -7,9 +7,18 @@ import { navigate } from '../router';
  * Spec 006 FR-L03, Spec 012 FR-S02: Einfügefeld für Trainer-, Lead- und Zuschauer-Link. Ein Zuschauer-Link öffnet
  * das Dashboard; ein geprüfter Trainer- oder Lead-Link geht an `onLink` (Kopplungsfrage).
  */
-export function PasteLink({ onCancel, onLink }: { onCancel: () => void; onLink: (p: VerifiedLink) => void }) {
+export function PasteLink({
+  onCancel,
+  onLink,
+  initialError = '',
+}: {
+  onCancel: () => void;
+  onLink: (p: VerifiedLink) => void;
+  /** Spec 012: Hinweis, warum der Link aus der Zwischenablage nicht genommen wurde. */
+  initialError?: string;
+}) {
   const [text, setText] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
 
   const apply = async (): Promise<void> => {
     const link = findLink(text);
