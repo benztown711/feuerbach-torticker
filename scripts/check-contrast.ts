@@ -33,6 +33,15 @@ export const PAIRS: Pair[] = [
   { fg: 'ink-muted', bg: 'rot-hell', min: 4.5, where: 'Dashboard: hervorgehobene Karte (neues Tor)' },
   { fg: 'rot-text', bg: 'rot-hell', min: 4.5, where: 'Dashboard: Minute in hervorgehobener Karte' },
   { fg: 'on-rot', bg: 'rot-dunkel', min: 4.5, where: 'Fußleisten' },
+  // Spec 011: Karten auf Grundfläche, ruhige Knöpfe, Eingabefelder
+  { fg: 'ink', bg: 'card', min: 4.5, where: 'Text auf Karten, Blättern, Abfragen' },
+  { fg: 'ink-muted', bg: 'card', min: 4.5, where: 'Nebentext auf Karten' },
+  { fg: 'rot-text', bg: 'card', min: 4.5, where: 'Kartenüberschrift, Links auf Karten' },
+  { fg: 'ink', bg: 'canvas', min: 4.5, where: 'Seitentitel auf der Grundfläche' },
+  { fg: 'ink-muted', bg: 'canvas', min: 4.5, where: 'Legende, Fußzeile auf der Grundfläche' },
+  { fg: 'ink', bg: 'tonal', min: 4.5, where: 'Ruhige Knöpfe' },
+  { fg: 'ink', bg: 'field', min: 4.5, where: 'Eingabe' },
+  { fg: 'ink-muted', bg: 'field', min: 4.5, where: 'Platzhalter in Eingabefeldern' },
 ];
 
 const channel = (c: number): number => {
