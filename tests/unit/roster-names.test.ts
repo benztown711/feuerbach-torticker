@@ -111,7 +111,7 @@ describe('001 US7-S8 FR-028 Kürzel aus der Liste bleiben unverändert', () => {
     ).toEqual(['Max M.', 'Max Me.']);
     const r = uniqueNames([
       { first: 'Max', last: 'Mü', kept: true },
-      { first: 'Max', last: 'Mü', fixed: true },
+      { first: 'Max', last: 'Mü', kept: true },
     ]);
     expect(r).toEqual([
       { name: 'Max Mü.', duplicate: true },

@@ -11,6 +11,8 @@ export interface NameEntry {
   last: string | null;
   /** Bestehende Abkürzung eines gespeicherten Spielers: wird nicht verlängert. */
   fixed?: boolean;
+  /** Kürzel stand schon so in der Liste ("Mü.", z. B. aus "Kader teilen"): bleibt unverändert (FR-028). */
+  kept?: boolean;
 }
 
 export interface NameResult {
@@ -19,6 +21,9 @@ export interface NameResult {
 }
 
 const key = (s: string): string => s.toLocaleLowerCase('de');
+
+/** Kürzel, wie die App es erzeugt: 1 bis 3 Buchstaben und Punkt ("Mü."). */
+export const isAbbreviation = (word: string): boolean => /^\p{L}{1,3}\.$/u.test(word);
 
 function build(first: string, abbr: string | null): string {
   if (abbr === null || abbr === '') return first.slice(0, MAX_NAME);
@@ -29,17 +34,24 @@ function build(first: string, abbr: string | null): string {
 /** Abkürzung mit k Buchstaben; der volle Nachname wird nie ausgeschrieben (mind. 1 Buchstabe weniger). */
 function abbreviate(e: NameEntry, k: number): string | null {
   if (e.last === null || e.last === '') return null;
+  if (e.kept) return e.last;
   const cap = e.fixed ? e.last.length : Math.max(1, e.last.length - 1);
   return e.last.slice(0, Math.min(k, cap));
 }
 
 function nameGroup(group: NameEntry[]): string[] {
-  if (group.length === 1) return [build(group[0]!.first, null)];
-  const distinctPeople = new Set(group.map((e) => key(e.last ?? ''))).size;
+  if (group.length === 1) {
+    const e = group[0]!;
+    return [build(e.first, e.kept ? e.last : null)];
+  }
+  const person = group.map((e) => key(e.last ?? ''));
   const maxLen = Math.max(1, ...group.map((e) => (e.last ?? '').length));
-  let k = 1;
   const at = (len: number): string[] => group.map((e) => build(e.first, abbreviate(e, len)));
-  while (k < maxLen && new Set(at(k).map(key)).size < distinctPeople) k++;
+  /** Verschiedene Nachnamen tragen nie denselben Namen (auch wenn ein Kürzel unverändert bleibt). */
+  const separates = (names: string[]): boolean =>
+    new Set(names.map((n, i) => `${key(n)}\n${person[i]}`)).size === new Set(names.map(key)).size;
+  let k = 1;
+  while (k < maxLen && !separates(at(k))) k++;
   return at(k);
 }
 

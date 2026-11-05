@@ -15,7 +15,7 @@ export interface ImportRow {
   /** Bestehender Spieler (auch gelöscht), der aktualisiert wird; sonst neu. */
   matchId: string | null;
   revive: boolean;
-  /** Ein Nachname stand in der Liste und wurde gekürzt oder verworfen. */
+  /** Ein Nachname stand in der Liste und wurde gekürzt oder verworfen (ein Kürzel wie "Mü." zählt nicht). */
   shortened: boolean;
   parseWarnings: ParseWarning[];
   warnings: ImportWarning[];
@@ -69,7 +69,7 @@ export function planImport(existing: Player[], lines: ParsedLine[]): ImportRow[]
     ...lines.map((l, i) => {
       const m = matches[i];
       if (l.lastName === null && m) return { first: l.firstName, last: abbreviationOf(m.name), fixed: true };
-      return { first: l.firstName, last: l.lastName };
+      return { first: l.firstName, last: l.lastName, kept: l.abbreviated };
     }),
     ...outside.map((p) => ({ first: firstNameOf(p.name), last: abbreviationOf(p.name), fixed: true })),
   ];
@@ -80,7 +80,7 @@ export function planImport(existing: Player[], lines: ParsedLine[]): ImportRow[]
     name: names[i]!.name,
     matchId: matches[i]?.id ?? null,
     revive: matches[i]?.deletedAt != null,
-    shortened: l.lastName !== null,
+    shortened: l.lastName !== null && !l.abbreviated,
     parseWarnings: l.warnings,
     warnings: [],
   }));
