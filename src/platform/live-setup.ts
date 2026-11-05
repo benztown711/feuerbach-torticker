@@ -178,10 +178,21 @@ async function save(next: Settings, publishNow: boolean): Promise<Settings> {
   return next;
 }
 
-async function manage(change: (live: LiveSpieltag) => Promise<LiveSpieltag>): Promise<Settings> {
-  const s = await getSettings();
-  if (!s.live) throw new Error('Auf diesem Handy ist kein Live-Spieltag eingerichtet.');
-  return save({ ...s, live: await change(s.live) }, true);
+let queue: Promise<unknown> = Promise.resolve();
+
+/** Änderungen am Live-Spieltag nacheinander, damit Verwalten und Übernehmen sich nicht überschreiben. */
+function serial<T>(task: () => Promise<T>): Promise<T> {
+  const run = queue.then(task, task);
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+function manage(change: (live: LiveSpieltag) => Promise<LiveSpieltag>): Promise<Settings> {
+  return serial(async () => {
+    const s = await getSettings();
+    if (!s.live) throw new Error('Auf diesem Handy ist kein Live-Spieltag eingerichtet.');
+    return save({ ...s, live: await change(s.live) }, true);
+  });
 }
 
 /** US5-S4: Titel ändern. */
@@ -202,21 +213,23 @@ export const removeTeamFromLive = (key: string): Promise<Settings> =>
 export async function reissueLive(): Promise<Settings> {
   const old = (await getSettings()).live;
   const next = await manage((live) => reissueSpieltag(live, deps()));
-  if (old) {
-    const retired = await retireConfig(old, deps());
-    void sealMessage(old.viewKey, { config: retired })
-      .then((text) => publish(old.topic, text))
-      .catch(() => false);
-  }
+  if (old) void announceRetired(old, await retireConfig(old, deps()));
   return next;
 }
 
-/** US5-S2 FR-L20: Kopplung beenden; die Spiele bleiben auf dem Handy. */
-export async function endCoupling(): Promise<Settings> {
-  return save({ ...(await getSettings()), live: null }, false);
+/** Hinweis "neu ausgestellt" aufs alte Topic; ohne Netz erneut (5 s, 10 s, … bis gut 10 Minuten). */
+async function announceRetired(old: LiveSpieltag, retired: SignedData): Promise<void> {
+  const text = await sealMessage(old.viewKey, { config: retired });
+  for (let wait = 5_000; wait <= 320_000; wait *= 2) {
+    if (await publish(old.topic, text).catch(() => false)) return;
+    await new Promise((r) => setTimeout(r, wait));
+  }
 }
 
-let adopting: Promise<void> = Promise.resolve();
+/** US5-S2 FR-L20: Kopplung beenden; die Spiele bleiben auf dem Handy. */
+export function endCoupling(): Promise<Settings> {
+  return serial(async () => save({ ...(await getSettings()), live: null }, false));
+}
 
 /**
  * US5-S1: übernimmt eine empfangene, mit `view.orgPub` geprüfte jüngere Konfiguration in den Live-Spieltag
@@ -224,15 +237,12 @@ let adopting: Promise<void> = Promise.resolve();
  * ausgestellt), bleibt alles, wie es ist.
  */
 export function adoptReceived(signed: SignedData, view: { topic: string; orgPub: string }): Promise<void> {
-  adopting = adopting
-    .then(async () => {
-      const s = await getSettings();
-      if (s.live?.topic !== view.topic || s.live.orgPub !== view.orgPub) return;
-      const next = await adoptConfig(s, signed, deps());
-      if (next) await save(next, false);
-    })
-    .catch(() => undefined);
-  return adopting;
+  return serial(async () => {
+    const s = await getSettings();
+    if (s.live?.topic !== view.topic || s.live.orgPub !== view.orgPub) return;
+    const next = await adoptConfig(s, signed, deps());
+    if (next) await save(next, false);
+  }).catch(() => undefined);
 }
 
 /**
@@ -242,8 +252,10 @@ export function adoptReceived(signed: SignedData, view: { topic: string; orgPub:
 export async function restoreLiveFromBackup(live: LiveSpieltag): Promise<'restored' | 'kept' | 'invalid'> {
   const config = parseConfig(await verifySigned(live.orgPub, live.config));
   if (!config || (live.orgKey && !(await keyMatches(live.orgKey, live.orgPub)))) return 'invalid';
-  const r = restoreLive(await getSettings(), live, () => crypto.randomUUID());
-  if (!r.restored) return 'kept';
-  await save(r.settings, false);
-  return 'restored';
+  return serial(async () => {
+    const r = restoreLive(await getSettings(), live, () => crypto.randomUUID());
+    if (!r.restored) return 'kept';
+    await save(r.settings, false);
+    return 'restored';
+  });
 }

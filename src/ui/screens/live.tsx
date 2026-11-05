@@ -130,6 +130,7 @@ export function LiveScreen() {
   if (!settings) return <main class="page" aria-busy="true" />;
   const live = settings.live;
   const back = () => (view === 'main' ? navigate('/mehr') : setView('main'));
+  const addable = live ? addableTeams(live, settings.teams) : [];
 
   const couple = async (): Promise<void> => {
     if (!pending || coupling) return;
@@ -192,7 +193,7 @@ export function LiveScreen() {
       {view === 'main' && live && !isRetired(live) && isOrganizer(live) && (
         <Overview
           live={live}
-          canAdd={addableTeams(live, settings.teams).length > 0}
+          canAdd={addable.length > 0}
           reissued={reissued}
           onShare={share}
           onPaste={() => setView('paste')}
@@ -212,7 +213,7 @@ export function LiveScreen() {
       )}
       {live && dialog?.kind === 'add' && (
         <AddSheet
-          options={addableTeams(live, settings.teams)}
+          options={addable}
           busy={busy}
           onClose={() => setDialog(null)}
           onAdd={(o) =>
@@ -663,7 +664,10 @@ function TitleSheet({
             data-testid="input-title-edit"
             maxLength={40}
             value={title}
-            onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
+            onInput={(e) => {
+              setTitle((e.target as HTMLInputElement).value);
+              setError('');
+            }}
           />
           {error && (
             <p class="field__error" data-testid="title-error">
