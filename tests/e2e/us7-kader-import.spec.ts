@@ -82,10 +82,13 @@ test.describe('US7 Kader per Liste einfügen und teilen', () => {
     await expect(rosterRows(page)).toHaveCount(3);
   });
 
-  test('US7-S7 FR-028 Kader teilen als "Nummer Name" pro Zeile', async ({ page, recorded }) => {
+  test('US7-S7 FR-028 Kader teilen als "Nummer Name" pro Zeile (Reihenfolge nach Spec 013)', async ({
+    page,
+    recorded,
+  }) => {
     await seedRoster(page, 'Tom\n2 Ben\n1 Max');
     await page.getByTestId('btn-share-roster').click();
-    await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe('1 Max\n2 Ben\nTom');
+    await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe('2 Ben\n1 Max\nTom');
   });
 
   test('US7-S9 gelöschter Spieler wird beim Einfügen wieder sichtbar', async ({ page }) => {

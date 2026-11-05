@@ -4,11 +4,13 @@ import { personLabel } from '../../domain/events';
 import { homeAway, score } from '../../domain/goals';
 import { getColor, needsBorder } from '../../domain/jersey-colors';
 import { otherPlayers, squadPlayers } from '../../domain/roster';
-import type { EventPerson, Game, Player, Shot, Side } from '../../domain/types';
+import type { EventPerson, Game, Player, RosterSort, Shot, Side } from '../../domain/types';
 
 interface Props {
   game: Game;
   players: Player[];
+  /** Spec 013 FR-K05: Reihenfolge der Schützen-Auswahl. */
+  sort: RosterSort;
   ownName: string;
   dark: boolean;
   onShot: (hit: boolean, who: EventPerson) => void;
@@ -38,7 +40,7 @@ const VISIBLE = 6;
  * Spec 003 FR-P03: Elfmeterschießen. Übersicht je Mannschaft als Kreise (Treffer/verschossen),
  * Schützen aufklappbar in Schussreihenfolge; eigener Schütze vor dem Schuss im Aufgebot antippen.
  */
-export function ShootoutView({ game, players, ownName, dark, onShot, onUndo, onEnd }: Props) {
+export function ShootoutView({ game, players, sort, ownName, dark, onShot, onUndo, onEnd }: Props) {
   const [pick, setPick] = useState<string | null>(null);
   const [oppText, setOppText] = useState('');
   const [open, setOpen] = useState<Side | null>(null);
@@ -117,8 +119,8 @@ export function ShootoutView({ game, players, ownName, dark, onShot, onUndo, onE
     );
   };
 
-  const squad = squadPlayers(players, game.squad);
-  const rest = otherPlayers(players, game.squad);
+  const squad = squadPlayers(players, game.squad, sort);
+  const rest = otherPlayers(players, game.squad, sort);
   const done = new Set(list('own').flatMap((s) => (s.who?.kind === 'player' ? [s.who.playerId] : [])));
   const nextC = getColor(color(st.next), true);
   const shoot = (hit: boolean): void => {
