@@ -1,7 +1,7 @@
 import { deleteGames } from './db';
 
 /**
- * Spec 013 FR-D07, FR-D08: verzögertes Löschen mit "Rückgängig".
+ * Spec 014 FR-D07, FR-D08: verzögertes Löschen mit "Rückgängig".
  *
  * Gelöschte Spiele werden zuerst nur vorgemerkt: Historie und Navigationsleiste blenden sie aus, die Datenbank
  * bleibt unberührt. "Rückgängig" verwirft den Vorgang, die Spiele sind damit unverändert wieder da. Endgültig

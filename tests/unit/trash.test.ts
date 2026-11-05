@@ -52,7 +52,7 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
-describe('013 FR-D07 Löschvorgang vormerken und rückgängig machen', () => {
+describe('014 FR-D07 Löschvorgang vormerken und rückgängig machen', () => {
   it('vorgemerkte Spiele sind als gelöscht markiert, bleiben aber in der Datenbank', async () => {
     await trashGames(['a', 'b'], T0);
     expect([...trashedIds()].sort()).toEqual(['a', 'b']);
@@ -83,7 +83,7 @@ describe('013 FR-D07 Löschvorgang vormerken und rückgängig machen', () => {
   });
 });
 
-describe('013 FR-D08 endgültig löschen', () => {
+describe('014 FR-D08 endgültig löschen', () => {
   it('nach 10 Sekunden: aus der Datenbank gelöscht und je Spiel gemeldet', async () => {
     const seen: string[] = [];
     const off = onGameWrite((c) => c.kind === 'delete' && seen.push(c.id));

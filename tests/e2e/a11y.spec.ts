@@ -9,7 +9,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: scheme });
     });
 
-    test('013 SC-D04 Historie im Auswahlmodus und mit „Rückgängig“ ohne axe-Verstöße', async ({ page }) => {
+    test('014 SC-D04 Historie im Auswahlmodus und mit „Rückgängig“ ohne axe-Verstöße', async ({ page }) => {
       await playFinishedGame(page, ['own'], { opponent: 'TSV Weilimdorf' });
       await startGame(page, { opponent: 'TSG Stuttgart' });
       await page.getByTestId('nav-history').click();

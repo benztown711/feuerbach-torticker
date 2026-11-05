@@ -136,7 +136,7 @@ test('006 US2-S6 "Nicht live senden" schickt off, "Live senden" wieder den Stand
   await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBe('live');
 });
 
-test('006 US2-S7 013 US3-S7 Löschen eines Spiels schickt deleted, erst wenn es endgültig ist', async ({
+test('006 US2-S7 014 US3-S7 Löschen eines Spiels schickt deleted, erst wenn es endgültig ist', async ({
   page,
   relay,
   recorded,
@@ -149,14 +149,14 @@ test('006 US2-S7 013 US3-S7 Löschen eines Spiels schickt deleted, erst wenn es 
   await page.getByTestId('btn-delete-game').click();
   await confirmYes(page);
   await expect(page.getByTestId('history-undo')).toBeVisible();
-  // Spec 013 FR-D08: während "Rückgängig" (10 s) bleibt das Spiel auf dem Dashboard.
+  // Spec 014 FR-D08: während "Rückgängig" (10 s) bleibt das Spiel auf dem Dashboard.
   await settle(page);
   expect((await latestState(relay, links.viewer))?.state).not.toBe('deleted');
   await settle(page);
   await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBe('deleted');
 });
 
-test('013 US3-S7 nach "Rückgängig" bleibt das Spiel ohne Unterbrechung auf dem Dashboard', async ({
+test('014 US3-S7 nach "Rückgängig" bleibt das Spiel ohne Unterbrechung auf dem Dashboard', async ({
   page,
   relay,
   recorded,

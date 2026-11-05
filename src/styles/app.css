@@ -1523,7 +1523,7 @@ body:has(.page:not(.dash, .lead-link)) {
   font-size: 13px;
 }
 
-/* Spec 013: Auswahlmodus der Historie (Häkchen je Zeile, Aktionsleiste, Rückgängig) */
+/* Spec 014: Auswahlmodus der Historie (Häkchen je Zeile, Aktionsleiste, Rückgängig) */
 .history__mode {
   flex-shrink: 0;
   min-width: 96px;

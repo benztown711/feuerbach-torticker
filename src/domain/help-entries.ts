@@ -454,7 +454,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Unter „Historie“ stehen alle Spiele nach Monaten, neueste zuerst, mit dem Ergebnis aus Feuerbach-Sicht: S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails.',
     keywords: 'historie alte spiele früher ergebnisse filter sieg niederlage monat',
-    sources: ['001 US6', '011 US1', '013 US1'],
+    sources: ['001 US6', '011 US1', '014 US1'],
     open: { label: 'Historie', path: '/historie' },
     related: ['spiel-loeschen', 'spiele-loeschen-mehrere', 'ergebnis-teilen'],
   },
@@ -465,7 +465,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Löschen …“. Die App fragt einmal nach. Danach steht unten in der Historie 10 Sekunden lang „Rückgängig“; ein Tipp darauf holt das Spiel unverändert zurück. Später geht das nur noch aus einer Sicherung. Mehrere Spiele auf einmal löschst du mit „Auswählen“.',
     keywords: 'löschen entfernen spiel testspiel rückgängig versehentlich gelöscht zurückholen wiederherstellen',
-    sources: ['001 US6', '013 US3'],
+    sources: ['001 US6', '014 US3'],
     open: { label: 'Historie', path: '/historie' },
     related: ['spiele-loeschen-mehrere', 'sichern', 'historie'],
   },
@@ -483,7 +483,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     ],
     keywords:
       'mehrere alle spiele löschen auswählen markieren aufräumen testspiele saison leeren mehrfachauswahl häkchen',
-    sources: ['013 US1', '013 US2'],
+    sources: ['014 US1', '014 US2'],
     open: { label: 'Historie', path: '/historie' },
     related: ['spiel-loeschen', 'historie', 'sichern'],
   },

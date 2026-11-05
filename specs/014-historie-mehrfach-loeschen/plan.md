@@ -1,6 +1,6 @@
 # Implementation Plan: Historie – mehrere Spiele auf einmal löschen
 
-**Branch**: `013-historie-mehrfach-loeschen` (Arbeitsbranch `claude/charming-einstein-v3f3aw`) | **Date**: 2026-11-05 | **Spec**: [spec.md](spec.md) | **Mockup**: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
+**Branch**: `014-historie-mehrfach-loeschen` (Arbeitsbranch `claude/charming-einstein-v3f3aw`) | **Date**: 2026-11-05 | **Spec**: [spec.md](spec.md) | **Mockup**: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
 
 ## Summary
 
@@ -17,7 +17,7 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 | I. Spielfeldrand zuerst | Keine Geste als einziger Weg (Knopf "Auswählen"); ganze Zeile ist Tippfläche; Knöpfe mindestens 48 pt; eine Abfrage, keine Kaskade; "Rückgängig" ohne weitere Abfrage | erfüllt |
 | II. Offline-first | alles lokal; Live-Meldung "gelöscht" wie bisher, nur später (FR-D08) | erfüllt |
 | III. Datensparsamkeit | keine neuen Daten; Auswahl und Löschvorgang leben nur im Speicher | erfüllt |
-| IV. Test-first | Unit-Tests für `history-select.ts` (100 % Branch-Coverage) und `trash.ts`; E2E je Akzeptanzszenario ("013 USx-Sy") | erfüllt |
+| IV. Test-first | Unit-Tests für `history-select.ts` (100 % Branch-Coverage) und `trash.ts`; E2E je Akzeptanzszenario ("014 USx-Sy") | erfüllt |
 | VI. Einfachheit | kein neues Datenfeld, kein Papierkorb in der Datenbank; Zustand im Speicher, 10 Sekunden | erfüllt |
 | VII. Vereinsdesign | nur bestehende Tokens; Hauptknopf "Löschen (n)" in `rot-tief` (FR-G06a), Häkchen-Feld eckig in `ink` | erfüllt |
 | IX. Hilfe | 1 neuer, 2 geänderte Einträge im selben PR | erfüllt |
@@ -58,6 +58,6 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 
 ## Risiken
 
-- **Bestehender Test 006 US2-S7**: erwartet "deleted" 6 Sekunden nach dem Löschen. Laut FR-D08 kommt es erst nach dem Ende von "Rückgängig"; der Test wartet länger und prüft zusätzlich, dass vorher nichts gemeldet wird (013 US3-S7). Die Erwartung selbst bleibt.
+- **Bestehender Test 006 US2-S7**: erwartet "deleted" 6 Sekunden nach dem Löschen. Laut FR-D08 kommt es erst nach dem Ende von "Rückgängig"; der Test wartet länger und prüft zusätzlich, dass vorher nichts gemeldet wird (014 US3-S7). Die Erwartung selbst bleibt.
 - **App wird während der 10 Sekunden abgeschossen**: Dann sind die Spiele beim nächsten Start noch da (Spec, Edge Cases). Beim normalen Wechsel in den Hintergrund wird vorher endgültig gelöscht.
 - **Reihenfolge beim Verlassen der Historie**: Die Lösch-Transaktion startet im Aufräumen des Bildschirms, also vor dem Lesen des nächsten Bildschirms; IndexedDB arbeitet Transaktionen auf demselben Speicher in Startreihenfolge ab.

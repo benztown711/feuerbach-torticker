@@ -54,7 +54,7 @@ function RowContent({ game }: { game: Game }) {
 
 /**
  * Historie (FR-022, FR-038): neueste zuerst, Ergebnis aus Feuerbach-Sicht, Filter nach eigener Mannschaft; je Monat
- * eine Karte (Spec 011 FR-G09). Spec 013: "Auswählen" mit Häkchen je Zeile, "Alle auswählen", "Löschen (n)" und
+ * eine Karte (Spec 011 FR-G09). Spec 014: "Auswählen" mit Häkchen je Zeile, "Alle auswählen", "Löschen (n)" und
  * danach 10 Sekunden "Rückgängig" (FR-D01 bis FR-D10).
  */
 export function HistoryScreen() {

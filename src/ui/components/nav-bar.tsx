@@ -34,7 +34,7 @@ export function NavBar({ route }: { route: Exclude<Route, { name: 'leadLink' | '
   const routeKey = route.name === 'game' || route.name === 'details' ? `${route.name}:${route.id}` : route.name;
   useEffect(() => onTrashChange(() => setTrashVersion((v) => v + 1)), []);
   useEffect(() => {
-    // Spec 013: ein gerade gelöschtes (vorgemerktes) Spiel zeigt kein "Läuft …", nach "Rückgängig" wieder.
+    // Spec 014: ein gerade gelöschtes (vorgemerktes) Spiel zeigt kein "Läuft …", nach "Rückgängig" wieder.
     void findOpenGame().then((g) => setOpen(g && !trashedIds().has(g.id) ? g : undefined));
   }, [routeKey, trashVersion]);
 

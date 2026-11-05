@@ -86,7 +86,7 @@ describe('T022 FR-010 IndexedDB', () => {
   });
 });
 
-describe('013 FR-D08 mehrere Spiele endgültig löschen', () => {
+describe('014 FR-D08 mehrere Spiele endgültig löschen', () => {
   it('löscht mehrere Spiele, meldet je Spiel "delete" mit dem Spiel; unbekannte Kennung ohne Fehler', async () => {
     await putGames(['a', 'b', 'c'].map((id) => createGame(input, { id, now: T0 })));
     const seen: string[] = [];

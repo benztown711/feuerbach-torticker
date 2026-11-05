@@ -1,7 +1,7 @@
 import type { Game } from './types';
 
 /**
- * Spec 013: Auswahl in der Historie zum Löschen mehrerer Spiele.
+ * Spec 014: Auswahl in der Historie zum Löschen mehrerer Spiele.
  * Die Auswahl ist eine Menge von Spiel-Kennungen und lebt nur auf dem Bildschirm.
  */
 

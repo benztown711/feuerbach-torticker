@@ -6,7 +6,7 @@ import { test, expect } from './fixtures';
 import { confirmYes, forward, readStored } from './helpers';
 
 /**
- * Spec 013: mehrere Spiele in der Historie auswählen, alle auswählen, löschen, rückgängig machen.
+ * Spec 014: mehrere Spiele in der Historie auswählen, alle auswählen, löschen, rückgängig machen.
  * Die Spiele werden mit den Domain-Funktionen gebaut und direkt in IndexedDB geschrieben (schneller als je Spiel
  * über die Oberfläche); fiktive Gegner.
  */
@@ -95,15 +95,15 @@ async function deleteSelected(page: Page): Promise<void> {
   await confirmYes(page);
 }
 
-test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
-  test('013 US1-S1 FR-D01 "Auswählen" nur mit beendetem Spiel', async ({ page }) => {
+test.describe('014 US1 mehrere Spiele auswählen und löschen', () => {
+  test('014 US1-S1 FR-D01 "Auswählen" nur mit beendetem Spiel', async ({ page }) => {
     await seed(page, [SEASON[0]!]);
     await expect(page.getByTestId('history-select')).toBeHidden();
     await seed(page, SEASON.slice(0, 2));
     await expect(page.getByTestId('history-select')).toHaveText('Auswählen');
   });
 
-  test('013 US1-S2 SC-D04 Auswahlmodus: Häkchen-Felder, "Fertig", "0 ausgewählt", Leiste über der Navigation', async ({
+  test('014 US1-S2 SC-D04 Auswahlmodus: Häkchen-Felder, "Fertig", "0 ausgewählt", Leiste über der Navigation', async ({
     page,
   }) => {
     await seed(page, SEASON);
@@ -128,7 +128,7 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
     expect(last!.y + last!.height).toBeLessThanOrEqual(bar!.y + 1);
   });
 
-  test('013 US1-S3 FR-D02 Zeile antippen hakt an und ab, öffnet keine Spieldetails', async ({ page }) => {
+  test('014 US1-S3 FR-D02 Zeile antippen hakt an und ab, öffnet keine Spieldetails', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -142,7 +142,7 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
     await expect(page.getByTestId('history-meta')).toHaveText('1 ausgewählt');
   });
 
-  test('013 US1-S4 US1-S5 FR-D06 FR-D09 Abfrage mit Anzahl, danach weg und "2 Spiele gelöscht"', async ({ page }) => {
+  test('014 US1-S4 US1-S5 FR-D06 FR-D09 Abfrage mit Anzahl, danach weg und "2 Spiele gelöscht"', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -160,7 +160,7 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
     await expect(page.getByTestId('btn-history-undo')).toHaveText('Rückgängig');
   });
 
-  test('013 US1-S6 "Abbrechen" behält Spiele und Auswahl', async ({ page }) => {
+  test('014 US1-S6 "Abbrechen" behält Spiele und Auswahl', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -171,7 +171,7 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
     expect(await shownIds(page)).toHaveLength(7);
   });
 
-  test('013 US1-S7 FR-D10 "Fertig" beendet den Auswahlmodus ohne Änderung', async ({ page }) => {
+  test('014 US1-S7 FR-D10 "Fertig" beendet den Auswahlmodus ohne Änderung', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -185,7 +185,7 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
     await expect(page.getByTestId('history-select')).toHaveText('Auswählen');
   });
 
-  test('013 US1-S8 FR-D03 SC-D02 laufende und nicht angepfiffene Spiele sind ausgegraut', async ({ page }) => {
+  test('014 US1-S8 FR-D03 SC-D02 laufende und nicht angepfiffene Spiele sind ausgegraut', async ({ page }) => {
     await seed(page, [base('c1', E1, 'FC Später', at(3, 11)), ...SEASON]);
     await selectMode(page);
     await expect(page.getByTestId('history-select-hint')).toHaveText(
@@ -202,8 +202,8 @@ test.describe('013 US1 mehrere Spiele auswählen und löschen', () => {
   });
 });
 
-test.describe('013 US2 alle auswählen', () => {
-  test('013 US2-S1 US2-S2 US2-S5 FR-D04 "Alle auswählen" nur beendete, dann "Alle abwählen"', async ({ page }) => {
+test.describe('014 US2 alle auswählen', () => {
+  test('014 US2-S1 US2-S2 US2-S5 FR-D04 "Alle auswählen" nur beendete, dann "Alle abwählen"', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await page.getByTestId('history-select-all').click();
@@ -216,7 +216,7 @@ test.describe('013 US2 alle auswählen', () => {
     await expect(page.getByTestId('history-select-all')).toHaveText('Alle auswählen');
   });
 
-  test('013 US2-S3 FR-D05 SC-D01 Filter "E2", alle auswählen, löschen: E1 bleibt; 4 Tipps', async ({ page }) => {
+  test('014 US2-S3 FR-D05 SC-D01 Filter "E2", alle auswählen, löschen: E1 bleibt; 4 Tipps', async ({ page }) => {
     await seed(page, SEASON);
     await page.getByTestId('history-filter-1').click();
     await expect(page.getByTestId('history-filter-1')).toHaveText('E2');
@@ -231,7 +231,7 @@ test.describe('013 US2 alle auswählen', () => {
     expect(await shownIds(page)).toEqual(['r1', 'f3', 't3', 't2', 't1']);
   });
 
-  test('013 US2-S4 FR-D05 Filterwechsel hebt nicht mehr sichtbare Häkchen auf', async ({ page }) => {
+  test('014 US2-S4 FR-D05 Filterwechsel hebt nicht mehr sichtbare Häkchen auf', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 'f1').click();
@@ -245,7 +245,7 @@ test.describe('013 US2 alle auswählen', () => {
     await expect(item(page, 't1')).toHaveAttribute('aria-checked', 'true');
   });
 
-  test('013 US2-S6 alles gelöscht: leerer Zustand, kein "Auswählen", "Rückgängig" bleibt', async ({ page }) => {
+  test('014 US2-S6 alles gelöscht: leerer Zustand, kein "Auswählen", "Rückgängig" bleibt', async ({ page }) => {
     await seed(page, SEASON.slice(1, 3));
     await selectMode(page);
     await page.getByTestId('history-select-all').click();
@@ -256,8 +256,8 @@ test.describe('013 US2 alle auswählen', () => {
   });
 });
 
-test.describe('013 US3 Löschen rückgängig machen', () => {
-  test('013 US3-S1 US3-S2 SC-D03 "Rückgängig" stellt die Spiele unverändert an alter Stelle wieder her', async ({
+test.describe('014 US3 Löschen rückgängig machen', () => {
+  test('014 US3-S1 US3-S2 SC-D03 "Rückgängig" stellt die Spiele unverändert an alter Stelle wieder her', async ({
     page,
   }) => {
     await seed(page, SEASON);
@@ -273,7 +273,7 @@ test.describe('013 US3 Löschen rückgängig machen', () => {
     expect(await readStored<Game>(page, 'games', 'f3')).toEqual(before);
   });
 
-  test('013 US3-S1 US3-S3 FR-D07 FR-D08 nach 10 Sekunden ist das Löschen endgültig', async ({ page }) => {
+  test('014 US3-S1 US3-S3 FR-D07 FR-D08 nach 10 Sekunden ist das Löschen endgültig', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -290,7 +290,7 @@ test.describe('013 US3 Löschen rückgängig machen', () => {
     expect(await shownIds(page)).not.toContain('t1');
   });
 
-  test('013 US3-S4 FR-D08 Historie verlassen oder App im Hintergrund: sofort endgültig', async ({ page }) => {
+  test('014 US3-S4 FR-D08 Historie verlassen oder App im Hintergrund: sofort endgültig', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -312,7 +312,7 @@ test.describe('013 US3 Löschen rückgängig machen', () => {
     await expect(page.getByTestId('history-undo')).toBeHidden();
   });
 
-  test('013 US3-S5 FR-D08 ein neuer Löschvorgang macht den vorigen endgültig', async ({ page }) => {
+  test('014 US3-S5 FR-D08 ein neuer Löschvorgang macht den vorigen endgültig', async ({ page }) => {
     await seed(page, SEASON);
     await selectMode(page);
     await item(page, 't1').click();
@@ -327,7 +327,7 @@ test.describe('013 US3 Löschen rückgängig machen', () => {
     expect(await shownIds(page)).toEqual(['r1', 'f1', 'f2', 'f3', 't3', 't2']);
   });
 
-  test('013 US3-S6 FR-D09 Einzellöschen in den Spieldetails mit "Rückgängig"', async ({ page }) => {
+  test('014 US3-S6 FR-D09 Einzellöschen in den Spieldetails mit "Rückgängig"', async ({ page }) => {
     await seed(page, SEASON);
     await item(page, 'f3').click();
     await page.getByTestId('btn-delete-game').click();
@@ -342,7 +342,7 @@ test.describe('013 US3 Löschen rückgängig machen', () => {
     expect(await shownIds(page)).toContain('f3');
   });
 
-  test('013 US3-S6 laufendes Spiel einzeln gelöscht: kein "Läuft" in der Navigation, nach "Rückgängig" wieder', async ({
+  test('014 US3-S6 laufendes Spiel einzeln gelöscht: kein "Läuft" in der Navigation, nach "Rückgängig" wieder', async ({
     page,
   }) => {
     await seed(page, SEASON);

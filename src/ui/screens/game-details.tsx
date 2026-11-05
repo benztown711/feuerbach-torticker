@@ -281,7 +281,7 @@ export function GameDetailsScreen({ id }: { id: string }) {
           onNo={() => setAskDelete(false)}
           onYes={() => {
             setAskDelete(false);
-            // Spec 013 US3-S6: vormerken, die Historie zeigt "1 Spiel gelöscht" mit "Rückgängig".
+            // Spec 014 US3-S6: vormerken, die Historie zeigt "1 Spiel gelöscht" mit "Rückgängig".
             void trashGames([game.id]);
             navigate('/historie');
           }}

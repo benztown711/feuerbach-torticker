@@ -25,7 +25,7 @@ const created = (id: string): Game => createGame(input, { id, now: T0 });
 const running = (id: string): Game => kickoff(created(id), T0);
 const finished = (id: string): Game => endSection(running(id), T0 + 20 * 60_000);
 
-describe('013 FR-D02 FR-D03 auswählbar sind nur beendete Spiele', () => {
+describe('014 FR-D02 FR-D03 auswählbar sind nur beendete Spiele', () => {
   it('beendet: auswählbar', () => {
     expect(isSelectable(finished('a'))).toBe(true);
   });
@@ -42,7 +42,7 @@ describe('013 FR-D02 FR-D03 auswählbar sind nur beendete Spiele', () => {
   });
 });
 
-describe('013 FR-D02 anhaken und abhaken', () => {
+describe('014 FR-D02 anhaken und abhaken', () => {
   it('hakt ein beendetes Spiel an und wieder ab, andere bleiben', () => {
     const a = finished('a');
     const one = toggleSelected(new Set(['x']), a);
@@ -56,7 +56,7 @@ describe('013 FR-D02 anhaken und abhaken', () => {
   });
 });
 
-describe('013 FR-D04 FR-D05 alle auswählen, alle abwählen', () => {
+describe('014 FR-D04 FR-D05 alle auswählen, alle abwählen', () => {
   const games = [running('r'), finished('a'), created('c'), finished('b')];
 
   it('"Alle auswählen" hakt nur die beendeten der übergebenen Spiele an', () => {
@@ -82,14 +82,14 @@ describe('013 FR-D04 FR-D05 alle auswählen, alle abwählen', () => {
   });
 });
 
-describe('013 FR-D05 Filterwechsel kürzt die Auswahl', () => {
+describe('014 FR-D05 Filterwechsel kürzt die Auswahl', () => {
   it('behält nur angehakte, die unter dem neuen Filter sichtbar und auswählbar sind', () => {
     const visible = [finished('a'), running('r')];
     expect([...pruneSelection(visible, new Set(['a', 'b', 'r']))]).toEqual(['a']);
   });
 });
 
-describe('013 FR-D06 FR-D07 Anzahl im Text', () => {
+describe('014 FR-D06 FR-D07 Anzahl im Text', () => {
   it('"1 Spiel", sonst "n Spiele"', () => {
     expect(countLabel(1)).toBe('1 Spiel');
     expect(countLabel(0)).toBe('0 Spiele');
