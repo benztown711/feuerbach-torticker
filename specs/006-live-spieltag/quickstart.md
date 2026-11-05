@@ -19,7 +19,7 @@ Voraussetzung: zwei Handys mit installiertem Torticker (A und B = Trainer-Handys
 |---|---|---|
 | G-1 | A: Mehr → Live-Spieltag → anlegen mit E1, E2; Trainer-Link per WhatsApp an B | Übersicht mit Zuschauer-Link, Trainer-Link und Mannschaften |
 | G-2 | B: Trainer-Link in WhatsApp antippen | Safari zeigt die Anleitung; "Link kopieren"; im Torticker unter Mehr → Live-Spieltag → "Trainer-Link einfügen", "Ja, live senden" |
-| G-3 | C: Zuschauer-Link öffnen, "Zum Home-Bildschirm", danach über das Symbol starten | Dashboard erscheint (sonst R-L6: Hinweis auf Lesezeichen) |
+| G-3 | C: altes Torticker-Symbol löschen, Zuschauer-Link öffnen, "Zum Home-Bildschirm", danach über das Symbol starten | Dashboard erscheint, nicht "Neues Spiel" (R-L6, Nachtrag 05.11.2026) |
 | G-4 | A und B je ein Spiel anlegen und anpfeifen, Tore erfassen | C zeigt beide Spiele, Tor nach höchstens 10 s, Minute läuft |
 | G-5 | B: Flugmodus, Tor erfassen, Flugmodus aus | Erfassung sofort; B zeigt "Live: wartet auf Netz"; C bekommt das Tor nach dem Einschalten |
 | G-6 | A: Uhr am Handy 5 Minuten verstellen | Minute auf C weicht höchstens 1 Minute ab |

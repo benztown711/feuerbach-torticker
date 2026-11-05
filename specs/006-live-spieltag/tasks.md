@@ -97,6 +97,13 @@
 - [x] L041 `/code-review` und `/security-review` je PR (Eingaben aus Links und Meldungen, keine HTML-Einschleusung, Schlüssel nur im Fragment); `/speckit-analyze` nach jeder Phase ohne kritische Befunde
 - [ ] L042 Gerätetest G-1 bis G-10 aus `quickstart.md` mit Atti (Review C, Checkliste https://claude.ai/artifact/B6AGLutstmPXiDyRnmVx6p); Ergebnis von G-3 in research.md R-L6 nachtragen
 
+## Phase 9: Fehlerbehebung Home-Bildschirm (Clarifications 05.11.2026, research.md R-L6 Nachtrag)
+
+- [x] L054 [P] [US3] (FR-L16) Unit `tests/unit/web-manifest.test.ts`: `viewerManifest` (Startadresse Zuschauer-Link, `id` und `scope` der App, absolute Symbol-Adressen, Ausgangs-Manifest unverändert), `manifestDataUrl`
+- [x] L055 [US3] Domäne `src/domain/web-manifest.ts` (macht L054 grün, 100 % Branch-Coverage); `src/platform/web-manifest.ts` (`pointManifestTo`), Aufruf im nachgeladenen `ViewerScreen` (`src/ui/screens/live-dashboard.tsx`, Hauptbundle unverändert, R-L7); Manifest in `vite.config.ts` zusätzlich als `__MANIFEST__`
+- [x] L056 [US3] E2E `tests/e2e/live-us3.spec.ts`: 006 US3-S11 (Manifest der Zuschauer-Seite auch in der Eltern-Hilfe, Chromium liest es fehlerfrei, frisches Gerät startet mit der Startadresse im Dashboard, "Zum Torticker" stellt das App-Manifest wieder her); Hilfe `eltern-home`
+- [ ] L057 Gerätetest G-3 auf dem iPhone wiederholen (altes Symbol vorher löschen)
+
 ## Zuordnung Anforderungen → Aufgaben
 
 | Anforderung | Aufgaben |
@@ -108,7 +115,7 @@
 | FR-L08, FR-L09 | L022, L024, L025, L026, L046, L047 ("Live aufs Dashboard") |
 | FR-L10 | L020, L024 |
 | FR-L11 | L006, L029, L031 |
-| FR-L12 bis FR-L16 | L027, L029, L031, L032 |
+| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057 |
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |

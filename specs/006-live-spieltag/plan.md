@@ -92,7 +92,7 @@ Lead-Links der ersten Version (je Mannschaft) bleiben gültig, werden aber nicht
 - **Zuordnung Spiel → Mannschaft**: über den Namen (`game.ownTeam` normalisiert = Name der gekoppelten Mannschaft); Spiele haben keine Mannschafts-ID (Spec 004).
 - **Sendeschalter je Spiel**: `Game.live === false` bedeutet "Nicht live senden" (FR-L09); fehlt das Feld, wird gesendet. Abschalten sendet einmal den Zustand `off`, Löschen den Zustand `deleted`; beide entfernen das Spiel vom Dashboard.
 - **Tageslogik** (FR-L14, FR-L16): "heute" nach Ortszeit des Zuschauers; die Karte zeigt das jüngste Spiel der Mannschaft, frühere Spiele desselben Tages als Zeile; Spiele älterer Tage nur, solange die Mannschaft heute kein Spiel hat.
-- **Dashboard-Start ohne Daten** (R-L6): Startet der Torticker ohne Spiele und ohne angelegte Mannschaft, aber mit gemerktem Zuschauer-Link, öffnet er das Dashboard.
+- **Dashboard-Start ohne Daten** (R-L6): Startet der Torticker ohne Spiele und ohne angelegte Mannschaft, aber mit gemerktem Zuschauer-Link, öffnet er das Dashboard. Hilft nur, wo Browser und App dieselben Daten haben (Android); für das iPhone nennt das Manifest auf der Seite des Zuschauer-Links diesen Link als Startadresse (R-L6, Nachtrag 05.11.2026).
 - **Sicherung** (FR-L21, US5): Sicherungsformat Version 1 bekommt das optionale Feld `live` (Live-Spieltag inkl. Schlüssel); `contracts/export.schema.json` und Prüfung werden ergänzt.
 
 ### Phasen und Pull Requests
