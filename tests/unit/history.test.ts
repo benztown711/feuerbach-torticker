@@ -3,6 +3,7 @@ import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/ga
 import { addGoal, removeGoal, setScorer } from '../../src/domain/goals';
 import {
   filterGames,
+  groupByMonth,
   historyEntry,
   liveLabel,
   startedAt,
@@ -129,5 +130,37 @@ describe('T096 FR-037 Live-Anzeige in der Navigation', () => {
     expect(liveLabel(brk, T0 + min(26))).toBe('Pause');
     const done = endSection(kickoff(brk, T0 + min(30)), T0 + min(55));
     expect(liveLabel(done, T0 + min(56))).toBeNull();
+  });
+});
+
+describe('Spec 011 FR-G09 Historie nach Monaten', () => {
+  const at = (y: number, m: number, d: number): number => new Date(y, m - 1, d, 10, 0).getTime();
+
+  it('ohne Spiele keine Monate', () => {
+    expect(groupByMonth([])).toEqual([]);
+  });
+
+  it('011 US1-S6 aufeinanderfolgende Spiele eines Monats in einer Gruppe, neueste zuerst wie die Eingabe', () => {
+    const nov2 = finished(['own'], {}, 'n2', at(2026, 11, 3));
+    const nov1 = finished(['opp'], {}, 'n1', at(2026, 11, 1));
+    const okt = finished([], {}, 'o1', at(2026, 10, 28));
+    const groups = groupByMonth([nov2, nov1, okt]);
+    expect(groups.map((g) => g.label)).toEqual(['November 2026', 'Oktober 2026']);
+    expect(groups.map((g) => g.games.map((x) => x.id))).toEqual([['n2', 'n1'], ['o1']]);
+    expect(groups.map((g) => g.key)).toEqual(['2026-11', '2026-10']);
+  });
+
+  it('Monat nach Anpfiff, nicht nach Anlegen; gleicher Monat anderes Jahr ist eine eigene Gruppe', () => {
+    const created = createGame(input, { id: 'c', now: at(2026, 10, 31) });
+    const late = kickoff(created, at(2026, 11, 1));
+    const lastYear = finished([], {}, 'y', at(2025, 11, 20));
+    expect(groupByMonth([late, lastYear]).map((g) => g.label)).toEqual(['November 2026', 'November 2025']);
+  });
+
+  it('kehrt die Liste in einen Monat zurück, beginnt eine neue Gruppe (Reihenfolge bleibt)', () => {
+    const a = finished([], {}, 'a', at(2026, 11, 2));
+    const b = finished([], {}, 'b', at(2026, 10, 2));
+    const c = finished([], {}, 'c', at(2026, 11, 1));
+    expect(groupByMonth([a, b, c]).map((g) => g.games.length)).toEqual([1, 1, 1]);
   });
 });

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'preact/hooks';
-import { filterGames, historyEntry, startedAt, teamFilters } from '../../domain/history';
+import { filterGames, groupByMonth, historyEntry, startedAt, teamFilters } from '../../domain/history';
 import type { Game } from '../../domain/types';
 import { listGames } from '../../platform/db';
 
 const fmtDate = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
 const fmtTime = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-/** Historie (FR-022, FR-038): neueste zuerst, Ergebnis aus Feuerbach-Sicht, Filter nach eigener Mannschaft. */
+/** Historie (FR-022, FR-038): neueste zuerst, Ergebnis aus Feuerbach-Sicht, Filter nach eigener Mannschaft; je Monat eine Karte (Spec 011 FR-G09). */
 export function HistoryScreen() {
   const [games, setGames] = useState<Game[] | undefined>(undefined);
   const [filter, setFilter] = useState<string | null>(null);
@@ -53,46 +53,59 @@ export function HistoryScreen() {
           Noch keine Spiele. Ein neues Spiel startest du über „Spiel“.
         </p>
       ) : (
-        <ul class="history" data-testid="history-list">
-          {shown.map((game) => {
-            const e = historyEntry(game);
-            const at = startedAt(game);
-            return (
-              <li key={game.id}>
-                <a class="history__item" href={`#/spiel/${game.id}/details`} data-testid={`history-item-${game.id}`}>
-                  <span class="history__when">
-                    <span class="history__date">{fmtDate.format(at)}</span>
-                    <span class="history__time">{fmtTime.format(at)}</span>
-                  </span>
-                  <span class="history__match">
-                    <span class="history__opp">{game.opponent}</span>
-                    <span class="history__meta">
-                      {e.teamShort} · {e.venueLabel}
-                    </span>
-                  </span>
-                  <span class="history__score" data-testid={`history-score-${game.id}`}>
-                    {e.scoreText}
-                  </span>
-                  {e.result ? (
-                    <span
-                      class={`history__result history__result--${e.result.toLowerCase()}`}
-                      title={RESULT_TEXT[e.result]}
-                    >
-                      {e.result}
-                    </span>
-                  ) : (
-                    <span
-                      class={e.openLabel === 'läuft' ? 'history__live' : 'history__live history__live--created'}
-                      data-testid={`history-open-${game.id}`}
-                    >
-                      {e.openLabel}
-                    </span>
-                  )}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        <div class="history-months" data-testid="history-list">
+          {groupByMonth(shown).map((m, i) => (
+            <section key={`${i}-${m.key}`} class="card card--list" aria-labelledby={`month-${i}`}>
+              <h2 id={`month-${i}`} class="t-label card__title">
+                {m.label.toUpperCase()}
+              </h2>
+              <ul class="history">
+                {m.games.map((game) => {
+                  const e = historyEntry(game);
+                  const at = startedAt(game);
+                  return (
+                    <li key={game.id}>
+                      <a
+                        class="history__item"
+                        href={`#/spiel/${game.id}/details`}
+                        data-testid={`history-item-${game.id}`}
+                      >
+                        <span class="history__when">
+                          <span class="history__date">{fmtDate.format(at)}</span>
+                          <span class="history__time">{fmtTime.format(at)}</span>
+                        </span>
+                        <span class="history__match">
+                          <span class="history__opp">{game.opponent}</span>
+                          <span class="history__meta">
+                            {e.teamShort} · {e.venueLabel}
+                          </span>
+                        </span>
+                        <span class="history__score" data-testid={`history-score-${game.id}`}>
+                          {e.scoreText}
+                        </span>
+                        {e.result ? (
+                          <span
+                            class={`history__result history__result--${e.result.toLowerCase()}`}
+                            title={RESULT_TEXT[e.result]}
+                          >
+                            {e.result}
+                          </span>
+                        ) : (
+                          <span
+                            class={e.openLabel === 'läuft' ? 'history__live' : 'history__live history__live--created'}
+                            data-testid={`history-open-${game.id}`}
+                          >
+                            {e.openLabel}
+                          </span>
+                        )}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
       <p class="history__legend">Ergebnis aus Feuerbach-Sicht · S/U/N = Sieg/Unentschieden/Niederlage</p>
     </main>
