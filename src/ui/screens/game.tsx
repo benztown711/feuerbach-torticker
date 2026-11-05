@@ -40,8 +40,20 @@ import {
   setScorer,
   undoGoal,
 } from '../../domain/goals';
+import {
+  addGoalAt,
+  canAddLateGoal,
+  canUndoWhistle,
+  clockShiftRange,
+  defaultOption,
+  minuteOptions,
+  setGoalMinute,
+  shiftClock,
+  undoWhistle,
+  whistleKind,
+} from '../../domain/corrections';
 import { getColor } from '../../domain/jersey-colors';
-import { formatMinute } from '../../domain/minute';
+import { formatMinute, minuteFor } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
 import { otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
@@ -99,7 +111,9 @@ type Ask =
   | { kind: 'remove'; goalId: string }
   | { kind: 'goalResume'; side: Side }
   | { kind: 'removeEvent'; id: string }
-  | { kind: 'endShootout' };
+  | { kind: 'endShootout' }
+  /** Spec 012 FR-S15: Pausen- bzw. Schlusspfiff zurücknehmen. */
+  | { kind: 'undoWhistle' };
 
 /** Spec 003: Entwurf einer Karte bzw. eines Wechsels (neu: id = null). */
 type CardDraft = {
@@ -117,6 +131,30 @@ const CARDS: CardColor[] = ['gelb', 'gelbrot', 'rot', 'zeit'];
 
 function TeamMark({ colorId }: { colorId: string }) {
   return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
+}
+
+/** Spec 012 FR-S11: Auswahl der gespielten Minuten (Wert = Bezeichnung wie "25+1'"). */
+function MinuteSelect(p: { id: string; options: { label: string }[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <div class="field">
+      <label class="field__label t-label" for={p.id}>
+        MINUTE
+      </label>
+      <select
+        id={p.id}
+        class="select"
+        data-testid={p.id}
+        value={p.value}
+        onChange={(e) => p.onChange(e.currentTarget.value)}
+      >
+        {p.options.map((o) => (
+          <option key={o.label} value={o.label}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 export function GameScreen({ id }: { id: string }) {
@@ -155,6 +193,10 @@ export function GameScreen({ id }: { id: string }) {
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraMin, setExtraMin] = useState(10);
   const [firstAsk, setFirstAsk] = useState(false);
+  // Spec 012: Tor nachtragen, Minute ändern (Wert der Auswahl = Minuten-Bezeichnung), Uhr korrigieren.
+  const [addSheet, setAddSheet] = useState<{ side: Side; label: string } | null>(null);
+  const [minuteSheet, setMinuteSheet] = useState<{ goalId: string; label: string } | null>(null);
+  const [clockFix, setClockFix] = useState<number | null>(null);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -345,6 +387,7 @@ export function GameScreen({ id }: { id: string }) {
       setEvSheet(null);
     }
     if (ask.kind === 'endShootout') update(endShootout(g));
+    if (ask.kind === 'undoWhistle' && canUndoWhistle(g, t)) update(undoWhistle(g, t));
     setAsk(null);
   };
 
@@ -368,6 +411,11 @@ export function GameScreen({ id }: { id: string }) {
       'Heim und Gast tauschen?',
       'Die Mannschaften wechseln die Seite. Tore bleiben ihrer Mannschaft zugeordnet.',
       'Tauschen',
+    ],
+    undoWhistle: [
+      `${whistleKind(game) ?? 'Pfiff'} zurücknehmen?`,
+      'Die Uhr läuft weiter, als wäre nicht gepfiffen worden.',
+      'Zurücknehmen',
     ],
     remove: [
       'Tor wirklich entfernen?',
@@ -403,6 +451,34 @@ export function GameScreen({ id }: { id: string }) {
   const roster = players ?? [];
   const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
+
+  // Spec 012 FR-S10 bis FR-S12: gespielte Minuten für "Tor nachtragen" und "Minute ändern".
+  const options = addSheet || minuteSheet ? minuteOptions(game, now) : [];
+  const saveLateGoal = (): void => {
+    if (!addSheet) return;
+    const t = Date.now();
+    const opt = minuteOptions(cur(), t).find((o) => o.label === addSheet.label);
+    if (!opt) return;
+    const r = addGoalAt(cur(), addSheet.side, opt, t, () => globalThis.crypto.randomUUID());
+    update(r.game);
+    setAddSheet(null);
+    if (addSheet.side === 'own' && visiblePlayers(players ?? []).length > 0)
+      setPicker({ goalId: r.goal.id, until: null, kind: 'scorer' });
+  };
+  const minuteGoal = minuteSheet ? game.goals.find((g) => g.id === minuteSheet.goalId) : undefined;
+  const saveMinute = (): void => {
+    if (!minuteSheet) return;
+    const t = Date.now();
+    const goal = cur().goals.find((g) => g.id === minuteSheet.goalId);
+    const opt = minuteOptions(cur(), t).find((o) => o.label === minuteSheet.label);
+    // Unveränderte Minute: nichts tun, damit Tore derselben Minute ihre Reihenfolge behalten.
+    const same = goal && formatMinute(goal.minute, goal.stoppage) === minuteSheet.label;
+    if (opt && !same) update(setGoalMinute(cur(), minuteSheet.goalId, opt, t));
+    setMinuteSheet(null);
+  };
+  // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
+  const range = goalsOpen ? clockShiftRange(game, now) : null;
+  const shiftRange = range && (range.min < 0 || range.max > 0) ? range : null;
 
   // Spec 003 FR-E09: Knopfzeile ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
   const allEvents = gameEvents(game);
@@ -786,6 +862,46 @@ export function GameScreen({ id }: { id: string }) {
               Zwischenstand teilen
             </button>
           ) : null}
+          {canAddLateGoal(game, now) && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-add-goal"
+              onClick={() => {
+                setMenu(false);
+                const d = defaultOption(cur(), Date.now());
+                if (d) setAddSheet({ side: 'own', label: d.label });
+              }}
+            >
+              Tor nachtragen
+            </button>
+          )}
+          {canUndoWhistle(game, now) && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-undo-whistle"
+              onClick={() => {
+                setMenu(false);
+                setAsk({ kind: 'undoWhistle' });
+              }}
+            >
+              {whistleKind(game)} zurücknehmen
+            </button>
+          )}
+          {shiftRange && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-fix-clock"
+              onClick={() => {
+                setMenu(false);
+                setClockFix(0);
+              }}
+            >
+              Uhr korrigieren
+            </button>
+          )}
           {status !== 'created' && (
             <button
               type="button"
@@ -1238,6 +1354,19 @@ export function GameScreen({ id }: { id: string }) {
           >
             Torschütze ändern
           </button>
+          {selected.deletedAt === null && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="goal-edit-minute"
+              onClick={() => {
+                setSheetGoal(null);
+                setMinuteSheet({ goalId: selected.id, label: formatMinute(selected.minute, selected.stoppage) });
+              }}
+            >
+              Minute ändern
+            </button>
+          )}
           {settings?.features.assists && selected.deletedAt === null && canHaveAssist(selected) && (
             <button
               type="button"
@@ -1440,6 +1569,104 @@ export function GameScreen({ id }: { id: string }) {
             </button>
           </div>
         </div>
+      )}
+
+      {addSheet && (
+        <Sheet title="Tor nachtragen" testId="add-goal-sheet" onClose={() => setAddSheet(null)}>
+          <div class="chips" role="group" aria-label="Mannschaft">
+            {[homeSide, awaySide].map((side) => (
+              <button
+                type="button"
+                key={side}
+                class="chip chip--wide add-goal__side"
+                aria-pressed={addSheet.side === side}
+                data-testid={`add-goal-side-${side}`}
+                onClick={() => setAddSheet({ ...addSheet, side })}
+              >
+                <TeamMark colorId={colorOf(side)} />
+                {buttonName(side)}
+              </button>
+            ))}
+          </div>
+          <MinuteSelect
+            id="add-goal-minute"
+            options={options}
+            value={addSheet.label}
+            onChange={(label) => setAddSheet({ ...addSheet, label })}
+          />
+          <p class="field__help">Nur gespielte Minuten. Die Uhr bleibt, wie sie ist.</p>
+          <button type="button" class="btn btn--primary" data-testid="add-goal-save" onClick={saveLateGoal}>
+            Eintragen
+          </button>
+        </Sheet>
+      )}
+
+      {minuteSheet && minuteGoal && (
+        <Sheet
+          title="Minute ändern"
+          subtitle={`Tor ${goalWho(game, minuteGoal, roster)}`}
+          testId="minute-sheet"
+          onClose={() => setMinuteSheet(null)}
+        >
+          <MinuteSelect
+            id="goal-minute-select"
+            options={options}
+            value={minuteSheet.label}
+            onChange={(label) => setMinuteSheet({ ...minuteSheet, label })}
+          />
+          <button type="button" class="btn btn--primary" data-testid="goal-minute-save" onClick={saveMinute}>
+            Übernehmen
+          </button>
+        </Sheet>
+      )}
+
+      {clockFix !== null && shiftRange && (
+        <Sheet
+          title="Uhr korrigieren"
+          subtitle="Welche Spielminute ist jetzt?"
+          testId="clock-fix-sheet"
+          onClose={() => setClockFix(null)}
+        >
+          <div class="clock-fix">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="clock-fix-minus"
+              disabled={clockFix <= shiftRange.min}
+              onClick={() => setClockFix(clockFix - 1)}
+            >
+              −1 Min
+            </button>
+            <output class="clock-fix__minute" data-testid="clock-fix-minute" aria-live="polite">
+              {minuteFor(clock.section, clock.playedMs + clockFix * 60_000, game.schema).label}
+            </output>
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="clock-fix-plus"
+              disabled={clockFix >= shiftRange.max}
+              onClick={() => setClockFix(clockFix + 1)}
+            >
+              +1 Min
+            </button>
+          </div>
+          <p class="field__help">
+            {clockFix === 0
+              ? 'Unverändert.'
+              : `Uhr ${clockFix > 0 ? '+' : '−'}${Math.abs(clockFix)} Min. Restzeit, Pfiff und Tor-Minuten folgen.`}
+          </p>
+          <button
+            type="button"
+            class="btn btn--primary"
+            data-testid="clock-fix-save"
+            onClick={() => {
+              if (clockFix !== 0) update(shiftClock(cur(), clockFix, Date.now()));
+              setClockFix(null);
+            }}
+          >
+            Übernehmen
+          </button>
+        </Sheet>
       )}
 
       {ask && (

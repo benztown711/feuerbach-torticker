@@ -151,7 +151,14 @@ describe('006 FR-L11 R-L5 Meldungen übernehmen', () => {
 describe('006 FR-L12 FR-L14 Karten', () => {
   it('Leerzustand: keine Karten, Mannschaften und Titel aus der Konfiguration', () => {
     const v = view(applyConfig(emptyBoard(), config(['E1', 'E2'])), T0);
-    expect(v).toEqual({ title: 'Unser Spieltag', teams: ['E1', 'E2'], cards: [], today: false, retired: false });
+    expect(v).toEqual({
+      title: 'Unser Spieltag',
+      teams: ['E1', 'E2'],
+      cards: [],
+      today: false,
+      retired: false,
+      waiting: [],
+    });
   });
 
   it('ohne Konfiguration gelten die Mannschaften der Meldungen (sortiert), ohne Titel', () => {
@@ -313,6 +320,40 @@ describe('006 FR-L12 FR-L14 Karten', () => {
     expect(view(b, T0 + min(17) + 5000).cards[0]!.staleMinutes).toBe(7);
     const ended = put(emptyBoard(), snap({ clock: fullTime, sentAt: T0 + min(56) }));
     expect(view(ended, T0 + min(90)).cards[0]!.staleMinutes).toBeNull();
+  });
+});
+
+describe('012 FR-S30 Mannschaften ohne Karte', () => {
+  const withNames = (teams: string[]): LiveConfig => ({
+    ...config(teams),
+    m: [
+      ['E1', 'Sportvg Feuerbach E1', 'rot', 'schwarz'],
+      ['E2', 'Sportvg Feuerbach E2', 'weiss', 'rot'],
+    ],
+  });
+
+  it('012 US5-S1: E1 spielt, E2 ohne Spiel steht als Zeile mit Kurzname und Heimtrikot', () => {
+    const b = put(applyConfig(emptyBoard(), withNames(['E1', 'E2', 'E3'])), snap({ clock: kicked() }));
+    expect(view(b, T0 + min(9)).waiting).toEqual([
+      { key: 'E2', name: 'Feuerbach E2', color: 'weiss' },
+      { key: 'E3', name: 'E3', color: null },
+    ]);
+  });
+
+  it('012 US5-S2: sobald E2 ein Spiel anlegt, gibt es eine Karte statt der Zeile', () => {
+    let b = put(applyConfig(emptyBoard(), withNames(['E1', 'E2'])), snap({ clock: kicked() }));
+    b = put(b, snap({ team: 'E2', gameId: 'g2' }));
+    const v = view(b, T0 + min(9));
+    expect(v.waiting).toEqual([]);
+    expect(v.cards.find((c) => c.key === 'E2')?.phase).toBe('noch nicht angepfiffen');
+  });
+
+  it('012 US5-S3: ohne Karten keine Zeilen (Leerzustand wie bisher)', () => {
+    expect(view(applyConfig(emptyBoard(), withNames(['E1', 'E2'])), T0).waiting).toEqual([]);
+  });
+
+  it('ohne Konfiguration gibt es keine Mannschaft ohne Karte', () => {
+    expect(view(put(emptyBoard(), snap()), T0).waiting).toEqual([]);
   });
 });
 

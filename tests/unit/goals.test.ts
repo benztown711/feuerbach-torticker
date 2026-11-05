@@ -5,6 +5,7 @@ import {
   addGoal,
   goalRows,
   homeAway,
+  refreshScores,
   removeGoal,
   restoreGoal,
   score,
@@ -113,5 +114,52 @@ describe('T044 FR-004 FR-008 FR-021 Tore', () => {
   it('goalRows schreibt Nachspielminuten', () => {
     const g = addGoal(running(), 'own', T0 + min(26), ids).game;
     expect(goalRows(g)[0]?.label).toBe("25+2'");
+  });
+});
+
+describe('012 FR-S14 Halbzeit- und Endstand folgen den Toren', () => {
+  /** 2 × 25: Tor Feuerbach in 10' (Halbzeit 1:0), Gegentor in 30', Schlusspfiff (Endstand 1:1). */
+  const played = () => {
+    let g = addGoal(running(), 'own', T0 + min(9) + sec(30), ids).game;
+    g = kickoff(endSection(g, T0 + min(25)), T0 + min(30));
+    g = addGoal(g, 'opp', T0 + min(34) + sec(30), ids).game;
+    return endSection(g, T0 + min(55));
+  };
+
+  it('refreshScores berechnet gesetzte Stände aus den Toren neu, nicht gesetzte bleiben leer', () => {
+    const g = played();
+    const [first] = g.goals;
+    const wrong = { ...g, halfTimeScore: { own: 5, opp: 5 }, finalScore: { own: 7, opp: 7 } };
+    expect(refreshScores(wrong)).toMatchObject({ halfTimeScore: { own: 1, opp: 0 }, finalScore: { own: 1, opp: 1 } });
+    const open = refreshScores({ ...g, halfTimeScore: null, finalScore: null });
+    expect(open.halfTimeScore).toBeNull();
+    expect(open.finalScore).toBeNull();
+    const removed = { ...g, goals: g.goals.map((x) => (x === first ? { ...x, deletedAt: T0 + min(56) } : x)) };
+    expect(refreshScores(removed)).toMatchObject({ halfTimeScore: { own: 0, opp: 0 }, finalScore: { own: 0, opp: 1 } });
+  });
+
+  it('012 US2-S8 Tor der 1. Halbzeit in der 2. Halbzeit entfernen oder wiederherstellen: Halbzeitstand folgt', () => {
+    let g = addGoal(running(), 'own', T0 + min(9) + sec(30), ids).game;
+    g = kickoff(endSection(g, T0 + min(25)), T0 + min(30));
+    const id = g.goals[0]!.id;
+    const removed = removeGoal(g, id, T0 + min(31));
+    expect(removed.halfTimeScore).toEqual({ own: 0, opp: 0 });
+    expect(removed.finalScore).toBeNull();
+    expect(restoreGoal(removed, id).halfTimeScore).toEqual({ own: 1, opp: 0 });
+  });
+
+  it('nach dem Schlusspfiff folgt der Endstand', () => {
+    const g = played();
+    const id = g.goals[1]!.id;
+    const removed = removeGoal(g, id, T0 + min(56));
+    expect(removed.finalScore).toEqual({ own: 1, opp: 0 });
+    expect(restoreGoal(removed, id).finalScore).toEqual({ own: 1, opp: 1 });
+  });
+
+  it('Rückgängig kurz nach dem Pausenpfiff: Halbzeitstand folgt', () => {
+    const r = addGoal(running(), 'own', T0 + min(24) + sec(59), ids);
+    const g = endSection(r.game, T0 + min(25) + sec(1));
+    expect(g.halfTimeScore).toEqual({ own: 1, opp: 0 });
+    expect(undoGoal(g, r.goal!.id).halfTimeScore).toEqual({ own: 0, opp: 0 });
   });
 });

@@ -139,24 +139,24 @@ test('006 US1-S4 SC-L06 ohne Kopplung geht kein Request an ntfy.sh', async ({ pa
   await expect(page.getByTestId('live-empty')).toBeVisible();
 });
 
-test('006 US1-S6 Trainer-Link im Browser: Anleitung, Link kopieren, hier koppeln', async ({
-  page,
-  recorded,
-  newDevice,
-}) => {
+test('006 US1-S6 Trainer-Link im Browser: Link kopieren, hier koppeln', async ({ page, recorded, newDevice }) => {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   const b = await newDevice();
   await b.goto(asPath(links.trainer));
   const p = b.getByTestId('lead-link-page');
   await expect(p).toContainText('Trainer-Link für „Unser Spieltag“');
   await expect(p).toContainText('Feuerbach E1 und Feuerbach E2');
-  await expect(p).toContainText('Mehr → Live-Spieltag → „Trainer-Link einfügen“');
+  // Spec 012 US1-S8: Koppeln im Browser ist der Hauptweg; Kopieren nur für den Home-Bildschirm.
+  await expect(p).toContainText('Torticker schon auf dem Home-Bildschirm? Dann den Link kopieren und dort einfügen.');
   await expect(b.getByTestId('nav')).toHaveCount(0);
   await b.getByTestId('btn-copy-lead-link').click();
   const copied = await b.evaluate(() => (window as unknown as { __rec: { clipboard?: string } }).__rec.clipboard);
   expect(copied).toContain('#/trainer/');
   await b.getByTestId('btn-couple-here').click();
   await b.getByTestId('couple-yes').click();
+  // Spec 012 FR-S03: nach dem Koppeln der Startbildschirm; "Live-Spieltag" zeigt die Übersicht.
+  await expect(b.getByTestId('start-live-line')).toBeVisible();
+  await b.goto('./#/live-spieltag');
   await expect(b.getByTestId('live-overview')).toBeVisible();
 
   await b.goto('./#/trainer/kaputt');

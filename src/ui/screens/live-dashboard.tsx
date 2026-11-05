@@ -264,6 +264,15 @@ export function Dashboard({
               onToggle={() => toggle(c.key)}
             />
           ))}
+          {/* Spec 012 FR-S30: Mannschaften ohne Spiel als schlichte Zeile unter den Karten. */}
+          {v.waiting.map((w) => (
+            <p key={w.key} class="dash-waiting" data-testid={`dash-waiting-${w.key}`}>
+              {w.color && <Mark color={w.color} />}
+              <span>
+                <strong>{w.name}</strong> · heute noch kein Spiel
+              </span>
+            </p>
+          ))}
         </div>
       )}
       <footer class="dash__foot">

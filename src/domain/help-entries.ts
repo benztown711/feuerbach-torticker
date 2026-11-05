@@ -148,6 +148,46 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['tor', 'torschuetze'],
   },
   {
+    id: 'tor-nachtragen',
+    topic: 'spiel',
+    title: 'Wie trage ich ein vergessenes Tor nach?',
+    answer:
+      'Tippe im Spiel auf „…“ und „Tor nachtragen“. Wähle die Mannschaft und die Minute und tippe auf „Eintragen“. Das geht auch nach dem Schlusspfiff; Stand, Torliste, geteilter Text und Dashboard stimmen danach. Bei einem eigenen Tor fragt der Torticker anschließend nach dem Torschützen.',
+    keywords: 'vergessen nachtragen nachträglich tor fehlt später schlusspfiff ergebnis falsch',
+    sources: ['012 US2'],
+    related: ['tor-minute', 'tor-entfernen'],
+  },
+  {
+    id: 'tor-minute',
+    topic: 'spiel',
+    title: 'Wie ändere ich die Minute eines Tores?',
+    answer:
+      'Tippe in der Torliste auf das Tor und dann auf „Minute ändern“. Wähle die richtige Minute und tippe auf „Übernehmen“. Das Tor rutscht an die richtige Stelle, Torschütze und Vorlage bleiben.',
+    keywords: 'minute falsch ändern korrigieren verschieben zeitpunkt',
+    sources: ['012 US2'],
+    related: ['tor-nachtragen', 'uhr-korrigieren'],
+  },
+  {
+    id: 'pfiff-zuruecknehmen',
+    topic: 'spiel',
+    title: 'Wie nehme ich einen Pausen- oder Schlusspfiff zurück?',
+    answer:
+      'Zu früh „Pausenpfiff“ oder „Schlusspfiff“ getippt? Tippe auf „…“ und „Pausenpfiff zurücknehmen“ bzw. „Schlusspfiff zurücknehmen“. Die Uhr läuft weiter, als wäre nicht gepfiffen worden. Das geht bis 10 Minuten nach dem Pfiff, solange noch nicht wieder angepfiffen ist.',
+    keywords: 'pfiff zurück versehentlich zu früh abgepfiffen halbzeit schlusspfiff rückgängig',
+    sources: ['012 US3'],
+    related: ['pausenpfiff', 'uhr-korrigieren'],
+  },
+  {
+    id: 'uhr-korrigieren',
+    topic: 'spiel',
+    title: 'Was tue ich, wenn die Uhr falsch geht?',
+    answer:
+      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „+1 Min“ oder „−1 Min“ die richtige Spielminute ein und tippe auf „Übernehmen“. Restzeit, Pfiff, die Minuten der Tore dieser Halbzeit und das Dashboard folgen.',
+    keywords: 'uhr falsch zu spät anpfiff vergessen minute stimmt nicht verstellen zeit korrigieren',
+    sources: ['012 US4'],
+    related: ['uhr-anhalten', 'tor-minute'],
+  },
+  {
     id: 'uhr-anhalten',
     topic: 'spiel',
     title: 'Wie halte ich die Uhr an?',
@@ -425,9 +465,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie richte ich einen Live-Spieltag ein?',
     answer:
-      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Live-Spieltag anlegen“ und wählst bis zu sechs Mannschaften. Den Zuschauer-Link teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die Trainer der anderen Mannschaften.',
-    keywords: 'live dashboard eltern zuschauer link spieltag einrichten',
-    sources: ['006 US1'],
+      'Das macht nur einer, einmal für alle Mannschaften. Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Live-Spieltag anlegen“ und wählst bis zu sechs Mannschaften. Den Zuschauer-Link teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer. Gibt es schon einen Live-Spieltag, tippst du stattdessen auf „Trainer-Link einfügen“.',
+    keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen',
+    sources: ['006 US1', '012 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['trainer-link', 'live-senden'],
   },
@@ -436,9 +476,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer öffnet den Trainer-Link und tippt auf „Link kopieren“. Dann öffnet er den Torticker vom Home-Bildschirm, geht zu „Mehr“ und „Live-Spieltag“ und tippt auf „Trainer-Link einfügen“. Ab dann sendet sein Handy die Spiele seiner Mannschaft.',
-    keywords: 'trainer link koppeln kollege handy einfügen',
-    sources: ['006 US1'],
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link und dann auf „Koppeln und loslegen“. Hat er den Torticker auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Trainer-Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst. Den Link kann er jede Woche wieder antippen.',
+    keywords: 'trainer link koppeln kollege handy einfügen zwischenablage startknopf',
+    sources: ['006 US1', '012 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['live-anlegen', 'live-senden'],
   },
@@ -510,9 +550,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Du siehst alle Spiele des Spieltags mit Stand und Minute; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel, um Tore und Details zu sehen.',
-    keywords: 'eltern zuschauen verfolgen dashboard link spieltag live',
-    sources: ['006 US3'],
+      'Öffne den Link aus der Elterngruppe. Du siehst alle Spiele des Spieltags mit Stand und Minute; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel, um Tore und Details zu sehen. Steht bei einer Mannschaft „heute noch kein Spiel“, hat ihr Trainer das Spiel noch nicht angelegt.',
+    keywords: 'eltern zuschauen verfolgen dashboard link spieltag live kein spiel',
+    sources: ['006 US3', '012 US5'],
     parents: true,
     related: ['eltern-home', 'keine-verbindung'],
   },
@@ -626,9 +666,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'probleme',
     title: 'Warum sind meine Spiele weg?',
     answer:
-      'Safari löscht Daten von Webseiten, die eine Weile nicht geöffnet wurden. Das passiert nicht, wenn du den Torticker vom Home-Bildschirm startest. Hast du eine Sicherung, holst du die Spiele mit „Wiederherstellen“ zurück.',
-    keywords: 'weg verschwunden verloren gelöscht leer daten spiele',
-    sources: ['001 FR-023'],
+      'Safari löscht Daten von Webseiten, die eine Weile nicht geöffnet wurden. Das passiert nicht, wenn du den Torticker vom Home-Bildschirm startest. Hast du eine Sicherung, holst du die Spiele mit „Wiederherstellen“ zurück. Ist das Handy nicht mehr live gekoppelt, tippst du den Trainer-Link einfach noch einmal an.',
+    keywords: 'weg verschwunden verloren gelöscht leer daten spiele kopplung',
+    sources: ['001 FR-023', '012 US1'],
     related: ['installieren', 'wiederherstellen'],
   },
 

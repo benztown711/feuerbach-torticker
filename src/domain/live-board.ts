@@ -4,6 +4,7 @@ import { parseSnapshot, type LiveGameSnapshot, type LiveGoal, type LiveSnapshot 
 import { newerConfig, parseConfig } from './live-spieltag';
 import { isObj, isText, isTime } from './live-validate';
 import { formatMinute } from './minute';
+import { shortTeamName } from './team-name';
 import type { LiveConfig, Schema, Side } from './types';
 
 /**
@@ -200,6 +201,8 @@ export interface BoardView {
   today: boolean;
   /** US5-S3: Live-Spieltag wurde neu ausgestellt; Eltern brauchen den neuen Link. */
   retired: boolean;
+  /** Spec 012 FR-S30: Mannschaften ohne Karte ("heute noch kein Spiel"), nur wenn es Karten gibt. */
+  waiting: { key: string; name: string; color: string | null }[];
 }
 
 interface GameState {
@@ -357,12 +360,23 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
       return main ? [cardOf(key, main, rest, serverNow, timeZone)] : [];
     })
     .sort((a, b) => RANK[a.group] - RANK[b.group]);
+  const details = board.config?.m ?? [];
+  const waiting =
+    cards.length === 0
+      ? []
+      : teams
+          .filter((key) => !cards.some((c) => c.key === key))
+          .map((key) => {
+            const d = details.find(([k]) => k === key);
+            return { key, name: d ? shortTeamName(d[1]) : key, color: d ? d[2] : null };
+          });
   return {
     title: board.config?.title ?? null,
     teams,
     cards,
     today: cards.some((c) => c.today),
     retired: board.config?.retired === true,
+    waiting,
   };
 }
 
