@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_NAME, abbreviationOf, firstNameOf, uniqueNames } from '../../src/domain/roster-names';
+import { MAX_NAME, abbreviationOf, firstNameOf, uniqueNames, type NameEntry } from '../../src/domain/roster-names';
 
-const names = (entries: { first: string; last: string | null; fixed?: boolean }[]) =>
-  uniqueNames(entries).map((r) => r.name);
+const names = (entries: NameEntry[]) => uniqueNames(entries).map((r) => r.name);
 
 describe('T064 FR-020 FR-025 eindeutige Anzeigenamen', () => {
   it('US7-S2 allein: nur Vorname, Nachname verworfen', () => {

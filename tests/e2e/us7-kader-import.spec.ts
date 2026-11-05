@@ -99,3 +99,38 @@ test.describe('US7 Kader per Liste einfügen und teilen', () => {
     await expect(rosterRows(page)).toHaveCount(2);
   });
 });
+
+test.describe('US7 geteilten Kader auf zweitem Gerät einfügen', () => {
+  // newDevice nutzt den Relay-Nachbau aus Spec 006 (fixtures.ts), der blockierte Service Worker braucht.
+  test.use({ serviceWorkers: 'block' });
+
+  test('001 US7-S7 US7-S8 FR-028 abgekürzte Namen bleiben beim Einfügen unverändert', async ({
+    page,
+    recorded,
+    newDevice,
+  }) => {
+    await seedRoster(page, '7 Max Meier\n14 Max Müller\nBen');
+    await page.getByTestId('btn-share-roster').click();
+    const shared = '7 Max Me.\n14 Max Mü.\nBen';
+    await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe(shared);
+
+    const other = await newDevice();
+    await openPaste(other, shared);
+    await expect(rows(other)).toHaveCount(3);
+    await expect(nameField(other, 0)).toHaveValue('Max Me.');
+    await expect(nameField(other, 1)).toHaveValue('Max Mü.');
+    await expect(nameField(other, 2)).toHaveValue('Ben');
+    await expect(rows(other).locator('.tag--warn')).toHaveCount(0);
+    await other.getByTestId('paste-apply').click();
+    await expect(rosterRows(other)).toHaveCount(3);
+    await expect(other.getByTestId('roster-list')).toContainText('7Max Me.');
+    await expect(other.getByTestId('roster-list')).toContainText('14Max Mü.');
+
+    // Erneutes Einfügen derselben Liste: alles "aktualisiert", keine Duplikate
+    await openPaste(other, shared);
+    await expect(rows(other).locator('.tag--warn')).toHaveCount(0);
+    await expect(rows(other).getByText('aktualisiert')).toHaveCount(3);
+    await other.getByTestId('paste-apply').click();
+    await expect(rosterRows(other)).toHaveCount(3);
+  });
+});
