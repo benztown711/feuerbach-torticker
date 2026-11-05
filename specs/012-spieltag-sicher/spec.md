@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Review A erledigt (05.11.2026, S1 bis S5 freigegeben). Mockup (Review B): https://claude.ai/artifact/2cLae3hhgdkyRPd9JGbP9F Ziel: produktiver Einsatz am Samstag, 07.11.2026 (E1 und E2, WFV-Spieltag 2 × 25 Minuten).
+**Status**: Review A erledigt (05.11.2026, S1 bis S5 freigegeben). US1 bis US5 umgesetzt (PR #42), Review B und C offen. Mockup (Review B): https://claude.ai/artifact/2cLae3hhgdkyRPd9JGbP9F Ziel: produktiver Einsatz am Samstag, 07.11.2026 (E1 und E2, WFV-Spieltag 2 × 25 Minuten).
 
 **Input**: Review vom 05.11.2026 (Zweck, UI/UX, Gegenprüfung der Roadmap aus PR #41). Atti: "S1 bis S5 können wir gerne machen, bitte mit kurzen Mockups." Samstag erfassen Atti (E1) und Ivi (E2) auf ihren eigenen Handys; samstags 2 × 25 Minuten, sonntags Leistungsliga 3 × 25 Minuten.
 

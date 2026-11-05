@@ -36,7 +36,7 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 
 ### Live (`src/domain/live-board.ts`)
 
-- `teamsWithoutCard(board)`: Mannschaften der Konfiguration ohne Karte; das Dashboard zeigt sie als Zeile "<Name> · heute noch kein Spiel", sobald mindestens eine Karte da ist (FR-S30).
+- `boardView(...).waiting`: Mannschaften der Konfiguration ohne Karte (Name aus der Konfiguration, Heimtrikot); das Dashboard zeigt sie als Zeile "<Name> · heute noch kein Spiel", sobald mindestens eine Karte da ist (FR-S30).
 - Live-Meldung unverändert: Korrekturen erzeugen einen normalen Schreibvorgang, der Sender meldet den neuen Stand (auch nach dem Schlusspfiff).
 
 ### Oberfläche
