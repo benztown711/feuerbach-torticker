@@ -65,6 +65,11 @@ Mockup: https://claude.ai/artifact/SDGYEMUyn2u5uarWLYeGFo
 - Q: Nimmt die Sicherung den Trainer-Schlüssel mit? → A: Ja, immer, mit dem Hinweis "nur für dich aufbewahren" (die Sicherung enthält ohnehin Vornamen der Kinder). Abhilfe, falls die Datei in falsche Hände gerät: "Alle Links neu ausstellen".
 - Andere Trainer-Handys übernehmen Titel- und Mannschaftsänderungen beim nächsten Empfang (Neues Spiel, Spielbildschirm, Dashboard in der App, Übersicht "Live-Spieltag"); dafür nennt die Konfiguration die Mannschaften mit Namen und Trikots.
 
+### Session 2026-11-05 (Fehler: Zuschauer-Link auf dem Home-Bildschirm)
+
+- Befund (Atti, Gerätetest G-3 im Alltag): Ein Elternteil öffnet den Zuschauer-Link aus WhatsApp in Safari, das Dashboard erscheint. Nach "Zum Home-Bildschirm" öffnet das Symbol aber den Startbildschirm mit "Neues Spiel" statt des Dashboards. Ursache: iOS übernimmt die Startadresse aus dem Manifest der App (`/feuerbach-torticker/`), nicht die aktuelle Adresse; die Vorkehrung aus R-L6 (gemerkter Zuschauer-Link) greift nicht, weil die Home-Bildschirm-App getrennte Daten hat und den in Safari gemerkten Link nicht kennt.
+- Entscheidung (Fehlerbehebung, ohne Mockup): Auf der Seite des Zuschauer-Links nennt das Manifest den Zuschauer-Link als Startadresse (FR-L16, US3-S11). Symbole, die vorher angelegt wurden, behalten die alte Startadresse; sie müssen einmal gelöscht und neu angelegt werden (Hilfe-Eintrag `eltern-home`).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Live-Spieltag anlegen und Trainergruppe koppeln (Priority: P1)
@@ -129,6 +134,7 @@ Eltern öffnen den Zuschauer-Link aus der WhatsApp-Gruppe im Browser, ohne Insta
 8. **Given** ein Spiel ist beendet, **Then** steht es mit "Ende" und (aufgeklappt) Datum und Schlusspfiff unter den laufenden Spielen, bis seine Mannschaft an einem anderen Tag ein neues Spiel anlegt (FR-L16).
 9. **Given** E2 hat heute schon 2:1 gegen TSV Musterstadt gespielt und das nächste Spiel läuft, **Then** zeigt die E2-Karte das laufende Spiel und darunter die Zeile "Heute außerdem: 2:1 gegen TSV Musterstadt".
 10. **Given** der Zuschauer-Link, **Then** gibt es auf dem Dashboard keine Bedienelemente zum Ändern; Meldungen, die nicht von einem festgelegten Lead-Handy stammen, werden ignoriert.
+11. **Given** ein Elternteil hat den Zuschauer-Link in Safari geöffnet, **When** es "Zum Home-Bildschirm" wählt und den Torticker über das neue Symbol startet, **Then** erscheint das Dashboard "Unser Spieltag" und nicht der Startbildschirm mit "Neues Spiel", auch wenn das Symbol aus der Eltern-Hilfe heraus angelegt wurde.
 
 ---
 
@@ -225,7 +231,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 - **FR-L13**: Die Minute auf dem Dashboard MUSS aus dem übertragenen Spielverlauf berechnet werden und ohne neue Meldung weiterlaufen (Constitution V); die Abweichung zur Anzeige auf dem Lead-Handy beträgt höchstens 1 Minute.
 - **FR-L14**: Das Dashboard MUSS je Mannschaft höchstens eine Karte zeigen, mit deren neuestem Spiel; frühere Spiele desselben Tages stehen als kurze Zeilen darunter ("Heute außerdem: 2:1 gegen TSV Musterstadt"). Reihenfolge: Karten mit laufendem Spiel in der Reihenfolge der Mannschaften des Live-Spieltags, darunter angelegte, darunter beendete. Ohne Spiele: "Heute noch kein Spiel live" mit den Mannschaften. Spielen zwei Lead-Handys derselben Mannschaft gleichzeitig (US5 Szenario 5), zeigt die Karte beide Spiele.
 - **FR-L15**: Das Dashboard MUSS sich ohne Neuladen aktualisieren, neue Tore für einige Sekunden hervorheben (ohne Ton) und den Verbindungsstatus zeigen: bei eigener fehlender Verbindung "Keine Verbindung · Stand von <Uhrzeit>", bei laufendem Spiel ohne Meldung seit mehr als 5 Minuten "Letzte Meldung vor <n> Min" auf der Karte.
-- **FR-L16**: Der Zuschauer-Link MUSS die ganze Saison gelten (bis "Alle Links neu ausstellen"). Ein Spiel bleibt sichtbar, bis seine Mannschaft ein neues Spiel an einem anderen Tag anlegt: für Zuschauer, die das Dashboard bereits geöffnet hatten, ohne Zeitgrenze (das Gerät merkt sich den letzten Stand); für Zuschauer, die es erst später öffnen, so lange der Vermittlungsdienst die letzte Meldung vorhält (rund 12 Stunden). Das Dashboard kann als Lesezeichen bzw. auf dem Home-Bildschirm gespeichert werden.
+- **FR-L16**: Der Zuschauer-Link MUSS die ganze Saison gelten (bis "Alle Links neu ausstellen"). Ein Spiel bleibt sichtbar, bis seine Mannschaft ein neues Spiel an einem anderen Tag anlegt: für Zuschauer, die das Dashboard bereits geöffnet hatten, ohne Zeitgrenze (das Gerät merkt sich den letzten Stand); für Zuschauer, die es erst später öffnen, so lange der Vermittlungsdienst die letzte Meldung vorhält (rund 12 Stunden). Das Dashboard kann als Lesezeichen bzw. auf dem Home-Bildschirm gespeichert werden. Auf der Seite des Zuschauer-Links MUSS das Web-App-Manifest den Zuschauer-Link als Startadresse nennen (bei unveränderter App-Kennung), damit ein so angelegtes Symbol das Dashboard öffnet; auf allen anderen Seiten gilt die Startadresse der App.
 - **FR-L17**: Im Torticker MUSS das Dashboard eines gekoppelten Live-Spieltags unter "Mehr" → "Live-Spieltag" erreichbar sein, auf Lead-Handys zusätzlich per Tipp auf das Kennzeichen "Live" (FR-L08).
 - **FR-L18**: Das Dashboard MUSS dem Vereinsdesign folgen (Constitution VII, `design/`), hell und dunkel nach Systemeinstellung, im Hochformat ab 375 pt Breite ohne waagrechtes Scrollen, Kontrast wie SC-006 aus Spec 001; Trikotfarben als kleine Farbmarken wie im Spielbildschirm (keine Emojis in der Oberfläche, `design/README.md`).
 
@@ -262,7 +268,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 ## Hilfe
 
-Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden).
+Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden). Geändert mit der Fehlerbehebung vom 05.11.2026 (US3-S11): "Wie lege ich den Spieltag auf den Home-Bildschirm?" (`eltern-home`) nennt, dass ein älteres Symbol, das "Neues Spiel" zeigt, gelöscht und neu angelegt wird.
 
 ## Assumptions
 

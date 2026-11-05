@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import {
   addPlayer,
   looksLikeFullName,
@@ -11,9 +11,9 @@ import {
 import { MAX_NAME } from '../../domain/roster-names';
 import { annotateRows, applyImport, planImport, type ImportRow, type ImportWarning } from '../../domain/roster-merge';
 import { parseRosterList } from '../../domain/roster-parse';
-import type { Player } from '../../domain/types';
+import type { Player, RosterSort } from '../../domain/types';
 import { validatePlayerNumber } from '../../domain/validation';
-import { putPlayers } from '../../platform/db';
+import { getSettings, putPlayers } from '../../platform/db';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { usePlayers } from '../hooks';
@@ -213,6 +213,11 @@ export function RosterScreen() {
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
   const [toDelete, setToDelete] = useState<Player | null>(null);
   const [notice, setNotice] = useState('');
+  /** Spec 013 FR-K05: Reihenfolge aus den Einstellungen; bis sie geladen ist, nichts zeigen (kein Umsortieren). */
+  const [sort, setSort] = useState<RosterSort | undefined>(undefined);
+  useEffect(() => {
+    void getSettings().then((s) => setSort(s.rosterSort));
+  }, []);
 
   const save = async (next: Player[]): Promise<void> => {
     await putPlayers(next);
@@ -220,8 +225,8 @@ export function RosterScreen() {
     setMode({ kind: 'list' });
   };
 
-  if (players === undefined) return <main class="page" aria-busy="true" />;
-  const visible = visiblePlayers(players);
+  if (players === undefined || sort === undefined) return <main class="page" aria-busy="true" />;
+  const visible = visiblePlayers(players, sort);
 
   return (
     <main class="page">
@@ -312,7 +317,7 @@ export function RosterScreen() {
             data-testid="btn-share-roster"
             disabled={visible.length === 0}
             onClick={() =>
-              void shareText(rosterShareText(players), 'Kader').then((r) => {
+              void shareText(rosterShareText(players, sort), 'Kader').then((r) => {
                 if (r === 'copied') setNotice('Kader in die Zwischenablage kopiert.');
                 if (r === 'failed') setNotice('Teilen hat nicht geklappt.');
               })

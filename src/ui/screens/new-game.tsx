@@ -91,7 +91,8 @@ export function NewGameScreen() {
     if (team && !ownTouched) setOwnColor(ownColorFor(team, venue));
   }, [team?.id, team?.homeColor, team?.awayColor, venue, ownTouched]);
 
-  const visible = visiblePlayers(players ?? []);
+  // Spec 013 FR-K05: Aufgebot in der Reihenfolge aus den Einstellungen.
+  const visible = visiblePlayers(players ?? [], settings?.rosterSort ?? 'name');
   const lastSquad = (team && settings ? squadFor(team, settings) : []).filter((id) => visible.some((p) => p.id === id));
   // FR-030, FR-M06: Aufgebot des letzten Spiels dieser Mannschaft ist vorausgewählt.
   const lastKey = lastSquad.join(',');

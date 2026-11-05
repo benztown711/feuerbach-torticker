@@ -1,4 +1,4 @@
-import { visiblePlayers } from './roster';
+import { activePlayers } from './roster';
 import { MAX_NAME, abbreviationOf, firstNameOf, uniqueNames, type NameEntry } from './roster-names';
 import type { ParseWarning, ParsedLine } from './roster-parse';
 import type { Player } from './types';
@@ -42,7 +42,7 @@ function findMatch(candidates: Player[], line: ParsedLine): Player | undefined {
 /** Warnungen für (ggf. bearbeitete) Zeilen neu berechnen. */
 export function annotateRows(existing: Player[], rows: ImportRow[]): ImportRow[] {
   const matched = new Set(rows.map((r) => r.matchId));
-  const others = visiblePlayers(existing).filter((p) => !matched.has(p.id));
+  const others = activePlayers(existing).filter((p) => !matched.has(p.id));
   const count = <T>(values: T[]) => values.reduce((m, v) => m.set(v, (m.get(v) ?? 0) + 1), new Map<T, number>());
   const numbers = count(rows.map((r) => r.number).filter((n) => n !== null));
   const names = count([...rows.map((r) => key(r.name)), ...others.map((p) => key(p.name))]);
@@ -64,7 +64,7 @@ export function planImport(existing: Player[], lines: ParsedLine[]): ImportRow[]
     return m;
   });
   const matchedIds = new Set(matches.filter((m) => m).map((m) => m!.id));
-  const outside = visiblePlayers(existing).filter((p) => !matchedIds.has(p.id));
+  const outside = activePlayers(existing).filter((p) => !matchedIds.has(p.id));
   const entries: NameEntry[] = [
     ...lines.map((l, i) => {
       const m = matches[i];
