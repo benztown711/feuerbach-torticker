@@ -49,6 +49,7 @@ describe('001 US7-S8 FR-028 Kürzel aus „Kader teilen“ erkennen', () => {
     ['Max Mei.', null, 'Mei', true],
     ['Max Mü', null, 'Mü', false],
     ['Max Meie.', null, 'Meie', false],
+    ['Max Mü. -', null, 'Mü', true],
     ['Max M. Mü.', null, 'M Mü', false],
     ['1 Max', 1, null, false],
   ])('%s', (line, number, lastName, abbreviated) => {

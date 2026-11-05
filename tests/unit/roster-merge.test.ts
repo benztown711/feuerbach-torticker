@@ -180,6 +180,14 @@ describe('001 US7-S7 US7-S8 FR-028 geteilten Kader wieder einfügen', () => {
     ]);
   });
 
+  it('001 US7-S8 FR-026 Kürzel benennt einen gleichnamigen Spieler nicht still um', () => {
+    const rows = plan([p('a', 'Max Mü.', 1)], '1 Max\n9 Max Mü.');
+    expect(rows.map((r) => [r.matchId, r.name, r.warnings])).toEqual([
+      ['a', 'Max Mü.', ['name-doppelt']],
+      [null, 'Max Mü.', ['name-doppelt']],
+    ]);
+  });
+
   it('001 US7-S8 FR-025 Kürzel und voller Nachname gemischt: nur der Nachname wird gekürzt', () => {
     const rows = plan([], 'Max Me.\nMax Müller');
     expect(rows.map((r) => [r.name, r.warnings])).toEqual([

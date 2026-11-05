@@ -49,7 +49,8 @@ function parseLine(raw: string, line: number): ParsedLine | null {
     if (n >= 1 && n <= 99) number = n;
     else warnings.push('nummer-ungueltig');
   }
-  const abbreviated = last.length === 1 && isAbbreviation(rest.trim().split(/\s+/).at(-1)!);
+  const tokens = rest.split(/\s+/).filter((w) => /\p{L}/u.test(w));
+  const abbreviated = last.length === 1 && isAbbreviation(tokens.at(-1)!);
   return { line, number, firstName, lastName: last.length > 0 ? last.join(' ') : null, abbreviated, warnings };
 }
 

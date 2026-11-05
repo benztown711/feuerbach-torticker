@@ -47,9 +47,20 @@ function nameGroup(group: NameEntry[]): string[] {
   const person = group.map((e) => key(e.last ?? ''));
   const maxLen = Math.max(1, ...group.map((e) => (e.last ?? '').length));
   const at = (len: number): string[] => group.map((e) => build(e.first, abbreviate(e, len)));
-  /** Verschiedene Nachnamen tragen nie denselben Namen (auch wenn ein Kürzel unverändert bleibt). */
-  const separates = (names: string[]): boolean =>
-    new Set(names.map((n, i) => `${key(n)}\n${person[i]}`)).size === new Set(names.map(key)).size;
+  const pinned = group.flatMap((e, i) => (e.fixed || e.kept ? [i] : []));
+  const distinct = (idx: number[], f: (i: number) => string): number => new Set(idx.map(f)).size;
+  const all = group.map((_, i) => i);
+  /**
+   * Verschiedene Nachnamen tragen nie denselben Namen; feste und unveränderte Kürzel desselben
+   * Nachnamens bleiben gleich (sonst würde ein bestehender Spieler neben einem Kürzel still umbenannt).
+   */
+  const separates = (names: string[]): boolean => {
+    const pair = (i: number) => `${key(names[i]!)}\n${person[i]}`;
+    return (
+      distinct(all, pair) === distinct(all, (i) => key(names[i]!)) &&
+      distinct(pinned, pair) === distinct(pinned, (i) => person[i]!)
+    );
+  };
   let k = 1;
   while (k < maxLen && !separates(at(k))) k++;
   return at(k);
