@@ -186,156 +186,163 @@ export function NewGameScreen() {
           void create();
         }}
       >
-        {settings.teams.length > 1 && (
-          <div class="field">
-            <span class="field__label t-label" id="ng-team">
-              MANNSCHAFT
-            </span>
-            <div class="chips" role="group" aria-labelledby="ng-team" data-testid="team-chips">
-              {settings.teams.map((t, i) => (
-                <button
-                  type="button"
-                  key={t.id}
-                  class="chip chip--wide"
-                  aria-pressed={t.id === team.id}
-                  data-testid={`team-chip-${i}`}
-                  onClick={() => applyTeam(settings, t)}
-                >
-                  {teamShortLabel(t.name)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {liveTeam && settings.live && (
-          <div class="switch-row" data-testid="new-live-row">
-            <div class="switch-row__text">
-              <span class="switch-row__title" id="ng-live">
-                Live aufs Dashboard
+        {/* Spec 011 FR-G03: Mannschaft, Live, Gegner, Begegnung und Trikots auf einer Karte */}
+        <section class="card" aria-labelledby="card-matchup-title" data-testid="card-matchup">
+          <h2 id="card-matchup-title" class="t-label card__title">
+            BEGEGNUNG
+          </h2>
+          {settings.teams.length > 1 && (
+            <div class="field">
+              <span class="field__label t-label" id="ng-team">
+                MANNSCHAFT
               </span>
-              <p class="switch-row__help">
-                {liveOn
-                  ? `Eltern sehen das Spiel in „${titleOf(settings.live)}“.`
-                  : 'Wird nicht gesendet, z. B. Testspiel. Im Spiel über „…“ wieder einschaltbar.'}
-              </p>
+              <div class="chips" role="group" aria-labelledby="ng-team" data-testid="team-chips">
+                {settings.teams.map((t, i) => (
+                  <button
+                    type="button"
+                    key={t.id}
+                    class="chip chip--wide"
+                    aria-pressed={t.id === team.id}
+                    data-testid={`team-chip-${i}`}
+                    onClick={() => applyTeam(settings, t)}
+                  >
+                    {teamShortLabel(t.name)}
+                  </button>
+                ))}
+              </div>
             </div>
-            <button
-              type="button"
-              class="switch"
-              role="switch"
-              aria-checked={liveOn}
-              aria-labelledby="ng-live"
-              data-testid="new-live-switch"
-              onClick={() => setLiveOn(!liveOn)}
-            />
-          </div>
-        )}
-        {settings.teams.length === 0 && (
-          <p class="hint" data-testid="hint-teams">
-            Deine Mannschaft und ihre Trikots legst du einmal in den{' '}
-            <button type="button" class="link-btn" onClick={() => navigate('/einstellungen')}>
-              Einstellungen
-            </button>{' '}
-            an.
-          </p>
-        )}
-
-        <div class="field">
-          <label class="field__label t-label" for="opponent">
-            GEGNER
-          </label>
-          <input
-            id="opponent"
-            class="input"
-            data-testid="input-opponent"
-            value={opponent}
-            maxLength={40}
-            autocomplete="off"
-            placeholder="z. B. TSV Musterstadt"
-            onInput={(e) => setOpponent(e.currentTarget.value)}
-          />
-        </div>
-
-        <div class="field">
-          <span class="field__label t-label">BEGEGNUNG</span>
-          {/* Spec 004 FR-M05: wie die Kopfzeile im Spiel (FR-040) */}
-          <div class="matchup-preview">
-            <div class="matchup-preview__roles t-label" aria-hidden="true">
-              <span>HEIM</span>
-              <span>GAST</span>
-            </div>
-            <div class="teams teams--preview">
-              <div class="team">
-                <Mark colorId={home.color} />
-                <span class="team__name" data-testid="matchup-home">
-                  {home.name}
+          )}
+          {liveTeam && settings.live && (
+            <div class="switch-row" data-testid="new-live-row">
+              <div class="switch-row__text">
+                <span class="switch-row__title" id="ng-live">
+                  Live aufs Dashboard
                 </span>
+                <p class="switch-row__help">
+                  {liveOn
+                    ? `Eltern sehen das Spiel in „${titleOf(settings.live)}“.`
+                    : 'Wird nicht gesendet, z. B. Testspiel. Im Spiel über „…“ wieder einschaltbar.'}
+                </p>
               </div>
               <button
                 type="button"
-                class="icon-btn teams__swap"
-                aria-label="Heim und Gast tauschen"
-                data-testid="btn-swap-venue"
-                onClick={() => setVenue(venue === 'home' ? 'away' : 'home')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-                  <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />
-                </svg>
-              </button>
-              <div class="team team--away">
-                <span class="team__name" data-testid="matchup-away">
-                  {away.name}
-                </span>
-                <Mark colorId={away.color} />
+                class="switch"
+                role="switch"
+                aria-checked={liveOn}
+                aria-labelledby="ng-live"
+                data-testid="new-live-switch"
+                onClick={() => setLiveOn(!liveOn)}
+              />
+            </div>
+          )}
+          {settings.teams.length === 0 && (
+            <p class="hint" data-testid="hint-teams">
+              Deine Mannschaft und ihre Trikots legst du einmal in den{' '}
+              <button type="button" class="link-btn" onClick={() => navigate('/einstellungen')}>
+                Einstellungen
+              </button>{' '}
+              an.
+            </p>
+          )}
+
+          <div class="field">
+            <label class="field__label t-label" for="opponent">
+              GEGNER
+            </label>
+            <input
+              id="opponent"
+              class="input"
+              data-testid="input-opponent"
+              value={opponent}
+              maxLength={40}
+              autocomplete="off"
+              placeholder="z. B. TSV Musterstadt"
+              onInput={(e) => setOpponent(e.currentTarget.value)}
+            />
+          </div>
+
+          <div class="field">
+            {/* Spec 004 FR-M05: wie die Kopfzeile im Spiel (FR-040) */}
+            <div class="matchup-preview">
+              <div class="matchup-preview__roles t-label" aria-hidden="true">
+                <span>HEIM</span>
+                <span>GAST</span>
+              </div>
+              <div class="teams teams--preview">
+                <div class="team">
+                  <Mark colorId={home.color} />
+                  <span class="team__name" data-testid="matchup-home">
+                    {home.name}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  class="icon-btn teams__swap"
+                  aria-label="Heim und Gast tauschen"
+                  data-testid="btn-swap-venue"
+                  onClick={() => setVenue(venue === 'home' ? 'away' : 'home')}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+                    <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />
+                  </svg>
+                </button>
+                <div class="team team--away">
+                  <span class="team__name" data-testid="matchup-away">
+                    {away.name}
+                  </span>
+                  <Mark colorId={away.color} />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="field">
-          <span class="field__label t-label">TRIKOTS</span>
-          <div class="kit-list">
-            <KitRow
-              side="own"
-              label={ownShort}
-              value={ownColor}
-              dark={dark}
-              open={pal === 'own'}
-              onToggle={() => setPal(pal === 'own' ? null : 'own')}
-              onPick={(id) => {
-                setOwnTouched(true);
-                setOwnColor(id);
-                setPal(null);
-              }}
-            />
-            <KitRow
-              side="opp"
-              label={oppLabel}
-              value={oppColor}
-              dark={dark}
-              open={pal === 'opp'}
-              onToggle={() => setPal(pal === 'opp' ? null : 'opp')}
-              onPick={(id) => {
-                setOppTouched(true);
-                setOppColor(id);
-                setPal(null);
-              }}
-            />
-          </div>
-          <p class="field__help" data-testid="kit-source">
-            {ownTouched
-              ? 'Feuerbach-Trikot nur für dieses Spiel geändert.'
-              : `Feuerbach-Trikot aus dem ${venue === 'home' ? 'Heimtrikot' : 'Auswärtstrikot'}.`}
-          </p>
-          {ownColor === oppColor && (
-            <p class="hint" data-testid="color-clash-hint">
-              Beide Mannschaften in derselben Farbe. Die Tor-Knöpfe unterscheiden sich dann nur über den Namen.
+          <div class="field">
+            <span class="field__label t-label">TRIKOTS</span>
+            <div class="kit-list">
+              <KitRow
+                side="own"
+                label={ownShort}
+                value={ownColor}
+                dark={dark}
+                open={pal === 'own'}
+                onToggle={() => setPal(pal === 'own' ? null : 'own')}
+                onPick={(id) => {
+                  setOwnTouched(true);
+                  setOwnColor(id);
+                  setPal(null);
+                }}
+              />
+              <KitRow
+                side="opp"
+                label={oppLabel}
+                value={oppColor}
+                dark={dark}
+                open={pal === 'opp'}
+                onToggle={() => setPal(pal === 'opp' ? null : 'opp')}
+                onPick={(id) => {
+                  setOppTouched(true);
+                  setOppColor(id);
+                  setPal(null);
+                }}
+              />
+            </div>
+            <p class="field__help" data-testid="kit-source">
+              {ownTouched
+                ? 'Feuerbach-Trikot nur für dieses Spiel geändert.'
+                : `Feuerbach-Trikot aus dem ${venue === 'home' ? 'Heimtrikot' : 'Auswärtstrikot'}.`}
             </p>
-          )}
-        </div>
+            {ownColor === oppColor && (
+              <p class="hint" data-testid="color-clash-hint">
+                Beide Mannschaften in derselben Farbe. Die Tor-Knöpfe unterscheiden sich dann nur über den Namen.
+              </p>
+            )}
+          </div>
+        </section>
 
-        <div class="field">
-          <span class="field__label t-label">SPIELZEIT</span>
+        <section class="field card" aria-labelledby="card-schema-title" data-testid="card-schema">
+          <h2 id="card-schema-title" class="t-label card__title">
+            SPIELZEIT
+          </h2>
           <div class="schema">
             <label class="visually-hidden" for="sections">
               Anzahl Abschnitte
@@ -386,11 +393,11 @@ export function NewGameScreen() {
             Signalton: {signalSoundName(settings.signalSound)}, änderbar unter „Mehr“ → „Einstellungen“. Lautstärke mit
             den Tasten am Handy einstellen, solange die App offen ist.
           </p>
-        </div>
+        </section>
 
-        <div class="field">
+        <section class="field card" aria-label="Aufgebot" data-testid="card-squad">
           <div class="squad__head">
-            <span class="field__label t-label squad__count" data-testid="squad-count">
+            <span class="t-label card__title squad__count" data-testid="squad-count">
               AUFGEBOT · {chosen.length} VON {visible.length}
             </span>
             {lastSquad.length > 0 && (
@@ -432,7 +439,7 @@ export function NewGameScreen() {
               )}
             </>
           )}
-        </div>
+        </section>
 
         <button type="submit" class="btn btn--primary btn--large" data-testid="btn-create" disabled={!check.ok || busy}>
           Weiter zum Anpfiff

@@ -73,9 +73,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'start',
     title: 'Wo finde ich was?',
     answer:
-      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live-Spieltag und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück.',
-    keywords: 'menü navigation leiste unten übersicht',
-    sources: ['001 FR-037'],
+      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live-Spieltag und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück. Wo du gerade bist, zeigt die rote Marke über dem Eintrag.',
+    keywords: 'menü navigation leiste unten übersicht reiter wo bin ich',
+    sources: ['001 FR-037', '011 US3'],
     related: ['neues-spiel', 'historie', 'hilfe-suche'],
   },
   {
@@ -115,7 +115,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie lege ich ein Spiel an?',
     answer:
-      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; meist trägst du nur den Gegner ein. Die Uhr startet erst mit „Anpfiff“.',
+      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; meist trägst du nur den Gegner ein. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
     steps: [
       '„Neues Spiel“ antippen.',
       'Gegner eintragen, bei Bedarf Spielzeit, Trikots und Aufgebot ändern.',
@@ -123,7 +123,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'Im Spielbildschirm auf „Anpfiff“ tippen.',
     ],
     keywords: 'anlegen starten beginnen gegner spielzeit minuten anpfiff',
-    sources: ['001 US2', '004 US3'],
+    sources: ['001 US2', '004 US3', '011 US1', '011 US4'],
     open: { label: 'Neues Spiel', path: '/neu' },
     related: ['tor', 'aufgebot', 'trikots'],
   },
@@ -401,9 +401,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'historie',
     title: 'Wo finde ich frühere Spiele?',
     answer:
-      'Unter „Historie“ stehen alle Spiele, das Ergebnis aus Feuerbach-Sicht mit S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails.',
-    keywords: 'historie alte spiele früher ergebnisse filter sieg niederlage',
-    sources: ['001 US6'],
+      'Unter „Historie“ stehen alle Spiele nach Monaten, neueste zuerst, mit dem Ergebnis aus Feuerbach-Sicht: S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails.',
+    keywords: 'historie alte spiele früher ergebnisse filter sieg niederlage monat',
+    sources: ['001 US6', '011 US1'],
     open: { label: 'Historie', path: '/historie' },
     related: ['spiel-loeschen', 'ergebnis-teilen'],
   },
@@ -527,9 +527,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'einstellungen',
     title: 'Wie stelle ich hell oder dunkel ein?',
     answer:
-      'In den Einstellungen wählst du unter „Darstellung“ zwischen „Wie iPhone“, „Hell“ und „Dunkel“. In der Sonne ist „Hell“ am besten lesbar.',
-    keywords: 'dunkel hell dark mode sonne lesbar darstellung',
-    sources: ['001 FR-018'],
+      'In den Einstellungen wählst du unter „Darstellung“ zwischen „Wie iPhone“, „Hell“ und „Dunkel“. In der Sonne ist „Hell“ am besten lesbar. Im dunklen Theme liegen die Abschnitte als dunkelgraue Karten auf fast schwarzem Grund.',
+    keywords: 'dunkel hell dark mode sonne lesbar darstellung nachtmodus',
+    sources: ['001 FR-018', '011 US2'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
     related: ['kein-pfiff'],
   },
