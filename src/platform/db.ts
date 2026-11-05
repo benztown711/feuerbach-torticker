@@ -73,12 +73,15 @@ export async function findOpenGame(): Promise<Game | undefined> {
   return (await listGames()).find((g) => g.status !== 'finished');
 }
 
-/** FR-022: Spiel aus der Historie löschen (nach Bestätigung). */
-export async function deleteGame(id: string): Promise<void> {
-  const d = await db();
-  const game = await d.get('games', id);
-  await d.delete('games', id);
-  notify({ kind: 'delete', id, ...(game ? { game } : {}) });
+/** FR-022, Spec 013 FR-D08: Spiele endgültig aus der Historie löschen, in einer Transaktion. */
+export async function deleteGames(ids: readonly string[]): Promise<void> {
+  const tx = (await db()).transaction('games', 'readwrite');
+  const found = await Promise.all(ids.map((id) => tx.store.get(id)));
+  await Promise.all([...ids.map((id) => tx.store.delete(id)), tx.done]);
+  ids.forEach((id, i) => {
+    const game = found[i];
+    notify({ kind: 'delete', id, ...(game ? { game } : {}) });
+  });
 }
 
 /** FR-024: mehrere Spiele in einer Transaktion schreiben (Wiederherstellen). */

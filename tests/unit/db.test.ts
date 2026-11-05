@@ -5,7 +5,7 @@ import { createGame, endSection, kickoff } from '../../src/domain/game';
 import type { NewGameInput, Settings } from '../../src/domain/types';
 import {
   closeDb,
-  deleteGame,
+  deleteGames,
   findOpenGame,
   putGames,
   getGame,
@@ -86,8 +86,26 @@ describe('T022 FR-010 IndexedDB', () => {
   });
 });
 
+describe('013 FR-D08 mehrere Spiele endgültig löschen', () => {
+  it('löscht mehrere Spiele, meldet je Spiel "delete" mit dem Spiel; unbekannte Kennung ohne Fehler', async () => {
+    await putGames(['a', 'b', 'c'].map((id) => createGame(input, { id, now: T0 })));
+    const seen: string[] = [];
+    const off = onGameWrite((c) => seen.push(c.kind === 'delete' ? `${c.id}:${c.game?.id}` : 'put'));
+    await deleteGames(['a', 'c', 'fehlt']);
+    off();
+    expect((await listGames()).map((g) => g.id)).toEqual(['b']);
+    expect(seen).toEqual(['a:a', 'c:c', 'fehlt:undefined']);
+  });
+
+  it('leere Liste ändert nichts', async () => {
+    await putGame(createGame(input, { id: 'a', now: T0 }));
+    await deleteGames([]);
+    expect((await listGames()).map((g) => g.id)).toEqual(['a']);
+  });
+});
+
 describe('006 FR-L06 Beobachter für Spieländerungen', () => {
-  it('meldet nach putGame das Spiel und nach deleteGame die ID; Abmelden wirkt', async () => {
+  it('meldet nach putGame das Spiel und nach deleteGames die ID; Abmelden wirkt', async () => {
     const seen: string[] = [];
     const off = onGameWrite((change) => {
       seen.push(
@@ -99,7 +117,7 @@ describe('006 FR-L06 Beobachter für Spieländerungen', () => {
     const g = createGame(input, { id: 'a', now: T0 });
     await putGame(g);
     await putGame(kickoff(g, T0 + 1000));
-    await deleteGame('a');
+    await deleteGames(['a']);
     await putGames([createGame(input, { id: 'r', now: T0 })]);
     off();
     await putGame(g);
