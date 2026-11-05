@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Entwurf, Review A offen.
+**Status**: Entwurf, Review A und Review B offen. Mockup (Review B): https://claude.ai/artifact/KJu7HV4KZQtpTrUH3H5hRP
 
 **Input**: Atti (05.11.2026): "Bei der Anzeige des Kaders (egal wo; insb. bei der Auswahl des Torschützen usw.) möchte ich in den Einstellungen die Auswahl haben, wie ich die sortiert haben will: nach Rückennummern oder nach Vornamen (jeweils aufsteigend)." Nachtrag: "Der Standard soll alphabetisch aufsteigend sein bzgl. der Vornamen."
 
