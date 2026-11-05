@@ -84,8 +84,8 @@ function Entry({ entry, base, mode, pool }: { entry: HelpEntry; base: string; mo
     .filter((e): e is HelpEntry => !!e)
     .slice(0, 3);
   return (
-    <article class="help-entry" data-testid="help-entry">
-      <p class="help-entry__topic t-label">{TOPIC_NAME.get(entry.topic)}</p>
+    <article class="help-entry card" data-testid="help-entry">
+      <p class="help-entry__topic t-label card__title">{TOPIC_NAME.get(entry.topic)}</p>
       <h2 class="help-entry__title t-zwischentitel">{entry.title}</h2>
       <p class="help-entry__answer">{entry.answer}</p>
       {entry.steps && (
@@ -135,8 +135,8 @@ function Results({
           const entries = pool.filter((e) => e.topic === t.id);
           if (entries.length === 0) return null;
           return (
-            <section key={t.id} class="help-group">
-              <h2 class="help-topic t-label" data-testid={`help-topic-${t.id}`}>
+            <section key={t.id} class="help-group card card--list">
+              <h2 class="help-topic t-label card__title" data-testid={`help-topic-${t.id}`}>
                 {t.name}
               </h2>
               <ul class="help-list">
@@ -166,7 +166,7 @@ function Results({
       <p class="help-count t-label" data-testid="help-count" role="status">
         {result.entries.length} Treffer
       </p>
-      <ul class="help-list">
+      <ul class="help-list card card--list">
         {result.entries.map((e) => (
           <Row key={e.id} entry={e} href={`${base}/${e.id}`} mode={mode} tokens={result.tokens} />
         ))}

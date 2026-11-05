@@ -167,8 +167,8 @@ export function LiveScreen() {
             Eltern verfolgen eure Spiele live auf einem Dashboard. Die Handys der Trainergruppe senden die Spiele, die
             sie erfassen, automatisch.
           </p>
-          <div class="live__box">
-            <span class="field__label t-label">WAS DAS HANDY VERLÄSST</span>
+          <div class="live__box card">
+            <span class="t-label card__title">WAS DAS HANDY VERLÄSST</span>
             <p class="live__text">
               Mannschaften, Trikotfarben, Spielverlauf, Tore mit Vornamen. Verschlüsselt, nur über den Live-Spieltag.
               Kader, Karten und Lesezeichen bleiben auf dem Handy.
@@ -442,8 +442,8 @@ function Overview({
           </span>
         </div>
       )}
-      <section class="field">
-        <span class="field__label t-label">ZUSCHAUER</span>
+      <section class="field card">
+        <span class="t-label card__title">ZUSCHAUER</span>
         <p class="live__text">Für die Elterngruppe. Gilt die ganze Saison, nur lesen.</p>
         <button
           type="button"
@@ -454,8 +454,8 @@ function Overview({
           Zuschauer-Link teilen
         </button>
       </section>
-      <section class="field">
-        <span class="field__label t-label">TRAINER</span>
+      <section class="field card">
+        <span class="t-label card__title">TRAINER</span>
         <p class="live__text">
           Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
           Live-Spieltag verwalten.
@@ -469,8 +469,8 @@ function Overview({
           Trainer-Link teilen
         </button>
       </section>
-      <section class="field">
-        <span class="field__label t-label">MANNSCHAFTEN</span>
+      <section class="field card">
+        <span class="t-label card__title">MANNSCHAFTEN</span>
         <ul class="live__rows">
           {live.teams.map((t) => (
             <li key={t.key} class="live__row" data-testid={`live-team-row-${t.key}`}>
@@ -513,8 +513,8 @@ function Overview({
         </p>
       </section>
       <DashboardButton />
-      <section class="field">
-        <span class="field__label t-label">VERWALTEN</span>
+      <section class="field card">
+        <span class="t-label card__title">VERWALTEN</span>
         <ul class="live__rows">
           <li>
             <button
@@ -580,8 +580,8 @@ function LeadInfo({
   const sending = live.teams.filter((t) => t.sends);
   return (
     <div class="form live">
-      <div class="live__box" data-testid="live-lead-info">
-        <span class="field__label t-label">DIESES HANDY SENDET LIVE</span>
+      <div class="live__box card" data-testid="live-lead-info">
+        <span class="t-label card__title">DIESES HANDY SENDET LIVE</span>
         <strong class="live__teams">{sending.map((t) => shortTeamName(t.name)).join(', ')}</strong>
         <span>an „{titleOf(live)}“</span>
       </div>
