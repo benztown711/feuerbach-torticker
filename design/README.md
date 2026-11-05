@@ -45,6 +45,7 @@ Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startb
 
 ### Form
 - Eckig: Flächen `radius-0`, Knöpfe `radius-sm` (2px). Keine Schatten, keine Verläufe.
+- Karten (Abschnitte außerhalb des Spiels, Blätter, Abfragen) `radius-md` (6px), wie im Design System für "Karten auf Webseiten" vorgesehen (Spec 011).
 - Abstände nur aus `space-1` bis `space-12`.
 - Touch-Ziele mindestens 64 × 64 pt, die beiden Tor-Knöpfe zusammen etwa die untere Bildschirmhälfte.
 
@@ -53,6 +54,26 @@ Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startb
 - Apple-Touch-Icon (180 px) und Android-Icons (192/512 px) werden im Build aus `brand/wappen.svg` erzeugt.
 - Wappen nie umfärben, drehen oder mit Effekten versehen; Mindestgröße 24px.
 
+### Karten und Grundfläche (Spec 011)
+
+Vorbild ist der VeoCam-Kalender des Vereins: Was zusammengehört, steht auf einer Karte.
+
+| Element | Fläche | Schrift | Begründung |
+|---|---|---|---|
+| Seitengrund außerhalb von Start und Spiel | `canvas` | `ink`, Meta `ink-muted` | getönt, damit Karten sich abheben |
+| Karte, Blatt, Abfrage | `card`, Rand 1px `line`, `radius-md` | `ink` | ein Abschnitt = eine Karte |
+| Überschrift einer Karte | – | `label` in `rot-text` | wie die roten Kleinüberschriften im VeoCam-Kalender |
+| Eingabefeld, Auswahlliste | `field` mit `ink`-Rahmen | `ink` | dunkel vertieft gegenüber der Karte |
+| Textvorschau, Begegnungs-Vorschau | `canvas` | `ink` | vertieft in der Karte |
+| Ruhige Knöpfe (z. B. Ändern, Löschen in Listen) | `tonal` | `ink` | weniger Rahmen bei wiederholten Aktionen |
+| Hauptknopf außerhalb des Spiels | `rot-tief` | `on-rot` | eine Hauptaktion je Seite, unterscheidbar von gewählten Chips (`ink`) |
+| Hauptknopf im Spiel (z. B. Anpfiff) | `ink` | `surface` | neutral, nichts darf mit dem Tor-Knopf Feuerbach verwechselt werden |
+| Aktiver Reiter unten | Marke oben `vereinsrot`, Fläche hinter dem Symbol `rot-hell` | `ink` | wo bin ich |
+| Abdunkler hinter Blättern und Abfragen | `scrim`, Deckkraft 0,6 | – | dunkelt in beiden Themes ab |
+
+**Abweichung vom Design System (begründet):** Die Tokens `canvas`, `card`, `tonal`, `field` und `scrim` sind App-Ergänzungen und stehen mit `usage` "App-Ergänzung (Spec 011)" in `tokens.json`. Im hellen Theme verwenden sie nur bestehende Werte. Im dunklen Theme sind drei Werte neu (#0b0b0b Grund und Feld, #2a2928 ruhige Knöpfe, #000000 Abdunkler), weil sich Karten mit den bestehenden Werten (#141414 auf #1f1f1f) kaum abheben und der Abdunkler mit `ink` (#f5f5f5) den Hintergrund aufhellte. Alle Textpaare liegen bei mindestens 5,8:1 (Kontrastmatrix in der CI).
+
 ### Dunkles Theme
 - Folgt standardmäßig der Systemeinstellung. Markenflächen (`vereinsrot`, `rot-tief`, Wappen) bleiben gleich, `ink` und `surface` tauschen.
+- Ebenen von dunkel nach hell: Grund `canvas`, Spielbildschirm `surface`, Karte `card`, ruhiger Knopf `tonal` (Spec 011).
 - In den Einstellungen lässt sich "Hell" oder "Dunkel" festlegen ("Hell" empfohlen für den Einsatz in der Sonne).

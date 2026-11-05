@@ -49,7 +49,7 @@ function PlayerForm(props: {
   const ok = nameError === null && num !== 'invalid';
   return (
     <form
-      class="form"
+      class="form card"
       onSubmit={(e) => {
         e.preventDefault();
         if (ok) props.onSave(name, num);
@@ -119,7 +119,7 @@ function PasteList(props: { players: Player[]; onApply: (players: Player[]) => v
   );
   const blocked = annotated.length === 0 || annotated.some((r) => r.warnings.includes('name-leer'));
   return (
-    <section class="form" aria-label="Liste einfügen">
+    <section class="form card" aria-label="Liste einfügen">
       <h2 class="t-zwischentitel roster__heading">Liste einfügen</h2>
       <div class="field">
         <label class="field__label t-label" for="paste-input">
@@ -270,38 +270,42 @@ export function RosterScreen() {
               Liste einfügen
             </button>
           </div>
-          <span class="field__label t-label">{visible.length} SPIELER</span>
-          <ul class="roster-list" data-testid="roster-list">
-            {visible.map((p) => (
-              <li key={p.id} class="roster-row" data-testid={`roster-row-${p.id}`}>
-                <span class="roster-row__number">{p.number ?? ''}</span>
-                <span class="roster-row__name">{p.name}</span>
-                <button
-                  type="button"
-                  class="btn btn--secondary btn--small"
-                  aria-label={`${p.name} ändern`}
-                  data-testid={`player-edit-${p.id}`}
-                  onClick={() => setMode({ kind: 'form', player: p })}
-                >
-                  Ändern
-                </button>
-                <button
-                  type="button"
-                  class="btn btn--secondary btn--small"
-                  aria-label={`${p.name} löschen`}
-                  data-testid={`player-delete-${p.id}`}
-                  onClick={() => setToDelete(p)}
-                >
-                  Löschen
-                </button>
-              </li>
-            ))}
-            {visible.length === 0 && (
-              <li class="roster-row roster-row--empty">
-                Noch keine Spieler. Einzeln hinzufügen oder eine Liste einfügen.
-              </li>
-            )}
-          </ul>
+          <section class="card card--list" aria-labelledby="roster-title" data-testid="card-roster">
+            <h2 id="roster-title" class="t-label card__title">
+              {visible.length} SPIELER
+            </h2>
+            <ul class="roster-list" data-testid="roster-list">
+              {visible.map((p) => (
+                <li key={p.id} class="roster-row" data-testid={`roster-row-${p.id}`}>
+                  <span class="roster-row__number">{p.number ?? ''}</span>
+                  <span class="roster-row__name">{p.name}</span>
+                  <button
+                    type="button"
+                    class="btn btn--quiet btn--small"
+                    aria-label={`${p.name} ändern`}
+                    data-testid={`player-edit-${p.id}`}
+                    onClick={() => setMode({ kind: 'form', player: p })}
+                  >
+                    Ändern
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn--quiet btn--small"
+                    aria-label={`${p.name} löschen`}
+                    data-testid={`player-delete-${p.id}`}
+                    onClick={() => setToDelete(p)}
+                  >
+                    Löschen
+                  </button>
+                </li>
+              ))}
+              {visible.length === 0 && (
+                <li class="roster-row roster-row--empty">
+                  Noch keine Spieler. Einzeln hinzufügen oder eine Liste einfügen.
+                </li>
+              )}
+            </ul>
+          </section>
           <button
             type="button"
             class="btn btn--secondary"
