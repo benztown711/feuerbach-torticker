@@ -1,5 +1,5 @@
 import { MAX_NAME, isAbbreviation } from './roster-names';
-import type { Player } from './types';
+import type { Player, RosterSort } from './types';
 
 /** Kader (US5): gemeinsamer Pool, Löschen als Soft-Delete (FR-029). */
 
@@ -33,32 +33,52 @@ export function softDeletePlayer(players: Player[], id: string, now: number): Pl
 /** Auch gelöschte Spieler, damit Torschützen alter Spiele lesbar bleiben. */
 export const resolvePlayer = (players: Player[], id: string): Player | undefined => players.find((p) => p.id === id);
 
-const byNumberThenName = (a: Player, b: Player): number => {
-  if (a.number !== b.number) {
-    if (a.number === null) return 1;
-    if (b.number === null) return -1;
-    return a.number - b.number;
-  }
-  return a.name.localeCompare(b.name, 'de');
+/** Spec 013 R-K1: Groß-/Kleinschreibung egal, Umlaute nach deutscher Regel ("Ömer" neben "Oskar"). */
+const collator = new Intl.Collator('de', { sensitivity: 'base' });
+
+/** Feste Reihenfolge auch bei "Ben"/"ben": zuletzt exakter Vergleich (gleich auf jedem Gerät). */
+const exact = new Intl.Collator('de', { sensitivity: 'variant' });
+const byName = (a: Player, b: Player): number => collator.compare(a.name, b.name);
+const byExactName = (a: Player, b: Player): number => exact.compare(a.name, b.name);
+
+/** Nach Nummer aufsteigend; ohne Nummer zuletzt. */
+const byNumber = (a: Player, b: Player): number => {
+  if (a.number === b.number) return 0;
+  if (a.number === null) return 1;
+  if (b.number === null) return -1;
+  return a.number - b.number;
 };
 
-/** Sichtbarer Kader, sortiert nach Nummer, dann Name; ohne Nummer zuletzt. */
-export const visiblePlayers = (players: Player[]): Player[] =>
-  players.filter((p) => p.deletedAt === null).sort(byNumberThenName);
+const COMPARE: Record<RosterSort, (a: Player, b: Player) => number> = {
+  /** Spec 013 FR-K03: Vorname, bei Gleichstand Nummer. */
+  name: (a, b) => byName(a, b) || byNumber(a, b) || byExactName(a, b),
+  /** Spec 013 FR-K04: Nummer, ohne Nummer zuletzt, bei Gleichstand Vorname. */
+  number: (a, b) => byNumber(a, b) || byName(a, b) || byExactName(a, b),
+};
+
+/** Spec 013 FR-K03, FR-K04, FR-K06: neue, sortierte Liste; die Eingabe bleibt unverändert. */
+export const sortPlayers = (players: Player[], sort: RosterSort): Player[] => [...players].sort(COMPARE[sort]);
+
+/** Nicht gelöschte Spieler, ohne Reihenfolge (z. B. für "Liste einfügen", Spec 013 R-K2). */
+export const activePlayers = (players: Player[]): Player[] => players.filter((p) => p.deletedAt === null);
+
+/** Sichtbarer Kader in der gewählten Reihenfolge (Spec 013 FR-K05). */
+export const visiblePlayers = (players: Player[], sort: RosterSort): Player[] =>
+  sortPlayers(activePlayers(players), sort);
 
 /** FR-030: Aufgebot des Spiels; ohne Aufgebot der ganze Kader. */
-export function squadPlayers(players: Player[], squad: string[]): Player[] {
-  const visible = visiblePlayers(players);
+export function squadPlayers(players: Player[], squad: string[], sort: RosterSort): Player[] {
+  const visible = visiblePlayers(players, sort);
   return squad.length === 0 ? visible : visible.filter((p) => squad.includes(p.id));
 }
 
 /** FR-030: "Andere …" = sichtbarer Kader außerhalb des Aufgebots. */
-export function otherPlayers(players: Player[], squad: string[]): Player[] {
-  return squad.length === 0 ? [] : visiblePlayers(players).filter((p) => !squad.includes(p.id));
+export function otherPlayers(players: Player[], squad: string[], sort: RosterSort): Player[] {
+  return squad.length === 0 ? [] : visiblePlayers(players, sort).filter((p) => !squad.includes(p.id));
 }
 
-/** FR-028: "Nummer Name" pro Zeile, wieder einlesbar über "Liste einfügen". */
-export const rosterShareText = (players: Player[]): string =>
-  visiblePlayers(players)
+/** FR-028: "Nummer Name" pro Zeile, wieder einlesbar über "Liste einfügen"; Reihenfolge nach Spec 013 FR-K05. */
+export const rosterShareText = (players: Player[], sort: RosterSort): string =>
+  visiblePlayers(players, sort)
     .map((p) => (p.number === null ? p.name : `${p.number} ${p.name}`))
     .join('\n');

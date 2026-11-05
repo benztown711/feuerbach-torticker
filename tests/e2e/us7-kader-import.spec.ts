@@ -82,10 +82,13 @@ test.describe('US7 Kader per Liste einfügen und teilen', () => {
     await expect(rosterRows(page)).toHaveCount(3);
   });
 
-  test('US7-S7 FR-028 Kader teilen als "Nummer Name" pro Zeile', async ({ page, recorded }) => {
+  test('US7-S7 FR-028 Kader teilen als "Nummer Name" pro Zeile (Reihenfolge nach Spec 013)', async ({
+    page,
+    recorded,
+  }) => {
     await seedRoster(page, 'Tom\n2 Ben\n1 Max');
     await page.getByTestId('btn-share-roster').click();
-    await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe('1 Max\n2 Ben\nTom');
+    await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe('2 Ben\n1 Max\nTom');
   });
 
   test('US7-S9 gelöschter Spieler wird beim Einfügen wieder sichtbar', async ({ page }) => {
@@ -111,15 +114,15 @@ test.describe('US7 geteilten Kader auf zweitem Gerät einfügen', () => {
   }) => {
     await seedRoster(page, '7 Max Meier\n14 Max Müller\nBen');
     await page.getByTestId('btn-share-roster').click();
-    const shared = '7 Max Me.\n14 Max Mü.\nBen';
+    const shared = 'Ben\n7 Max Me.\n14 Max Mü.';
     await expect.poll(async () => (await recorded()).shares.at(-1)?.text).toBe(shared);
 
     const other = await newDevice();
     await openPaste(other, shared);
     await expect(rows(other)).toHaveCount(3);
-    await expect(nameField(other, 0)).toHaveValue('Max Me.');
-    await expect(nameField(other, 1)).toHaveValue('Max Mü.');
-    await expect(nameField(other, 2)).toHaveValue('Ben');
+    await expect(nameField(other, 0)).toHaveValue('Ben');
+    await expect(nameField(other, 1)).toHaveValue('Max Me.');
+    await expect(nameField(other, 2)).toHaveValue('Max Mü.');
     await expect(rows(other).locator('.tag--warn')).toHaveCount(0);
     await other.getByTestId('paste-apply').click();
     await expect(rosterRows(other)).toHaveCount(3);

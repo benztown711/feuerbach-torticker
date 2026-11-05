@@ -179,7 +179,7 @@ Der Kader ist ein gemeinsamer Pool (z. B. E1 und E2 zusammen, ca. 20 bis 30 Kind
 **Acceptance Scenarios**:
 
 1. **Given** ein leerer Kader, **When** der Nutzer "Max" mit Nummer 7 anlegt, **Then** erscheint "7 Max" im Kader.
-2. **Given** ein Kader mit 21 Spielern, **When** der Nutzer beim Anlegen eines Spiels 10 Spieler fürs Aufgebot antippt, **Then** zeigt die Torschützen-Auswahl in diesem Spiel nur diese 10, sortiert nach Nummer.
+2. **Given** ein Kader mit 21 Spielern, **When** der Nutzer beim Anlegen eines Spiels 10 Spieler fürs Aufgebot antippt, **Then** zeigt die Torschützen-Auswahl in diesem Spiel nur diese 10, sortiert nach der Einstellung (Spec 013, Vorgabe Vorname).
 3. **Given** ein früheres Spiel mit Aufgebot, **When** der Nutzer ein neues Spiel anlegt, **Then** ist das Aufgebot des letzten Spiels vorausgewählt und mit einem Tap übernehmbar.
 4. **Given** kein Aufgebot gewählt, **When** ein Tor fällt, **Then** zeigt die Auswahl alle Spieler des Kaders.
 5. **Given** ein laufendes Spiel, **When** der Nutzer in der Auswahl "Andere …" tippt, **Then** kann er einen Spieler außerhalb des Aufgebots wählen (z. B. kurzfristig eingesprungen).

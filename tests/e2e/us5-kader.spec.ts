@@ -48,8 +48,9 @@ test.describe('US5 Kader und Aufgebot', () => {
     await expect(scorer).toBeVisible();
     const options = scorer.locator('[data-testid^="scorer-option-"]');
     await expect(options).toHaveCount(10);
-    await expect(options.first()).toHaveAccessibleName('1 Max');
-    await expect(options.last()).toHaveAccessibleName('10 Luis');
+    // Spec 013 FR-K02: Vorgabe "Vorname" (Ben … Tom); nach Nummer prüft 013 US1-S3.
+    await expect(options.first()).toHaveAccessibleName('2 Ben');
+    await expect(options.last()).toHaveAccessibleName('3 Tom');
     await scorer.getByTestId('scorer-others').click();
     await expect(options).toHaveCount(21);
     await scorer.getByRole('button', { name: '21 Henri', exact: true }).click();

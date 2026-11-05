@@ -133,7 +133,7 @@ describe('T065 FR-026 FR-027 Zusammenführen', () => {
 describe('001 US7-S7 US7-S8 FR-028 geteilten Kader wieder einfügen', () => {
   const shared = [p('a', 'Max Me.', 7), p('b', 'Max Mü.', 14), p('c', 'Ben', null)];
   const roundTrip = (players: Player[]) => {
-    const rows = plan([], rosterShareText(players));
+    const rows = plan([], rosterShareText(players, 'number'));
     return { rows, saved: applyImport([], rows, ids) };
   };
   const view = (players: Player[]) => players.map((x) => [x.number, x.name]).sort();
@@ -158,7 +158,7 @@ describe('001 US7-S7 US7-S8 FR-028 geteilten Kader wieder einfügen', () => {
 
   it('001 US7-S8 FR-027 erneutes Einfügen des geteilten Texts erzeugt keine Duplikate', () => {
     const first = roundTrip(shared).saved;
-    const rows = plan(first, rosterShareText(first));
+    const rows = plan(first, rosterShareText(first, 'number'));
     expect(rows.every((r) => r.matchId !== null && r.warnings.length === 0)).toBe(true);
     expect(applyImport(first, rows, ids)).toEqual(first);
     const noNumbers = plan(first, 'Max Mü.\nMax Me.');

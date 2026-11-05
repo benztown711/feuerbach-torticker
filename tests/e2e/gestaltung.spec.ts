@@ -35,13 +35,16 @@ function lum(rgb: string): number {
 }
 
 test.describe('Spec 011 Karten und Abschnitte', () => {
-  test('011 US1-S1 FR-G01 FR-G02 Einstellungen: fünf Abschnitte als Karten mit roter Überschrift', async ({ page }) => {
+  test('011 US1-S1 FR-G01 FR-G02 013 FR-K01 Einstellungen: sechs Abschnitte als Karten mit roter Überschrift', async ({
+    page,
+  }) => {
     await page.goto('./#/einstellungen');
     const cards = page.locator('.settings .card');
-    await expect(cards).toHaveCount(5);
+    await expect(cards).toHaveCount(6);
     const titles = page.locator('.settings .card__title');
     await expect(titles).toHaveText([
       'MEINE MANNSCHAFTEN',
+      'KADER',
       'IM SPIEL ERFASSEN',
       'SIGNALTON',
       'DARSTELLUNG',

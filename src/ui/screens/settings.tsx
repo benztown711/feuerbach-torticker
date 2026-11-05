@@ -6,7 +6,7 @@ import { shortTeamName } from '../../domain/team-name';
 import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
 import { joinList } from '../../domain/format';
 import { titleOf } from '../../domain/live-spieltag';
-import type { EventFeatures, LiveSpieltag, Settings, Team, Theme } from '../../domain/types';
+import type { EventFeatures, LiveSpieltag, RosterSort, Settings, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
 import { previewSignal } from '../../platform/signal';
@@ -17,6 +17,12 @@ import { Sheet } from '../components/sheet';
 import { useDarkTheme } from '../hooks';
 import { navigate } from '../router';
 import { APP_VERSION } from '../../version';
+
+/** Spec 013 FR-K01: "Sortieren nach". */
+const ROSTER_SORTS: { id: RosterSort; label: string }[] = [
+  { id: 'name', label: 'Vorname' },
+  { id: 'number', label: 'Rückennummer' },
+];
 
 const THEMES: { id: Theme; label: string }[] = [
   { id: 'system', label: 'Wie iPhone' },
@@ -137,7 +143,7 @@ function TeamSheet(props: {
 }
 
 /**
- * Einstellungen: Meine Mannschaften (Spec 004), Im Spiel erfassen (Spec 003), Signalton (Spec 008),
+ * Einstellungen: Meine Mannschaften (Spec 004), Kader (Spec 013), Im Spiel erfassen (Spec 003), Signalton (Spec 008),
  * Darstellung (FR-018), Sicherung (FR-024), Installationshinweis (FR-023).
  */
 export function SettingsScreen() {
@@ -282,6 +288,30 @@ export function SettingsScreen() {
           >
             Mannschaft anlegen
           </button>
+        </section>
+
+        <section class="settings__section card" aria-labelledby="s-roster" data-testid="settings-roster-sort">
+          <h2 id="s-roster" class="t-label card__title">
+            KADER
+          </h2>
+          <p class="field__label t-label" id="s-roster-sort">
+            Sortieren nach
+          </p>
+          <div class="segmented segmented--2" role="group" aria-labelledby="s-roster-sort">
+            {ROSTER_SORTS.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                class="segmented__item"
+                aria-pressed={settings.rosterSort === o.id}
+                data-testid={`roster-sort-${o.id}`}
+                onClick={() => save({ ...settings, rosterSort: o.id })}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p class="field__help">Gilt für Kader, Aufgebot und alle Spieler-Auswahlen im Spiel.</p>
         </section>
 
         <section class="settings__section card" aria-labelledby="s-capture">
