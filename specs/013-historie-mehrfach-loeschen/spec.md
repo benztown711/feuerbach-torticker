@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Draft, Review A und B offen. Mockup: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
+**Status**: Review A und B erledigt (05.11.2026, Atti: "passt"). Umsetzung US1 bis US3, Review C offen. Mockup: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
 
 **Input**: Atti, 05.11.2026: "Beim Löschen der Historie würde ich mir ein Multi-Select und Select-All wünschen."
 
@@ -23,6 +23,10 @@
 - Q: Laufende oder nicht angepfiffene Spiele? → A: Nicht auswählbar (ausgegraut). Einzeln löschen geht weiter über die Spieldetails.
 - Q: Sicherheitsnetz? → A: Eine Abfrage mit Anzahl, danach einige Sekunden "Rückgängig".
 - Empfehlungen, in Review A zu bestätigen: "Rückgängig" 10 Sekunden lang wie im Spiel; "Rückgängig" auch nach dem Einzellöschen in den Spieldetails (US3); die Aktionsleiste steht über der Navigationsleiste, die Navigation bleibt sichtbar.
+
+### Session 2026-11-05 (Review A und B)
+
+- Spec und Mockup freigegeben (Atti: "passt"), alle drei Empfehlungen bestätigt. Die Leiste "… gelöscht" zeigt wie im Spiel keine Restsekunden.
 
 ## User Scenarios & Testing *(mandatory)*
 
