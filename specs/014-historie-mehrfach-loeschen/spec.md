@@ -1,6 +1,6 @@
 # Feature Specification: Historie – mehrere Spiele auf einmal löschen
 
-**Feature Branch**: `013-historie-mehrfach-loeschen` (umgesetzt auf `claude/charming-einstein-v3f3aw`)
+**Feature Branch**: `014-historie-mehrfach-loeschen` (umgesetzt auf `claude/charming-einstein-v3f3aw`)
 
 **Created**: 2026-11-05
 
@@ -120,9 +120,9 @@ Atti hat beim Aufräumen aus Versehen auch das Pokalspiel angehakt. Direkt nach 
 
 | Eintrag | Änderung | Quelle |
 |---|---|---|
-| `spiele-loeschen-mehrere` "Wie lösche ich mehrere Spiele auf einmal?" | neu: "Auswählen", Spiele antippen bzw. "Alle auswählen" (nur sichtbare, nur beendete), "Löschen (n)", "Rückgängig" | 013 US1, 013 US2 |
-| `spiel-loeschen` "Wie lösche ich ein Spiel?" | geändert: nach dem Löschen 10 Sekunden "Rückgängig"; Verweis auf mehrere Spiele | 001 US6, 013 US3 |
-| `historie` "Wo finde ich frühere Spiele?" | geändert: Verweis (verwandt) auf `spiele-loeschen-mehrere` | 001 US6, 013 US1 |
+| `spiele-loeschen-mehrere` "Wie lösche ich mehrere Spiele auf einmal?" | neu: "Auswählen", Spiele antippen bzw. "Alle auswählen" (nur sichtbare, nur beendete), "Löschen (n)", "Rückgängig" | 014 US1, 014 US2 |
+| `spiel-loeschen` "Wie lösche ich ein Spiel?" | geändert: nach dem Löschen 10 Sekunden "Rückgängig"; Verweis auf mehrere Spiele | 001 US6, 014 US3 |
+| `historie` "Wo finde ich frühere Spiele?" | geändert: Verweis (verwandt) auf `spiele-loeschen-mehrere` | 001 US6, 014 US1 |
 
 ## Success Criteria *(mandatory)*
 
