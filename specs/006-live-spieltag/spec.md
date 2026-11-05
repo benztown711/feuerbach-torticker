@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A und Review B erledigt (04.11.2026), Plan erstellt. US1 bis US4, US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US4, US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; US5 in Umsetzung. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -55,6 +55,15 @@ Ausgangslage (Atti nach US3): Es gibt keine festen Trainerteams. 4 bis 5 Trainer
 - Q: Wer darf den Live-Spieltag verwalten (Titel, Mannschaften, neu ausstellen)? → A: Alle mit Trainer-Link, gleichberechtigt; bei Änderungen gilt die jüngste.
 - Vertrauen: Die Trainergruppe ist klein und steht meist nebeneinander. Erfassen zwei Handys dasselbe Spiel, zeigt die Karte beide (FR-L14); einer schaltet "Live" für sein Spiel ab.
 - Q (Atti): Was passiert, wenn zwei Handys dasselbe Spiel übertragen wollen, und wenn der Trainer, der überträgt, früher gehen muss? → A: Das zweite Handy bekommt beim Anlegen die Meldung, dass E2 schon von einem anderen Handy übertragen wird, und kann das Spiel übernehmen: Es holt sich den Stand vom Dashboard (Gegner, Trikots, Spielzeit, Tore mit Torschützen) und überträgt allein weiter; das alte Handy hört auf zu senden. Nicht übernommen werden Karten, Wechsel und Lesezeichen (werden nie übertragen). Neue User Story US6, Review A am 04.11.2026 freigegeben ("Spiel übernehmen passt so"), Mockup übersprungen.
+
+### Session 2026-11-05 (US5 Verwalten, Review B)
+
+Mockup: https://claude.ai/artifact/SDGYEMUyn2u5uarWLYeGFo
+
+- Q: Wo steht "Entfernen" für eine Mannschaft? → A: Direkt in der Mannschaftszeile der Übersicht, mit Rückfrage; die letzte Mannschaft lässt sich nicht entfernen (Atti: "passt so").
+- Q: Was erfahren die anderen Handys, wenn ein Trainer alle Links neu ausstellt? → A: Variante C: Auf dem alten Live-Spieltag geht einmal der Hinweis "neu ausgestellt" hinaus, ohne die neuen Links. Trainer-Handys mit dem alten Trainer-Link hören auf zu senden und bitten darum, den neuen Trainer-Link aus der Trainergruppe einzufügen; Eltern mit dem alten Zuschauer-Link sehen, dass sie den neuen Link aus der Elterngruppe öffnen sollen. Verworfen: still weitersenden lassen (sendet unbemerkt ins Leere) und automatisch umziehen (wer den alten Link unrechtmäßig hat, bekäme die neuen).
+- Q: Nimmt die Sicherung den Trainer-Schlüssel mit? → A: Ja, immer, mit dem Hinweis "nur für dich aufbewahren" (die Sicherung enthält ohnehin Vornamen der Kinder). Abhilfe, falls die Datei in falsche Hände gerät: "Alle Links neu ausstellen".
+- Andere Trainer-Handys übernehmen Titel- und Mannschaftsänderungen beim nächsten Empfang (Neues Spiel, Spielbildschirm, Dashboard in der App, Übersicht "Live-Spieltag"); dafür nennt die Konfiguration die Mannschaften mit Namen und Trikots.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -151,7 +160,7 @@ Ein Trainer ergänzt im Laufe der Saison E3, ändert den Titel oder stellt alle 
 
 1. **Given** ein Live-Spieltag mit E1 und E2, **When** ein Trainer E3 hinzufügt, **Then** zeigt der bisherige Zuschauer-Link künftig auch E3, und die anderen Trainer-Handys senden E3-Spiele, sobald sie die neue Mannschaftsliste kennen (automatisch beim nächsten Empfang, sonst durch erneutes Einfügen des Trainer-Links).
 2. **Given** ein Trainer-Handy, **When** dort "Kopplung beenden" bestätigt wird, **Then** sendet es nichts mehr; seine Spiele bleiben lokal erhalten.
-3. **Given** ein Trainer wählt "Alle Links neu ausstellen" und bestätigt, **Then** erzeugt die App einen neuen Zuschauer-Link und einen neuen Trainer-Link; Meldungen über die alten Links erscheinen nicht mehr auf dem neuen Dashboard.
+3. **Given** ein Trainer wählt "Alle Links neu ausstellen" und bestätigt, **Then** erzeugt die App einen neuen Zuschauer-Link und einen neuen Trainer-Link; Meldungen über die alten Links erscheinen nicht mehr auf dem neuen Dashboard. Trainer-Handys mit dem alten Trainer-Link senden nichts mehr und zeigen "Neu ausgestellt: neuen Trainer-Link einfügen"; das Dashboard über den alten Zuschauer-Link zeigt "Bitte den neuen Link aus der Elterngruppe öffnen".
 4. **Given** ein Trainer ändert den Titel in "Unser Spieltag E1 & E2", **Then** zeigt das Dashboard den neuen Titel.
 5. **Given** zwei Trainer-Handys erfassen versehentlich dasselbe E2-Spiel, **Then** zeigt die E2-Karte beide Spiele (das laufende oben, das andere als Zeile darunter, FR-L14); schaltet einer "Live" für sein Spiel ab, verschwindet es.
 
@@ -224,7 +233,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 - **FR-L19**: Jedes Trainer-Handy MUSS den Titel ändern, Mannschaften hinzufügen und entfernen sowie alle Links neu ausstellen können (mit Bestätigung). Bei Änderungen von mehreren Handys gilt die jüngste. Hinzufügen und Entfernen ändern weder Zuschauer- noch Trainer-Link; Neuausstellen macht alle bisherigen Links wirkungslos.
 - **FR-L20**: Ein Trainer- oder Lead-Handy MUSS die Kopplung beenden können (mit Bestätigung); lokal gespeicherte Spiele bleiben unverändert.
-- **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten, damit ein Handywechsel ohne neue Links möglich ist.
+- **FR-L21**: Die Sicherung (FR-024) MUSS Live-Spieltag und Kopplungen enthalten (mit Schlüsseln, Hinweis "nur für dich aufbewahren"), damit ein Handywechsel ohne neue Links möglich ist. Wiederherstellen übernimmt den Live-Spieltag nur, wenn das Handy noch keinen hat.
 
 **Übernehmen (US6)**
 

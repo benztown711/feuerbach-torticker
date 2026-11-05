@@ -50,7 +50,7 @@ Zuletzt geöffneter Zuschauer-Link (`topic`, `viewKey`, `orgPub`, `title`), dami
 
 ## Übertragen (siehe `contracts/live-message.md`)
 
-- **SignedConfig** = `{ d: string (JSON von LiveConfig), s: Signatur des Organisators }`; `LiveConfig` = `{ title, teams: key[], iat, m?: [key, name, homeColor, awayColor][] }` (`m` ab US5).
+- **SignedConfig** = `{ d: string (JSON von LiveConfig), s: Signatur des Organisators }`; `LiveConfig` = `{ title, teams: key[], iat, m?: [key, name, homeColor, awayColor][], retired?: true }` (`m` und `retired` ab US5).
 - **SignedCert** = `{ d: string (JSON von LeadCert), s: Signatur des Organisators }`; `LeadCert` = `{ key, name, homeColor, awayColor, pub, iat }`.
 - **Live-Stand** (`LiveSnapshot`): siehe Vertrag; abgeleitet aus `Game` ohne Kader, Aufgebot, Karten, Wechsel, Lesezeichen (FR-L10).
 

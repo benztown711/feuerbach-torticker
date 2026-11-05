@@ -68,6 +68,8 @@ Ein Trainer-Handy sendet bei jeder Änderung (US5) eine Meldung nur mit `g`; Tra
 
 `m` (US5, optional): je Mannschaft Kurzlabel, Name (höchstens 40 Zeichen) und Heim- und Auswärtstrikot (Palette), wie `m` im Trainer-Link. Damit übernimmt ein anderes Trainer-Handy eine neu hinzugefügte Mannschaft beim nächsten Empfang (eigenes Zertifikat, Eintrag in "Meine Mannschaften"). Fehlt `m` (ältere Versionen), bleibt eine unbekannte Mannschaft außen vor, bis der Trainer-Link erneut eingefügt wird. Ist `m` vorhanden, aber ungültig, gilt die ganze Konfiguration als ungültig. Ältere Dashboards übergehen das Feld.
 
+`retired: true` (US5-S3, optional): Hinweis "neu ausgestellt". Ein Trainer-Handy, das alle Links neu ausstellt, sendet ihn einmal auf dem alten Topic, signiert mit dem alten Organisator-Schlüssel und ohne die neuen Links. Trainer- und Lead-Handys dieses Live-Spieltags senden danach nichts mehr und bitten um den neuen Trainer-Link; das Dashboard bittet um den neuen Zuschauer-Link. Jeder andere Wert als `true` macht die Konfiguration ungültig.
+
 ## Zertifikat (`c.d`)
 
 ```json

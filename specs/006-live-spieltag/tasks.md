@@ -88,8 +88,8 @@
 
 - [x] L036 [P] [US5] (FR-L19 bis FR-L21) `tests/unit/live-spieltag.test.ts` erweitern: Titel ändern (neue Konfiguration, höheres `iat`), Mannschaft hinzufügen (neues Zertifikat, Zuschauer-Link gleich) und entfernen, neu ausstellen (neues Topic, neue Schlüssel), Kopplung beenden (Spiele bleiben); `tests/unit/export.test.ts`: Sicherung mit `live`, Prüfung, Wiederherstellen nur ohne lokalen Live-Spieltag
 - [x] L037 [US5] Domäne in `src/domain/live-spieltag.ts`, Sicherung in `src/domain/export.ts` und `specs/001-spiel-erfassen/contracts/export.schema.json` (macht L036 grün)
-- [ ] L038 [P] [US5] E2E `tests/e2e/live-us5.spec.ts`: 006 US5-S1 E3 hinzufügen, 006 US5-S2 Kopplung beenden, 006 US5-S3 neu ausstellen (alte Meldungen erscheinen nicht), 006 US5-S4 Titel ändern, 006 US5-S5 Ersatzhandy (zwei Lead-Handys E2, beide Spiele sichtbar); Lead-Zeile zeigt "zuletzt gesendet <Uhrzeit>"; Sicherung auf neuem Gerät wiederherstellen, danach Übersicht mit denselben Links (FR-L21)
-- [ ] L039 [US5] Verwalten in `src/ui/screens/live.tsx` (Titel, Mannschaft hinzufügen, `btn-live-reissue`, `btn-live-end`, "zuletzt gesendet" über `live-receiver`), Wiederherstellen in `src/ui/screens/settings.tsx` (macht L038 grün); Screenshots an Atti
+- [x] L038 [P] [US5] E2E `tests/e2e/live-us5.spec.ts`: 006 US5-S1 E3 hinzufügen, 006 US5-S2 Kopplung beenden, 006 US5-S3 neu ausstellen (alte Meldungen erscheinen nicht), 006 US5-S4 Titel ändern, 006 US5-S5 Ersatzhandy (zwei Lead-Handys E2, beide Spiele sichtbar); Lead-Zeile zeigt "zuletzt gesendet <Uhrzeit>"; Sicherung auf neuem Gerät wiederherstellen, danach Übersicht mit denselben Links (FR-L21)
+- [x] L039 [US5] Verwalten in `src/ui/screens/live.tsx` (Titel, Mannschaft hinzufügen und entfernen, `btn-live-reissue`, `btn-live-end`, "zuletzt gesendet" über `live-receiver`, Hinweis "neu ausgestellt" nach Variante C), Wiederherstellen in `src/ui/screens/settings.tsx`, Übernahme jüngerer Konfigurationen in Neues Spiel, Spielbildschirm und Dashboard (macht L038 grün); Hilfe-Einträge; Screenshots an Atti
 
 ## Phase 8: Abschluss
 
