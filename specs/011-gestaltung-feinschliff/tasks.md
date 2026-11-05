@@ -21,5 +21,5 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 ## Phase 3: Abschluss
 
 - [x] G008 Lint, Typen, Unit mit Coverage, Kontrast, Budget, E2E lokal (Android-Profil)
-- [ ] G009 Neue Referenzbilder für den visuellen Vergleich aus dem CI-Lauf übernehmen (R-22)
-- [ ] G010 Screenshots iPhone hell/dunkel an Atti (Review C)
+- [x] G009 Visueller Vergleich in der CI (alle drei Profile) innerhalb der Toleranz, keine neuen Referenzbilder nötig (R-22)
+- [x] G010 Screenshots iPhone hell/dunkel an Atti (Review C)
