@@ -36,6 +36,10 @@ Rolle: Organisator ⇔ `orgPriv` vorhanden. Lead für eine Mannschaft ⇔ deren 
 | `cert` | `SignedCert` | vom Organisator signiertes Zertifikat |
 | `sends` | boolean | dieses Gerät sendet für die Mannschaft |
 
+### Sicherung (FR-L21)
+
+`Backup.live?: LiveSpieltag` (contracts/export.schema.json in Spec 001): der Live-Spieltag dieses Handys mit allen Schlüsseln. Wiederherstellen übernimmt ihn nur, wenn das Handy noch keinen Live-Spieltag hat, prüft dabei die Signatur der Konfiguration und trägt die Mannschaften in "Meine Mannschaften" ein.
+
 ### `Settings.liveView: ViewerLink | null` (R-L6)
 
 Zuletzt geöffneter Zuschauer-Link (`topic`, `viewKey`, `orgPub`, `title`), damit der Torticker ohne eigene Daten direkt das Dashboard zeigt.
@@ -46,7 +50,7 @@ Zuletzt geöffneter Zuschauer-Link (`topic`, `viewKey`, `orgPub`, `title`), dami
 
 ## Übertragen (siehe `contracts/live-message.md`)
 
-- **SignedConfig** = `{ d: string (JSON von LiveConfig), s: Signatur des Organisators }`; `LiveConfig` = `{ title, teams: key[], iat }`.
+- **SignedConfig** = `{ d: string (JSON von LiveConfig), s: Signatur des Organisators }`; `LiveConfig` = `{ title, teams: key[], iat, m?: [key, name, homeColor, awayColor][] }` (`m` ab US5).
 - **SignedCert** = `{ d: string (JSON von LeadCert), s: Signatur des Organisators }`; `LeadCert` = `{ key, name, homeColor, awayColor, pub, iat }`.
 - **Live-Stand** (`LiveSnapshot`): siehe Vertrag; abgeleitet aus `Game` ohne Kader, Aufgebot, Karten, Wechsel, Lesezeichen (FR-L10).
 

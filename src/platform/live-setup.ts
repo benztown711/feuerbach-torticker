@@ -19,7 +19,14 @@ import {
   type LiveDeps,
   type LiveInput,
 } from '../domain/live-spieltag';
-import { addLiveTeam, adoptConfig, removeLiveTeam, renameSpieltag, reissueSpieltag } from '../domain/live-manage';
+import {
+  addLiveTeam,
+  adoptConfig,
+  removeLiveTeam,
+  renameSpieltag,
+  reissueSpieltag,
+  restoreLive,
+} from '../domain/live-manage';
 import type { LiveTeamOption } from '../domain/live-spieltag';
 import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData } from '../domain/types';
 import { getSettings, putSettings } from './db';
@@ -212,4 +219,17 @@ export function adoptReceived(signed: SignedData, view: { topic: string; orgPub:
     })
     .catch(() => undefined);
   return adopting;
+}
+
+/**
+ * FR-L21: Live-Spieltag aus einer Sicherung übernehmen, nur wenn das Handy noch keinen hat. Die Konfiguration
+ * muss vom Organisator signiert sein und ein mitgesicherter Organisator-Schlüssel zu ihm passen.
+ */
+export async function restoreLiveFromBackup(live: LiveSpieltag): Promise<'restored' | 'kept' | 'invalid'> {
+  const config = parseConfig(await verifySigned(live.orgPub, live.config));
+  if (!config || (live.orgKey && !(await keyMatches(live.orgKey, live.orgPub)))) return 'invalid';
+  const r = restoreLive(await getSettings(), live, () => crypto.randomUUID());
+  if (!r.restored) return 'kept';
+  await save(r.settings, false);
+  return 'restored';
 }
