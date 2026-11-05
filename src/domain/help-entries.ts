@@ -453,6 +453,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-anlegen', 'trainer-link'],
   },
   {
+    id: 'andere-spiele',
+    topic: 'live',
+    title: 'Wie sehe ich während des Spiels, wie es bei den anderen steht?',
+    answer:
+      "Ist dein Handy mit einem Live-Spieltag gekoppelt, steht im Spiel unter der Kopfzeile eine Zeile wie „E2 2:1 · 31'“ mit den heutigen Spielen der anderen Mannschaften. Fällt dort ein Tor, leuchtet die Zeile kurz auf, ohne Ton. Ein Tipp auf die Zeile oder auf „Live“ öffnet das Dashboard; mit „Spiel“ unten kommst du zurück, die Uhr läuft weiter.",
+    keywords: 'andere spiele mannschaften stand zwischenstand parallel gleichzeitig nebenan platz dashboard',
+    sources: ['006 US4'],
+    related: ['live-senden', 'eltern-dashboard'],
+  },
+  {
     id: 'spiel-uebernehmen',
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',

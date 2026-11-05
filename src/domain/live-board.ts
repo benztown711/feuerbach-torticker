@@ -358,6 +358,21 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
   return { title: board.config?.title ?? null, teams, cards, today: cards.some((c) => c.today) };
 }
 
+/**
+ * Spec 006 US4: die heutigen Karten der anderen Mannschaften für die Zeile im Spielbildschirm; `team` ist die
+ * eigene Mannschaft (null: nicht im Live-Spieltag), `gameId` das eigene Spiel. Reihenfolge wie auf dem
+ * Dashboard (laufende zuerst).
+ */
+export function otherGames(
+  board: Board,
+  gameId: string,
+  team: string | null,
+  serverNow: number,
+  timeZone?: string,
+): BoardCard[] {
+  return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId && c.key !== team);
+}
+
 /** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */
 export const ACTIVE_MS = 30 * 60_000;
 

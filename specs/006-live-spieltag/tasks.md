@@ -79,8 +79,8 @@
 
 **Ziel**: Lead-Handy sieht die anderen Spiele im Spielbildschirm. **Unabhängiger Test**: Gerät A (Lead E1) im Spiel, Gerät B (Lead E2) erfasst ein Tor, A zeigt den neuen Stand.
 
-- [ ] L034 [P] [US4] E2E `tests/e2e/live-us4.spec.ts`: 006 US4-S1 Tipp auf `live-pill` öffnet Dashboard, "Spiel" führt zurück, Uhr läuft weiter; 006 US4-S2 Zeile `live-others` mit "E2 2:1 · 31'"; 006 US4-S3 Hervorhebung ohne Ton (`recorded().sounds` unverändert); iPhone SE ohne Scrollen
-- [ ] L035 [US4] `src/ui/components/live-others.tsx` im Spielbildschirm, nutzt `live-receiver` nur solange der Spielbildschirm offen und das Handy gekoppelt ist (macht L034 grün); Screenshots an Atti
+- [x] L034 [P] [US4] E2E `tests/e2e/live-us4.spec.ts`: 006 US4-S1 Tipp auf `live-pill` öffnet Dashboard, "Spiel" führt zurück, Uhr läuft weiter; 006 US4-S2 Zeile `live-others` mit "E2 2:1 · 31'"; 006 US4-S3 Hervorhebung ohne Ton (`recorded().sounds` unverändert); iPhone SE ohne Scrollen
+- [x] L035 [US4] `src/ui/components/live-others.tsx` im Spielbildschirm, nutzt `live-receiver` nur solange der Spielbildschirm offen und das Handy gekoppelt ist (macht L034 grün); eine Verbindung für US4 und FR-L24 (`watchGame` in `src/platform/live-watch.ts`, Auswahl `otherGames` in `src/domain/live-board.ts`); Screenshots an Atti
 
 ## Phase 7: US5 Live-Spieltag verwalten (P3, PR 5)
 

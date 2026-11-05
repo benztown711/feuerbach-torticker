@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A und Review B erledigt (04.11.2026), Plan erstellt. US1 bis US3 umgesetzt. Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) wartet auf Review A. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A und Review B erledigt (04.11.2026), Plan erstellt. US1 bis US4, US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt. Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -134,7 +134,7 @@ Wer am Spielfeldrand von E1 steht, will kurz sehen, wie es bei E2 steht, ohne di
 **Acceptance Scenarios**:
 
 1. **Given** ein laufendes Spiel auf einem Lead-Handy, **When** der Nutzer auf das Kennzeichen "Live" in der Kopfzeile tippt, **Then** öffnet sich das Dashboard; "Spiel" in der Navigationsleiste führt zurück, die Uhr läuft unverändert weiter.
-2. **Given** ein laufendes Spiel auf dem Lead-Handy von E1 und ein laufendes Spiel von E2, **Then** zeigt der Spielbildschirm unter der Kopfzeile eine kleine Zeile "E2 2:1 · 31'" mit laufender Minute; ein Tipp darauf öffnet das Dashboard.
+2. **Given** ein laufendes Spiel auf dem Lead-Handy von E1 und ein laufendes Spiel von E2, **Then** zeigt der Spielbildschirm unter der Kopfzeile eine kleine Zeile "E2 2:1 · 31'" mit laufender Minute; ein Tipp darauf öffnet das Dashboard. Die Zeile nennt die heutigen Spiele der anderen Mannschaften des Live-Spieltags (laufende zuerst, Reihenfolge wie auf dem Dashboard), auf jedem gekoppelten Trainer-Handy bis zum Schlusspfiff des eigenen Spiels, auch wenn das eigene Spiel nicht live gesendet wird; ohne andere Spiele fehlt sie (FR-033).
 3. **Given** ein neues Tor bei E2, **Then** hebt sich die Zeile auf dem Lead-Handy von E1 kurz hervor, ohne Ton und ohne Pfiff (das Signal bleibt dem eigenen Spiel vorbehalten).
 
 ---
@@ -250,6 +250,10 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 - **SC-L06**: Keine Meldung enthält Namen oder Spielstände im Klartext (automatisch geprüft); ohne Kopplung verlässt keine Anfrage das Gerät außer der Update-Prüfung.
 - **SC-L07**: Betrieb und Nutzung kosten nichts und brauchen kein Konto (Constitution VIII).
 - **SC-L08**: Bis zu 40 Zuschauer je Mannschaft, bei drei Mannschaften also 120, verfolgen den Spieltag gleichzeitig, ohne dass SC-L01 und SC-L02 schlechter werden.
+
+## Hilfe
+
+Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden).
 
 ## Assumptions
 

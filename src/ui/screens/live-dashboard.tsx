@@ -10,17 +10,13 @@ import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { shareText } from '../../platform/share';
 import { ViewerNav } from '../components/viewer-nav';
-import { useNow } from '../hooks';
+import { useGoalFlash, useNow } from '../hooks';
 import { navigate } from '../router';
 import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */
 
 const base = import.meta.env.BASE_URL;
-/** FR-L15: Hervorhebung nach neuem Tor. */
-const FLASH_MS = 5000;
-/** Nur Tore aus frischen Meldungen hervorheben, nicht beim Nachladen der letzten 12 Stunden. */
-const FRESH_MS = 60_000;
 
 type View = Pick<ViewerLink, 'topic' | 'viewKey' | 'orgPub' | 'title'>;
 
@@ -151,26 +147,6 @@ function Card({
   );
 }
 
-/** Merkt sich die Toranzahl je Spiel und hebt neue Tore einige Sekunden hervor (ohne Ton). */
-function useFlash(cards: BoardCard[], now: number, serverNow: number): Set<string> {
-  const counts = useRef<Map<string, number> | null>(null);
-  const [until, setUntil] = useState<Record<string, number>>({});
-  const signature = cards.map((c) => `${c.gameId}:${c.goals.length}`).join('|');
-  useEffect(() => {
-    const prev = counts.current;
-    const next = new Map(cards.map((c) => [c.gameId, c.goals.length]));
-    counts.current = next;
-    if (!prev) return;
-    const fresh = cards.filter(
-      (c) => c.goals.length > (prev.get(c.gameId) ?? c.goals.length) && serverNow - c.updatedAt < FRESH_MS,
-    );
-    if (fresh.length > 0)
-      setUntil((u) => ({ ...u, ...Object.fromEntries(fresh.map((c) => [c.gameId, Date.now() + FLASH_MS])) }));
-    // Nur bei geänderter Toranzahl (signature), nicht bei jedem neuen Array.
-  }, [signature]);
-  return new Set(Object.keys(until).filter((id) => (until[id] ?? 0) > now));
-}
-
 export function Dashboard({
   view,
   inApp,
@@ -204,7 +180,7 @@ export function Dashboard({
   const now = Date.now();
   const serverNow = now + state.skew;
   const v = boardView(state.board, serverNow);
-  const flash = useFlash(v.cards, now, serverNow);
+  const flash = useGoalFlash(v.cards, now, serverNow);
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const teamsKey = v.teams.join('|');
   useEffect(() => onInfo?.({ title, teams: v.teams }), [title, teamsKey]);
