@@ -79,6 +79,7 @@ import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
 import { setLive } from '../../domain/live-snapshot';
 import { liveTeamFor, sendingTeamFor } from '../../domain/live-spieltag';
+import { onLiveSettings } from '../../platform/live-events';
 import type { GameWatch } from '../../platform/live-watch';
 
 const base = import.meta.env.BASE_URL;
@@ -158,6 +159,8 @@ export function GameScreen({ id }: { id: string }) {
   useEffect(() => {
     void getSettings().then(setSettings);
   }, []);
+  // Spec 006 US5: Änderungen am Live-Spieltag (z. B. von einem anderen Trainer-Handy übernommen) übernehmen.
+  useEffect(() => onLiveSettings(setSettings), []);
 
   useEffect(() => {
     void getGame(id).then((g) => {

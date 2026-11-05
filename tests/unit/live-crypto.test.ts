@@ -102,6 +102,8 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
       content: { team: 'E1' },
       cert: s.certValue,
       config: { title: 'Unser Spieltag', teams: ['E1'], iat: 1 },
+      // US5: signierte Konfiguration zum Weitergeben (Trainer-Handys übernehmen sie)
+      signedConfig: s.config,
     });
   });
 
@@ -112,6 +114,7 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
       content: null,
       cert: null,
       config: { title: 'Unser Spieltag', teams: ['E1'], iat: 1 },
+      signedConfig: s.config,
     });
   });
 
@@ -124,7 +127,9 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
       cert: s.cert,
       config: fake,
     });
-    expect(await openMessage(s.view, text)).toMatchObject({ content: { team: 'E1' }, config: null });
+    const opened = await openMessage(s.view, text);
+    expect(opened).toMatchObject({ content: { team: 'E1' }, config: null });
+    expect(opened?.signedConfig).toBeUndefined();
   });
 
   it('Live-Stand einer anderen Mannschaft als im Zertifikat (m.team ≠ c.key) wird verworfen', async () => {

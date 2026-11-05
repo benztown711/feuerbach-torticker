@@ -2,7 +2,7 @@ import { applyConfig, applySnapshot, emptyBoard, parseBoard, type Board } from '
 import { parseSnapshot } from '../domain/live-snapshot';
 import { parseConfig } from '../domain/live-spieltag';
 import { isTime } from '../domain/live-validate';
-import type { LiveConfig, ViewerLink } from '../domain/types';
+import type { LiveConfig, SignedData, ViewerLink } from '../domain/types';
 import { openMessage, type OpenedMessage } from './live-crypto';
 import { subscribe, type RelayMessage, type RelayState, type SubscribeOptions } from './relay';
 
@@ -31,6 +31,8 @@ export interface ReceiverDeps {
   open(view: View, text: string): Promise<OpenedMessage | null>;
   storage: KeyValueStore | null;
   timeZone?: string;
+  /** Spec 006 US5: jüngere signierte Konfiguration (Trainer-Handy übernimmt Titel und Mannschaften). */
+  onConfig?(signed: SignedData): void;
 }
 
 export class LiveReceiver {
@@ -38,6 +40,8 @@ export class LiveReceiver {
   private readonly listeners = new Set<() => void>();
   private stopRelay: (() => void) | null = null;
   private stopped = false;
+  /** iat der jüngsten bekannten Konfiguration (vorab bekannt oder schon gemeldet). */
+  private knownIat = 0;
 
   constructor(
     private readonly view: View,
@@ -107,6 +111,7 @@ export class LiveReceiver {
 
   /** Konfiguration, die das Gerät schon kennt (Organisator, Lead-Handy), bevor Meldungen kommen. */
   seed(config: LiveConfig): void {
+    this.knownIat = Math.max(this.knownIat, config.iat);
     const board = applyConfig(this.state.board, config);
     if (board !== this.state.board) this.update({ board });
   }
@@ -125,6 +130,10 @@ export class LiveReceiver {
     let board = this.state.board;
     const config = parseConfig(opened.config);
     if (config) board = applyConfig(board, config);
+    if (config && opened.signedConfig && config.iat > this.knownIat) {
+      this.knownIat = config.iat;
+      this.deps.onConfig?.(opened.signedConfig);
+    }
     const snap = parseSnapshot(opened.content);
     if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone);
     const liveAt = this.deps.now();
