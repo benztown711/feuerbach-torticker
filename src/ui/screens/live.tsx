@@ -715,7 +715,6 @@ function AddSheet({
               data-testid={`team-add-chip-${o.key}`}
               onClick={() => setPick(o)}
             >
-              <Mark color={o.team.homeColor} />
               {o.key}
             </button>
           ))}
