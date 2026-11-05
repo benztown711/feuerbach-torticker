@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyImport, annotateRows, planImport } from '../../src/domain/roster-merge';
 import { parseRosterList } from '../../src/domain/roster-parse';
+import { rosterShareText } from '../../src/domain/roster';
 import type { Player } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 30, 0);
@@ -126,5 +127,52 @@ describe('T065 FR-026 FR-027 Zusammenführen', () => {
     const rows = plan([], 'Max').map((r) => ({ ...r, name: '  ' }));
     expect(annotateRows([], rows)[0]?.warnings).toContain('name-leer');
     expect(applyImport([], rows, ids)).toEqual([]);
+  });
+});
+
+describe('001 US7-S7 US7-S8 FR-028 geteilten Kader wieder einfügen', () => {
+  const shared = [p('a', 'Max Me.', 7), p('b', 'Max Mü.', 14), p('c', 'Ben', null)];
+  const roundTrip = (players: Player[]) => {
+    const rows = plan([], rosterShareText(players));
+    return { rows, saved: applyImport([], rows, ids) };
+  };
+  const view = (players: Player[]) => players.map((x) => [x.number, x.name]).sort();
+
+  it('001 US7-S7 FR-028 abgekürzte Namen bleiben, ohne Hinweis "nachname" und ohne Duplikat', () => {
+    const rows = plan([], '7 Max Me.\n14 Max Mü.\nBen');
+    expect(rows.map((r) => [r.number, r.name, r.warnings])).toEqual([
+      [7, 'Max Me.', []],
+      [14, 'Max Mü.', []],
+      [null, 'Ben', []],
+    ]);
+    expect(rows.every((r) => !r.shortened)).toBe(true);
+  });
+
+  it('001 US7-S8 FR-028 zweites Gerät: derselbe Kader, auch bei einzelnem oder langem Kürzel', () => {
+    const { rows, saved } = roundTrip(shared);
+    expect(rows.every((r) => r.warnings.length === 0)).toBe(true);
+    expect(view(saved)).toEqual(view(shared));
+    const odd = [p('a', 'Max Mei.', 3), p('b', 'Max Mü.', 4), p('c', 'Tom S.', 5)];
+    expect(view(roundTrip(odd).saved)).toEqual(view(odd));
+  });
+
+  it('001 US7-S8 FR-027 erneutes Einfügen des geteilten Texts erzeugt keine Duplikate', () => {
+    const first = roundTrip(shared).saved;
+    const rows = plan(first, rosterShareText(first));
+    expect(rows.every((r) => r.matchId !== null && r.warnings.length === 0)).toBe(true);
+    expect(applyImport(first, rows, ids)).toEqual(first);
+    const noNumbers = plan(first, 'Max Mü.\nMax Me.');
+    expect(noNumbers.map((r) => [r.matchId, r.name])).toEqual([
+      [first[1]!.id, 'Max Mü.'],
+      [first[0]!.id, 'Max Me.'],
+    ]);
+  });
+
+  it('001 US7-S8 FR-025 Kürzel und voller Nachname gemischt: nur der Nachname wird gekürzt', () => {
+    const rows = plan([], 'Max Me.\nMax Müller');
+    expect(rows.map((r) => [r.name, r.warnings])).toEqual([
+      ['Max Me.', []],
+      ['Max M.', ['nachname']],
+    ]);
   });
 });

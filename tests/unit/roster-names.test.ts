@@ -81,3 +81,41 @@ describe('T064 FR-020 FR-025 eindeutige Anzeigenamen', () => {
     expect(abbreviationOf('Max Müller')).toBe('Müller');
   });
 });
+
+describe('001 US7-S8 FR-028 Kürzel aus der Liste bleiben unverändert', () => {
+  it('001 US7-S8 FR-028 Kürzel werden weder gekürzt noch verlängert', () => {
+    expect(
+      names([
+        { first: 'Max', last: 'Me', kept: true },
+        { first: 'Max', last: 'Mü', kept: true },
+      ]),
+    ).toEqual(['Max Me.', 'Max Mü.']);
+    expect(
+      names([
+        { first: 'Max', last: 'Mei', kept: true },
+        { first: 'Max', last: 'Mü', kept: true },
+      ]),
+    ).toEqual(['Max Mei.', 'Max Mü.']);
+  });
+
+  it('001 US7-S8 FR-028 ein Kürzel bleibt auch ohne Namensvetter stehen', () => {
+    expect(names([{ first: 'Tom', last: 'S', kept: true }])).toEqual(['Tom S.']);
+  });
+
+  it('001 US7-S8 FR-028 neue Nachnamen weichen Kürzeln aus, gleiche Kürzel sind doppelt', () => {
+    expect(
+      names([
+        { first: 'Max', last: 'M', kept: true },
+        { first: 'Max', last: 'Meier' },
+      ]),
+    ).toEqual(['Max M.', 'Max Me.']);
+    const r = uniqueNames([
+      { first: 'Max', last: 'Mü', kept: true },
+      { first: 'Max', last: 'Mü', fixed: true },
+    ]);
+    expect(r).toEqual([
+      { name: 'Max Mü.', duplicate: true },
+      { name: 'Max Mü.', duplicate: true },
+    ]);
+  });
+});
