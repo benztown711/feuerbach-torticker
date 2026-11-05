@@ -6,7 +6,15 @@ Ergänzt `specs/001-spiel-erfassen/data-model.md`. Alle Zeitstempel in Epoch-Mil
 
 ### `Game.live?: boolean` (FR-L09)
 
-`false` = "Nicht live senden" für dieses Spiel. Fehlt das Feld oder ist es `true`, sendet ein Lead-Handy das Spiel, wenn seine Mannschaft gekoppelt ist.
+`false` = "Nicht live senden" für dieses Spiel. Fehlt das Feld oder ist es `true`, sendet ein Trainer-Handy das Spiel, wenn seine Mannschaft zum Live-Spieltag gehört.
+
+### Weitere Felder am Spiel (Trainergruppe, US6)
+
+| Feld | Typ | Bedeutung |
+|---|---|---|
+| `livePrivate` | boolean, optional | beim Anlegen mit "Live aufs Dashboard" aus angelegt; wird nie gesendet, auch kein "off" oder "deleted" |
+| `liveTakeover` | Ganzzahl 0 bis 100, optional | Übergabezähler `h` (contracts/live-message.md); beim Übernehmen `h + 1` |
+| `liveHandedOver` | boolean, optional | ein anderes Handy hat das Spiel übernommen (FR-L24); dieses Handy sendet nicht mehr |
 
 ### `Settings.live: LiveSpieltag | null` (FR-L01 bis FR-L04)
 
@@ -18,12 +26,12 @@ Höchstens ein Live-Spieltag je Gerät.
 | `topic` | string, 22 Zeichen | Topic bei ntfy.sh (128 Bit Zufall) |
 | `viewKey` | string | AES-GCM-256, roh |
 | `orgPub` | string | ECDSA P-256 öffentlich, roh (65 Byte) |
-| `orgPriv` | `JsonWebKey` oder fehlt | nur auf dem Organisator-Handy |
-| `config` | `SignedConfig` | jüngste bekannte Konfiguration (Titel, Mannschaften) |
-| `teams` | `LiveTeamCred[]` | Organisator: alle Mannschaften; Lead-Handy: nur gekoppelte |
-| `createdAt` | number | Anlegen bzw. Koppeln |
+| `orgKey` | `PrivateKeyParts` (`d`, `x`, `y`) oder fehlt | Organisator-Schlüssel; auf jedem Trainer-Handy (aus dem Trainer-Link), fehlt nur bei Lead-Handys der ersten Version |
+| `config` | `SignedConfig` | jüngste bekannte Konfiguration (Titel, Mannschaften, ggf. "neu ausgestellt") |
+| `teams` | `LiveTeamCred[]` | Trainer-Handy: alle Mannschaften des Live-Spieltags; Lead-Handy der ersten Version: nur gekoppelte |
+| `createdAt` | number | Anlegen bzw. Koppeln; beim Wiederherstellen mindestens dessen Zeitpunkt (R-L18) |
 
-Rolle: Organisator ⇔ `orgPriv` vorhanden. Lead für eine Mannschaft ⇔ deren Eintrag hat `sends: true`.
+Rolle: Trainer-Handy ⇔ `orgKey` vorhanden; es sendet je Spiel für die Mannschaft des Spiels (FR-L04). Lead-Handy der ersten Version: sendet für Einträge mit `sends: true`. Ist die Konfiguration als "neu ausgestellt" markiert, sendet das Handy nichts mehr (US5-S3).
 
 ### `LiveTeamCred`
 
@@ -46,7 +54,7 @@ Zuletzt geöffneter Zuschauer-Link (`topic`, `viewKey`, `orgPub`, `title`), dami
 
 ### Zwischenspeicher des Dashboards (FR-L16)
 
-`localStorage["torticker-live:<topic>"]`: zuletzt angezeigte Live-Stände je Mannschaft (höchstens ein Tag je Mannschaft), Fehler beim Lesen oder Schreiben werden ignoriert.
+`localStorage["torticker-live:<topic>:<orgPub>"]`: zuletzt angezeigte Live-Stände je Mannschaft (höchstens ein Tag je Mannschaft), Fehler beim Lesen oder Schreiben werden ignoriert. Der Organisator-Schlüssel im Namen verhindert, dass ein fremder Link mit gleichem Topic den Stand füllt (R-L12).
 
 ## Übertragen (siehe `contracts/live-message.md`)
 
@@ -61,7 +69,7 @@ Zuletzt geöffneter Zuschauer-Link (`topic`, `viewKey`, `orgPub`, `title`), dami
 | Feld | Bedeutung |
 |---|---|
 | `config` | jüngste gültige Konfiguration (Titel, Reihenfolge) |
-| `games` | `Map<gameId, { snap: LiveSnapshot, team: key, serverTime, receivedAt }>`; je Spiel gewinnt das größte `sentAt` |
+| `games` | `Map<gameId, { snap: LiveSnapshot, team: key, serverTime, receivedAt }>`; je Spiel gewinnt das größte `h` (Übergabezähler), dann das größte `sentAt` |
 | `skew` | Serverzeit − lokale Zeit aus `open`/`keepalive` (R-L4) |
 | `connection` | `live` · `offline` (seit Zeitpunkt) · `polling` |
 

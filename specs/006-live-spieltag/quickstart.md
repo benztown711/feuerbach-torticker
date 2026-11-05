@@ -13,7 +13,7 @@ Erwartung: alle Tests grün; `src/domain/live-*.ts` mit 100 % Branch-Coverage; H
 
 ## Gerätetest (Atti, Review C)
 
-Voraussetzung: zwei Handys mit installiertem Torticker (A = Organisator, B = Lead), ein drittes Gerät im Browser (C = Zuschauer).
+Voraussetzung: zwei Handys mit installiertem Torticker (A und B = Trainer-Handys), ein drittes Gerät im Browser (C = Zuschauer); am besten ein eigener Live-Spieltag "Test". Checkliste zum Abhaken: https://claude.ai/artifact/B6AGLutstmPXiDyRnmVx6p
 
 | Nr. | Schritt | Erwartung |
 |---|---|---|
@@ -23,4 +23,7 @@ Voraussetzung: zwei Handys mit installiertem Torticker (A = Organisator, B = Lea
 | G-4 | A und B je ein Spiel anlegen und anpfeifen, Tore erfassen | C zeigt beide Spiele, Tor nach höchstens 10 s, Minute läuft |
 | G-5 | B: Flugmodus, Tor erfassen, Flugmodus aus | Erfassung sofort; B zeigt "Live: wartet auf Netz"; C bekommt das Tor nach dem Einschalten |
 | G-6 | A: Uhr am Handy 5 Minuten verstellen | Minute auf C weicht höchstens 1 Minute ab |
-| G-7 | B im Spiel: Zeile mit E1 sichtbar, Tipp öffnet Dashboard, "Spiel" führt zurück | Uhr läuft weiter, iPhone SE ohne Scrollen |
+| G-7 | B im Spiel: Zeile mit E1 sichtbar, Tor bei A, Tipp öffnet Dashboard, "Spiel" führt zurück | Zeile leuchtet kurz ohne Ton; Uhr läuft weiter, iPhone SE ohne Scrollen |
+| G-8 | B beendet sein Spiel und legt ein E1-Spiel an, während A E1 überträgt; "Spiel übernehmen" | Rückfrage mit Stand; B hat Gegner, Stand, Uhr, Torschützen; A zeigt "E1 überträgt jetzt ein anderes Handy"; Tor von B erscheint auf C |
+| G-9 | A: "Titel ändern", "Mannschaft hinzufügen" E3; B: "Neues Spiel" mit E3 | C zeigt den neuen Titel; B zeigt für E3 "Live aufs Dashboard" ohne neuen Link |
+| G-10 | (optional, nur Test-Spieltag) A: "Alle Links neu ausstellen …" | B zeigt "Neu ausgestellt"; C (alter Link) bittet um den neuen Link |
