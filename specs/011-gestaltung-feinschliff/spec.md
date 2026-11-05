@@ -88,6 +88,7 @@ Die eine Hauptaktion einer Seite unterscheidet sich von Auswahlzuständen.
 - Startbildschirm: unverändert (roter Balken, Wappen, "Neues Spiel"), nur der Hauptknopf wird vereinsrot.
 - Eltern-Dashboard (Spec 006 US3) und die Seite des Trainer-Links behalten ihr freigegebenes Aussehen (eigene Karten bzw. wie der Startbildschirm); sie bekommen keine getönte Grundfläche.
 - Themewahl "Hell"/"Dunkel" in den Einstellungen wirkt auf alle neuen Flächen gleich wie die Systemeinstellung.
+- Letzte Zeile einer Karte: Unter ihr steht keine Trennlinie; Schalter (z. B. "Vorlagen") und Zeilenknöpfe (Kader: Ändern, Löschen) in dieser Zeile behalten ihren vollen Rahmen (Fehlerbehebung 05.11.2026).
 
 ## Requirements *(mandatory)*
 

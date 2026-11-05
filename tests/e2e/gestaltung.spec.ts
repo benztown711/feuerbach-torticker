@@ -98,6 +98,34 @@ test.describe('Spec 011 Karten und Abschnitte', () => {
     }
   });
 
+  /**
+   * Edge Case "letzte Zeile": Unter der letzten Listenzeile einer Karte steht keine Linie, Schalter und
+   * Knöpfe in dieser Zeile behalten aber ihren vollen Rahmen (Fehler: "Vorlagen" ohne unteren Strich).
+   */
+  test('011 Rand: Schalter und Zeilenknöpfe in der letzten Kartenzeile mit vollem Rahmen', async ({ page }) => {
+    const lopsided = (p: Page) =>
+      p.locator('.card').evaluateAll((cards) =>
+        cards.flatMap((card) =>
+          [...card.querySelectorAll('button, a')]
+            .filter((el) => {
+              const s = getComputedStyle(el);
+              return parseFloat(s.borderTopWidth) > 0 && s.borderBottomWidth !== s.borderTopWidth;
+            })
+            .map((el) => el.getAttribute('data-testid') ?? el.textContent?.trim() ?? el.tagName),
+        ),
+      );
+    await seedRoster(page, ['1 Max', '2 Ben'].join('\n'));
+    for (const theme of ['light', 'dark'] as const) {
+      await page.goto('./#/einstellungen');
+      await page.getByTestId(`theme-${theme}`).click();
+      await expect(page.getByTestId('feature-assists')).toBeVisible();
+      expect(await lopsided(page), `Einstellungen ${theme}`).toEqual([]);
+      await page.goto('./#/kader');
+      await expect(page.getByRole('button', { name: 'Ben löschen' })).toBeVisible();
+      expect(await lopsided(page), `Kader ${theme}`).toEqual([]);
+    }
+  });
+
   test('011 US1-S5 Mehr: Menü als Karte, jede Zeile mit Pfeil', async ({ page }) => {
     await page.goto('./#/mehr');
     const menu = page.getByTestId('more-menu');
