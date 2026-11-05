@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Entwurf, Review A und Review B offen. Mockup (Review B): https://claude.ai/artifact/KJu7HV4KZQtpTrUH3H5hRP
+**Status**: Review A und Review B erledigt (05.11.2026, "passt"), Plan und Aufgaben erstellt. Mockup: https://claude.ai/artifact/KJu7HV4KZQtpTrUH3H5hRP
 
 **Input**: Atti (05.11.2026): "Bei der Anzeige des Kaders (egal wo; insb. bei der Auswahl des Torschützen usw.) möchte ich in den Einstellungen die Auswahl haben, wie ich die sortiert haben will: nach Rückennummern oder nach Vornamen (jeweils aufsteigend)." Nachtrag: "Der Standard soll alphabetisch aufsteigend sein bzgl. der Vornamen."
 
@@ -30,12 +30,11 @@ Nicht betroffen, weil dort keine Kaderliste steht, sondern eine fachliche Reihen
 
 - Q: Standard-Sortierung? → A: Vorname, alphabetisch aufsteigend (Atti). Gilt auch für bestehende Installationen, die bisher nach Nummer sortiert waren.
 
-### Offen für Review A (je mit Empfehlung)
-
-- Q1: Wo liegt der Umschalter? → Empfehlung: nur in den Einstellungen, neuer Abschnitt "KADER" direkt unter "MEINE MANNSCHAFTEN". Kein zweiter Umschalter auf der Kader-Seite (YAGNI).
-- Q2: Spieler ohne Rückennummer bei "Rückennummer"? → Empfehlung: am Ende, untereinander nach Vorname (wie heute).
-- Q3: Folgt "Kader teilen" der Einstellung? → Empfehlung: ja ("egal wo"); der geteilte Text bleibt über "Liste einfügen" wieder einlesbar.
-- Q4: Mockup (Schritt 4/5) nötig? → Empfehlung: nein. Der Umschalter nutzt das bekannte Muster von "Darstellung" (Segmente); Atti sieht das Ergebnis in den Screenshots von Review C.
+- Q: Wo liegt der Umschalter? → A: Nur in den Einstellungen, Abschnitt "KADER" direkt unter "MEINE MANNSCHAFTEN"; kein zweiter Umschalter auf der Kader-Seite.
+- Q: Spieler ohne Rückennummer bei "Rückennummer"? → A: Am Ende, untereinander nach Vorname (wie bisher).
+- Q: Folgt "Kader teilen" der Einstellung? → A: Ja; der Text bleibt über "Liste einfügen" wieder einlesbar.
+- Q: Mockup? → A: Atti wollte eines sehen (siehe Status); Spec und Mockup gemeinsam mit "passt" freigegeben.
+- Hinweis aus der Planung: Karten und Wechsel zeigen nach "Andere …" schon bisher den ganzen Kader in einer Liste (nicht Aufgebot und Rest getrennt). Das bleibt so; nur die Reihenfolge folgt der Einstellung.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -76,7 +75,7 @@ Atti sucht nach einem Tor schnell den Torschützen. Er kennt die Kinder beim Vor
 - **FR-K02**: Vorgabe MUSS "Vorname" sein, auch für gespeicherte Einstellungen ohne diesen Wert (bestehende Installationen).
 - **FR-K03**: "Vorname" MUSS alphabetisch aufsteigend nach dem Anzeigenamen sortieren (deutsche Sortierregel, ohne Beachtung von Groß-/Kleinschreibung); bei gleichem Namen nach Nummer aufsteigend, ohne Nummer zuletzt.
 - **FR-K04**: "Rückennummer" MUSS numerisch aufsteigend sortieren; Spieler ohne Nummer stehen am Ende; bei gleicher oder fehlender Nummer nach Vorname wie FR-K03.
-- **FR-K05**: Die gewählte Sortierung MUSS überall gelten, wo der Kader als Liste oder Auswahl erscheint: Kaderliste, Aufgebot unter "Neues Spiel", Torschützen- und Vorlagen-Auswahl (inkl. "Andere …"), Karten, Wechsel, Elfmeterschießen und der Text von "Kader teilen". Bei "Andere …" bleiben Aufgebot und übrige Spieler getrennte Gruppen (FR-030), jede in sich sortiert.
+- **FR-K05**: Die gewählte Sortierung MUSS überall gelten, wo der Kader als Liste oder Auswahl erscheint: Kaderliste, Aufgebot unter "Neues Spiel", Torschützen- und Vorlagen-Auswahl (inkl. "Andere …"), Karten, Wechsel, Elfmeterschießen und der Text von "Kader teilen". Bei Torschützen, Vorlagen und Elfmeterschießen bleiben Aufgebot und übrige Spieler nach "Andere …" getrennte Gruppen (FR-030), jede in sich sortiert; Karten und Wechsel zeigen nach "Andere …" wie bisher den ganzen Kader in einer Liste.
 - **FR-K06**: Die Sortierung MUSS nur die Reihenfolge ändern; Beschriftung der Knöpfe ("7 Max"), Aufgebot, Torschützen und gespeicherte Spiele bleiben unverändert.
 - **FR-K07**: Die Einstellung bleibt auf dem Gerät: kein Teil der Sicherung, nicht Teil der Live-Übertragung (wie "Darstellung").
 
