@@ -58,10 +58,17 @@ Live-Stand und Grabstein dürfen `"h": <0 bis 100>` enthalten (fehlt = 0). Je Sp
 ## Konfiguration (`g.d`, FR-L19)
 
 ```json
-{ "title": "Unser Spieltag", "teams": ["E1", "E2"], "iat": 1794038000000 }
+{
+  "title": "Unser Spieltag", "teams": ["E1", "E2"], "iat": 1794038000000,
+  "m": [["E1", "Sportvg Feuerbach E1", "rot", "schwarz"], ["E2", "Sportvg Feuerbach E2", "rot", "weiss"]]
+}
 ```
 
-Der Organisator sendet bei jeder Änderung eine Meldung nur mit `g`; Lead-Handys hängen die jüngste ihnen bekannte an jeden Live-Stand. Es gilt die gültige Konfiguration mit dem größten `iat`. Live-Stände von Mannschaften, die nicht in `teams` stehen, zeigt das Dashboard nicht an. Titel 1 bis 40 Zeichen, 1 bis 6 Mannschaften.
+Ein Trainer-Handy sendet bei jeder Änderung (US5) eine Meldung nur mit `g`; Trainer- und Lead-Handys hängen die jüngste ihnen bekannte an jeden Live-Stand. Es gilt die gültige Konfiguration mit dem größten `iat`; eine Änderung setzt `iat` immer über das der bekannten Konfiguration, auch wenn die Uhr des Handys nachgeht. Live-Stände von Mannschaften, die nicht in `teams` stehen, zeigt das Dashboard nicht an. Titel 1 bis 40 Zeichen, 1 bis 6 Mannschaften.
+
+`m` (US5, optional): je Mannschaft Kurzlabel, Name (höchstens 40 Zeichen) und Heim- und Auswärtstrikot (Palette), wie `m` im Trainer-Link. Damit übernimmt ein anderes Trainer-Handy eine neu hinzugefügte Mannschaft beim nächsten Empfang (eigenes Zertifikat, Eintrag in "Meine Mannschaften"). Fehlt `m` (ältere Versionen), bleibt eine unbekannte Mannschaft außen vor, bis der Trainer-Link erneut eingefügt wird. Ist `m` vorhanden, aber ungültig, gilt die ganze Konfiguration als ungültig. Ältere Dashboards übergehen das Feld.
+
+`retired: true` (US5-S3, optional): Hinweis "neu ausgestellt". Ein Trainer-Handy, das alle Links neu ausstellt, sendet ihn einmal auf dem alten Topic, signiert mit dem alten Organisator-Schlüssel und ohne die neuen Links. Trainer- und Lead-Handys dieses Live-Spieltags senden danach nichts mehr und bitten um den neuen Trainer-Link; das Dashboard bittet um den neuen Zuschauer-Link. Jeder andere Wert als `true` macht die Konfiguration ungültig.
 
 ## Zertifikat (`c.d`)
 

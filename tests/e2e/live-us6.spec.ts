@@ -117,9 +117,11 @@ test('006 US6-S5 ohne Empfang keine Frage: das Spiel wird normal angelegt', asyn
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   await aTransmits(page, relay, links.viewer);
+  // B hat von Anfang an keinen Empfang (koppeln geht ohne Netz). Sonst kennt B das Spiel schon aus der
+  // Übersicht ("zuletzt gesendet", US5) und fragt zu Recht nach.
+  relay.fail = true;
   const b = await newDevice();
   await pasteLink(b, links.trainer);
-  relay.fail = true;
   await bCreatesE2(b);
   await expect(b.getByTestId('btn-kickoff')).toBeVisible();
   await expect(b.getByTestId('takeover-dialog')).toHaveCount(0);

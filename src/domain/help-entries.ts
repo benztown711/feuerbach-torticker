@@ -473,6 +473,39 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-senden', 'trainer-link'],
   },
   {
+    id: 'live-verwalten',
+    topic: 'live',
+    title: 'Wie ändere ich Titel oder Mannschaften des Live-Spieltags?',
+    answer:
+      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung.',
+    keywords: 'titel ändern umbenennen mannschaft hinzufügen entfernen e3 neue mannschaft verwalten',
+    sources: ['006 US5'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['live-anlegen', 'links-neu'],
+  },
+  {
+    id: 'links-neu',
+    topic: 'live',
+    title: 'Was tue ich, wenn ein Link in falsche Hände geraten ist?',
+    answer:
+      'Tippe unter „Mehr“ und „Live-Spieltag“ auf „Alle Links neu ausstellen …“. Schick den neuen Zuschauer-Link an die Elterngruppe und den neuen Trainer-Link an eure Trainergruppe. Handys mit dem alten Trainer-Link senden nichts mehr und bitten um den neuen; wer den alten Zuschauer-Link öffnet, sieht einen Hinweis. Das gilt auch, wenn jemand die Trainergruppe verlässt.',
+    keywords: 'link falsch weitergeleitet geleakt sicherheit neu ausstellen trainer verlässt gruppe',
+    sources: ['006 US5'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['live-verwalten', 'trainer-link'],
+  },
+  {
+    id: 'kopplung-beenden',
+    topic: 'live',
+    title: 'Wie höre ich auf, live zu senden?',
+    answer:
+      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Kopplung beenden …“. Dein Handy sendet dann nichts mehr; deine Spiele bleiben in der Historie. Die anderen Trainer-Handys und das Dashboard laufen weiter. Einzelne Spiele nimmst du im Spiel über „…“ und „Nicht live senden“ aus.',
+    keywords: 'kopplung beenden aufhören live senden abmelden ausschalten handy',
+    sources: ['006 US5'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['live-senden', 'trainer-link'],
+  },
+  {
     id: 'eltern-dashboard',
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',

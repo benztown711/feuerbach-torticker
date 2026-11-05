@@ -19,9 +19,20 @@ import {
   type LiveDeps,
   type LiveInput,
 } from '../domain/live-spieltag';
-import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings } from '../domain/types';
+import {
+  addLiveTeam,
+  adoptConfig,
+  removeLiveTeam,
+  renameSpieltag,
+  reissueSpieltag,
+  restoreLive,
+  retireConfig,
+} from '../domain/live-manage';
+import type { LiveTeamOption } from '../domain/live-spieltag';
+import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData } from '../domain/types';
 import { getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
+import { liveSettingsChanged } from './live-events';
 import { startLiveSender } from './live-sender';
 import { publish } from './relay';
 import { shareText, type ShareResult } from './share';
@@ -154,3 +165,97 @@ export function shareTrainerLink(live: LiveSpieltag): Promise<ShareResult> {
 /** FR-L03: koppelt mit einem geprüften Link. */
 export const coupleLink = (v: VerifiedLink): Promise<Settings> =>
   v.kind === 'lead' ? coupleLead(v.lead, v.cert) : coupleTrainer(v.trainer);
+
+/* ---------- Spec 006 US5: verwalten und von anderen Trainer-Handys übernehmen ---------- */
+
+/** Speichert, startet bzw. aktualisiert den Sender und meldet die Änderung an offene Bildschirme. */
+async function save(next: Settings, publishNow: boolean): Promise<Settings> {
+  await putSettings(next);
+  // Zuschauer und andere Trainer-Handys erfahren Titel und Mannschaften sofort (FR-L19).
+  if (publishNow && next.live) void publishConfig(next.live).catch(() => false);
+  void startLiveSender(next);
+  liveSettingsChanged(next);
+  return next;
+}
+
+let queue: Promise<unknown> = Promise.resolve();
+
+/** Änderungen am Live-Spieltag nacheinander, damit Verwalten und Übernehmen sich nicht überschreiben. */
+function serial<T>(task: () => Promise<T>): Promise<T> {
+  const run = queue.then(task, task);
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+function manage(change: (live: LiveSpieltag) => Promise<LiveSpieltag>): Promise<Settings> {
+  return serial(async () => {
+    const s = await getSettings();
+    if (!s.live) throw new Error('Auf diesem Handy ist kein Live-Spieltag eingerichtet.');
+    return save({ ...s, live: await change(s.live) }, true);
+  });
+}
+
+/** US5-S4: Titel ändern. */
+export const renameLive = (title: string): Promise<Settings> => manage((live) => renameSpieltag(live, title, deps()));
+
+/** US5-S1: Mannschaft aus "Meine Mannschaften" hinzufügen; die Links bleiben gleich. */
+export const addTeamToLive = (option: LiveTeamOption): Promise<Settings> =>
+  manage((live) => addLiveTeam(live, option, deps()));
+
+/** Mannschaft entfernen. */
+export const removeTeamFromLive = (key: string): Promise<Settings> =>
+  manage((live) => removeLiveTeam(live, key, deps()));
+
+/**
+ * US5-S3: alle Links neu ausstellen (neues Topic, neue Schlüssel). Auf dem alten Topic geht danach einmal der
+ * Hinweis "neu ausgestellt" hinaus, ohne die neuen Links (Variante C, research.md R-L17).
+ */
+export async function reissueLive(): Promise<Settings> {
+  const old = (await getSettings()).live;
+  const next = await manage((live) => reissueSpieltag(live, deps()));
+  if (old) void announceRetired(old, await retireConfig(old, deps()));
+  return next;
+}
+
+/** Hinweis "neu ausgestellt" aufs alte Topic; ohne Netz erneut (5 s, 10 s, … bis gut 10 Minuten). */
+async function announceRetired(old: LiveSpieltag, retired: SignedData): Promise<void> {
+  const text = await sealMessage(old.viewKey, { config: retired });
+  for (let wait = 5_000; wait <= 320_000; wait *= 2) {
+    if (await publish(old.topic, text).catch(() => false)) return;
+    await new Promise((r) => setTimeout(r, wait));
+  }
+}
+
+/** US5-S2 FR-L20: Kopplung beenden; die Spiele bleiben auf dem Handy. */
+export function endCoupling(): Promise<Settings> {
+  return serial(async () => save({ ...(await getSettings()), live: null }, false));
+}
+
+/**
+ * US5-S1: übernimmt eine empfangene, mit `view.orgPub` geprüfte jüngere Konfiguration in den Live-Spieltag
+ * dieses Handys, nacheinander statt parallel. Hat das Handy inzwischen einen anderen Live-Spieltag (z. B. neu
+ * ausgestellt), bleibt alles, wie es ist.
+ */
+export function adoptReceived(signed: SignedData, view: { topic: string; orgPub: string }): Promise<void> {
+  return serial(async () => {
+    const s = await getSettings();
+    if (s.live?.topic !== view.topic || s.live.orgPub !== view.orgPub) return;
+    const next = await adoptConfig(s, signed, deps());
+    if (next) await save(next, false);
+  }).catch(() => undefined);
+}
+
+/**
+ * FR-L21: Live-Spieltag aus einer Sicherung übernehmen, nur wenn das Handy noch keinen hat. Die Konfiguration
+ * muss vom Organisator signiert sein und ein mitgesicherter Organisator-Schlüssel zu ihm passen.
+ */
+export async function restoreLiveFromBackup(live: LiveSpieltag): Promise<'restored' | 'kept' | 'invalid'> {
+  const config = parseConfig(await verifySigned(live.orgPub, live.config));
+  if (!config || (live.orgKey && !(await keyMatches(live.orgKey, live.orgPub)))) return 'invalid';
+  return serial(async () => {
+    const r = restoreLive(await getSettings(), live, () => crypto.randomUUID(), Date.now());
+    if (!r.restored) return 'kept';
+    await save(r.settings, false);
+    return 'restored';
+  });
+}

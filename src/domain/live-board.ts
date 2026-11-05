@@ -198,6 +198,8 @@ export interface BoardView {
   cards: BoardCard[];
   /** Mindestens eine Karte zeigt ein Spiel von heute. */
   today: boolean;
+  /** US5-S3: Live-Spieltag wurde neu ausgestellt; Eltern brauchen den neuen Link. */
+  retired: boolean;
 }
 
 interface GameState {
@@ -355,7 +357,13 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
       return main ? [cardOf(key, main, rest, serverNow, timeZone)] : [];
     })
     .sort((a, b) => RANK[a.group] - RANK[b.group]);
-  return { title: board.config?.title ?? null, teams, cards, today: cards.some((c) => c.today) };
+  return {
+    title: board.config?.title ?? null,
+    teams,
+    cards,
+    today: cards.some((c) => c.today),
+    retired: board.config?.retired === true,
+  };
 }
 
 /**
@@ -371,6 +379,20 @@ export function otherGames(
   timeZone?: string,
 ): BoardCard[] {
   return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId && c.key !== team);
+}
+
+/** Spec 006 US5: Serverzeit der jüngsten Meldung einer Mannschaft (von irgendeinem Handy), sonst null. */
+export function lastSentAt(board: Board, team: string): number | null {
+  const times = board.games.filter((e) => e.snap.team === team).map((e) => e.at);
+  return times.length > 0 ? Math.max(...times) : null;
+}
+
+/** US5: "zuletzt gesendet heute 10:40 Uhr", an anderen Tagen "zuletzt gesendet am 31.10.". */
+export function sentLabel(at: number | null, serverNow: number, timeZone?: string): string {
+  if (at === null) return 'noch nichts gesendet';
+  return dayKey(at, timeZone) === dayKey(serverNow, timeZone)
+    ? `zuletzt gesendet heute ${formatClockTime(at, timeZone)} Uhr`
+    : `zuletzt gesendet am ${shortDay(at, timeZone)}`;
 }
 
 /** Läuft das Spiel noch, wenn die letzte Meldung höchstens so alt ist (FR-L22)? */

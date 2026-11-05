@@ -9,7 +9,9 @@ import {
   emptyBoard,
   formatClockTime,
   formatDay,
+  lastSentAt,
   otherGames,
+  sentLabel,
   parseBoard,
   runningElsewhere,
   type Board,
@@ -149,7 +151,7 @@ describe('006 FR-L11 R-L5 Meldungen übernehmen', () => {
 describe('006 FR-L12 FR-L14 Karten', () => {
   it('Leerzustand: keine Karten, Mannschaften und Titel aus der Konfiguration', () => {
     const v = view(applyConfig(emptyBoard(), config(['E1', 'E2'])), T0);
-    expect(v).toEqual({ title: 'Unser Spieltag', teams: ['E1', 'E2'], cards: [], today: false });
+    expect(v).toEqual({ title: 'Unser Spieltag', teams: ['E1', 'E2'], cards: [], today: false, retired: false });
   });
 
   it('ohne Konfiguration gelten die Mannschaften der Meldungen (sortiert), ohne Titel', () => {
@@ -509,5 +511,36 @@ describe('006 US4 andere Spiele im Spielbildschirm', () => {
     // Mannschaft nicht im Live-Spieltag: nur das eigene Spiel fehlt.
     expect(otherGames(b, 'nur-hier', null, T0 + min(60), TZ).map((c) => c.gameId)).toEqual(['heute-frueher']);
     expect(otherGames(emptyBoard(), 'eigen', 'E1', T0, TZ)).toEqual([]);
+  });
+});
+
+describe('006 US5 zuletzt gesendet je Mannschaft', () => {
+  it('jüngste Meldung (Serverzeit) über alle Handys; ohne Meldung null', () => {
+    const b = [
+      snap({ gameId: 'a', sentAt: T0 }),
+      snap({ gameId: 'b', sentAt: T0 + min(5) }),
+      snap({ team: 'E2', gameId: 'c', sentAt: T0 + min(2) }),
+    ].reduce((acc, x) => put(acc, x, x.sentAt + 1000), emptyBoard());
+    expect(lastSentAt(b, 'E1')).toBe(T0 + min(5) + 1000);
+    expect(lastSentAt(b, 'E2')).toBe(T0 + min(2) + 1000);
+    expect(lastSentAt(b, 'E3')).toBeNull();
+  });
+});
+
+describe('006 US5-S3 Dashboard über einen neu ausgestellten Live-Spieltag', () => {
+  it('meldet "neu ausgestellt", die Karten bleiben', () => {
+    const b = put(applyConfig(emptyBoard(), config(['E1'])), snap({ clock: kicked() }));
+    expect(view(b, T0 + min(1)).retired).toBe(false);
+    const r = applyConfig(b, { ...config(['E1'], T0 + 1), retired: true });
+    expect(view(r, T0 + min(1)).retired).toBe(true);
+    expect(view(r, T0 + min(1)).cards).toHaveLength(1);
+  });
+});
+
+describe('006 US5 Text "zuletzt gesendet"', () => {
+  it('heute mit Uhrzeit, sonst mit Datum, ohne Meldung "noch nichts gesendet"', () => {
+    expect(sentLabel(T0 + min(40), T0 + min(90), TZ)).toBe('zuletzt gesendet heute 10:40 Uhr');
+    expect(sentLabel(T0 - DAY * 7, T0, TZ)).toBe('zuletzt gesendet am 31.10.');
+    expect(sentLabel(null, T0, TZ)).toBe('noch nichts gesendet');
   });
 });

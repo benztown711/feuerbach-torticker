@@ -153,16 +153,32 @@ export function Dashboard({
   config,
   hidden = false,
   onInfo,
+  adopt = false,
 }: {
   view: View;
   inApp: boolean;
   config?: LiveConfig | null;
+  /** Trainer-Handy: jüngere Konfiguration übernehmen (US5-S1). */
+  adopt?: boolean;
   /** Spec 010: bleibt beim Wechsel zur Eltern-Hilfe eingehängt, damit die Verbindung bestehen bleibt. */
   hidden?: boolean;
   /** Titel und Mannschaften für "Teilen" in der Eltern-Leiste (FR-H17). */
   onInfo?: (info: { title: string; teams: string[] }) => void;
 }) {
-  const receiver = useMemo(() => newReceiver(view, {}, config), [view.topic, view.viewKey, view.orgPub]);
+  const receiver = useMemo(
+    () =>
+      newReceiver(
+        view,
+        // US5-S1: Auf einem Trainer-Handy übernimmt die App eine jüngere Konfiguration (nachgeladen).
+        adopt
+          ? {
+              onConfig: (signed) => void import('../../platform/live-setup').then((m) => m.adoptReceived(signed, view)),
+            }
+          : {},
+        config,
+      ),
+    [view.topic, view.viewKey, view.orgPub],
+  );
   const [state, setState] = useState<ReceiverState>(() => receiver.get());
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   // Ausgeblendet (Eltern-Hilfe offen) reicht ein seltener Takt; die Verbindung bleibt trotzdem bestehen.
@@ -220,6 +236,13 @@ export function Dashboard({
           {statusDetail(state.relay, state.liveAt)}
         </span>
       </div>
+      {v.retired && (
+        <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
+          {inApp
+            ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live-Spieltag).`
+            : `„${title}“ wurde neu ausgestellt. Bitte den neuen Link aus der Elterngruppe öffnen.`}
+        </p>
+      )}
       {!v.today && (
         <section class="dash-empty" data-testid="dash-empty">
           <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>
@@ -327,12 +350,14 @@ export function ViewerScreen({
 
 /** `#/live-spieltag/dashboard`: Dashboard des eigenen Live-Spieltags in der App (FR-L17). */
 export function AppDashboardScreen() {
-  const [view, setView] = useState<{ view: View; config: LiveConfig | null } | null | undefined>(undefined);
+  const [view, setView] = useState<{ view: View; config: LiveConfig | null; adopt: boolean } | null | undefined>(
+    undefined,
+  );
   useEffect(() => {
     getSettings()
       .then((s) => {
-        if (s.live) setView({ view: viewerOf(s.live), config: configOf(s.live.config) });
-        else setView(s.liveView ? { view: s.liveView, config: null } : null);
+        if (s.live) setView({ view: viewerOf(s.live), config: configOf(s.live.config), adopt: true });
+        else setView(s.liveView ? { view: s.liveView, config: null, adopt: false } : null);
       })
       .catch(() => setView(null));
   }, []);
@@ -347,5 +372,5 @@ export function AppDashboardScreen() {
       </main>
     );
   }
-  return <Dashboard view={view.view} config={view.config} inApp />;
+  return <Dashboard view={view.view} config={view.config} adopt={view.adopt} inApp />;
 }

@@ -664,6 +664,120 @@
           }
         }
       }
+    },
+    "live": {
+      "type": "object",
+      "description": "Spec 006 FR-L21: Live-Spieltag mit Schlüsseln, damit ein Handywechsel ohne neue Links geht. Enthält den Trainer-Schlüssel: nur für den Besitzer aufbewahren. Fehlt ohne Live-Spieltag.",
+      "required": [
+        "v",
+        "topic",
+        "viewKey",
+        "orgPub",
+        "config",
+        "teams",
+        "createdAt"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "topic": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22}$"
+        },
+        "viewKey": {
+          "$ref": "#/$defs/key32"
+        },
+        "orgPub": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{87}$",
+          "description": "ECDSA P-256 öffentlich, roh (65 Byte)"
+        },
+        "orgKey": {
+          "$ref": "#/$defs/privateKey"
+        },
+        "config": {
+          "$ref": "#/$defs/signed"
+        },
+        "teams": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "name",
+              "homeColor",
+              "awayColor",
+              "leadKey",
+              "cert",
+              "sends"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20,
+                "pattern": "\\S"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40,
+                "pattern": "\\S"
+              },
+              "homeColor": {
+                "enum": [
+                  "rot",
+                  "schwarz",
+                  "weiss",
+                  "gelb",
+                  "orange",
+                  "gruen",
+                  "hellblau",
+                  "blau",
+                  "dunkelblau",
+                  "lila",
+                  "bordeaux",
+                  "grau"
+                ]
+              },
+              "awayColor": {
+                "enum": [
+                  "rot",
+                  "schwarz",
+                  "weiss",
+                  "gelb",
+                  "orange",
+                  "gruen",
+                  "hellblau",
+                  "blau",
+                  "dunkelblau",
+                  "lila",
+                  "bordeaux",
+                  "grau"
+                ]
+              },
+              "leadKey": {
+                "$ref": "#/$defs/privateKey"
+              },
+              "cert": {
+                "$ref": "#/$defs/signed"
+              },
+              "sends": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Epoch-ms"
+        }
+      }
     }
   },
   "$defs": {
@@ -682,6 +796,51 @@
         "opp": {
           "type": "integer",
           "minimum": 0
+        }
+      }
+    },
+    "key32": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "32 Byte base64url"
+    },
+    "privateKey": {
+      "type": "object",
+      "required": [
+        "d",
+        "x",
+        "y"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "d": {
+          "$ref": "#/$defs/key32"
+        },
+        "x": {
+          "$ref": "#/$defs/key32"
+        },
+        "y": {
+          "$ref": "#/$defs/key32"
+        }
+      }
+    },
+    "signed": {
+      "type": "object",
+      "required": [
+        "d",
+        "s"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "d": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "s": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "ECDSA-Signatur (64 Byte)"
         }
       }
     }

@@ -1,7 +1,18 @@
 import { teamShortLabel } from './history';
 import { isPaletteColor } from './jersey-colors';
 import type { LeadLinkData, TrainerLinkData, TrainerTeam } from './live-link';
-import { isKey, isObj, isText, isTime, MAX_KEY, MAX_LIVE_TEAMS, MAX_TITLE } from './live-validate';
+import {
+  isKey,
+  isObj,
+  isPrivateKeyParts,
+  isSignedData,
+  isText,
+  isTime,
+  isTopic,
+  MAX_KEY,
+  MAX_LIVE_TEAMS,
+  MAX_TITLE,
+} from './live-validate';
 import { normalizeName } from './validation';
 import type {
   Game,
@@ -13,6 +24,7 @@ import type {
   Settings,
   SignedData,
   Team,
+  TeamDetail,
   ViewerLink,
 } from './types';
 
@@ -58,11 +70,18 @@ export interface LiveInputCheck {
   errors: Partial<Record<'title' | 'teams', string>>;
 }
 
+/** Titel eines Live-Spieltags: Leerzeichen zusammengezogen, 1 bis 40 Zeichen (FR-L01, FR-L19). */
+export function checkTitle(raw: string): { ok: boolean; title: string; error?: string } {
+  const title = raw.trim().replace(/\s+/g, ' ');
+  if (title.length === 0) return { ok: false, title, error: 'Bitte einen Titel eintragen.' };
+  if (title.length > MAX_TITLE) return { ok: false, title, error: 'Höchstens 40 Zeichen.' };
+  return { ok: true, title };
+}
+
 export function validateLiveInput(input: LiveInput, teams: Team[]): LiveInputCheck {
-  const title = input.title.trim().replace(/\s+/g, ' ');
+  const { title, error } = checkTitle(input.title);
   const errors: LiveInputCheck['errors'] = {};
-  if (title.length === 0) errors.title = 'Bitte einen Titel eintragen.';
-  else if (title.length > MAX_TITLE) errors.title = 'Höchstens 40 Zeichen.';
+  if (error) errors.title = error;
   const known = input.teamIds.filter((id) => teams.some((t) => t.id === id));
   if (known.length === 0) errors.teams = 'Bitte mindestens eine Mannschaft wählen.';
   else if (known.length > MAX_LIVE_TEAMS) errors.teams = 'Höchstens 6 Mannschaften.';
@@ -79,7 +98,12 @@ export async function createSpieltag(input: LiveInput, teams: Team[], deps: Live
   if (!check.ok) throw new Error(Object.values(check.errors).join(' '));
   const org = await deps.newSigningKey();
   const chosen = liveTeamOptions(teams).filter((o) => input.teamIds.includes(o.team.id));
-  const config: LiveConfig = { title: check.title, teams: chosen.map((o) => o.key), iat: deps.now };
+  const config: LiveConfig = {
+    title: check.title,
+    teams: chosen.map((o) => o.key),
+    iat: deps.now,
+    m: chosen.map(({ key, team }) => [key, team.name, team.homeColor, team.awayColor]),
+  };
   const creds: LiveTeamCred[] = [];
   for (const { key, team } of chosen) {
     const lead = await deps.newSigningKey();
@@ -165,7 +189,68 @@ export function parseConfig(v: unknown): LiveConfig | null {
   if (!isObj(v) || !isText(v.title, MAX_TITLE) || !Array.isArray(v.teams) || !isTime(v.iat)) return null;
   const teams = v.teams as unknown[];
   if (teams.length === 0 || teams.length > MAX_LIVE_TEAMS || !teams.every((t) => isText(t, MAX_KEY))) return null;
-  return { title: v.title, teams: teams as string[], iat: v.iat };
+  const config: LiveConfig = { title: v.title, teams: teams as string[], iat: v.iat };
+  const m = v.m;
+  if (m !== undefined && (!Array.isArray(m) || m.length > MAX_LIVE_TEAMS || !m.every(isTeamDetail))) return null;
+  if (v.retired !== undefined && v.retired !== true) return null;
+  return {
+    ...config,
+    ...(m !== undefined ? { m: m as TeamDetail[] } : {}),
+    ...(v.retired ? { retired: true } : {}),
+  };
+}
+
+/** US5: Kurzlabel, Name und zwei Trikotfarben der Palette. */
+const isTeamDetail = (v: unknown): v is TeamDetail =>
+  Array.isArray(v) &&
+  v.length === 4 &&
+  isText(v[0], MAX_KEY) &&
+  isText(v[1], MAX_TITLE) &&
+  typeof v[2] === 'string' &&
+  isPaletteColor(v[2]) &&
+  typeof v[3] === 'string' &&
+  isPaletteColor(v[3]);
+
+/** Zugangsdaten einer Mannschaft aus einer Sicherung (FR-L21). */
+function parseCred(v: unknown): LiveTeamCred | null {
+  if (!isObj(v) || !isText(v.key, MAX_KEY) || !isText(v.name, MAX_TITLE)) return null;
+  if (typeof v.homeColor !== 'string' || !isPaletteColor(v.homeColor)) return null;
+  if (typeof v.awayColor !== 'string' || !isPaletteColor(v.awayColor)) return null;
+  if (!isPrivateKeyParts(v.leadKey) || !isSignedData(v.cert) || typeof v.sends !== 'boolean') return null;
+  const { leadKey, cert } = v;
+  return {
+    key: v.key,
+    name: v.name,
+    homeColor: v.homeColor,
+    awayColor: v.awayColor,
+    leadKey: { d: leadKey.d, x: leadKey.x, y: leadKey.y },
+    cert: { d: cert.d, s: cert.s },
+    sends: v.sends,
+  };
+}
+
+/**
+ * Spec 006 FR-L21: gespeicherter Live-Spieltag aus einer Sicherung. Prüft den Aufbau; die Signatur der
+ * Konfiguration prüft die Plattform beim Wiederherstellen.
+ */
+export function parseLiveSpieltag(v: unknown): LiveSpieltag | null {
+  if (!isObj(v) || v.v !== 1 || !isTopic(v.topic) || !isKey(v.viewKey, 32) || !isKey(v.orgPub, 65)) return null;
+  if (v.orgKey !== undefined && !isPrivateKeyParts(v.orgKey)) return null;
+  if (!isSignedData(v.config) || !isTime(v.createdAt) || !Array.isArray(v.teams)) return null;
+  const teams = (v.teams as unknown[]).map(parseCred);
+  if (teams.length > MAX_LIVE_TEAMS || teams.some((t) => t === null)) return null;
+  if (new Set(teams.map((t) => t?.key)).size !== teams.length) return null;
+  const { orgKey, config } = v;
+  return {
+    v: 1,
+    topic: v.topic,
+    viewKey: v.viewKey,
+    orgPub: v.orgPub,
+    ...(orgKey ? { orgKey: { d: orgKey.d, x: orgKey.x, y: orgKey.y } } : {}),
+    config: { d: config.d, s: config.s },
+    teams: teams as LiveTeamCred[],
+    createdAt: v.createdAt,
+  };
 }
 
 /** Die jüngere von zwei Konfigurationen (größeres `iat`). */
@@ -237,7 +322,7 @@ export function applyLeadLink(
 }
 
 /** FR-L03: fehlende Mannschaften mit Name und Trikots in "Meine Mannschaften" übernehmen. */
-function adoptTeams(settings: Settings, add: Omit<TrainerTeam, 'key'>[], newId: () => string): Team[] {
+export function adoptTeams(settings: Settings, add: Omit<TrainerTeam, 'key'>[], newId: () => string): Team[] {
   const teams = [...settings.teams];
   for (const t of add) {
     if (teams.some((x) => normalizeName(x.name) === normalizeName(t.name))) continue;
@@ -295,9 +380,12 @@ export async function applyTrainerLink(
   return { ...settings, live, teams: adoptTeams(settings, teams, deps.newId) };
 }
 
+/** US5-S3: Der Live-Spieltag wurde auf einem anderen Trainer-Handy neu ausgestellt; dieses Handy sendet nicht mehr. */
+export const isRetired = (live: LiveSpieltag): boolean => configOf(live.config)?.retired === true;
+
 /** FR-L04: Mannschaft, für die dieses Gerät Spiele mit dieser eigenen Mannschaft sendet, sonst null. */
 export function liveTeamFor(ownTeam: string, live: LiveSpieltag | null): LiveTeamCred | null {
-  if (!live) return null;
+  if (!live || isRetired(live)) return null;
   const name = normalizeName(ownTeam);
   return live.teams.find((t) => sendsFor(live, t) && normalizeName(t.name) === name) ?? null;
 }

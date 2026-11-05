@@ -3,7 +3,7 @@ import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
 import { startPrivate } from '../../domain/live-snapshot';
-import { liveTeamFor, titleOf } from '../../domain/live-spieltag';
+import { isRetired, liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
 import { signalSoundName } from '../../domain/signal-sound';
@@ -12,6 +12,7 @@ import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
+import { onLiveSettings } from '../../platform/live-events';
 import type { LiveWatch, RunningGame } from '../../platform/live-watch';
 import { setSignalSound, testSignal } from '../../platform/signal';
 import { KitRow } from '../components/kit-row';
@@ -65,11 +66,11 @@ export function NewGameScreen() {
 
   const team = settings ? findTeam(settings, teamId) : null;
 
-  // Spec 006 US6: nur mithören, wenn das Spiel live gehen würde (nachgeladen).
-  const watchKey = team && settings?.live && liveOn ? (liveTeamFor(team.name, settings.live)?.key ?? null) : null;
+  // Spec 006 US6 und US5: mithören, solange das Handy gekoppelt ist (nachgeladen). So erkennt es ein schon
+  // übertragenes Spiel und übernimmt eine neue Mannschaftsliste eines anderen Trainer-Handys.
   useEffect(() => {
     const live = settings?.live;
-    if (!watchKey || !live) return;
+    if (!live) return;
     let alive = true;
     import('../../platform/live-watch')
       .then((m) => {
@@ -81,7 +82,9 @@ export function NewGameScreen() {
       watch.current?.stop();
       watch.current = null;
     };
-  }, [watchKey, settings?.live?.topic]);
+  }, [settings?.live?.topic]);
+  // US5-S1: übernommene Mannschaften und geänderte Titel sofort zeigen.
+  useEffect(() => onLiveSettings(setSettings), []);
 
   // FR-M03: eigenes Trikot folgt Heim/Auswärts, solange es nicht von Hand geändert wurde.
   useEffect(() => {
@@ -234,6 +237,12 @@ export function NewGameScreen() {
                 onClick={() => setLiveOn(!liveOn)}
               />
             </div>
+          )}
+          {settings.live && isRetired(settings.live) && (
+            <p class="field__help" data-testid="new-live-retired">
+              „{titleOf(settings.live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link unter „Mehr“ →
+              „Live-Spieltag“ ein, um wieder live zu senden.
+            </p>
           )}
           {settings.teams.length === 0 && (
             <p class="hint" data-testid="hint-teams">

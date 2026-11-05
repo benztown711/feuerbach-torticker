@@ -20,6 +20,9 @@ export const isText = (v: unknown, max: number): v is string =>
 
 export const isTime = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
+/** Topic bei ntfy.sh: 22 Zeichen base64url (128 Bit Zufall). */
+export const isTopic = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{22}$/.test(v);
+
 /** base64url mit genau `bytes` Byte Inhalt (Schlüssel, Signaturen). */
 export const isKey = (v: unknown, bytes: number): v is string =>
   typeof v === 'string' && isBase64Url(v) && decodedLength(v) === bytes;

@@ -106,7 +106,15 @@ describe('006 FR-L01 Live-Spieltag anlegen', () => {
       createdAt: T0,
     });
     expect(live.orgKey).toEqual({ d: 'd1', x: 'x1', y: 'y1' });
-    expect(JSON.parse(live.config.d)).toEqual({ title: 'Unser Spieltag', teams: ['E1', 'E2'], iat: T0 });
+    expect(JSON.parse(live.config.d)).toEqual({
+      title: 'Unser Spieltag',
+      teams: ['E1', 'E2'],
+      iat: T0,
+      m: [
+        ['E1', 'Sportvg Feuerbach E1', 'rot', 'schwarz'],
+        ['E2', 'Sportvg Feuerbach E2', 'rot', 'weiss'],
+      ],
+    });
     expect(live.teams.map((t) => [t.key, t.name, t.sends])).toEqual([
       ['E1', 'Sportvg Feuerbach E1', true],
       ['E2', 'Sportvg Feuerbach E2', true],
