@@ -971,6 +971,34 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 .dialog__text,
+/* Spec 012 FR-S10: Mannschaft beim Nachtragen, zwei gleich breite Knöpfe mit Trikotfarbe. */
+.add-goal__side {
+  display: inline-flex;
+  flex: 1 1 0;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  min-width: 0;
+}
+
+/* Spec 012 FR-S20: Uhr korrigieren mit großer Minute zwischen den Knöpfen. */
+.clock-fix {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.clock-fix__minute {
+  min-width: 3.5ch;
+  font-size: 44px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
 .sheet__subtitle {
   margin: 0;
   color: var(--color-ink-muted);

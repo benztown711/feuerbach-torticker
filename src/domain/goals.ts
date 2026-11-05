@@ -38,7 +38,7 @@ export function addGoal(game: Game, side: Side, now: number, newId: () => string
 
 /** US1-S4: Rückgängig direkt nach der Erfassung entfernt das Tor vollständig (Verklicken). */
 export function undoGoal(game: Game, goalId: string): Game {
-  return { ...game, goals: game.goals.filter((g) => g.id !== goalId) };
+  return refreshScores({ ...game, goals: game.goals.filter((g) => g.id !== goalId) });
 }
 
 /** Kaderspieler-ID des Torschützen, sonst null. */
@@ -62,12 +62,13 @@ const patchGoal = (game: Game, goalId: string, patch: Partial<Goal>): Game => ({
   goals: game.goals.map((g) => (g.id === goalId ? withValidAssist({ ...g, ...patch }) : g)),
 });
 
-/** FR-008: Tor entfernen; bleibt durchgestrichen sichtbar und zählt nicht. */
+/** FR-008: Tor entfernen; bleibt durchgestrichen sichtbar und zählt nicht. Spec 012 FR-S14: Stände folgen. */
 export const removeGoal = (game: Game, goalId: string, now: number): Game =>
-  patchGoal(game, goalId, { deletedAt: now });
+  refreshScores(patchGoal(game, goalId, { deletedAt: now }));
 
-/** FR-008: entferntes Tor wiederherstellen. */
-export const restoreGoal = (game: Game, goalId: string): Game => patchGoal(game, goalId, { deletedAt: null });
+/** FR-008: entferntes Tor wiederherstellen. Spec 012 FR-S14: Stände folgen. */
+export const restoreGoal = (game: Game, goalId: string): Game =>
+  refreshScores(patchGoal(game, goalId, { deletedAt: null }));
 
 /**
  * FR-009: Torschütze setzen. Spieler und Eigentor nur bei eigenen Toren, Freitext nur bei Gegentoren
@@ -148,6 +149,19 @@ export function goalWho(game: Game, goal: Goal, players: Player[]): string {
 export function score(game: Game): Score {
   const active = game.goals.filter((g) => g.deletedAt === null);
   return { own: active.filter((g) => g.side === 'own').length, opp: active.filter((g) => g.side === 'opp').length };
+}
+
+/**
+ * Spec 012 FR-S14: Halbzeit- und Endstand folgen jeder Tor-Korrektur. Nur gesetzte Stände werden neu
+ * berechnet: der Halbzeitstand aus den Toren des 1. Abschnitts, der Endstand aus allen Toren.
+ */
+export function refreshScores(game: Game): Game {
+  const firstSection = { ...game, goals: game.goals.filter((g) => g.section === 1) };
+  return {
+    ...game,
+    halfTimeScore: game.halfTimeScore === null ? null : score(firstSection),
+    finalScore: game.finalScore === null ? null : score(game),
+  };
 }
 
 export function homeAway(venue: Venue, s: Score): { home: number; away: number } {

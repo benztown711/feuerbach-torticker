@@ -148,6 +148,46 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['tor', 'torschuetze'],
   },
   {
+    id: 'tor-nachtragen',
+    topic: 'spiel',
+    title: 'Wie trage ich ein vergessenes Tor nach?',
+    answer:
+      'Tippe im Spiel auf „…“ und „Tor nachtragen“. Wähle die Mannschaft und die Minute und tippe auf „Eintragen“. Das geht auch nach dem Schlusspfiff; Stand, Torliste, geteilter Text und Dashboard stimmen danach. Bei einem eigenen Tor fragt der Torticker anschließend nach dem Torschützen.',
+    keywords: 'vergessen nachtragen nachträglich tor fehlt später schlusspfiff ergebnis falsch',
+    sources: ['012 US2'],
+    related: ['tor-minute', 'tor-entfernen'],
+  },
+  {
+    id: 'tor-minute',
+    topic: 'spiel',
+    title: 'Wie ändere ich die Minute eines Tores?',
+    answer:
+      'Tippe in der Torliste auf das Tor und dann auf „Minute ändern“. Wähle die richtige Minute und tippe auf „Übernehmen“. Das Tor rutscht an die richtige Stelle, Torschütze und Vorlage bleiben.',
+    keywords: 'minute falsch ändern korrigieren verschieben zeitpunkt',
+    sources: ['012 US2'],
+    related: ['tor-nachtragen', 'uhr-korrigieren'],
+  },
+  {
+    id: 'pfiff-zuruecknehmen',
+    topic: 'spiel',
+    title: 'Wie nehme ich einen Pfiff zurück?',
+    answer:
+      'Zu früh „Pausenpfiff“ oder „Schlusspfiff“ getippt? Tippe auf „…“ und „Pausenpfiff zurücknehmen“ bzw. „Schlusspfiff zurücknehmen“. Die Uhr läuft weiter, als wäre nicht gepfiffen worden. Das geht bis 10 Minuten nach dem Pfiff, solange noch nicht wieder angepfiffen ist.',
+    keywords: 'pfiff zurück versehentlich zu früh abgepfiffen halbzeit schlusspfiff rückgängig',
+    sources: ['012 US3'],
+    related: ['pausenpfiff', 'uhr-korrigieren'],
+  },
+  {
+    id: 'uhr-korrigieren',
+    topic: 'spiel',
+    title: 'Was tue ich, wenn die Uhr falsch geht?',
+    answer:
+      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „+1 Min“ oder „−1 Min“ die richtige Spielminute ein und tippe auf „Übernehmen“. Restzeit, Pfiff, die Minuten der Tore dieser Halbzeit und das Dashboard folgen.',
+    keywords: 'uhr falsch zu spät anpfiff vergessen minute stimmt nicht verstellen zeit korrigieren',
+    sources: ['012 US4'],
+    related: ['uhr-anhalten', 'tor-minute'],
+  },
+  {
     id: 'uhr-anhalten',
     topic: 'spiel',
     title: 'Wie halte ich die Uhr an?',
