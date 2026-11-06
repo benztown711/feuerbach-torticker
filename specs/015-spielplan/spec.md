@@ -45,6 +45,14 @@
 - Folgerung: Die Einfügezeile kann die Spielzeit tragen ("(Leistungsliga, 3×25)"), und "?" steht für "Gegner offen". Zwei Planspiele am selben Tag gegen denselben Verein für verschiedene Mannschaften sind zwei Einträge.
 - Q (Atti): Kann man ein zusätzliches Spiel anlegen und trotzdem aufs Dashboard übertragen? → A: Ja. Jedes Spiel einer Mannschaft des Live-Spieltags geht vom Trainer-Handy aufs Dashboard, ob aus dem Plan oder nicht (Spec 006 FR-L06, US2 Szenario 6).
 
+### Session 2026-11-06 (Review A, Antworten)
+
+- Q: Sportvg Feuerbach I/II/III entspricht E1/E2/E3? → A: Ja.
+- Q: E3 in den Live-Spieltag aufnehmen (E3-Trainer bekommen den Trainer-Link)? → A: Ja.
+- Q: Darf jedes Trainer-Handy den Plan pflegen? → A: Ja.
+- Wunsch (Atti): Wer den Trainer-Link hat, wählt ein Spiel aus der Liste und bestätigt damit kurz, dass er für dieses Spiel das Lead-Handy ist. → Neue US6 "Spiel vormerken".
+- Q (Atti): Wann werden die Spiele für Zuschauer sichtbar und wie lange? → A: siehe US3 (Absatz "Sichtbarkeit").
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Spielplan pflegen (Priority: P1)
@@ -90,6 +98,8 @@ Am Spieltag öffnet der Trainer "Neues Spiel". Oben stehen die Spiele aus dem Pl
 Auf dem Dashboard sehen die Eltern je Mannschaft, wann und gegen wen das nächste Spiel ist, mit Anstoßzeit. Am Spieltag wird aus dem geplanten Spiel das laufende; am Turniertag stehen die weiteren Spiele darunter.
 
 **Why this priority**: Nutzen für die Eltern; der Spieltag funktioniert auch ohne.
+
+**Sichtbarkeit**: Ein Planspiel mit Gegner ist für Zuschauer sichtbar, sobald es im Plan steht und gesendet wurde: bis zu seinem Tag als Zeile "Nächstes Spiel" unter der Karte, an seinem Tag als Karte. Ein beendetes Spiel bleibt Hauptinhalt der Karte bis zum Tag des nächsten Spiels dieser Mannschaft. Planspiele verschwinden am Tag nach ihrem Datum. Grenze des Vermittlungsdienstes (Spec 006 FR-L16): Wer das Dashboard schon einmal geöffnet hatte, sieht den zuletzt empfangenen Stand ohne Zeitgrenze; wer es erst später zum ersten Mal öffnet, sieht nur, was in den letzten rund 12 Stunden gesendet wurde. Trainer-Handys senden den Plan beim Öffnen erneut (FR-P07), Lead-Handys während eines Spiels laufend.
 
 **Independent Test**: Plan enthält "Sa 14.11. 12:00 E1 heim gegen TSV Musterstadt". Gerät C mit Zuschauer-Link am 10.11.: E1-Karte zeigt das letzte Ergebnis und darunter "Nächstes Spiel: Sa 14.11., 12:00 gegen TSV Musterstadt". Am 14.11. zeigt die Karte "Feuerbach E1 – TSV Musterstadt · heute 12:00"; nach dem Anlegen und Anpfiff aus dem Plan wird dieselbe Karte zum laufenden Spiel.
 
@@ -137,6 +147,26 @@ Atti teilt die Kinder in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit
 3. **Given** es gibt nur einen Kader, **Then** spielen alle Mannschaften damit, und "Neues Spiel" sowie "Mehr" → "Kader" sehen aus wie bisher.
 4. **Given** "Neues Spiel" für E2, **Then** zeigt "Aufgebot" die Kinder des Kaders "E1/E2"; die Kinder anderer Kader stehen eingeklappt unter "Weitere Kinder" und sind wählbar (Aushilfe).
 5. **Given** "Kader teilen" im Kader "E3", **Then** enthält der Text nur die Kinder von "E3" mit dem Kadernamen als erster Zeile; "Liste einfügen" auf einem anderen Handy legt fehlende Kinder in einem gleichnamigen Kader an (fehlt er, wird er angelegt).
+
+---
+
+### User Story 6 - Spiel vormerken: "Ich tickere" (Priority: P2)
+
+Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy dafür das Lead-Handy ist. Alle Trainer sehen, wer welches Spiel tickert. Am Spieltag zeigt sein Startbildschirm das Spiel ganz oben; zwei Tipps bis zum Spielbildschirm.
+
+**Why this priority**: Klärt vorab, wer tickert, und spart am Spieltag die Suche; ohne Vormerken geht es mit US2.
+
+**Independent Test**: Trainer-Handy B merkt "Sa 14.11. 12:00 E1 gegen TSV Musterstadt" vor; Trainer-Handy A zeigt im Plan "Tickert: Ben" (fiktiver Trainername). Am 14.11. zeigt B auf dem Startbildschirm "Heute tickerst du: 12:00 E1 gegen TSV Musterstadt"; Tipp und "Weiter zum Anpfiff" führen zum Spielbildschirm.
+
+**Acceptance Scenarios**:
+
+1. **Given** ein Planspiel ohne Vormerkung, **When** der Trainer es im Plan antippt und "Ich tickere" wählt, **Then** fragt die App "Du tickerst Sa 14.11., 12:00 E1 gegen TSV Musterstadt. Die anderen Trainer sehen das." mit "Ja, ich tickere" und "Abbrechen"; nach "Ja" steht im Plan auf allen Trainer-Handys "Tickert: <Name>".
+2. **Given** der Trainer merkt zum ersten Mal vor, **Then** fragt die App einmal nach "Dein Name für die Trainer" (Vorname, optional); ohne Namen steht "Tickert: vergeben", auf dem eigenen Handy "Tickert: du".
+3. **Given** ein Spiel ist vorgemerkt, **When** ein anderer Trainer "Ich tickere" wählt, **Then** fragt die App "Ben tickert dieses Spiel. Trotzdem übernehmen?"; nach "Übernehmen" gilt die neue Vormerkung auf allen Handys.
+4. **Given** eine eigene Vormerkung, **When** "Nicht mehr tickern" gewählt wird, **Then** ist das Spiel wieder frei.
+5. **Given** am Spieltag ein vorgemerktes Spiel, **Then** zeigt der Startbildschirm des vormerkenden Handys oben "Heute tickerst du: 12:00 E1 gegen TSV Musterstadt"; ein Tipp öffnet "Neues Spiel" mit dem Planspiel ausgewählt (wie US2 Szenario 2).
+6. **Given** ein vorgemerktes Spiel, **When** ein anderes Handy es trotzdem unter "Neues Spiel" anlegt, **Then** fragt die App vor "Weiter zum Anpfiff" "Ben tickert dieses Spiel. Trotzdem hier erfassen?"; die Übertragung regelt danach Spec 006 US6.
+7. **Given** Vormerkungen, **Then** erscheinen sie nicht auf dem Dashboard.
 
 ---
 
@@ -198,6 +228,13 @@ Atti teilt die Kinder in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit
 - **FR-P22**: "Neues Spiel" MUSS im Aufgebot die Kinder des Kaders der Mannschaft zeigen und die Kinder anderer Kader eingeklappt unter "Weitere Kinder" (wählbar als Aushilfe). Torschützen-Auswahl und Vorlagen bleiben wie bisher (Aufgebot zuerst).
 - **FR-P23**: "Kader teilen" MUSS den angezeigten Kader mit seinem Namen als erster Zeile teilen; "Liste einfügen" MUSS bei einer solchen ersten Zeile die Kinder dem gleichnamigen Kader zuordnen (fehlt er, wird er angelegt). Listen ohne Kadernamen gehen wie bisher in den angezeigten Kader.
 
+**Vormerken (US6)**
+
+- **FR-P25**: Ein Planspiel MUSS sich auf einem Trainer-Handy mit "Ich tickere" und einer Bestätigung vormerken lassen; die Vormerkung (Handy-Kennung, optionaler Vorname des Trainers, Zeitpunkt) wird wie der Plan übertragen (FR-P06) und auf allen Trainer-Handys im Plan als "Tickert: <Name>" bzw. "Tickert: vergeben" oder "Tickert: du" gezeigt.
+- **FR-P26**: Den Vornamen MUSS die App beim ersten Vormerken einmal erfragen (optional, 1 bis 20 Zeichen) und in den Einstellungen änderbar machen.
+- **FR-P27**: Ist ein Spiel vorgemerkt, MÜSSEN "Ich tickere" und "Weiter zum Anpfiff" auf einem anderen Handy erst nach der Rückfrage aus US6 Szenario 3 bzw. 6 weitergehen. "Nicht mehr tickern" gibt das Spiel frei.
+- **FR-P28**: Der Startbildschirm MUSS am Tag eines eigenen vorgemerkten Spiels oben "Heute tickerst du: <Anstoß> <Mannschaft> gegen <Gegner>" zeigen (mehrere untereinander); ein Tipp öffnet "Neues Spiel" mit diesem Planspiel.
+
 **Allgemein**
 
 - **FR-P24**: Spielplan und Kader MÜSSEN in der Sicherung enthalten sein und beim Wiederherstellen übernommen werden.
@@ -216,6 +253,7 @@ Atti teilt die Kinder in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit
 | `spiel-aus-plan` "Wie lege ich ein Spiel aus dem Spielplan an?" | neu | 015 US2 |
 | `spielplan-liste` "Wie füge ich den ganzen Spielplan auf einmal ein?" | neu | 015 US4 |
 | `spielplan-fehlt` "Warum fehlt ein Spiel im Spielplan?" | neu (12 Stunden, Abhilfe) | 015 FR-P07 |
+| `spiel-vormerken` "Wie sage ich an, dass ich ein Spiel tickere?" | neu | 015 US6 |
 | `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: "Aus dem Spielplan" | 001 US1, 015 US2 |
 | `live-verwalten` "Wie ändere ich Titel oder Mannschaften des Live-Spieltags?" | geändert: Verweis auf "Spielplan" | 006 US5, 015 US1 |
 | `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: nächstes Spiel mit Anstoß | 006 US3, 015 US3 |
@@ -233,11 +271,13 @@ Atti teilt die Kinder in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit
 - **SC-P04**: Das Dashboard zeigt für ein Spiel nie zwei Karten (Planspiel und angelegtes Spiel).
 - **SC-P05**: Ein Plan mit 60 Spielen passt in eine Meldung des Vermittlungsdienstes.
 - **SC-P06**: Domain-Logik (Zusammenführen, Einfügeformat, Ordnung auf dem Dashboard, Kader) mit 100 % Branch-Coverage; Netzwerk-Wächter ohne neue Ziele.
+- **SC-P07**: Ein Trainer mit vorgemerktem Spiel kommt am Spieltag mit 2 Tipps vom Startbildschirm auf den Spielbildschirm.
 
 ## Assumptions
 
-- Jedes Trainer-Handy darf den Plan pflegen (wie Titel und Mannschaften, Spec 006 FR-L19); eine Rolle "nur Atti" gibt es nicht. Offen für Review A.
-- Mannschaften im Plan sind die des Live-Spieltags; E3 wird für den Plan in den Live-Spieltag aufgenommen. Offen für Review A.
+- Jedes Trainer-Handy darf den Plan pflegen (wie Titel und Mannschaften, Spec 006 FR-L19); eine Rolle "nur Atti" gibt es nicht (Review A).
+- Mannschaften im Plan sind die des Live-Spieltags; E3 wird aufgenommen, die E3-Trainer bekommen den Trainer-Link (Review A).
+- Der Vorname des Trainers in einer Vormerkung reist wie der Plan verschlüsselt mit; das Dashboard zeigt ihn nicht. Ob er für Zuschauer technisch unlesbar sein muss, klärt der Plan (Constitution III betrifft Kinder, nicht Trainer).
 - Kein automatischer Abruf von fußball.de (Netzwerk-Wächter, Constitution II); Atti fügt eine Textliste ein.
 - Aufgebot und Aufteilung auf E1/E2 bleiben beim Trainer vor Ort bzw. in der Trainergruppe; eine Unterstützung der Aufteilung in der App ist nicht Teil dieser Spec.
 - Keine neue Laufzeit-Abhängigkeit; Übertragung nach dem Muster der Konfiguration (Spec 006 R-L17).

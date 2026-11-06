@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Offen für Review A: wer den Plan pflegt (Annahme: jedes Trainer-Handy), E3 in den Live-Spieltag aufnehmen, Zuordnung Sportvg Feuerbach I/II/III zu E1/E2/E3.
+- Review A: Fragen beantwortet (06.11.2026); offen nur noch Bestätigung von US6 und der Vorschläge aus dem Chat.
