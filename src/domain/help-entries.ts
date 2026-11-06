@@ -546,11 +546,28 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie ändere ich Titel oder Mannschaften des Live-Spieltags?',
     answer:
-      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung.',
+      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung. Die Spiele der Saison trägst du unter „Spielplan“ ein.',
     keywords: 'titel ändern umbenennen mannschaft hinzufügen entfernen e3 neue mannschaft verwalten',
-    sources: ['006 US5'],
+    sources: ['006 US5', '015 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
-    related: ['live-anlegen', 'links-neu'],
+    related: ['live-anlegen', 'links-neu', 'spielplan'],
+  },
+  {
+    id: 'spielplan',
+    topic: 'live',
+    title: 'Wie trage ich den Spielplan ein?',
+    answer:
+      'Unter „Mehr“, „Live-Spieltag“ und „Spielplan“ tippst du auf „Spiel hinzufügen“. Wähle Mannschaft, Datum, Anstoß, Gegner, Heim oder Auswärts, Wettbewerb und Spielzeit; Anstoß und Gegner dürfen leer bleiben. Alle Trainer-Handys mit Trainer-Link bekommen den Plan automatisch und dürfen ihn ändern. Fällt ein Spiel aus, tippst du es an und wählst „Abgesagt“. Vergangene Spiele stehen unten unter „Vergangene Spiele“.',
+    steps: [
+      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Spiel hinzufügen“ tippen und die Angaben eintragen.',
+      '„Speichern“ tippen. Zum Ändern, Absagen oder Löschen das Spiel antippen.',
+    ],
+    keywords:
+      'spielplan spiele saison termine plan gegner datum anstoß uhrzeit heim auswärts wettbewerb abgesagt absage leistungsliga kreisstaffel',
+    sources: ['015 US1'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['live-verwalten', 'live-anlegen'],
   },
   {
     id: 'links-neu',

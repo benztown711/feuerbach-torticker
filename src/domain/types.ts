@@ -289,3 +289,37 @@ export interface NewGameInput {
   /** FR-030: Spieler-IDs des Aufgebots; leer = ganzer Kader. */
   squad?: string[];
 }
+
+/** Spec 015: ein Planspiel im Spielplan des Live-Spieltags (data-model.md). */
+export interface PlanEntry {
+  id: string;
+  /** Kurzlabel der Mannschaft im Live-Spieltag, z. B. "E1". */
+  team: string;
+  /** Kalendertag "JJJJ-MM-TT". */
+  date: string;
+  /** Anstoß "HH:MM", leer = unbekannt. */
+  time: string | null;
+  venue: Venue;
+  /** Leer = "Gegner offen". */
+  opponent: string;
+  competition: string;
+  /** Leer = Spielzeit der Mannschaft. */
+  schema: Schema | null;
+  cancelled: boolean;
+  /** Grabstein (FR-P04). */
+  deleted: boolean;
+  /** Zeitpunkt der letzten Änderung, je Planspiel streng steigend. */
+  updatedAt: number;
+}
+
+/** Spec 015: Spielplan je Handy, gebunden an einen Live-Spieltag (R-P3). */
+export interface PlanStore {
+  v: 1;
+  topic: string;
+  orgPub: string;
+  entries: PlanEntry[];
+  /** Letzte erfolgreiche Plan-Meldung dieses Handys. */
+  sentAt: number;
+  /** Geänderte Planspiele, die noch nicht gesendet wurden. */
+  pending: string[];
+}

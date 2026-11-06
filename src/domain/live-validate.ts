@@ -9,6 +9,8 @@ export const MAX_KEY = 20;
 /** Höchstens so viele Mannschaften je Live-Spieltag (FR-L01). */
 export const MAX_LIVE_TEAMS = 6;
 const MAX_SIGNED = 2000;
+/** Spec 015 contracts/plan-message.md: signierte Daten einer Plan-Meldung. */
+export const MAX_PLAN_SIGNED = 3000;
 
 export type Obj = Record<string, unknown>;
 
@@ -28,8 +30,8 @@ export const isKey = (v: unknown, bytes: number): v is string =>
   typeof v === 'string' && isBase64Url(v) && decodedLength(v) === bytes;
 
 /** Signierter JSON-Text mit ECDSA-P-256-Signatur (64 Byte). */
-export const isSignedData = (v: unknown): v is SignedData =>
-  isObj(v) && typeof v.d === 'string' && v.d.length > 0 && v.d.length <= MAX_SIGNED && isKey(v.s, 64);
+export const isSignedData = (v: unknown, max = MAX_SIGNED): v is SignedData =>
+  isObj(v) && typeof v.d === 'string' && v.d.length > 0 && v.d.length <= max && isKey(v.s, 64);
 
 export const isPrivateKeyParts = (v: unknown): v is PrivateKeyParts =>
   isObj(v) && isKey(v.d, 32) && isKey(v.x, 32) && isKey(v.y, 32);

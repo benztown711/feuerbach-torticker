@@ -15,10 +15,12 @@ import {
   validateLiveInput,
   type LiveTeamOption,
 } from '../../domain/live-spieltag';
+import { entryTitle, formatPlanDate, planView, todayKey } from '../../domain/plan';
 import { shortTeamName } from '../../domain/team-name';
-import type { LiveSpieltag, Settings } from '../../domain/types';
+import type { LiveSpieltag, PlanStore, Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
-import { onLiveSettings } from '../../platform/live-events';
+import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
+import { loadPlan } from '../../platform/plan-sync';
 import {
   addTeamToLive,
   coupleLink,
@@ -70,6 +72,43 @@ function Topbar({ title, onBack }: { title: string; onBack: () => void }) {
       </button>
       <h1 class="topbar__title t-zwischentitel">{title}</h1>
     </header>
+  );
+}
+
+/** Spec 015 US1: Karte "Spielplan" mit dem nächsten Spiel. */
+function PlanCard({ live }: { live: LiveSpieltag }) {
+  const [store, setStore] = useState<PlanStore | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadPlan(live).then((p) => alive && setStore(p));
+    const off = onPlanChanged((p) => p.topic === live.topic && setStore(p));
+    return () => {
+      alive = false;
+      off();
+    };
+  }, [live.topic, live.orgPub]);
+  const next = store
+    ? planView(store, todayKey(Date.now()))
+        .upcoming.flatMap((g) => g.entries)
+        .find((e) => !e.cancelled)
+    : undefined;
+  return (
+    <section class="field card" data-testid="live-plan">
+      <span class="t-label card__title">SPIELPLAN</span>
+      <p class="live__text" data-testid="live-plan-next">
+        {next
+          ? `Nächstes Spiel: ${formatPlanDate(next.date)}${next.time ? `, ${next.time}` : ''} · ${entryTitle(next)}`
+          : 'Trage die Spiele der Saison ein. Alle Trainer-Handys bekommen den Plan automatisch.'}
+      </p>
+      <button
+        type="button"
+        class="btn btn--secondary"
+        data-testid="btn-plan"
+        onClick={() => navigate('/live-spieltag/spielplan')}
+      >
+        Spielplan
+      </button>
+    </section>
   );
 }
 
@@ -515,6 +554,7 @@ function Overview({
           Trainer-Handys zusammen.
         </p>
       </section>
+      <PlanCard live={live} />
       <DashboardButton />
       <section class="field card">
         <span class="t-label card__title">VERWALTEN</span>

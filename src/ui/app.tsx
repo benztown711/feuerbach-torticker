@@ -39,6 +39,7 @@ function Lazy<P extends object>({ load, props }: { load: () => Promise<FunctionC
 }
 
 const loadLive = () => import('./screens/live').then((m) => m.LiveScreen);
+const loadPlan = () => import('./screens/spielplan').then((m) => m.PlanScreen);
 /** Spec 010: Hilfe mit rund 40 Einträgen wird nachgeladen (Bundle-Budget), offline aus dem Service Worker. */
 const loadHelp = () => import('./screens/help').then((m) => m.HelpScreen);
 const loadLeadLink = () => import('./screens/lead-link').then((m) => m.LeadLinkScreen);
@@ -59,6 +60,7 @@ export function App() {
       {route.name === 'game' && <GameScreen key={route.id} id={route.id} />}
       {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}
       {route.name === 'live' && <Lazy load={loadLive} props={{}} />}
+      {route.name === 'plan' && <Lazy load={loadPlan} props={{}} />}
       {route.name === 'leadLink' && <Lazy load={loadLeadLink} props={{ data: route.data, kind: route.kind }} />}
       {route.name === 'liveView' && (
         <Lazy key={route.data} load={loadViewer} props={{ data: route.data, help: route.help, entry: route.entry }} />

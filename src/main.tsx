@@ -23,7 +23,15 @@ void getSettings().then((s) => {
   setSignalSound(s.signalSound);
   // Spec 006 FR-L05, FR-L06: nur gekoppelte Lead-Handys senden.
   void startLiveSender(s);
+  // Spec 015 FR-P07: gekoppelte Trainer-Handys senden den Spielplan beim Öffnen erneut, falls nötig.
+  if (s.live?.orgKey) refreshPlan();
 });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') void getSettings().then((s) => s.live?.orgKey && refreshPlan());
+});
+function refreshPlan(): void {
+  void import('./platform/plan-sync').then((m) => m.refreshPlan()).catch(() => undefined);
+}
 void requestPersistentStorage();
 
 const root = document.getElementById('app');
