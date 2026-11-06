@@ -1,4 +1,4 @@
-# Roadmap und Review (Stand 05.11.2026, Status aktualisiert am 06.11.2026)
+# Roadmap und Review (Stand 05.11.2026, Status aktualisiert am 06.11.2026 nach dem Gerätetest)
 
 Ergebnis eines Reviews der App hinsichtlich Zweck, UI/UX und fehlender Funktionen, vor dem ersten produktiven Einsatz am Samstag, 07.11.2026 (E1 und E2). Diese Datei ist die Arbeitsliste: Status je Punkt pflegen, erledigte Punkte abhaken, neue Wünsche unten anfügen. Jede Umsetzung folgt dem Ablauf aus `CLAUDE.md` (Spec, Review, Mockup, PR, Hilfe).
 
@@ -31,7 +31,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| A1 | Gerätetest Live-Spieltag G-1 bis G-10 (`specs/006-live-spieltag/quickstart.md`) mit zwei Handys und einem Browser | 2 | Atti | Pflicht | Vor allem G-4, G-5, G-8 (Tor, Funkloch, Übernehmen) | offen |
+| A1 | Gerätetest Live-Spieltag G-1 bis G-10 (`specs/006-live-spieltag/quickstart.md`) mit zwei Handys und einem Browser | 2 | Atti | Pflicht | Vor allem G-4, G-5, G-8 (Tor, Funkloch, Übernehmen) | erledigt am 06.11.2026 auf dem iPhone (G-4, G-5, G-8 bestanden); offen: G-6 verstellte Uhr (geringes Restrisiko), G-10 optional, Sichern und Wiederherstellen, Android am Testwochenende |
 | A2 | Einrichtung durch Atti: E1 und E2 anlegen, Kader je Mannschaft, Live-Spieltag, Trainer-Link in die Trainergruppe, Zuschauer-Link in die Elterngruppen, Trainern eine 3-Zeilen-Nachricht | 1 | Atti, Text per Haiku | Pflicht | Zuschauer-Link am Vorabend senden. Trainern, die vor dem 06.11.2026 mit dem Zuschauer-Link getestet haben, diesen Satz mitgeben: „Falls ihr den Spieltag schon auf dem Home-Bildschirm habt und dort ‚Neues Spiel‘ erscheint: Symbol löschen und den Link neu ablegen.“ (Fehlerbehebung #50) | offen |
 | A3 | Release 0.4.0 mergen (PR #39) | 1 | keins | niedrig | Nur Versionsnummer in der Hilfe | erledigt (#39, 06.11.2026) |
 | A4 | Spiel nach Schlusspfiff wieder öffnen („Spiel fortsetzen“ in den Spieldetails) | 3 | Sonnet | mittel | Rückfrage beim Schlusspfiff fängt das meiste ab | erledigt, anders gelöst: „Schlusspfiff zurücknehmen“ bis 10 Minuten danach und „Tor nachtragen“ auch nach dem Schlusspfiff (Spec 012 US2, US3, #42); kein eigenes „Spiel fortsetzen“ |
@@ -91,5 +91,7 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 | N1 | Kader nach Vorname oder Rückennummer sortieren (Einstellungen → Kader), Vorgabe Vorname | 013 | erledigt (#44, #47) |
 | N2 | Historie: mehrere Spiele auswählen und löschen, 10 Sekunden „Rückgängig“ | 014 | erledigt (#48, #49) |
 | N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
+
+| N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2) | in B1, B2 | offen |
 
 (weitere hier anfügen)

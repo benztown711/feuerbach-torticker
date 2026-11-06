@@ -95,7 +95,8 @@
 
 - [x] L040 [P] Hilfe-Text "Live-Spieltag" (erledigt mit Spec 010: Einträge im Thema "Live-Spieltag" in `src/domain/help-entries.ts`, Eltern-Hilfe über die Eltern-Leiste)
 - [x] L041 `/code-review` und `/security-review` je PR (Eingaben aus Links und Meldungen, keine HTML-Einschleusung, Schlüssel nur im Fragment); `/speckit-analyze` nach jeder Phase ohne kritische Befunde
-- [ ] L042 Gerätetest G-1 bis G-10 aus `quickstart.md` mit Atti (Review C, Checkliste https://claude.ai/artifact/B6AGLutstmPXiDyRnmVx6p); Ergebnis von G-3 in research.md R-L6 nachtragen
+- [x] L042 Gerätetest G-1 bis G-10 aus `quickstart.md` mit Atti (Review C, Checkliste https://claude.ai/artifact/B6AGLutstmPXiDyRnmVx6p); Ergebnis von G-3 in research.md R-L6 nachtragen. Durchgeführt am 06.11.2026 mit zwei iPhones und zwei Browsern: G-1 bis G-5 und G-7 bis G-9 bestanden, G-6 ausgelassen, G-10 offen (research.md R-L19)
+- [ ] L063 Gerätetest nachholen: G-6 (verstellte Uhr) und optional G-10 (Links neu ausstellen, nur mit Test-Spieltag), Android-Gegenprobe am Testwochenende
 
 ## Phase 9: Fehlerbehebung Home-Bildschirm (Clarifications 05.11.2026, research.md R-L6 Nachtrag)
 
@@ -130,7 +131,7 @@
 | FR-L22 bis FR-L24 | L049, L050, L051, L052, L053, L058 bis L060 |
 | SC-L01, SC-L03 | L022, L024 |
 | SC-L02, SC-L04 | L027, L031 |
-| SC-L05, SC-L07 | L042 (Gerätetest), Constitution VIII |
+| SC-L05, SC-L07 | L042, L063 (Gerätetest), Constitution VIII |
 | SC-L06 | L004, L014, L024 |
 | SC-L08 | L010, L031 (Rückfall bei 429); Last selbst nur im Gerätetest |
 

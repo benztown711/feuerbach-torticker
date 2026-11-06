@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; offen ist der Gerätetest (quickstart.md, G-1 bis G-10). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; Gerätetest am 06.11.2026 auf dem iPhone bestanden (quickstart.md, research.md R-L19); offen sind nur G-6 und G-10 (tasks.md L063). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 

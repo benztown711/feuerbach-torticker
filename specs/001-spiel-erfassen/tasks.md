@@ -261,7 +261,7 @@ Single project laut plan.md: `src/`, `tests/`, `scripts/`, `design/`, `.github/`
 - [x] T084 [P] Bundle-Budget in `vite.config.ts` bzw. CI-Schritt: JS-Hauptbundle < 60 KB gzip, sonst CI rot
 - [x] T085 [P] Performance-Check in `tests/e2e/us1-tor-erfassen.spec.ts` gegen SC-001 stabilisieren (Median aus 10 Taps)
 - [x] T086 [P] Hilfe-Seite `src/ui/screens/help.tsx` mit iPhone-Hinweisen: App vom Home-Bildschirm nutzen, Ton nur bei eingeschaltetem Bildschirm, Lautlos-Schalter, Sicherung exportieren (ersetzt durch Spec 010 "Hilfe mit Suche")
-- [ ] T087 Gerätecheck nach `specs/001-spiel-erfassen/quickstart.md` (manuell, iPhone + Android) durchführen und Ergebnis im Release-PR dokumentieren
+- [ ] T087 Gerätecheck nach `specs/001-spiel-erfassen/quickstart.md` (manuell, iPhone + Android) durchführen und Ergebnis im Release-PR dokumentieren. iPhone 16e am 06.11.2026 bestanden: Bildschirm bleibt an, Signalton, gesperrtes Handy, Offline-Neustart, Ergebnis teilen. Offen: Sichern und Wiederherstellen, Android
 - [x] T088 `/speckit-analyze` laufen lassen und Abweichungen zwischen spec.md, plan.md, tasks.md und Code beheben (Ergebnis: research.md R-22)
 
 ---
