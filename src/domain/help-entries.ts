@@ -518,8 +518,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
     answer:
-      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit.',
-    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher',
+      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit. Hat dein Handy den Live-Spieltag noch nicht geladen, wartet „Weiter zum Anpfiff“ kurz, höchstens 3 Sekunden.',
+    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang',
     sources: ['006 US6'],
     related: ['live-senden', 'trainer-link'],
   },

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag } from '../../src/domain/types';
 import type { OpenedMessage } from '../../src/platform/live-crypto';
@@ -114,6 +114,23 @@ describe('006 US6 Mithören', () => {
     expect(taken).toHaveBeenCalledTimes(2);
     w.stop();
     expect(f.stop).toHaveBeenCalled();
+  });
+});
+
+describe('006 US6-S6 Mithören vor dem Anlegen', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('006 US6-S6 FR-L22 ready wartet auf den ersten Stand, höchstens die angegebene Zeit', async () => {
+    vi.useFakeTimers({ now: T0 });
+    const f = fakeDeps();
+    const w = watchSpieltag(live, f.deps);
+    let done = false;
+    void w.ready(3_000).then(() => (done = true));
+    await vi.advanceTimersByTimeAsync(2_999);
+    expect(done).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(done).toBe(true);
+    w.stop();
   });
 });
 

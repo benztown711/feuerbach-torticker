@@ -12,6 +12,11 @@ import { subscribe, type RelayMessage, type RelayState, type SubscribeOptions } 
  */
 
 export const STORAGE_PREFIX = 'torticker-live:';
+/**
+ * Spec 006 FR-L22: so lange ohne neue Meldung gilt der erste Stand als geladen. ntfy schickt die
+ * vorgehaltenen Meldungen direkt nach dem Verbinden, ohne Ende-Zeichen.
+ */
+export const SETTLE_QUIET_MS = 300;
 
 export interface ReceiverState {
   board: Board;
@@ -42,6 +47,10 @@ export class LiveReceiver {
   private stopped = false;
   /** iat der jüngsten bekannten Konfiguration (vorab bekannt oder schon gemeldet). */
   private knownIat = 0;
+  /** FR-L22: Meldungen, die gerade geprüft werden, und letzte Antwort oder Meldung des Dienstes. */
+  private pending = 0;
+  private lastActivity: number | null = null;
+  private readonly waiters = new Set<() => void>();
 
   constructor(
     private readonly view: View,
@@ -101,11 +110,60 @@ export class LiveReceiver {
     if (this.stopRelay || this.stopped) return;
     this.stopRelay = this.deps.subscribe(this.view.topic, {
       since: '12h',
-      onMessage: (m) => void this.receive(m),
-      onServerTime: (sec) => this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() }),
+      onMessage: (m) => {
+        this.active(1);
+        void this.receive(m).finally(() => this.active(-1));
+      },
+      onServerTime: (sec) => {
+        // "open"/"keepalive" stehen im Stream vor den vorgehaltenen Meldungen: ab hier zählt die Ruhezeit.
+        this.lastActivity = this.deps.now();
+        this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() });
+        this.wake();
+      },
       onAlive: () => this.update({ liveAt: this.deps.now() }),
-      onState: (relay) =>
-        this.update(relay === 'live' || relay === 'polling' ? { relay, liveAt: this.deps.now() } : { relay }),
+      onState: (relay) => {
+        const connected = relay === 'live' || relay === 'polling';
+        // Eine Abfrage (polling) liefert alles auf einmal und hat kein "open".
+        if (relay === 'polling') this.lastActivity = this.deps.now();
+        this.update(connected ? { relay, liveAt: this.deps.now() } : { relay });
+        this.wake();
+      },
+    });
+  }
+
+  /** Eine Meldung kommt an (+1) oder ist geprüft (-1). */
+  private active(delta: 1 | -1): void {
+    this.pending += delta;
+    this.lastActivity = this.deps.now();
+    this.wake();
+  }
+
+  private wake(): void {
+    for (const w of [...this.waiters]) w();
+  }
+
+  /**
+   * Spec 006 FR-L22: wartet, bis der erste Stand vom Dienst da und geprüft ist (verbunden, keine Meldung in
+   * Prüfung, kurz Ruhe), höchstens `maxMs`. Ohne Netz oder nach dem Beenden sofort.
+   */
+  whenSettled(maxMs: number): Promise<void> {
+    return new Promise((resolve) => {
+      let quiet: ReturnType<typeof setTimeout> | undefined;
+      const finish = (): void => {
+        clearTimeout(cap);
+        clearTimeout(quiet);
+        this.waiters.delete(check);
+        resolve();
+      };
+      const check = (): void => {
+        clearTimeout(quiet);
+        if (this.stopped || this.state.relay === 'offline') return finish();
+        if (this.lastActivity === null || this.pending > 0) return;
+        quiet = setTimeout(finish, Math.max(0, SETTLE_QUIET_MS - (this.deps.now() - this.lastActivity)));
+      };
+      const cap = setTimeout(finish, maxMs);
+      this.waiters.add(check);
+      check();
     });
   }
 
@@ -121,6 +179,7 @@ export class LiveReceiver {
     this.stopRelay?.();
     this.stopRelay = null;
     this.listeners.clear();
+    this.wake();
   }
 
   private async receive(m: RelayMessage): Promise<void> {
