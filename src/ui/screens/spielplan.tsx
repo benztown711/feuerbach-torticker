@@ -2,9 +2,12 @@ import { useEffect, useState } from 'preact/hooks';
 import {
   checkPlanInput,
   entryDetail,
+  entryState,
   entryTitle,
   formatPlanDate,
+  formatPlanDateLong,
   isFull,
+  isPlanDate,
   nextSaturday,
   planView,
   todayKey,
@@ -54,6 +57,48 @@ const toInput = (e: PlanEntry): PlanInput => ({
   schema: e.schema,
 });
 
+/** Pflichtfeld-Stern (Legende unten im Blatt). */
+const Req = () => (
+  <span class="plan__req" aria-label="Pflichtfeld">
+    *
+  </span>
+);
+
+/**
+ * Datum bzw. Uhrzeit immer deutsch angezeigt ("Sa 14.11.2026", "12:00"), unabhängig von der Sprache des Browsers;
+ * darüber liegt unsichtbar das native Feld, das beim Tippen die Auswahl des Handys öffnet.
+ */
+function Picker({
+  id,
+  type,
+  value,
+  shown,
+  onInput,
+}: {
+  id: string;
+  type: 'date' | 'time';
+  value: string;
+  shown: string;
+  onInput: (value: string) => void;
+}) {
+  return (
+    <div class="picker">
+      <span class="input picker__shown" aria-hidden="true" data-testid={`${id}-shown`}>
+        {shown}
+      </span>
+      <input
+        id={id}
+        class="picker__native"
+        type={type}
+        lang="de"
+        value={value}
+        data-testid={id}
+        onInput={(e) => onInput(e.currentTarget.value)}
+      />
+    </div>
+  );
+}
+
 function Topbar() {
   return (
     <header class="topbar">
@@ -67,9 +112,9 @@ function Topbar() {
   );
 }
 
-function Row({ entry, lead, past, onOpen }: { entry: PlanEntry; lead: string; past?: boolean; onOpen: () => void }) {
-  // Vergangene Spiele zeigen nur "abgesagt", kein "frei" (Endstand folgt mit US3).
-  const state = entry.cancelled ? 'abgesagt' : past ? '' : 'frei';
+function Row({ entry, lead, today, onOpen }: { entry: PlanEntry; lead: string; today: string; onOpen: () => void }) {
+  // FR-P01: "frei", "abgesagt", "angelegt"; vergangene ohne "frei" (Endstand folgt mit US3).
+  const state = entryState(entry, today);
   const body = (
     <>
       <span class="plan__time">{lead}</span>
@@ -149,10 +194,10 @@ function EditSheet({
   const set = (patch: Partial<PlanInput>) => onChange({ ...v, ...patch });
   const extra = v.schema && !SCHEMAS.some((s) => schemaKey(s) === schemaKey(v.schema)) ? [v.schema] : [];
   return (
-    <Sheet title={editing.id ? 'Planspiel' : 'Spiel hinzufügen'} testId="plan-sheet" onClose={onClose}>
+    <Sheet title={editing.id ? 'Spiel bearbeiten' : 'Spiel hinzufügen'} testId="plan-sheet" onClose={onClose}>
       <div class="field">
         <span class="field__label t-label" id="plan-team-label">
-          MANNSCHAFT
+          MANNSCHAFT <Req />
         </span>
         <div class="chips" role="group" aria-labelledby="plan-team-label">
           {live.teams.map((t) => (
@@ -173,15 +218,14 @@ function EditSheet({
       <div class="plan__pair">
         <div class="field">
           <label class="field__label t-label" for="plan-date">
-            DATUM
+            DATUM <Req />
           </label>
-          <input
+          <Picker
             id="plan-date"
-            class="input"
             type="date"
             value={v.date}
-            data-testid="plan-date"
-            onInput={(e) => set({ date: e.currentTarget.value })}
+            shown={isPlanDate(v.date) ? formatPlanDateLong(v.date) : 'Datum wählen'}
+            onInput={(date) => set({ date })}
           />
           {errors.date && <p class="field__error">{errors.date}</p>}
         </div>
@@ -189,13 +233,12 @@ function EditSheet({
           <label class="field__label t-label" for="plan-time">
             ANSTOSS
           </label>
-          <input
+          <Picker
             id="plan-time"
-            class="input"
             type="time"
             value={v.time}
-            data-testid="plan-time"
-            onInput={(e) => set({ time: e.currentTarget.value })}
+            shown={v.time ? v.time : 'offen'}
+            onInput={(time) => set({ time })}
           />
           {errors.time && <p class="field__error">{errors.time}</p>}
         </div>
@@ -217,7 +260,7 @@ function EditSheet({
       </div>
       <div class="field">
         <span class="field__label t-label" id="plan-venue-label">
-          WIR SPIELEN
+          WIR SPIELEN <Req />
         </span>
         <div class="chips" role="group" aria-labelledby="plan-venue-label">
           <button
@@ -250,6 +293,7 @@ function EditSheet({
             class="input"
             maxLength={40}
             value={v.competition}
+            placeholder="z. B. Kreisstaffel"
             data-testid="plan-competition"
             onInput={(e) => set({ competition: e.currentTarget.value })}
           />
@@ -279,6 +323,9 @@ function EditSheet({
           {errors.schema && <p class="field__error">{errors.schema}</p>}
         </div>
       </div>
+      <p class="field__help" data-testid="plan-required">
+        <Req /> Pflichtfeld. Anstoß, Gegner, Wettbewerb und Spielzeit dürfen offen bleiben.
+      </p>
       <button type="button" class="btn btn--primary" disabled={busy} data-testid="plan-save" onClick={onSave}>
         Speichern
       </button>
@@ -458,7 +505,7 @@ export function PlanScreen() {
             onToggle={() => toggle(g.date)}
           >
             {g.entries.map((e) => (
-              <Row key={e.id} entry={e} lead={e.time ?? '–'} onOpen={() => openEntry(e)} />
+              <Row key={e.id} entry={e} lead={e.time ?? '–'} today={today} onOpen={() => openEntry(e)} />
             ))}
           </Group>
         ))}
@@ -471,7 +518,13 @@ export function PlanScreen() {
             onToggle={() => toggle('past')}
           >
             {view.past.map((e) => (
-              <Row key={e.id} entry={e} lead={formatPlanDate(e.date).slice(0, 6)} past onOpen={() => openEntry(e)} />
+              <Row
+                key={e.id}
+                entry={e}
+                lead={formatPlanDate(e.date).slice(0, 6)}
+                today={today}
+                onOpen={() => openEntry(e)}
+              />
             ))}
           </Group>
         )}

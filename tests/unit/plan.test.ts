@@ -8,8 +8,11 @@ import {
   emptyPlan,
   encodePayload,
   entryDetail,
+  entryState,
   entryTitle,
+  entryWhen,
   formatPlanDate,
+  formatPlanDateLong,
   isFull,
   markPending,
   markSent,
@@ -19,11 +22,13 @@ import {
   nextSaturday,
   noteSeen,
   parsePayload,
+  pickable,
   planFor,
   planView,
   prunePlan,
   REFRESH_MS,
   setCancelled,
+  setGame,
   staleEntries,
   todayKey,
   updateEntry,
@@ -354,6 +359,7 @@ describe('015 Plan-Meldung (contracts/plan-message.md)', () => {
     ['Spielzeit Form', JSON.stringify({ v: 1, e: [{ i: 'a1', k: 'E1', d: '2026-11-14', u: 1, h: 1, z: 'x' }] })],
     ['abgesagt', JSON.stringify({ v: 1, e: [{ i: 'a1', k: 'E1', d: '2026-11-14', u: 1, h: 1, c: 2 }] })],
     ['Eintrag', JSON.stringify({ v: 1, e: [null] })],
+    ['Spiel', JSON.stringify({ v: 1, e: [{ i: 'a1', k: 'E1', d: '2026-11-14', u: 1, h: 1, g: 'a b' }] })],
   ])('verwirft die ganze Meldung: %s', (_name, text) => {
     expect(parsePayload(text)).toBeNull();
   });
@@ -397,11 +403,49 @@ describe('015 Anzeige', () => {
   it('Datum "Sa 14.11.", heute, nächster Samstag, Tage addieren', () => {
     expect(formatPlanDate('2026-11-14')).toBe('Sa 14.11.');
     expect(formatPlanDate('2026-11-15')).toBe('So 15.11.');
+    expect(formatPlanDateLong('2026-11-14')).toBe('Sa 14.11.2026');
     expect(todayKey(Date.UTC(2026, 10, 7, 23, 30), 'Europe/Berlin')).toBe('2026-11-08');
     expect(nextSaturday('2026-11-07')).toBe('2026-11-07');
     expect(nextSaturday('2026-11-08')).toBe('2026-11-14');
     expect(nextSaturday('2026-11-13')).toBe('2026-11-14');
     expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
     expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+  });
+});
+
+describe('015 US2 Spiel aus dem Spielplan', () => {
+  it('FR-P09: heute und die nächsten 14 Tage, ohne abgesagte, angelegte und gelöschte', () => {
+    const s = storeWith([
+      entry({ id: 'heute', date: TODAY, time: '12:00' }),
+      entry({ id: 'frueh', date: TODAY, time: '11:00' }),
+      entry({ id: 'bald', date: '2026-11-14' }),
+      entry({ id: 'grenze', date: '2026-11-21' }),
+      entry({ id: 'spaet', date: '2026-11-22' }),
+      entry({ id: 'ab', date: TODAY, cancelled: true }),
+      entry({ id: 'an', date: TODAY, gameId: 'g1' }),
+      entry({ id: 'weg', date: TODAY, deleted: true }),
+      entry({ id: 'alt', date: '2026-11-06' }),
+    ]);
+    const r = pickable(s, TODAY);
+    expect(r.today.map((e) => e.id)).toEqual(['frueh', 'heute']);
+    expect(r.later.map((e) => e.id)).toEqual(['bald', 'grenze']);
+  });
+
+  it('FR-P11: Verknüpfung mit dem angelegten Spiel geht als g hinaus und kommt so zurück', () => {
+    const r = setGame(storeWith([entry()]), 'a1', 'game-123', T0 + 1);
+    expect(r?.entry).toMatchObject({ gameId: 'game-123', updatedAt: T0 + 1 });
+    expect(r?.store.pending).toEqual(['a1']);
+    expect(setGame(storeWith([entry()]), 'fehlt', 'g', T0)).toBeNull();
+    const text = JSON.stringify(encodePayload([r!.entry]));
+    expect(parsePayload(text)?.[0]?.gameId).toBe('game-123');
+  });
+
+  it('FR-P01: Zustand und Zeitpunkt der Zeile', () => {
+    expect(entryState(entry(), TODAY)).toBe('frei');
+    expect(entryState(entry({ cancelled: true, gameId: 'g' }), TODAY)).toBe('abgesagt');
+    expect(entryState(entry({ gameId: 'g' }), TODAY)).toBe('angelegt');
+    expect(entryState(entry({ date: '2026-11-01' }), TODAY)).toBe('');
+    expect(entryWhen(entry())).toBe('Sa 14.11., 12:00');
+    expect(entryWhen(entry({ time: null }))).toBe('Sa 14.11.');
   });
 });

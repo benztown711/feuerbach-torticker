@@ -40,7 +40,16 @@ import { startLiveSender } from './live-sender';
 import { movePlan } from './plan-sync';
 
 // Spec 015: über dieses (nachgeladene) Modul erreichbar, damit der Spielplan-Code nicht ins Hauptbundle rutscht.
-export { adoptPlan, changePlan, loadPlan, refreshPlan, type PlanEdit } from './plan-sync';
+export {
+  adoptPlan,
+  changePlan,
+  linkPlanGame,
+  loadPlan,
+  planChoices,
+  refreshPlan,
+  type PlanChoice,
+  type PlanEdit,
+} from './plan-sync';
 import { publish } from './relay';
 import { shareText, type ShareResult } from './share';
 

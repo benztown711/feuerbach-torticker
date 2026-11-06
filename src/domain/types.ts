@@ -310,6 +310,8 @@ export interface PlanEntry {
   deleted: boolean;
   /** Zeitpunkt der letzten Änderung, je Planspiel streng steigend. */
   updatedAt: number;
+  /** US2 FR-P11: aus dem Planspiel angelegtes Spiel. */
+  gameId?: string;
 }
 
 /** Spec 015: Spielplan je Handy, gebunden an einen Live-Spieltag (R-P3). */

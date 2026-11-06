@@ -1,7 +1,7 @@
-import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes } from './helpers';
-import { createLive, MATCHDAY, onMatchday, pasteLink, planPayloads } from './live-helpers';
+import { MATCHDAY, pasteLink, planPayloads } from './live-helpers';
+import { addGame, fillGame, openPlan, row, rows, setupPlan as setup, sync } from './plan-helpers';
 
 /**
  * Spec 015 US1: Spielplan pflegen. Jedes Trainer-Handy trägt Planspiele ein, ändert, sagt ab und löscht; die
@@ -11,52 +11,6 @@ import { createLive, MATCHDAY, onMatchday, pasteLink, planPayloads } from './liv
 
 // Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
-
-interface PlanGame {
-  team?: string;
-  date?: string;
-  time?: string;
-  opponent?: string;
-  away?: boolean;
-  competition?: string;
-  schema?: string;
-}
-
-/** Lässt Sender und Empfänger arbeiten (Bündelung, Neuverbindung des Streams). */
-const sync = (page: Page) => page.clock.runFor(3_000);
-
-async function openPlan(page: Page): Promise<void> {
-  await page.goto('./#/live-spieltag');
-  await page.getByTestId('btn-plan').click();
-  await expect(page.getByTestId('plan-screen')).toBeVisible();
-}
-
-async function fillGame(page: Page, g: PlanGame): Promise<void> {
-  if (g.team) await page.getByTestId(`plan-team-${g.team}`).click();
-  if (g.date !== undefined) await page.getByTestId('plan-date').fill(g.date);
-  if (g.time !== undefined) await page.getByTestId('plan-time').fill(g.time);
-  if (g.opponent !== undefined) await page.getByTestId('plan-opponent').fill(g.opponent);
-  if (g.away !== undefined) await page.getByTestId(g.away ? 'plan-venue-away' : 'plan-venue-home').click();
-  if (g.competition !== undefined) await page.getByTestId('plan-competition').fill(g.competition);
-  if (g.schema !== undefined) await page.getByTestId('plan-schema').selectOption(g.schema);
-  await page.getByTestId('plan-save').click();
-  await expect(page.getByTestId('plan-sheet')).toBeHidden();
-}
-
-async function addGame(page: Page, g: PlanGame & { date: string }): Promise<void> {
-  await page.getByTestId('plan-add').click();
-  await fillGame(page, g);
-}
-
-const rows = (page: Page) => page.locator('[data-testid^="plan-row-"]');
-const row = (page: Page, text: string) => rows(page).filter({ hasText: text });
-
-async function setup(page: Page, recorded: Parameters<typeof createLive>[1], relay: Parameters<typeof onMatchday>[0]) {
-  await page.clock.setSystemTime(MATCHDAY);
-  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
-  onMatchday(relay);
-  return links;
-}
 
 test('015 US1-S1 Spiel hinzufügen: steht unter dem Datum und geht als Plan-Meldung hinaus', async ({
   page,
@@ -68,10 +22,18 @@ test('015 US1-S1 Spiel hinzufügen: steht unter dem Datum und geht als Plan-Meld
   await openPlan(page);
   await expect(page.getByTestId('plan-empty')).toBeVisible();
 
-  await addGame(page, {
+  // FR-P02: Datum und Anstoß immer deutsch angezeigt, Pflichtfelder mit Stern
+  await page.getByTestId('plan-add').click();
+  await expect(page.getByTestId('plan-date-shown')).toHaveText('Sa 07.11.2026');
+  await expect(page.getByTestId('plan-time-shown')).toHaveText('offen');
+  await expect(page.getByTestId('plan-required')).toContainText('Pflichtfeld');
+  await expect(page.getByTestId('plan-sheet').getByText('*', { exact: true })).toHaveCount(4);
+  await page.getByTestId('plan-date').fill('2026-11-14');
+  await page.getByTestId('plan-time').fill('12:00');
+  await expect(page.getByTestId('plan-date-shown')).toHaveText('Sa 14.11.2026');
+  await expect(page.getByTestId('plan-time-shown')).toHaveText('12:00');
+  await fillGame(page, {
     team: 'E1',
-    date: '2026-11-14',
-    time: '12:00',
     opponent: 'TSV Musterstadt',
     competition: 'Kreisstaffel',
     schema: '2x25',
@@ -114,7 +76,7 @@ test('015 US1-S3 ändern und löschen: Angaben ändern, Löschen nach Rückfrage
   await addGame(page, { team: 'E1', date: '2026-11-14', time: '12:00', opponent: 'TSV Musterstadt' });
 
   await row(page, 'E1 – TSV Musterstadt').click();
-  await expect(page.locator('#plan-sheet-title')).toHaveText('Planspiel');
+  await expect(page.locator('#plan-sheet-title')).toHaveText('Spiel bearbeiten');
   await expect(page.getByTestId('plan-opponent')).toHaveValue('TSV Musterstadt');
   await fillGame(page, { opponent: 'FC Probestadt', away: true, competition: 'Leistungsliga', schema: '3x25' });
   const r = row(page, 'E1 bei FC Probestadt');

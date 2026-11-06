@@ -44,6 +44,9 @@ const isIntIn = (n: unknown, lo: number, hi: number): n is number =>
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const ID_RE = /^[A-Za-z0-9_-]{1,12}$/;
+const GAME_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+/** US2 FR-P09: "Weitere Spiele" reichen so viele Tage voraus. */
+export const PICK_DAYS = 14;
 
 /** Kalendertag "JJJJ-MM-TT", der wirklich existiert. */
 export function isPlanDate(v: unknown): v is string {
@@ -146,6 +149,12 @@ export function setCancelled(store: PlanStore, id: string, cancelled: boolean, n
   return old ? replace(store, { ...old, cancelled, updatedAt: stamp(old.updatedAt, now) }) : null;
 }
 
+/** US2 FR-P11: Planspiel mit dem daraus angelegten Spiel verknüpfen. */
+export function setGame(store: PlanStore, id: string, gameId: string, now: number): PlanChange | null {
+  const old = live(store, id);
+  return old ? replace(store, { ...old, gameId, updatedAt: stamp(old.updatedAt, now) }) : null;
+}
+
 /** US1-S3: löschen als Grabstein, damit andere Handys es nicht zurückbringen (FR-P04). */
 export function deleteEntry(store: PlanStore, id: string, now: number): PlanChange | null {
   const old = live(store, id);
@@ -236,6 +245,7 @@ function encodeEntry(e: PlanEntry): Obj {
   if (e.competition) out.w = e.competition;
   if (e.schema) out.z = [e.schema.sections, e.schema.sectionMinutes];
   if (e.cancelled) out.c = 1;
+  if (e.gameId) out.g = e.gameId;
   return out;
 }
 
@@ -291,6 +301,7 @@ function parseEntry(v: unknown): PlanEntry | null {
   if (v.t !== undefined && !(typeof v.t === 'string' && TIME_RE.test(v.t))) return null;
   if (!optText(v.o) || !optText(v.w) || schema === undefined) return null;
   if (v.c !== undefined && v.c !== 1) return null;
+  if (v.g !== undefined && !(typeof v.g === 'string' && GAME_ID_RE.test(v.g))) return null;
   return {
     ...base,
     venue: v.h === 1 ? 'home' : 'away',
@@ -299,6 +310,7 @@ function parseEntry(v: unknown): PlanEntry | null {
     competition: v.w ?? '',
     schema,
     cancelled: v.c === 1,
+    ...(v.g === undefined ? {} : { gameId: v.g }),
   };
 }
 
@@ -316,6 +328,25 @@ export function parsePayload(text: string): PlanEntry[] | null {
   const entries = raw.e.map(parseEntry);
   return entries.every((e): e is PlanEntry => e !== null) ? entries : null;
 }
+
+/** US2 FR-P09: Planspiele, aus denen sich ein Spiel anlegen lässt: heute und die nächsten 14 Tage. */
+export function pickable(store: PlanStore, today: string): { today: PlanEntry[]; later: PlanEntry[] } {
+  const last = addDays(today, PICK_DAYS);
+  const open = planView(store, today)
+    .upcoming.flatMap((g) => g.entries)
+    .filter((e) => !e.cancelled && !e.gameId && e.date <= last);
+  return { today: open.filter((e) => e.date === today), later: open.filter((e) => e.date !== today) };
+}
+
+/** Zustand rechts in der Zeile (FR-P01): "abgesagt", "angelegt", "frei"; vergangene ohne "frei". */
+export function entryState(e: PlanEntry, today: string): string {
+  if (e.cancelled) return 'abgesagt';
+  if (e.gameId) return 'angelegt';
+  return e.date < today ? '' : 'frei';
+}
+
+/** "Sa 14.11., 12:00" bzw. ohne Anstoß "Sa 14.11." */
+export const entryWhen = (e: PlanEntry): string => `${formatPlanDate(e.date)}${e.time ? `, ${e.time}` : ''}`;
 
 /** FR-P01: "E1 – Gegner" (Heim), "E1 bei Gegner" (Auswärts), "E1 – (Gegner offen)". */
 export function entryTitle(e: PlanEntry): string {
@@ -338,6 +369,9 @@ export function formatPlanDate(date: string): string {
   const d = utc(date);
   return `${WEEKDAYS[d.getUTCDay()]} ${date.slice(8, 10)}.${date.slice(5, 7)}.`;
 }
+
+/** "Sa 14.11.2026" (Feld "Datum", immer deutsch). */
+export const formatPlanDateLong = (date: string): string => `${formatPlanDate(date)}${date.slice(0, 4)}`;
 
 export const addDays = (date: string, days: number): string =>
   new Date(utc(date).getTime() + days * DAY_MS).toISOString().slice(0, 10);

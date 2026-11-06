@@ -22,14 +22,14 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich. Ein PR je Phase bzw
 
 - [x] T009 [P] E2E `tests/e2e/spielplan-us1.spec.ts`: 015 US1-S1 bis S7, 015 FR-P07 (erneut senden nach 6 Stunden)
 - [x] T010 `src/ui/router.ts`, `src/ui/app.tsx`: Route `#/live-spieltag/spielplan` (nachgeladen); `specs/006-live-spieltag/contracts/ui-contract.md` ergänzen
-- [x] T011 `src/ui/screens/spielplan.tsx`: Liste mit Datumsköpfen und "Vergangene Spiele", Blatt "Planspiel" (Mannschaft, Datum, Anstoß, Gegner, Heim/Auswärts, Wettbewerb, Spielzeit), "Abgesagt"/"Wieder ansetzen", "Löschen" mit Rückfrage
+- [x] T011 `src/ui/screens/spielplan.tsx`: Liste mit Datumsköpfen und "Vergangene Spiele", Blatt "Spiel hinzufügen"/"Spiel bearbeiten" (Mannschaft, Datum, Anstoß, Gegner, Heim/Auswärts, Wettbewerb, Spielzeit), "Abgesagt"/"Wieder ansetzen", "Löschen" mit Rückfrage
 - [x] T012 `src/ui/screens/live.tsx`: Karte "Spielplan" mit nächstem Spiel (Trainer- und Lead-Handys)
 - [x] T013 Hilfe `spielplan` neu, `live-verwalten` geändert (015 US1)
 
 ## Phase 4: US2 Spiel aus dem Spielplan (P1)
 
-- [ ] T014 E2E 015 US2-S1 bis S6; Domain: Vorbelegung aus Planspiel, Verknüpfung `gameId` (FR-P09 bis P11)
-- [ ] T015 `new-game.tsx`: Abschnitt "Aus dem Spielplan", Hinweis, Verknüpfung; Hilfe `spiel-aus-plan`, `neues-spiel`
+- [x] T014 E2E 015 US2-S1 bis S6; Domain: Vorbelegung aus Planspiel, Verknüpfung `gameId` (FR-P09 bis P11)
+- [x] T015 `new-game.tsx`: Abschnitt "Aus dem Spielplan", Hinweis, Verknüpfung; Hilfe `spiel-aus-plan`, `neues-spiel`
 
 ## Phase 5: US6 Spiel vormerken (P2)
 

@@ -3240,3 +3240,64 @@ button.plan__row {
     transition: none;
   }
 }
+
+/* Spec 015 US2: "Aus dem Spielplan" unter "Neues Spiel" */
+.plan-pick__rows {
+  margin: 0 calc(-1 * var(--space-4));
+  border-top: 1px solid var(--color-line);
+}
+
+.plan-pick__rows .plan__row:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.plan-pick .plan__row[aria-pressed='true'] {
+  background: var(--color-rot-hell);
+}
+
+.plan-pick__more {
+  padding: 0;
+}
+
+.plan-pick__hint {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-size: 14px;
+}
+
+/* Spec 015: Pflichtfeld-Stern und deutsch angezeigte Datums- und Zeitfelder */
+.plan__req {
+  color: var(--color-rot-text);
+  font-weight: 700;
+}
+
+.picker {
+  position: relative;
+}
+
+.picker__shown {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker__native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.picker:focus-within .picker__shown {
+  outline: 3px solid var(--color-rot-text);
+  outline-offset: 2px;
+}

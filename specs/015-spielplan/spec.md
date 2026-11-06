@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A und Review B erledigt (06.11.2026, "passt"), Planung und Umsetzung US1 laufen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt (PR #63), Review C offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -52,6 +52,11 @@
 - Q: Darf jedes Trainer-Handy den Plan pflegen? → A: Ja.
 - Wunsch (Atti): Wer den Trainer-Link hat, wählt ein Spiel aus der Liste und bestätigt damit kurz, dass er für dieses Spiel das Lead-Handy ist. → Neue US6 "Spiel vormerken".
 - Q (Atti): Wann werden die Spiele für Zuschauer sichtbar und wie lange? → A: siehe US3 (Absatz "Sichtbarkeit").
+
+### Session 2026-11-06 (Review C, Screenshots US1)
+
+- Befund (Atti): Datum und Anstoß erschienen im Blatt im US-Format ("11/14/2026", "12:00 PM"); "Planspiel" als Überschrift war unklar; unklar, ob "Wettbewerb" Freitext und Pflicht ist; Pflichtfelder sollen markiert sein.
+- Entscheidung: Datum und Anstoß werden immer deutsch angezeigt ("Sa 14.11.2026", "12:00"), unabhängig von der Sprache des Browsers; beim Tippen öffnet sich die Auswahl des Handys. Überschrift "Spiel hinzufügen" bzw. "Spiel bearbeiten". Wettbewerb bleibt freiwilliger Freitext mit Beispiel "z. B. Kreisstaffel". Pflichtfelder (Mannschaft, Datum, Heim/Auswärts) tragen einen Stern, Legende "* Pflichtfeld". Der Gegner bleibt freiwillig, damit Platzhalter wie "E2, Gegner offen" möglich sind (Review A).
 
 ### Session 2026-11-06 (Review A, Freigabe)
 
@@ -217,7 +222,7 @@ Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nac
 **Spielplan pflegen (US1)**
 
 - **FR-P01**: Ein Trainer-Handy MUSS unter "Mehr" → "Live-Spieltag" den Eintrag "Spielplan" haben: Liste der Planspiele ab heute, gruppiert nach Datum, je Zeile Anstoß (falls bekannt), "E1 – <Gegner>" bei Heimspielen bzw. "E1 bei <Gegner>" bei Auswärtsspielen (ohne Gegner "E1 – (Gegner offen)"), darunter "Heim" bzw. "Auswärts", Wettbewerb und Spielzeit, rechts der Zustand ("frei", "abgesagt", ab US2 "angelegt", ab US6 "Tickert: …"). Das heutige bzw. nächste Datum ist aufgeklappt, die übrigen sind zugeklappt.
-- **FR-P02**: Ein Planspiel MUSS enthalten: Mannschaft des Live-Spieltags (Pflicht), Datum (Pflicht, Vorgabe nächster Samstag), Heim/Auswärts (Pflicht, Vorgabe Heim), Anstoß (optional), Gegner (optional, 1 bis 40 Zeichen), Wettbewerb (optional, bis 40 Zeichen), Spielzeit (optional, Schema wie in "Neues Spiel").
+- **FR-P02**: Ein Planspiel MUSS enthalten: Mannschaft des Live-Spieltags (Pflicht), Datum (Pflicht, Vorgabe nächster Samstag), Heim/Auswärts (Pflicht, Vorgabe Heim), Anstoß (optional), Gegner (optional, 1 bis 40 Zeichen), Wettbewerb (optional, Freitext bis 40 Zeichen), Spielzeit (optional, Schema wie in "Neues Spiel"). Das Blatt heißt "Spiel hinzufügen" bzw. "Spiel bearbeiten", markiert Pflichtfelder mit "*" (Legende "* Pflichtfeld") und zeigt Datum und Anstoß immer deutsch ("Sa 14.11.2026", "12:00").
 - **FR-P03**: Jedes Trainer-Handy MUSS Planspiele hinzufügen, ändern und löschen können (gleichberechtigt wie Spec 006 FR-L19). Höchstens 100 Planspiele insgesamt; ist die Grenze erreicht, fallen die ältesten vergangenen weg, sind alle künftig, erscheint ein Hinweis.
 - **FR-P04**: Änderungen MÜSSEN je Planspiel zusammengeführt werden: Änderungen an verschiedenen Spielen gehen nicht verloren, beim selben Spiel gilt die jüngste; gelöschte Spiele kommen durch ältere Meldungen nicht zurück.
 - **FR-P05**: Planspiele vergangener Tage MÜSSEN am Folgetag aus "Neues Spiel" verschwinden und im Plan sowie auf dem Dashboard unter "Vergangene Spiele" stehen (eingeklappt, neueste zuerst).

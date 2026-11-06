@@ -3,14 +3,19 @@ import {
   chunkEntries,
   deleteEntry,
   encodePayload,
+  entryDetail,
+  entryTitle,
+  entryWhen,
   markSent,
   mergeEntries,
   needsRefresh,
   noteSeen,
   parsePayload,
+  pickable,
   planFor,
   prunePlan,
   setCancelled,
+  setGame,
   staleEntries,
   todayKey,
   updateEntry,
@@ -33,7 +38,19 @@ export type PlanEdit =
   | { kind: 'add'; input: PlanInput }
   | { kind: 'update'; id: string; input: PlanInput }
   | { kind: 'cancel'; id: string; cancelled: boolean }
-  | { kind: 'delete'; id: string };
+  | { kind: 'delete'; id: string }
+  | { kind: 'link'; id: string; gameId: string };
+
+/** US2: Planspiel zur Auswahl unter "Neues Spiel", mit fertigen Beschriftungen. */
+export interface PlanChoice {
+  entry: PlanEntry;
+  /** "E1 – TSV Musterstadt" */
+  title: string;
+  /** "Heim · Kreisstaffel · 2×25" */
+  detail: string;
+  /** "Sa 14.11., 12:00" */
+  when: string;
+}
 
 let queue: Promise<unknown> = Promise.resolve();
 
@@ -67,6 +84,8 @@ function apply(store: PlanStore, edit: PlanEdit, now: number): PlanChange | null
       return setCancelled(store, edit.id, edit.cancelled, now);
     case 'delete':
       return deleteEntry(store, edit.id, now);
+    case 'link':
+      return setGame(store, edit.id, edit.gameId, now);
   }
 }
 
@@ -112,6 +131,30 @@ export async function changePlan(edit: PlanEdit): Promise<PlanStore> {
   });
   void flush().catch(() => false);
   return store;
+}
+
+const choiceOf = (entry: PlanEntry): PlanChoice => ({
+  entry,
+  title: entryTitle(entry),
+  detail: entryDetail(entry),
+  when: entryWhen(entry),
+});
+
+/** US2 FR-P09: heutige und kommende Planspiele (14 Tage) für "Aus dem Spielplan". */
+export async function planChoices(
+  live: Pick<LiveSpieltag, 'topic' | 'orgPub'>,
+): Promise<{ today: PlanChoice[]; later: PlanChoice[] }> {
+  const r = pickable(await loadPlan(live), todayKey(Date.now()));
+  return { today: r.today.map(choiceOf), later: r.later.map(choiceOf) };
+}
+
+/** US2 FR-P11: das angelegte Spiel im Planspiel vermerken ("angelegt"), auch für die anderen Trainer-Handys. */
+export async function linkPlanGame(id: string, gameId: string): Promise<void> {
+  try {
+    await changePlan({ kind: 'link', id, gameId });
+  } catch {
+    // Planspiel inzwischen gelöscht oder Handy ohne Trainer-Link: das Spiel läuft trotzdem.
+  }
 }
 
 /** FR-P07: beim Öffnen Unversandtes und veraltete Planspiele ab heute senden. */
