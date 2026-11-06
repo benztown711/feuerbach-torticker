@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Entwurf, Review A offen (zweite Fassung: Spielplan statt Spiel-Link je Spiel). Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A erledigt (06.11.2026), Review B (Mockup) offen. Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -53,6 +53,15 @@
 - Wunsch (Atti): Wer den Trainer-Link hat, wählt ein Spiel aus der Liste und bestätigt damit kurz, dass er für dieses Spiel das Lead-Handy ist. → Neue US6 "Spiel vormerken".
 - Q (Atti): Wann werden die Spiele für Zuschauer sichtbar und wie lange? → A: siehe US3 (Absatz "Sichtbarkeit").
 
+### Session 2026-11-06 (Review A, Freigabe)
+
+- Review A: "passt" (Atti, 06.11.2026), mit US6.
+- Q: Ort als Feld? → A: Nein.
+- Q: "Abgesagt" statt Löschen? → A: Ja (FR-P29).
+- Q: Ganzer Spielplan für Eltern auf dem Dashboard? → A: Ja, nach Datum auf- und zuklappbar; vergangene Spiele stehen im Sammler "Vergangene Spiele" (US7).
+- Folgerung: Planspiele vergangener Tage verschwinden nicht mehr, sondern wandern in "Vergangene Spiele", mit Endstand, wenn das Spiel aus dem Plan angelegt und beendet wurde. Damit bleiben die Ergebnisse der Saison für alle sichtbar, solange der Plan gesendet wird (Teil von Roadmap C3).
+- Hallen-Cup: 1 × 10 oder 1 × 11 Minuten (24 Minuten zwischen den eigenen Spielen, eine andere Mannschaft spielt dazwischen); Spielzeit je Planspiel, vor Ort änderbar.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Spielplan pflegen (Priority: P1)
@@ -70,7 +79,8 @@ Atti trägt unter "Mehr" → "Live-Spieltag" → "Spielplan" die bekannten Spiel
 3. **Given** ein Spiel im Plan, **When** es angetippt wird, **Then** lassen sich alle Angaben ändern; "Löschen" entfernt es nach Rückfrage. Optional kann eine eigene Spielzeit (z. B. Halle 1 × 12 Minuten) eingetragen werden; ohne Angabe gilt die Spielzeit der Mannschaft.
 4. **Given** Trainer-Handy A ändert den Spielplan, **Then** übernehmen andere Trainer-Handys die Änderung, sobald sie sie empfangen (wie Spec 006 US5); ändern zwei Handys verschiedene Spiele, bleiben beide Änderungen erhalten; beim selben Spiel gilt die jüngste.
 5. **Given** ein Handy ohne Kopplung, **Then** gibt es keinen Spielplan; "Neues Spiel" verhält sich wie bisher.
-6. **Given** der Spielplan, **Then** zeigt er Spiele ab heute nach Datum und Anstoß; Spiele vergangener Tage verschwinden am Folgetag.
+6. **Given** der Spielplan, **Then** zeigt er Spiele ab heute nach Datum und Anstoß, je Datum auf- und zuklappbar; Spiele vergangener Tage stehen eingeklappt unter "Vergangene Spiele", mit Endstand, falls bekannt.
+7. **Given** ein Planspiel fällt aus, **When** der Nutzer "Abgesagt" wählt, **Then** steht es mit "abgesagt" im Plan, wird unter "Neues Spiel" nicht angeboten und erscheint auf dem Dashboard als "abgesagt"; "Wieder ansetzen" hebt das auf.
 
 ---
 
@@ -170,6 +180,23 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 
 ---
 
+### User Story 7 - Ganzer Spielplan für Eltern (Priority: P2)
+
+Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nach Datum gruppiert und je Datum auf- und zuklappbar, darunter eingeklappt "Vergangene Spiele" mit Endstand.
+
+**Why this priority**: Eltern fragen sonst in der WhatsApp-Gruppe nach Terminen; der Spieltag funktioniert auch ohne.
+
+**Independent Test**: Plan mit Spielen am 14.11. (E1, E2, E3) und 22.11. (E1, E2) sowie einem beendeten Planspiel am 07.11. (2:1); Gerät C mit Zuschauer-Link zeigt "Spielplan" mit "Sa 14.11." aufgeklappt (drei Zeilen), "So 22.11." zugeklappt und "Vergangene Spiele" mit "Sa 07.11. E1 2:1 gegen …".
+
+**Acceptance Scenarios**:
+
+1. **Given** Planspiele ab heute, **Then** zeigt "Spielplan" je Datum eine Zeile ("Sa 14.11.", Anzahl Spiele); das nächste Datum ist aufgeklappt, alle anderen zugeklappt; ein Tipp klappt auf bzw. zu.
+2. **Given** ein aufgeklapptes Datum, **Then** steht je Spiel eine Zeile: Anstoß, Mannschaft, "gegen <Gegner>" bzw. "bei <Gegner>" (auswärts), Wettbewerb; abgesagte mit "abgesagt".
+3. **Given** vergangene Planspiele, **Then** stehen sie eingeklappt unter "Vergangene Spiele", neueste zuerst, mit Endstand (Heim zuerst), sofern bekannt.
+4. **Given** Planspiele ohne Gegner, **Then** erscheinen sie nicht.
+
+---
+
 ### Edge Cases
 
 - **Vermittlungsdienst hält Meldungen rund 12 Stunden**: Jedes Trainer-Handy speichert den zuletzt empfangenen Spielplan. Eine Änderung erreicht ein Handy nur, wenn es den Torticker innerhalb von rund 12 Stunden nach dem letzten Senden öffnet. Darum sendet jedes Trainer-Handy beim Öffnen den Plan erneut, wenn die letzte Meldung dazu älter als 6 Stunden ist (FR-P07). Fehlt ein Spiel trotzdem, legt der Trainer es wie bisher an; ein Weg ohne Netz zum Abgleich ist "Spielplan teilen" und "Liste einfügen" (US4).
@@ -181,7 +208,7 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 - **Neu ausgestellter Live-Spieltag**: Der Spielplan wandert mit wie Titel und Mannschaften.
 - **Kopplung beenden**: Der Plan verschwindet von diesem Handy; angelegte Spiele bleiben.
 - **Gleicher Vorname in zwei Kadern**: Unterscheidung wie bisher über Rückennummer oder Kürzel (Spec 001 FR-020).
-- **Größe**: Ein Plan mit 60 Spielen muss in eine Meldung passen (SC-P05).
+- **Größe**: Ein Plan mit 100 Spielen (Saison mit drei Mannschaften, inklusive vergangener) muss in eine Meldung passen (SC-P05). Darüber fallen die ältesten vergangenen Spiele weg.
 
 ## Requirements *(mandatory)*
 
@@ -191,9 +218,11 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 
 - **FR-P01**: Ein Trainer-Handy MUSS unter "Mehr" → "Live-Spieltag" den Eintrag "Spielplan" haben: Liste der Planspiele ab heute, gruppiert nach Datum, je Zeile Anstoß (falls bekannt), Mannschaft, Gegner bzw. "(Gegner offen)", "(H)" oder "(A)", Wettbewerb und "angelegt", sobald ein Spiel daraus angelegt wurde.
 - **FR-P02**: Ein Planspiel MUSS enthalten: Mannschaft des Live-Spieltags (Pflicht), Datum (Pflicht, Vorgabe nächster Samstag), Heim/Auswärts (Pflicht, Vorgabe Heim), Anstoß (optional), Gegner (optional, 1 bis 40 Zeichen), Wettbewerb (optional, bis 40 Zeichen), Spielzeit (optional, Schema wie in "Neues Spiel").
-- **FR-P03**: Jedes Trainer-Handy MUSS Planspiele hinzufügen, ändern und löschen können (gleichberechtigt wie Spec 006 FR-L19). Höchstens 60 Planspiele ab heute; beim 61. erscheint ein Hinweis.
+- **FR-P03**: Jedes Trainer-Handy MUSS Planspiele hinzufügen, ändern und löschen können (gleichberechtigt wie Spec 006 FR-L19). Höchstens 100 Planspiele insgesamt; ist die Grenze erreicht, fallen die ältesten vergangenen weg, sind alle künftig, erscheint ein Hinweis.
 - **FR-P04**: Änderungen MÜSSEN je Planspiel zusammengeführt werden: Änderungen an verschiedenen Spielen gehen nicht verloren, beim selben Spiel gilt die jüngste; gelöschte Spiele kommen durch ältere Meldungen nicht zurück.
-- **FR-P05**: Planspiele vergangener Tage MÜSSEN am Folgetag aus Plan, "Neues Spiel" und Dashboard verschwinden.
+- **FR-P05**: Planspiele vergangener Tage MÜSSEN am Folgetag aus "Neues Spiel" verschwinden und im Plan sowie auf dem Dashboard unter "Vergangene Spiele" stehen (eingeklappt, neueste zuerst).
+- **FR-P29**: Ein Planspiel MUSS sich als "abgesagt" markieren und wieder ansetzen lassen. Abgesagte Spiele erscheinen nicht unter "Neues Spiel" und auf dem Dashboard mit "abgesagt" statt Anstoß.
+- **FR-P30**: Wird ein aus dem Plan angelegtes Spiel beendet (Schlusspfiff, ggf. Elfmeterschießen), MUSS das Lead-Handy den Endstand in das Planspiel übernehmen und den Plan senden; ein zurückgenommener Schlusspfiff (Spec 012) entfernt ihn wieder.
 
 **Übertragen**
 
@@ -256,7 +285,7 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 | `spiel-vormerken` "Wie sage ich an, dass ich ein Spiel tickere?" | neu | 015 US6 |
 | `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: "Aus dem Spielplan" | 001 US1, 015 US2 |
 | `live-verwalten` "Wie ändere ich Titel oder Mannschaften des Live-Spieltags?" | geändert: Verweis auf "Spielplan" | 006 US5, 015 US1 |
-| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: nächstes Spiel mit Anstoß | 006 US3, 015 US3 |
+| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: nächstes Spiel mit Anstoß, Spielplan, vergangene Spiele | 006 US3, 015 US3, US7 |
 | `kader-mehrere` "Wie lege ich einen zweiten Kader an, z. B. für die E3?" | neu | 015 US5 |
 | `kader` "Wie pflege ich den Kader?" | geändert: mehrere Kader, Kinder verschieben | 001 US5, 015 US5 |
 | `kader-liste` "Wie übernehme ich eine Spielerliste aus WhatsApp?" | geändert: Kadername in der ersten Zeile | 001 FR-028, 015 FR-P23 |
@@ -269,7 +298,7 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 - **SC-P02**: Atti überträgt 20 Spiele per "Liste einfügen" in unter 2 Minuten in den Plan.
 - **SC-P03**: Eine Änderung am Plan erscheint bei Netz innerhalb von 10 Sekunden auf geöffneten Trainer-Handys und Dashboards.
 - **SC-P04**: Das Dashboard zeigt für ein Spiel nie zwei Karten (Planspiel und angelegtes Spiel).
-- **SC-P05**: Ein Plan mit 60 Spielen passt in eine Meldung des Vermittlungsdienstes.
+- **SC-P05**: Ein Plan mit 100 Spielen passt in eine Meldung des Vermittlungsdienstes.
 - **SC-P06**: Domain-Logik (Zusammenführen, Einfügeformat, Ordnung auf dem Dashboard, Kader) mit 100 % Branch-Coverage; Netzwerk-Wächter ohne neue Ziele.
 - **SC-P07**: Ein Trainer mit vorgemerktem Spiel kommt am Spieltag mit 2 Tipps vom Startbildschirm auf den Spielbildschirm.
 

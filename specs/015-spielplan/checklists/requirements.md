@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Review A: Fragen beantwortet (06.11.2026); offen nur noch Bestätigung von US6 und der Vorschläge aus dem Chat.
+- Review A erledigt (06.11.2026, "passt", mit US6, US7, "Abgesagt"; ohne Ort).
