@@ -274,6 +274,10 @@ describe('015 FR-P07 Erneut senden', () => {
       { seen: { frisch: T0 } },
     );
     expect(staleEntries(s, T0 + 1000, TODAY).map((e) => e.id)).toEqual(['alt', 'weg']);
+    // Kennungen wie "constructor" lesen keinen Wert aus dem Objekt-Prototyp (Sicherheitsreview)
+    expect(staleEntries(storeWith([entry({ id: 'constructor' })]), T0, TODAY).map((e) => e.id)).toEqual([
+      'constructor',
+    ]);
   });
 
   it('noteSeen: empfangene Planspiele mit gleichem Stand zählen als frisch, ältere nicht', () => {

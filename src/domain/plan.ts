@@ -218,7 +218,9 @@ export const isFull = (store: PlanStore, today: string): boolean =>
 
 /** FR-P07: Planspiele ab heute (auch Grabsteine), die seit 6 Stunden nicht über den Dienst gingen. */
 export const staleEntries = (store: PlanStore, now: number, today: string): PlanEntry[] =>
-  store.entries.filter((e) => e.date >= today && now - (store.seen[e.id] ?? 0) >= REFRESH_MS);
+  store.entries.filter(
+    (e) => e.date >= today && now - (Object.hasOwn(store.seen, e.id) ? (store.seen[e.id] as number) : 0) >= REFRESH_MS,
+  );
 
 /** FR-P07: erneut senden, wenn Unversandtes da ist oder ein Planspiel ab heute veraltet auf dem Dienst ist. */
 export const needsRefresh = (store: PlanStore, now: number, today: string): boolean =>
