@@ -29,4 +29,4 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 - [x] D013 axe-Prüfung des Auswahlmodus und der Leiste "… gelöscht" in hell und dunkel (`tests/e2e/a11y.spec.ts`, SC-D04)
 - [x] D014 Lint, Typen, Unit mit Coverage, Hilfe-Abdeckung, Kontrast, Budget, E2E lokal (Android-Profil)
-- [ ] D015 Screenshots iPhone hell/dunkel an Atti (Review C)
+- [x] D015 Screenshots iPhone hell/dunkel an Atti (Review C)

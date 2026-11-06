@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Review A und B erledigt (05.11.2026, Atti: "passt"). Umsetzung US1 bis US3, Review C offen. Mockup: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
+**Status**: Umgesetzt (06.11.2026, PR #48). Review A und Review B mit "passt" erledigt, Review C mit "Merge #48" erteilt. Mockup: https://claude.ai/artifact/WwNnBCdbaEVFLPjedwcyGs
 
 **Input**: Atti, 05.11.2026: "Beim Löschen der Historie würde ich mir ein Multi-Select und Select-All wünschen."
 
