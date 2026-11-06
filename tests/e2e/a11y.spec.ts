@@ -9,6 +9,20 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: scheme });
     });
 
+    test('014 SC-D04 Historie im Auswahlmodus und mit „Rückgängig“ ohne axe-Verstöße', async ({ page }) => {
+      await playFinishedGame(page, ['own'], { opponent: 'TSV Weilimdorf' });
+      await startGame(page, { opponent: 'TSG Stuttgart' });
+      await page.getByTestId('nav-history').click();
+      await page.getByTestId('history-select').click();
+      await page.getByTestId('history-select-all').click();
+      await expect(page.getByTestId('history-delete')).toHaveText('Löschen (1)');
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.getByTestId('history-delete').click();
+      await page.getByTestId('confirm-yes').click();
+      await expect(page.getByTestId('history-undo')).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    });
+
     test('Neues Spiel ohne axe-Verstöße', async ({ page }) => {
       await page.goto('./');
       await page.getByTestId('btn-new-game').click();

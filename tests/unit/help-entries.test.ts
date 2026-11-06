@@ -106,6 +106,10 @@ const CATALOG: [string, string][] = [
   ['übergabe', 'spiel-uebernehmen'],
   ['assist ändern', 'vorlage-aendern'],
   ['ton ändern', 'signalton'],
+  ['mehrere spiele löschen', 'spiele-loeschen-mehrere'],
+  ['alle spiele löschen', 'spiele-loeschen-mehrere'],
+  ['testspiele aufräumen', 'spiele-loeschen-mehrere'],
+  ['gelöscht rückgängig', 'spiel-loeschen'],
 ];
 
 describe('010 SC-H01 Fragenkatalog', () => {
