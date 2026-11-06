@@ -20,6 +20,8 @@
     "contrast": "tsx scripts/check-contrast.ts",
     "budget": "tsx scripts/check-bundle-size.ts",
     "e2e": "playwright test",
+    "e2e:changed": "playwright test --only-changed=origin/main",
+    "check": "npm run lint && npm run typecheck && npm run test:cov && npm run build && npm run contrast && npm run budget",
     "lhci": "npx --yes @lhci/cli@0.15.1 autorun",
     "icons": "pwa-assets-generator",
     "flyer": "tsx scripts/flyer.ts"
