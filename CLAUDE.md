@@ -15,7 +15,7 @@ Verbindlich sind außerdem `.specify/memory/constitution.md` (Grundsätze) und `
 | 5 **Review B: Mockup** | Atti | Feedback oder Freigabe | Freigabe |
 | 6 Planen | Agent | `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze` (keine kritischen Befunde offen) | plan.md, tasks.md |
 | 7 Umsetzen | Agent | Test-first je Aufgabe, kleine Commits (Conventional Commits), ein PR pro User Story bzw. Phase; **Hilfe-Einträge im selben PR** (Constitution IX) | Draft-PR |
-| 8 Selbstprüfung | Agent | Alle CI-Checks lokal grün, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti senden | grüner PR |
+| 8 Selbstprüfung | Agent | Lokal schnell prüfen (siehe "Lokal testen"), volle Suite in der CI grün, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti senden | grüner PR |
 | 9 **Review C: Ergebnis** | Atti | Screenshots/Live-Test prüfen, PR mit "Squash and merge" übernehmen | Merge |
 | 10 Ausliefern | Automatisch | Deploy auf GitHub Pages, release-please erzeugt Version + Changelog | Live |
 
@@ -36,6 +36,17 @@ Atti wird nur in den Schritten 3, 5 und 9 gebraucht. Kleine Änderungen (Fehlerb
 - PR-Titel nach Conventional Commits
 
 Ein Test wird nie übersprungen oder abgeschwächt, um grün zu werden.
+
+## Lokal testen (Agent)
+
+Lokal nur prüfen, was die Änderung betrifft; die volle E2E-Suite in allen Profilen läuft in der CI.
+
+1. `npm run check`: Lint, Typen, Unit-Tests mit Coverage, Build, Kontrast, Bundle-Budget (ca. 25 s)
+2. `npm run e2e:changed`: E2E-Specs, die selbst oder über importierte Helfer seit `origin/main` geändert wurden
+3. Bei Änderungen in `src/` zusätzlich gezielt die Specs der betroffenen User Story bzw. Funktion: `npx playwright test tests/e2e/<datei>.spec.ts`
+4. Die volle Suite lokal (`npm run e2e`, ca. 4 min) nur bei übergreifenden Änderungen (Navigation, Speicher, Service Worker, gemeinsame Komponenten)
+
+Im Cloud-Container `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium` setzen; dann läuft automatisch nur das Profil `android`. Der visuelle Vergleich (`visual.spec.ts`) ist nur im Playwright-Image der CI aussagekräftig, lokal weicht die Schriftdarstellung ab.
 
 ## Regeln für den Agenten
 
