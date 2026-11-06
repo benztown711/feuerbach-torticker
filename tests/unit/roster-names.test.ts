@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_NAME, abbreviationOf, firstNameOf, uniqueNames } from '../../src/domain/roster-names';
+import { MAX_NAME, abbreviationOf, firstNameOf, uniqueNames, type NameEntry } from '../../src/domain/roster-names';
 
-const names = (entries: { first: string; last: string | null; fixed?: boolean }[]) =>
-  uniqueNames(entries).map((r) => r.name);
+const names = (entries: NameEntry[]) => uniqueNames(entries).map((r) => r.name);
 
 describe('T064 FR-020 FR-025 eindeutige Anzeigenamen', () => {
   it('US7-S2 allein: nur Vorname, Nachname verworfen', () => {
@@ -79,5 +78,43 @@ describe('T064 FR-020 FR-025 eindeutige Anzeigenamen', () => {
     expect(abbreviationOf('Max Mü.')).toBe('Mü');
     expect(abbreviationOf('Max')).toBeNull();
     expect(abbreviationOf('Max Müller')).toBe('Müller');
+  });
+});
+
+describe('001 US7-S8 FR-028 Kürzel aus der Liste bleiben unverändert', () => {
+  it('001 US7-S8 FR-028 Kürzel werden weder gekürzt noch verlängert', () => {
+    expect(
+      names([
+        { first: 'Max', last: 'Me', kept: true },
+        { first: 'Max', last: 'Mü', kept: true },
+      ]),
+    ).toEqual(['Max Me.', 'Max Mü.']);
+    expect(
+      names([
+        { first: 'Max', last: 'Mei', kept: true },
+        { first: 'Max', last: 'Mü', kept: true },
+      ]),
+    ).toEqual(['Max Mei.', 'Max Mü.']);
+  });
+
+  it('001 US7-S8 FR-028 ein Kürzel bleibt auch ohne Namensvetter stehen', () => {
+    expect(names([{ first: 'Tom', last: 'S', kept: true }])).toEqual(['Tom S.']);
+  });
+
+  it('001 US7-S8 FR-028 neue Nachnamen weichen Kürzeln aus, gleiche Kürzel sind doppelt', () => {
+    expect(
+      names([
+        { first: 'Max', last: 'M', kept: true },
+        { first: 'Max', last: 'Meier' },
+      ]),
+    ).toEqual(['Max M.', 'Max Me.']);
+    const r = uniqueNames([
+      { first: 'Max', last: 'Mü', kept: true },
+      { first: 'Max', last: 'Mü', kept: true },
+    ]);
+    expect(r).toEqual([
+      { name: 'Max Mü.', duplicate: true },
+      { name: 'Max Mü.', duplicate: true },
+    ]);
   });
 });

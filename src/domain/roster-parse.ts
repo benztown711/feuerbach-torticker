@@ -3,6 +3,8 @@
  * Nachnamen werden nur für die Vorschau gelesen und nie gespeichert.
  */
 
+import { isAbbreviation } from './roster-names';
+
 export type ParseWarning = 'nummer-ungueltig';
 
 export interface ParsedLine {
@@ -12,6 +14,8 @@ export interface ParsedLine {
   firstName: string;
   /** Nur flüchtig für die Abkürzung; nie persistieren. */
   lastName: string | null;
+  /** Statt eines Nachnamens steht schon ein Kürzel wie "Mü." da (FR-028: Text aus "Kader teilen"). */
+  abbreviated: boolean;
   warnings: ParseWarning[];
 }
 
@@ -45,7 +49,9 @@ function parseLine(raw: string, line: number): ParsedLine | null {
     if (n >= 1 && n <= 99) number = n;
     else warnings.push('nummer-ungueltig');
   }
-  return { line, number, firstName, lastName: last.length > 0 ? last.join(' ') : null, warnings };
+  const tokens = rest.split(/\s+/).filter((w) => /\p{L}/u.test(w));
+  const abbreviated = last.length === 1 && isAbbreviation(tokens.at(-1)!);
+  return { line, number, firstName, lastName: last.length > 0 ? last.join(' ') : null, abbreviated, warnings };
 }
 
 export function parseRosterList(text: string): ParsedLine[] {

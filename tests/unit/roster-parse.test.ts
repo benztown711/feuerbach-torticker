@@ -40,3 +40,19 @@ describe('T063 FR-025 Liste einfügen: Zeilen erkennen', () => {
     expect(one("5 D'Angelo")).toMatchObject({ firstName: "D'Angelo" });
   });
 });
+
+describe('001 US7-S8 FR-028 Kürzel aus „Kader teilen“ erkennen', () => {
+  it.each([
+    ['14 Max Mü.', 14, 'Mü', true],
+    ['Max Me. 7', 7, 'Me', true],
+    ['Max M.', null, 'M', true],
+    ['Max Mei.', null, 'Mei', true],
+    ['Max Mü', null, 'Mü', false],
+    ['Max Meie.', null, 'Meie', false],
+    ['Max Mü. -', null, 'Mü', true],
+    ['Max M. Mü.', null, 'M Mü', false],
+    ['1 Max', 1, null, false],
+  ])('%s', (line, number, lastName, abbreviated) => {
+    expect(one(line)).toMatchObject({ number, firstName: 'Max', lastName, abbreviated });
+  });
+});
