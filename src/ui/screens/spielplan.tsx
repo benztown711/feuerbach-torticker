@@ -6,6 +6,7 @@ import {
   entryTitle,
   formatPlanDate,
   formatPlanDateLong,
+  formatPlanDateShort,
   isFull,
   isPlanDate,
   nextSaturday,
@@ -94,6 +95,14 @@ function Picker({
         value={value}
         data-testid={id}
         onInput={(e) => onInput(e.currentTarget.value)}
+        onClick={(e) => {
+          // Am Computer öffnet ein Klick sonst nur ein Teilfeld; auf dem Handy öffnet sich die Auswahl ohnehin.
+          try {
+            e.currentTarget.showPicker();
+          } catch {
+            // nicht unterstützt oder nicht erlaubt
+          }
+        }}
       />
     </div>
   );
@@ -240,6 +249,11 @@ function EditSheet({
             shown={v.time ? v.time : 'offen'}
             onInput={(time) => set({ time })}
           />
+          {v.time && (
+            <button type="button" class="link-btn" data-testid="plan-time-clear" onClick={() => set({ time: '' })}>
+              Anstoß offen
+            </button>
+          )}
           {errors.time && <p class="field__error">{errors.time}</p>}
         </div>
       </div>
@@ -518,13 +532,7 @@ export function PlanScreen() {
             onToggle={() => toggle('past')}
           >
             {view.past.map((e) => (
-              <Row
-                key={e.id}
-                entry={e}
-                lead={formatPlanDate(e.date).slice(0, 6)}
-                today={today}
-                onOpen={() => openEntry(e)}
-              />
+              <Row key={e.id} entry={e} lead={formatPlanDateShort(e.date)} today={today} onOpen={() => openEntry(e)} />
             ))}
           </Group>
         )}

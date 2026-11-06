@@ -154,12 +154,21 @@ export function NewGameScreen() {
   // Spec 015 US2 FR-P09: Planspiele heute und in den nächsten 14 Tagen, auch wenn ein anderes Handy sie ändert.
   useEffect(() => {
     const live = settings?.live;
-    if (!live?.orgKey) return;
+    if (!live?.orgKey) {
+      setChoices(null);
+      setFromPlan(null);
+      return;
+    }
     let alive = true;
     const load = (): void =>
       void import('../../platform/live-setup')
         .then((m) => m.planChoices(live))
-        .then((c) => alive && setChoices(c))
+        .then((c) => {
+          if (!alive) return;
+          setChoices(c);
+          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben.
+          setFromPlan((f) => (f && [...c.today, ...c.later].some((x) => x.entry.id === f.entry.id) ? f : null));
+        })
         .catch(() => undefined);
     load();
     const off = onPlanChanged(load);
@@ -205,6 +214,13 @@ export function NewGameScreen() {
   const check = validateNewGame(input);
   const ownShort = shortTeamName(team.name);
   const liveTeam = liveTeamFor(team.name, settings.live);
+  const keyOf = (t: Team): string | undefined => liveTeamFor(t.name, settings.live)?.key;
+  /** Nur Planspiele von Mannschaften, für die dieses Handy sendet. */
+  const teamOf = (c: PlanChoice): Team | undefined => settings.teams.find((t) => keyOf(t) === c.entry.team);
+  const own = choices && {
+    today: choices.today.filter((c) => teamOf(c)),
+    later: choices.later.filter((c) => teamOf(c)),
+  };
   const oppLabel = opponent.trim() || 'Gegner';
   const sides =
     venue === 'home'
@@ -220,8 +236,9 @@ export function NewGameScreen() {
 
   /** Spec 015 US2 FR-P10: Mannschaft, Gegner, Heim/Auswärts, Trikot und Spielzeit aus dem Planspiel. */
   const pick = (c: PlanChoice): void => {
-    const t = settings.teams.find((x) => liveTeamFor(x.name, settings.live)?.key === c.entry.team);
-    if (t) applyTeam(settings, t);
+    const t = teamOf(c);
+    if (!t) return;
+    applyTeam(settings, t);
     setOpponent(c.entry.opponent);
     setOppTouched(false);
     setVenue(c.entry.venue);
@@ -296,14 +313,14 @@ export function NewGameScreen() {
           void create();
         }}
       >
-        {choices && choices.today.length + choices.later.length > 0 && (
+        {own && own.today.length + own.later.length > 0 && (
           <section class="card plan-pick" aria-labelledby="plan-pick-title" data-testid="plan-pick">
             <h2 id="plan-pick-title" class="t-label card__title">
-              {choices.today.length > 0 ? 'AUS DEM SPIELPLAN · HEUTE' : 'AUS DEM SPIELPLAN'}
+              {own.today.length > 0 ? 'AUS DEM SPIELPLAN · HEUTE' : 'AUS DEM SPIELPLAN'}
             </h2>
-            {choices.today.length > 0 && (
+            {own.today.length > 0 && (
               <div class="plan-pick__rows">
-                {choices.today.map((c) => (
+                {own.today.map((c) => (
                   <PickRow
                     key={c.entry.id}
                     c={c}
@@ -314,7 +331,7 @@ export function NewGameScreen() {
                 ))}
               </div>
             )}
-            {choices.later.length > 0 && (
+            {own.later.length > 0 && (
               <button
                 type="button"
                 class="plan__head plan-pick__more"
@@ -331,11 +348,11 @@ export function NewGameScreen() {
             )}
             {showLater && (
               <div class="plan-pick__rows">
-                {choices.later.map((c) => (
+                {own.later.map((c) => (
                   <PickRow
                     key={c.entry.id}
                     c={c}
-                    lead={c.when.slice(0, 6)}
+                    lead={c.day}
                     selected={fromPlan?.entry.id === c.entry.id}
                     onPick={() => pick(c)}
                   />
@@ -369,7 +386,11 @@ export function NewGameScreen() {
                     class="chip chip--wide"
                     aria-pressed={t.id === team.id}
                     data-testid={`team-chip-${i}`}
-                    onClick={() => applyTeam(settings, t)}
+                    onClick={() => {
+                      applyTeam(settings, t);
+                      // Andere Mannschaft als im gewählten Planspiel: kein Spiel aus dem Plan mehr.
+                      if (fromPlan && keyOf(t) !== fromPlan.entry.team) setFromPlan(null);
+                    }}
                   >
                     {teamShortLabel(t.name)}
                   </button>

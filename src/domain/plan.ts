@@ -152,7 +152,9 @@ export function setCancelled(store: PlanStore, id: string, cancelled: boolean, n
 /** US2 FR-P11: Planspiel mit dem daraus angelegten Spiel verknüpfen. */
 export function setGame(store: PlanStore, id: string, gameId: string, now: number): PlanChange | null {
   const old = live(store, id);
-  return old ? replace(store, { ...old, gameId, updatedAt: stamp(old.updatedAt, now) }) : null;
+  // Abgesagt oder schon von einem anderen Handy angelegt: das erste Spiel bleibt verknüpft.
+  if (!old || old.cancelled || (old.gameId && old.gameId !== gameId)) return null;
+  return replace(store, { ...old, gameId, updatedAt: stamp(old.updatedAt, now) });
 }
 
 /** US1-S3: löschen als Grabstein, damit andere Handys es nicht zurückbringen (FR-P04). */
@@ -171,8 +173,10 @@ export function mergeEntries(
   for (const e of incoming) {
     const old = byId.get(e.id);
     if (old && old.updatedAt >= e.updatedAt) continue;
-    byId.set(e.id, e);
-    changed.push(e);
+    // FR-P11: eine Verknüpfung mit dem angelegten Spiel geht durch gleichzeitiges Ändern nicht verloren.
+    const next = old?.gameId && !e.gameId ? { ...e, gameId: old.gameId } : e;
+    byId.set(e.id, next);
+    changed.push(next);
   }
   return changed.length === 0 ? { store, changed } : { store: { ...store, entries: [...byId.values()] }, changed };
 }
@@ -369,6 +373,9 @@ export function formatPlanDate(date: string): string {
   const d = utc(date);
   return `${WEEKDAYS[d.getUTCDay()]} ${date.slice(8, 10)}.${date.slice(5, 7)}.`;
 }
+
+/** "Sa 14." (Zeilen mit Datum statt Anstoß). */
+export const formatPlanDateShort = (date: string): string => formatPlanDate(date).slice(0, 6);
 
 /** "Sa 14.11.2026" (Feld "Datum", immer deutsch). */
 export const formatPlanDateLong = (date: string): string => `${formatPlanDate(date)}${date.slice(0, 4)}`;

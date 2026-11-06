@@ -13,6 +13,7 @@ import {
   entryWhen,
   formatPlanDate,
   formatPlanDateLong,
+  formatPlanDateShort,
   isFull,
   markPending,
   markSent,
@@ -196,6 +197,12 @@ describe('015 US1 Spielplan: Zusammenführen (FR-P04)', () => {
   it('gelöschte Spiele kommen durch ältere Meldungen nicht zurück', () => {
     const s = storeWith([entry({ deleted: true, updatedAt: T0 + 10 })]);
     expect(mergeEntries(s, [entry({ updatedAt: T0 + 5 })]).changed).toEqual([]);
+  });
+
+  it('FR-P11: eine jüngere Änderung ohne Verknüpfung behält das angelegte Spiel', () => {
+    const s = storeWith([entry({ gameId: 'g1', updatedAt: T0 })]);
+    const r = mergeEntries(s, [entry({ time: '11:00', updatedAt: T0 + 1 })]);
+    expect(r.store.entries[0]).toMatchObject({ time: '11:00', gameId: 'g1' });
   });
 
   it('übernommene Einträge werden nicht als unversandt markiert', () => {
@@ -404,6 +411,7 @@ describe('015 Anzeige', () => {
     expect(formatPlanDate('2026-11-14')).toBe('Sa 14.11.');
     expect(formatPlanDate('2026-11-15')).toBe('So 15.11.');
     expect(formatPlanDateLong('2026-11-14')).toBe('Sa 14.11.2026');
+    expect(formatPlanDateShort('2026-11-14')).toBe('Sa 14.');
     expect(todayKey(Date.UTC(2026, 10, 7, 23, 30), 'Europe/Berlin')).toBe('2026-11-08');
     expect(nextSaturday('2026-11-07')).toBe('2026-11-07');
     expect(nextSaturday('2026-11-08')).toBe('2026-11-14');
@@ -436,6 +444,10 @@ describe('015 US2 Spiel aus dem Spielplan', () => {
     expect(r?.entry).toMatchObject({ gameId: 'game-123', updatedAt: T0 + 1 });
     expect(r?.store.pending).toEqual(['a1']);
     expect(setGame(storeWith([entry()]), 'fehlt', 'g', T0)).toBeNull();
+    // abgesagt oder schon von einem anderen Handy angelegt: keine (neue) Verknüpfung
+    expect(setGame(storeWith([entry({ cancelled: true })]), 'a1', 'g', T0)).toBeNull();
+    expect(setGame(storeWith([entry({ gameId: 'erstes' })]), 'a1', 'zweites', T0)).toBeNull();
+    expect(setGame(storeWith([entry({ gameId: 'g' })]), 'a1', 'g', T0)?.entry.gameId).toBe('g');
     const text = JSON.stringify(encodePayload([r!.entry]));
     expect(parsePayload(text)?.[0]?.gameId).toBe('game-123');
   });

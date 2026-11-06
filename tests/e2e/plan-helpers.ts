@@ -56,3 +56,20 @@ export async function addGame(page: Page, g: PlanGame & { date: string }): Promi
 
 export const rows = (page: Page) => page.locator('[data-testid^="plan-row-"]');
 export const row = (page: Page, text: string) => rows(page).filter({ hasText: text });
+
+/** Anzahl unversandter Planspiele auf dem Gerät (IndexedDB, Schlüssel "plan"). */
+export const pendingCount = (page: Page): Promise<number> =>
+  page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        const open = indexedDB.open('torticker');
+        open.onsuccess = () => {
+          const req = open.result.transaction('settings').objectStore('settings').get('plan');
+          req.onsuccess = () => {
+            const plan = req.result as { pending?: string[] } | undefined;
+            resolve(plan?.pending?.length ?? 0);
+            open.result.close();
+          };
+        };
+      }),
+  );

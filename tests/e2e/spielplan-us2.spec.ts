@@ -84,6 +84,12 @@ test('015 US2-S2 US2-S3 Tipp füllt aus; Änderungen gelten nur für dieses Spie
     'Aus dem Spielplan: Sa 07.11., 11:00 · Kreisstaffel. Änderungen gelten nur für dieses Spiel.',
   );
 
+  // Andere Mannschaft gewählt: kein Spiel aus dem Plan mehr; erneut antippen wählt es wieder
+  await page.getByTestId('team-chips').getByRole('button', { name: 'E2', exact: true }).click();
+  await expect(page.getByTestId('plan-pick-hint')).toHaveCount(0);
+  await pick(page, 'FC Probestadt').click();
+  await expect(page.getByTestId('plan-pick-hint')).toBeVisible();
+
   // US2-S3: Gegner hier ändern lässt den Plan unverändert
   await page.getByTestId('input-opponent').fill('FC Probestadt II');
   await page.getByTestId('btn-create').click();

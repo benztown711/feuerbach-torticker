@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 import { confirmYes } from './helpers';
 import { MATCHDAY, pasteLink, planPayloads } from './live-helpers';
-import { addGame, fillGame, openPlan, row, rows, setupPlan as setup, sync } from './plan-helpers';
+import { addGame, fillGame, openPlan, pendingCount, row, rows, setupPlan as setup, sync } from './plan-helpers';
 
 /**
  * Spec 015 US1: Spielplan pflegen. Jedes Trainer-Handy trägt Planspiele ein, ändert, sagt ab und löscht; die
@@ -63,7 +63,11 @@ test('015 US1-S1 Spiel hinzufügen: steht unter dem Datum und geht als Plan-Meld
 test('015 US1-S2 ohne Anstoß und Gegner: "E1 – (Gegner offen)"', async ({ page, recorded, relay }) => {
   await setup(page, recorded, relay);
   await openPlan(page);
-  await addGame(page, { team: 'E1', date: '2026-11-15' });
+  await page.getByTestId('plan-add').click();
+  await page.getByTestId('plan-time').fill('12:00');
+  await page.getByTestId('plan-time-clear').click();
+  await expect(page.getByTestId('plan-time-shown')).toHaveText('offen');
+  await fillGame(page, { team: 'E1', date: '2026-11-15' });
   const r = row(page, 'E1 – (Gegner offen)');
   await expect(r).toBeVisible();
   await expect(r).toContainText('–');
@@ -220,6 +224,8 @@ test('015 FR-P07 erneut senden: beim Öffnen nach mehr als 6 Stunden geht der ga
     return (await planPayloads(relay, links.viewer)).length;
   };
   await expect.poll(count).toBe(2);
+  // Erst wenn das Handy beide Meldungen als gesendet gespeichert hat (sonst sendet es beim Öffnen zu Recht nach).
+  await expect.poll(() => pendingCount(page)).toBe(0);
 
   // Kurz danach neu öffnen: nichts Neues
   await page.reload();

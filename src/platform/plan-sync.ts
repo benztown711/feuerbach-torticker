@@ -6,6 +6,7 @@ import {
   entryDetail,
   entryTitle,
   entryWhen,
+  formatPlanDateShort,
   markSent,
   mergeEntries,
   needsRefresh,
@@ -50,6 +51,8 @@ export interface PlanChoice {
   detail: string;
   /** "Sa 14.11., 12:00" */
   when: string;
+  /** "Sa 14." */
+  day: string;
 }
 
 let queue: Promise<unknown> = Promise.resolve();
@@ -138,6 +141,7 @@ const choiceOf = (entry: PlanEntry): PlanChoice => ({
   title: entryTitle(entry),
   detail: entryDetail(entry),
   when: entryWhen(entry),
+  day: formatPlanDateShort(entry.date),
 });
 
 /** US2 FR-P09: heutige und kommende Planspiele (14 Tage) für "Aus dem Spielplan". */
