@@ -68,6 +68,8 @@ function Topbar() {
 }
 
 function Row({ entry, lead, onOpen }: { entry: PlanEntry; lead: string; onOpen?: () => void }) {
+  // Vergangene Spiele (ohne onOpen) zeigen nur "abgesagt", kein "frei" (Endstand folgt mit US3).
+  const state = entry.cancelled ? 'abgesagt' : onOpen ? 'frei' : '';
   const body = (
     <>
       <span class="plan__time">{lead}</span>
@@ -75,9 +77,7 @@ function Row({ entry, lead, onOpen }: { entry: PlanEntry; lead: string; onOpen?:
         <strong class="plan__title">{entryTitle(entry)}</strong>
         <span class="plan__detail">{entryDetail(entry)}</span>
       </span>
-      <span class={`plan__state${entry.cancelled ? ' plan__state--off' : ''}`}>
-        {entry.cancelled ? 'abgesagt' : 'frei'}
-      </span>
+      {state ? <span class={`plan__state${entry.cancelled ? ' plan__state--off' : ''}`}>{state}</span> : <span />}
     </>
   );
   return onOpen ? (
