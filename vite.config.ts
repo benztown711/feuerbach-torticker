@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA, type ManifestOptions } from 'vite-plugin-pwa';
 import tokens from './design/tokens.json' with { type: 'json' };
@@ -32,6 +32,21 @@ const manifest: Partial<ManifestOptions> = {
   ],
 };
 
+/**
+ * Spec 006 FR-L16: kein Manifest-Verweis im HTML. Safari lädt das Manifest beim ersten Verweis und behält es;
+ * die App setzt ihn beim Start selbst, auf der Seite des Zuschauer-Links mit dem Zuschauer-Link als Startadresse
+ * (`src/platform/web-manifest.ts`). Die Datei `manifest.webmanifest` erzeugt vite-plugin-pwa weiterhin.
+ */
+const manifestLinkBySkript = (): Plugin => ({
+  name: 'torticker:manifest-link-per-skript',
+  enforce: 'post',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (html) => html.replace(/<link rel="manifest"[^>]*>/, ''),
+  },
+});
+
 export default defineConfig({
   base: BASE,
   // App-Version für die Sicherung (FR-024, Feinschliff)
@@ -51,6 +66,7 @@ export default defineConfig({
         navigateFallback: `${BASE}index.html`,
       },
     }),
+    manifestLinkBySkript(),
   ],
   build: {
     target: 'es2022',

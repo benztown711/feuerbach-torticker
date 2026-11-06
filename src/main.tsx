@@ -7,6 +7,12 @@ import { getSettings } from './platform/db';
 import { startLiveSender } from './platform/live-sender';
 import { setSignalSound } from './platform/signal';
 import { applyTheme, requestPersistentStorage } from './platform/storage';
+import { APP_MANIFEST, setManifest } from './platform/manifest-link';
+import { parseHash } from './ui/router';
+
+// Spec 006 FR-L16: Safari liest nur den ersten Manifest-Verweis der Seite. Auf der Seite des Zuschauer-Links
+// setzt ihn das Dashboard (Startadresse ist der Zuschauer-Link), sonst gilt sofort das Manifest der App.
+if (parseHash(window.location.hash).name !== 'liveView') setManifest(APP_MANIFEST);
 
 // FR-018: gespeichertes Theme anwenden; FR-023: dauerhaften Speicher anfragen.
 void getSettings().then((s) => {

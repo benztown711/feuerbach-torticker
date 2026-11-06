@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { MIN, readStored, startGame } from './helpers';
 import {
+  asPath,
   createLive,
   e1At37,
   e2AtHalf,
@@ -337,11 +338,30 @@ test('006 R-L6 Start ohne eigene Daten öffnet das gemerkte Dashboard', async ({
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
 });
 
-/** Manifest, auf das die Seite gerade verweist: data:-Adresse entpackt, sonst der Verweis selbst. */
-const manifestOf = async (p: Page): Promise<{ start_url?: string; scope?: string; id?: string } | string> => {
-  const href = (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '';
-  return href.startsWith('data:') ? JSON.parse(decodeURIComponent(href.slice(href.indexOf(',') + 1))) : href;
-};
+/** Manifest hinter einem Verweis: blob:-Adresse im Browser gelesen, sonst der Verweis selbst. */
+type Manifest = { start_url?: string; scope?: string; id?: string } | string;
+const unpack = (p: Page, href: string): Promise<Manifest> =>
+  href.startsWith('blob:') ? p.evaluate(async (h) => (await fetch(h)).json(), href) : Promise.resolve(href);
+const manifestOf = async (p: Page) => unpack(p, (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '');
+
+/**
+ * Wie Safari: WebKit lädt das Manifest, sobald ein Verweis eingelesen oder eingefügt wird, und behält das erste
+ * für die ganze Seite (`DocumentLoader::loadApplicationManifest`). Zeichnet die Adresse jedes Manifest-Verweises
+ * zum Zeitpunkt des Einfügens auf (`window.__manifests`), auch des Verweises im HTML.
+ */
+async function recordManifests(p: Page): Promise<void> {
+  await p.addInitScript(() => {
+    const seen: string[] = [];
+    (window as unknown as { __manifests: string[] }).__manifests = seen;
+    new MutationObserver((records) => {
+      for (const r of records)
+        for (const n of r.addedNodes)
+          if (n instanceof HTMLLinkElement && n.rel === 'manifest') seen.push(n.getAttribute('href') ?? '');
+    }).observe(document, { childList: true, subtree: true });
+  });
+}
+const firstManifest = async (p: Page) =>
+  unpack(p, (await p.evaluate(() => (window as unknown as { __manifests: string[] }).__manifests))[0] ?? '');
 
 test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den Startbildschirm', async ({
   page,
@@ -352,15 +372,20 @@ test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den 
 }) => {
   const links = await createLive(page, recorded, { teams: ['E1'] });
   onMatchday(relay);
-  const v = await openViewer(newDevice, relay, links);
+  const v = await newDevice();
+  await recordManifests(v);
+  await v.clock.setSystemTime(Date.now() + relay.offsetMs);
+  await v.goto(asPath(links.viewer));
+  await expect(v.getByTestId('dashboard')).toBeVisible();
   const app = new URL('./', v.url()).href;
-  // iOS übernimmt die Startadresse aus dem Manifest: Sie ist der Zuschauer-Link, die App bleibt dieselbe.
-  await expect.poll(() => manifestOf(v)).toMatchObject({ start_url: links.viewer, scope: app, id: app });
+  // Schon der erste Manifest-Verweis der Seite nennt den Zuschauer-Link als Startadresse (Safari liest nur ihn).
+  await expect.poll(() => firstManifest(v)).toMatchObject({ start_url: links.viewer, scope: app, id: app });
+  expect(await manifestOf(v)).toMatchObject({ start_url: links.viewer });
   if (browserName === 'chromium') {
     // Der Browser liest das Manifest ohne Fehler (Android: "App installieren" mit derselben Startadresse).
     const cdp = await v.context().newCDPSession(v);
     const read = await cdp.send('Page.getAppManifest');
-    expect(read.url.startsWith('data:application/manifest+json,')).toBe(true);
+    expect(read.url.startsWith('blob:')).toBe(true);
     expect(read.errors).toEqual([]);
   }
   // Auch aus der Eltern-Hilfe heraus bleibt die Startadresse das Dashboard.
@@ -375,11 +400,18 @@ test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den 
   await expect(home.getByTestId('dashboard')).toBeVisible();
   await expect(home.getByTestId('btn-new-game')).toHaveCount(0);
 
-  // "Zum Torticker": wieder das Manifest der App mit ihrer eigenen Startadresse.
+  // "Zum Torticker": wieder das Manifest der App (Chrome liest es neu).
   await v.getByTestId('viewer-nav-dash').click();
   await v.getByRole('link', { name: 'Zum Torticker' }).click();
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
   await expect.poll(() => manifestOf(v)).toBe('/feuerbach-torticker/manifest.webmanifest');
+});
+
+test('006 FR-L16 Startbildschirm: erster Manifest-Verweis ist das Manifest der App', async ({ page }) => {
+  await recordManifests(page);
+  await page.goto('./');
+  await expect(page.getByTestId('btn-new-game')).toBeVisible();
+  await expect.poll(() => firstManifest(page)).toBe('/feuerbach-torticker/manifest.webmanifest');
 });
 
 test('006 FR-L17 Lead-Handy: "Live" und "Dashboard ansehen" öffnen das Dashboard mit Navigationsleiste', async ({
