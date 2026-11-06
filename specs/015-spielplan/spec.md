@@ -74,7 +74,7 @@ Atti trägt unter "Mehr" → "Live-Spieltag" → "Spielplan" die bekannten Spiel
 
 **Acceptance Scenarios**:
 
-1. **Given** ein Trainer-Handy, **When** der Nutzer unter "Spielplan" "Spiel hinzufügen" wählt, Mannschaft E1, Datum Sa 14.11., Anstoß 12:00, Gegner "TSV Musterstadt", Heim, Wettbewerb "Kreisstaffel" einträgt und speichert, **Then** steht das Spiel in der Liste unter "Sa 14.11." als "12:00 E1 – TSV Musterstadt (H) · Kreisstaffel".
+1. **Given** ein Trainer-Handy, **When** der Nutzer unter "Spielplan" "Spiel hinzufügen" wählt, Mannschaft E1, Datum Sa 14.11., Anstoß 12:00, Gegner "TSV Musterstadt", Heim, Wettbewerb "Kreisstaffel" einträgt und speichert, **Then** steht das Spiel in der Liste unter "Sa 14.11." mit "12:00", "E1 – TSV Musterstadt" und darunter "Heim · Kreisstaffel".
 2. **Given** Anstoß, Gegner und Wettbewerb bleiben leer, **When** gespeichert wird, **Then** steht das Spiel als "E1 – (Gegner offen)" im Plan.
 3. **Given** ein Spiel im Plan, **When** es angetippt wird, **Then** lassen sich alle Angaben ändern; "Löschen" entfernt es nach Rückfrage. Optional kann eine eigene Spielzeit (z. B. Halle 1 × 12 Minuten) eingetragen werden; ohne Angabe gilt die Spielzeit der Mannschaft.
 4. **Given** Trainer-Handy A ändert den Spielplan, **Then** übernehmen andere Trainer-Handys die Änderung, sobald sie sie empfangen (wie Spec 006 US5); ändern zwei Handys verschiedene Spiele, bleiben beide Änderungen erhalten; beim selben Spiel gilt die jüngste.
@@ -216,7 +216,7 @@ Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nac
 
 **Spielplan pflegen (US1)**
 
-- **FR-P01**: Ein Trainer-Handy MUSS unter "Mehr" → "Live-Spieltag" den Eintrag "Spielplan" haben: Liste der Planspiele ab heute, gruppiert nach Datum, je Zeile Anstoß (falls bekannt), Mannschaft, Gegner bzw. "(Gegner offen)", "(H)" oder "(A)", Wettbewerb und "angelegt", sobald ein Spiel daraus angelegt wurde.
+- **FR-P01**: Ein Trainer-Handy MUSS unter "Mehr" → "Live-Spieltag" den Eintrag "Spielplan" haben: Liste der Planspiele ab heute, gruppiert nach Datum, je Zeile Anstoß (falls bekannt), "E1 – <Gegner>" bei Heimspielen bzw. "E1 bei <Gegner>" bei Auswärtsspielen (ohne Gegner "E1 – (Gegner offen)"), darunter "Heim" bzw. "Auswärts", Wettbewerb und Spielzeit, rechts der Zustand ("frei", "abgesagt", ab US2 "angelegt", ab US6 "Tickert: …"). Das heutige bzw. nächste Datum ist aufgeklappt, die übrigen sind zugeklappt.
 - **FR-P02**: Ein Planspiel MUSS enthalten: Mannschaft des Live-Spieltags (Pflicht), Datum (Pflicht, Vorgabe nächster Samstag), Heim/Auswärts (Pflicht, Vorgabe Heim), Anstoß (optional), Gegner (optional, 1 bis 40 Zeichen), Wettbewerb (optional, bis 40 Zeichen), Spielzeit (optional, Schema wie in "Neues Spiel").
 - **FR-P03**: Jedes Trainer-Handy MUSS Planspiele hinzufügen, ändern und löschen können (gleichberechtigt wie Spec 006 FR-L19). Höchstens 100 Planspiele insgesamt; ist die Grenze erreicht, fallen die ältesten vergangenen weg, sind alle künftig, erscheint ein Hinweis.
 - **FR-P04**: Änderungen MÜSSEN je Planspiel zusammengeführt werden: Änderungen an verschiedenen Spielen gehen nicht verloren, beim selben Spiel gilt die jüngste; gelöschte Spiele kommen durch ältere Meldungen nicht zurück.
