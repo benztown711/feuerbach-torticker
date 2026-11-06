@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Spiel vorbereiten und per Spiel-Link verteilen
+# Specification Quality Checklist: Spielplan im Live-Spieltag
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-11-06
@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Offen für Review A: Spieltag (Datum) als Pflichtfeld beim Vorbereiten, Lesart "E1 und E2 teilen sich den Kader", Platz des Knopfs "Spiel-Link einfügen" (Mockup).
+- Offen für Review A: wer den Plan pflegt (Annahme: jedes Trainer-Handy), E3 in den Live-Spieltag aufnehmen, Zuordnung Sportvg Feuerbach I/II/III zu E1/E2/E3.

@@ -42,14 +42,14 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | offen |
 | B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | teilweise: „Trainer-Link einfügen“ auf dem Startbildschirm erkennt Trainer- und Zuschauer-Link (Spec 012 US1, #42); Paket und Kader offen |
-| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | in Arbeit als Spec 015 US4 |
+| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | in Arbeit als Spec 015 US5 |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
 ## C. Spieltag-Komfort für Trainer und Eltern
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spiel-Link je Spiel statt Spielplan, ohne Uhrzeit, N5) |
+| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N5) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
 | C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | mittel | Eigener Gratis-Dienst (z. B. Cloudflare Worker); Teil 1 von Spec 007 | offen |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
@@ -93,6 +93,6 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 | N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
 
 | N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt: kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 offen |
-| N5 | Spiele zentral vorbereiten und per Spiel-Link gezielt an das Lead-Handy schicken; Eltern sehen "Nächstes Spiel" (ohne Uhrzeit); Kader je Mannschaft im Link (deckt C1 und B3 ab) | 015 | Spec, Review A offen |
+| N5 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | Spec, Review A offen |
 
 (weitere hier anfügen)

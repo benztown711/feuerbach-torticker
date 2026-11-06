@@ -1,0 +1,238 @@
+# Feature Specification: Spielplan im Live-Spieltag
+
+**Feature Branch**: `015-spielplan` (Arbeitsbranch `claude/sharp-brahmagupta-kxgyie`)
+
+**Created**: 2026-11-06
+
+**Status**: Entwurf, Review A offen (zweite Fassung: Spielplan statt Spiel-Link je Spiel). Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+
+**Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
+
+## Ausgangslage
+
+- Heute legt das Lead-Handy jedes Spiel selbst unter "Neues Spiel" an: Mannschaft, Gegner, Heim/Auswärts, Trikots, Spielzeit, Aufgebot. Mannschaften und Trikots kommen mit dem Trainer-Link (Spec 006), der Kader nicht; ihn pflegt jeder Trainer selbst oder übernimmt ihn per "Kader teilen" und "Liste einfügen" (Spec 001 FR-028).
+- Alle Trainer-Handys sind über den Trainer-Link gekoppelt und empfangen Änderungen am Live-Spieltag (Titel, Mannschaften) automatisch (Spec 006 US5).
+- Das Dashboard zeigt ein Spiel erst, wenn ein Lead-Handy es anlegt.
+- Der Vermittlungsdienst hält Meldungen rund 12 Stunden vor (Spec 006 FR-L16). Kindernamen außer Torschützen und Vorlagen gehen nie über ihn (FR-L10, Constitution II).
+- Der Kader ist je Handy eine einzige Liste. E1 und E2 teilen sich in Wirklichkeit einen Kader, E3 hat einen eigenen.
+- Der Spielplan steht auf fußball.de: Datum, Anstoßzeit, Heim- und Gastmannschaft, Wettbewerb (z. B. Kreisstaffel, Bezirksfreundschaftsspiel, Hallen-Bezirksturnier mit mehreren Spielen am Tag).
+
+## Clarifications
+
+### Session 2026-11-06 (Chat, erste Fassung)
+
+- Q: Spiel-Link je Spiel oder Spielplan zentral im Live-Spieltag? → A: zunächst Spiel-Link je Spiel. **Überholt** durch die Session "Umstellung" unten.
+- Q: Kader: ganzer Kader der Mannschaft oder nur das Aufgebot? → A: Beides. Die Kader sind fest: E1 und E2 gemeinsam, E3 separat.
+- Q: Platzhalter (z. B. Gegner noch unbekannt)? → A: Ja; alles bleibt auf dem Lead-Handy änderbar.
+- Q: Sehen die Eltern das Spiel vorab? → A: Ja, sofern ein Gegnername eingetragen ist.
+
+### Session 2026-11-06 (Review A, Kader)
+
+- Q: Teilen sich E1 und E2 einen Kader, E3 hat einen eigenen? → A: Ja. Ein Trainer schickt einige Tage vor dem Spieltag die Aufteilung auf E1 und E2 in die Trainergruppe, damit Kinder und Eltern planen können. E3 läuft separat. Gelegentlich spielen ausgewählte E3-Kinder in der E2 mit, ebenso selten helfen E1/E2-Kinder in der E3 aus.
+- Folgerung: benannte Kader ("E1/E2", "E3"); jedes Kind gehört zu genau einem Kader, jede Mannschaft spielt mit einem Kader. Aushilfen stehen im Aufgebot unter "Weitere Kinder" (US5).
+
+### Session 2026-11-06 (Umstellung auf Spielplan)
+
+- Atti: Ein größeres Set an Spielen zentral anlegen, aus dem sich die Kollegen bedienen und alles anpassen. Dazu Screenshots von fußball.de mit 20 Spielen für E1, E2 und E3 (Kreisstaffel, Freundschaftsspiel, Hallen-Bezirksturnier), jeweils mit Anstoßzeit.
+- Entscheidung: Spielplan im Live-Spieltag statt Spiel-Link je Spiel. Jedes Trainer-Handy bekommt ihn automatisch; kein Link pro Spiel. Der Spiel-Link entfällt.
+- Kader und Aufgebot gehen nicht über den Vermittlungsdienst (FR-L10). Weil die Kader die Saison über fest sind, genügt einmal "Kader teilen" und "Liste einfügen" je Kader (US5); das Aufgebot wählt der Trainer vor Ort.
+- Anstoßzeit: optional, aus fußball.de bekannt; Eltern sehen sie.
+- Damit Atti die Spiele nicht abtippen muss: "Spielplan einfügen" aus einer Textliste, Zeile für Zeile wie "Liste einfügen" beim Kader (US4).
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Spielplan pflegen (Priority: P1)
+
+Atti trägt unter "Mehr" → "Live-Spieltag" → "Spielplan" die bekannten Spiele ein: Mannschaft, Datum, Anstoßzeit, Gegner, Heim/Auswärts, Wettbewerb. Zweite Spiele neben der Leistungsliga ergänzt er später. Jedes Trainer-Handy des Live-Spieltags bekommt den Spielplan automatisch und kann ihn ebenso ändern.
+
+**Why this priority**: Ohne Spielplan gibt es nichts zum Auswählen; das ist der Kern des Wunsches.
+
+**Independent Test**: Auf Trainer-Handy A "Sa 14.11. 12:00 E1 heim gegen TSV Musterstadt (Kreisstaffel)" eintragen; Trainer-Handy B zeigt unter "Spielplan" denselben Eintrag innerhalb von 10 Sekunden.
+
+**Acceptance Scenarios**:
+
+1. **Given** ein Trainer-Handy, **When** der Nutzer unter "Spielplan" "Spiel hinzufügen" wählt, Mannschaft E1, Datum Sa 14.11., Anstoß 12:00, Gegner "TSV Musterstadt", Heim, Wettbewerb "Kreisstaffel" einträgt und speichert, **Then** steht das Spiel in der Liste unter "Sa 14.11." als "12:00 E1 – TSV Musterstadt (H) · Kreisstaffel".
+2. **Given** Anstoß, Gegner und Wettbewerb bleiben leer, **When** gespeichert wird, **Then** steht das Spiel als "E1 – (Gegner offen)" im Plan.
+3. **Given** ein Spiel im Plan, **When** es angetippt wird, **Then** lassen sich alle Angaben ändern; "Löschen" entfernt es nach Rückfrage. Optional kann eine eigene Spielzeit (z. B. Halle 1 × 12 Minuten) eingetragen werden; ohne Angabe gilt die Spielzeit der Mannschaft.
+4. **Given** Trainer-Handy A ändert den Spielplan, **Then** übernehmen andere Trainer-Handys die Änderung, sobald sie sie empfangen (wie Spec 006 US5); ändern zwei Handys verschiedene Spiele, bleiben beide Änderungen erhalten; beim selben Spiel gilt die jüngste.
+5. **Given** ein Handy ohne Kopplung, **Then** gibt es keinen Spielplan; "Neues Spiel" verhält sich wie bisher.
+6. **Given** der Spielplan, **Then** zeigt er Spiele ab heute nach Datum und Anstoß; Spiele vergangener Tage verschwinden am Folgetag.
+
+---
+
+### User Story 2 - Spiel aus dem Spielplan anlegen (Priority: P1)
+
+Am Spieltag öffnet der Trainer "Neues Spiel". Oben stehen die Spiele aus dem Plan, heutige zuerst. Ein Tipp füllt Mannschaft, Gegner, Heim/Auswärts, Trikots und Spielzeit aus; alles bleibt änderbar, auch das Aufgebot. "Weiter zum Anpfiff" legt das Spiel an. Was er hier ändert, gilt nur für sein Spiel, nicht für den Plan.
+
+**Why this priority**: Hier spart der Trainer am Spielfeldrand die Eingaben.
+
+**Independent Test**: Plan enthält heute "12:00 E1 auswärts SV Beispielhausen". Auf Trainer-Handy B "Neues Spiel", Eintrag antippen, "Weiter zum Anpfiff": Spielbildschirm mit Feuerbach E1 im Auswärtstrikot gegen SV Beispielhausen, Feuerbach rechts (Gast).
+
+**Acceptance Scenarios**:
+
+1. **Given** der Plan enthält heute Spiele, **When** "Neues Spiel" öffnet, **Then** steht oben "Aus dem Spielplan" mit den heutigen Spielen aller Mannschaften des Live-Spieltags; "Weitere Spiele" klappt die nächsten 14 Tage auf. Ohne Spiele heute ist der Abschnitt eingeklappt.
+2. **When** ein Eintrag angetippt wird, **Then** sind Mannschaft, Gegner, Heim/Auswärts, Trikots (je nach Heim/Auswärts aus "Meine Mannschaften") und Spielzeit (Plan, sonst Mannschaft) ausgefüllt; das Aufgebot ist das zuletzt gewählte dieser Mannschaft (FR-M06).
+3. **Given** ein ausgewählter Eintrag, **When** der Trainer Gegner, Heim/Auswärts, Farben, Spielzeit oder Aufgebot ändert, **Then** gilt das nur für dieses Spiel; der Plan bleibt unverändert.
+4. **When** "Weiter zum Anpfiff" getippt wird, **Then** ist das angelegte Spiel mit dem Planeintrag verknüpft: Im Plan steht "angelegt", und das Dashboard zeigt keine zweite Karte (US3).
+5. **Given** ein anderes Handy überträgt dasselbe Planspiel schon, **When** der Eintrag angetippt und "Weiter zum Anpfiff" getippt wird, **Then** fragt die App wie in Spec 006 US6 ("Spiel übernehmen").
+6. **Given** kein Eintrag passt (z. B. Spiel kurzfristig angesetzt), **Then** legt der Trainer das Spiel wie bisher ohne Plan an.
+
+---
+
+### User Story 3 - Eltern sehen die nächsten Spiele (Priority: P2)
+
+Auf dem Dashboard sehen die Eltern je Mannschaft, wann und gegen wen das nächste Spiel ist, mit Anstoßzeit. Am Spieltag wird aus dem geplanten Spiel das laufende; am Turniertag stehen die weiteren Spiele darunter.
+
+**Why this priority**: Nutzen für die Eltern; der Spieltag funktioniert auch ohne.
+
+**Independent Test**: Plan enthält "Sa 14.11. 12:00 E1 heim gegen TSV Musterstadt". Gerät C mit Zuschauer-Link am 10.11.: E1-Karte zeigt das letzte Ergebnis und darunter "Nächstes Spiel: Sa 14.11., 12:00 gegen TSV Musterstadt". Am 14.11. zeigt die Karte "Feuerbach E1 – TSV Musterstadt · heute 12:00"; nach dem Anlegen und Anpfiff aus dem Plan wird dieselbe Karte zum laufenden Spiel.
+
+**Acceptance Scenarios**:
+
+1. **Given** E1 hat kein Spiel heute und ein Planspiel mit Gegner am 14.11., **Then** zeigt die E1-Karte das zuletzt beendete Spiel (wie bisher) und darunter "Nächstes Spiel: Sa 14.11., 12:00 gegen TSV Musterstadt"; ohne beendetes Spiel ist das Planspiel die Karte.
+2. **Given** heute ist ein Planspiel von E1, das noch nicht angelegt ist, **Then** zeigt die Karte "Feuerbach E1 – TSV Musterstadt" (Heim zuerst) mit "heute 12:00", ohne Stand.
+3. **Given** das Planspiel wird aus dem Plan angelegt und angepfiffen, **Then** zeigt dieselbe Karte das laufende Spiel; eine zweite Karte entsteht nicht.
+4. **Given** E1 hat heute drei Planspiele (Turnier), **When** das erste beendet ist, **Then** zeigt die Karte das nächste Planspiel, darunter "Heute außerdem: 1:0 gegen …" und "Danach: 15:42 gegen …".
+5. **Given** ein Planspiel ohne Gegner, **Then** erscheint es nicht auf dem Dashboard.
+6. **Given** ein Planspiel wird gelöscht oder verschoben, **Then** übernimmt das Dashboard die Änderung, sobald es sie empfängt.
+
+---
+
+### User Story 4 - Spielplan als Liste einfügen und teilen (Priority: P2)
+
+Atti kopiert eine Textliste mit allen Spielen (eine Zeile je Spiel) und fügt sie unter "Spielplan" → "Liste einfügen" ein. Die App zeigt vorab, was sie erkannt hat. "Spielplan teilen" erzeugt dieselbe Liste, z. B. für die Elterngruppe.
+
+**Why this priority**: Spart das Abtippen von 20 Spielen; ohne geht es mit US1 auch.
+
+**Independent Test**: Liste mit drei Zeilen einfügen ("Sa 14.11. 12:00 E1 heim TSV Musterstadt (Kreisstaffel)", "Sa 14.11. 12:00 E2 auswärts SV Beispielhausen", "Sa 28.11. 14:06 E3 heim FC Probestadt (Hallen-Bezirksturnier)"); Vorschau zeigt drei erkannte Spiele; nach "Übernehmen" stehen sie im Plan.
+
+**Acceptance Scenarios**:
+
+1. **Given** eine Zeile im Format "<Wochentag> <TT.MM.> [<HH:MM>] <Mannschaft> heim|auswärts <Gegner> [(<Wettbewerb>)]", **When** sie eingefügt wird, **Then** erkennt die App Datum, Anstoß, Mannschaft (Kürzel wie im Live-Spieltag, z. B. "E1"), Heim/Auswärts, Gegner und Wettbewerb. Wochentag, Anstoß und Wettbewerb sind optional; "H"/"A" gelten wie "heim"/"auswärts".
+2. **Given** eine Zeile ohne Jahr, **Then** gilt das nächste passende Datum ab 7 Tagen vor heute (Saisonwechsel über Silvester).
+3. **Given** eine Zeile passt nicht ins Format, nennt eine unbekannte Mannschaft oder Wochentag und Datum passen nicht zusammen, **Then** zeigt die Vorschau sie mit Hinweis und übernimmt sie nicht; die übrigen Zeilen werden übernommen.
+4. **Given** ein Spiel derselben Mannschaft am selben Tag gegen denselben Gegner steht schon im Plan, **Then** aktualisiert die Zeile diesen Eintrag statt ihn doppelt anzulegen.
+5. **When** "Spielplan teilen" getippt wird, **Then** öffnet das Teilen-Menü mit allen Spielen ab heute im selben Format, nach Datum sortiert; die Liste lässt sich unverändert wieder einfügen.
+
+---
+
+### User Story 5 - Kader E1/E2 und E3 (Priority: P3)
+
+Atti teilt die Kinder in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit "E1/E2", E3 mit "E3". Jeder Kader lässt sich einzeln teilen und auf anderen Handys einfügen. Im Aufgebot stehen die Kinder des eigenen Kaders, Aushilfen aus dem anderen Kader unter "Weitere Kinder".
+
+**Why this priority**: Unabhängig vom Spielplan; räumt das E1/E2/E3-Gemisch in Aufgebot und Torschützen-Auswahl auf (Roadmap B3).
+
+**Independent Test**: Auf A gehören Max, Ben, Tom, Leo, Maxi zum Kader "E1/E2", Paul zu "E3". "Neues Spiel" für E2 zeigt im Aufgebot Max, Ben, Tom, Leo, Maxi und unter "Weitere Kinder" Paul. Kader "E3" teilen und auf B einfügen: Paul steht auf B im Kader "E3".
+
+**Acceptance Scenarios**:
+
+1. **Given** "Mehr" → "Kader" mit einem einzigen Kader (wie bisher), **When** der Nutzer "Kader hinzufügen" mit Namen "E3" wählt und Paul dorthin verschiebt, **Then** gibt es die Kader "Kader" (umbenennbar, z. B. in "E1/E2") und "E3"; Paul steht nur in "E3".
+2. **Given** "Meine Mannschaften" → E1, **When** der Nutzer unter "Kader" den Kader "E1/E2" wählt, **Then** spielt E1 mit diesem Kader; E2 kann denselben wählen.
+3. **Given** es gibt nur einen Kader, **Then** spielen alle Mannschaften damit, und "Neues Spiel" sowie "Mehr" → "Kader" sehen aus wie bisher.
+4. **Given** "Neues Spiel" für E2, **Then** zeigt "Aufgebot" die Kinder des Kaders "E1/E2"; die Kinder anderer Kader stehen eingeklappt unter "Weitere Kinder" und sind wählbar (Aushilfe).
+5. **Given** "Kader teilen" im Kader "E3", **Then** enthält der Text nur die Kinder von "E3" mit dem Kadernamen als erster Zeile; "Liste einfügen" auf einem anderen Handy legt fehlende Kinder in einem gleichnamigen Kader an (fehlt er, wird er angelegt).
+
+---
+
+### Edge Cases
+
+- **Vermittlungsdienst hält Meldungen rund 12 Stunden**: Jedes Trainer-Handy speichert den zuletzt empfangenen Spielplan. Eine Änderung erreicht ein Handy nur, wenn es den Torticker innerhalb von rund 12 Stunden nach dem letzten Senden öffnet. Darum sendet jedes Trainer-Handy beim Öffnen den Plan erneut, wenn die letzte Meldung dazu älter als 6 Stunden ist (FR-P07). Fehlt ein Spiel trotzdem, legt der Trainer es wie bisher an; ein Weg ohne Netz zum Abgleich ist "Spielplan teilen" und "Liste einfügen" (US4).
+- **Spiel verlegt oder abgesagt**: Datum ändern bzw. löschen; bereits angelegte Spiele bleiben unverändert.
+- **Planspiel ohne Spiel vorbei**: Verschwindet am Folgetag aus Plan und Dashboard.
+- **Spiel ohne Plan angelegt, obwohl ein Planspiel heute existiert**: Beide erscheinen; das Planspiel steht bis Tagesende als "Danach"-Zeile bzw. kann im Plan gelöscht werden.
+- **Hallenturnier**: Heim/Auswärts ist dort nur die Reihenfolge laut Plan; der Trainer ändert es bei Bedarf beim Anlegen. Die Hallenspielzeit wird je Planspiel eingetragen (US1 Szenario 3).
+- **Mannschaft nicht im Live-Spieltag** (z. B. E3 noch nicht aufgenommen): Beim Einfügen bietet die Vorschau "E3 zum Live-Spieltag hinzufügen" an (Spec 006 US5); sonst werden diese Zeilen nicht übernommen.
+- **Neu ausgestellter Live-Spieltag**: Der Spielplan wandert mit wie Titel und Mannschaften.
+- **Kopplung beenden**: Der Plan verschwindet von diesem Handy; angelegte Spiele bleiben.
+- **Gleicher Vorname in zwei Kadern**: Unterscheidung wie bisher über Rückennummer oder Kürzel (Spec 001 FR-020).
+- **Größe**: Ein Plan mit 60 Spielen muss in eine Meldung passen (SC-P05).
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+**Spielplan pflegen (US1)**
+
+- **FR-P01**: Ein Trainer-Handy MUSS unter "Mehr" → "Live-Spieltag" den Eintrag "Spielplan" haben: Liste der Planspiele ab heute, gruppiert nach Datum, je Zeile Anstoß (falls bekannt), Mannschaft, Gegner bzw. "(Gegner offen)", "(H)" oder "(A)", Wettbewerb und "angelegt", sobald ein Spiel daraus angelegt wurde.
+- **FR-P02**: Ein Planspiel MUSS enthalten: Mannschaft des Live-Spieltags (Pflicht), Datum (Pflicht, Vorgabe nächster Samstag), Heim/Auswärts (Pflicht, Vorgabe Heim), Anstoß (optional), Gegner (optional, 1 bis 40 Zeichen), Wettbewerb (optional, bis 40 Zeichen), Spielzeit (optional, Schema wie in "Neues Spiel").
+- **FR-P03**: Jedes Trainer-Handy MUSS Planspiele hinzufügen, ändern und löschen können (gleichberechtigt wie Spec 006 FR-L19). Höchstens 60 Planspiele ab heute; beim 61. erscheint ein Hinweis.
+- **FR-P04**: Änderungen MÜSSEN je Planspiel zusammengeführt werden: Änderungen an verschiedenen Spielen gehen nicht verloren, beim selben Spiel gilt die jüngste; gelöschte Spiele kommen durch ältere Meldungen nicht zurück.
+- **FR-P05**: Planspiele vergangener Tage MÜSSEN am Folgetag aus Plan, "Neues Spiel" und Dashboard verschwinden.
+
+**Übertragen**
+
+- **FR-P06**: Der Spielplan MUSS wie die Konfiguration des Live-Spieltags übertragen werden: mit dem Organisator-Schlüssel signiert, verschlüsselt, über denselben Vermittlungsdienst, sofort bei jeder Änderung. Übertragen werden nur die Angaben aus FR-P02 und die Verknüpfung mit einem angelegten Spiel; keine Kindernamen.
+- **FR-P07**: Jedes Trainer-Handy MUSS den zuletzt empfangenen Spielplan speichern und ihn beim Öffnen des Torticker erneut senden, wenn die letzte Meldung dazu älter als 6 Stunden ist und der Plan Spiele ab heute enthält.
+- **FR-P08**: Spec 006 FR-L10 wird um den Spielplan (FR-P06) ergänzt.
+
+**Spiel aus dem Plan (US2)**
+
+- **FR-P09**: "Neues Spiel" MUSS auf einem Trainer-Handy oben den Abschnitt "Aus dem Spielplan" zeigen: die heutigen, noch nicht angelegten Planspiele aller Mannschaften des Live-Spieltags nach Anstoß; "Weitere Spiele" zeigt die nächsten 14 Tage. Ohne heutige Spiele ist der Abschnitt eingeklappt; ohne Planspiele entfällt er.
+- **FR-P10**: Ein angetipptes Planspiel MUSS Mannschaft, Gegner, Heim/Auswärts, eigene Trikotfarbe (je nach Heim/Auswärts aus "Meine Mannschaften"), Spielzeit (Plan, sonst Mannschaft) und das gemerkte Aufgebot der Mannschaft vorbelegen. Alle Felder bleiben änderbar; Änderungen betreffen nur das neue Spiel.
+- **FR-P11**: Ein aus dem Plan angelegtes Spiel MUSS mit dem Planspiel verknüpft sein; im Plan steht es als "angelegt", in "Aus dem Spielplan" erscheint es nicht mehr. Die Prüfung "wird schon übertragen" (Spec 006 FR-L22) gilt unverändert; ein nicht angelegtes Planspiel zählt dort nicht als Übertragung.
+
+**Dashboard (US3)**
+
+- **FR-P12**: Das Dashboard MUSS Planspiele mit Gegner berücksichtigen, je Mannschaft weiter eine Karte (Spec 006 FR-L14). Hauptinhalt der Karte, in dieser Reihenfolge: laufendes Spiel; sonst ein heutiges Spiel (angelegt oder geplant), das noch nicht beendet ist, das früheste zuerst; sonst das zuletzt beendete Spiel; sonst das nächste Planspiel.
+- **FR-P13**: Ein nicht angelegtes Planspiel als Karte MUSS Mannschaft, Gegner (Heim zuerst), Trikotfarben der eigenen Mannschaft und "heute 12:00" bzw. "Sa 14.11., 12:00" (ohne Anstoß nur das Datum) zeigen, ohne Stand.
+- **FR-P14**: Unter der Karte MÜSSEN stehen: "Heute außerdem" (beendete Spiele von heute, wie bisher), "Danach: <Anstoß> gegen <Gegner>" für weitere Planspiele von heute und, wenn heute keines mehr folgt, "Nächstes Spiel: <Datum>, <Anstoß> gegen <Gegner>".
+- **FR-P15**: Wird ein Planspiel angelegt, MUSS dieselbe Karte das Spiel zeigen (keine zweite Karte).
+
+**Liste einfügen und teilen (US4)**
+
+- **FR-P16**: "Spielplan" MUSS "Liste einfügen" anbieten: Textfeld (Zwischenablage wie Spec 012 FR-S02), Vorschau mit erkannten Spielen und Hinweisen je Zeile (Format, unbekannte Mannschaft, Wochentag passt nicht zum Datum, Datum vorbei), dann "Übernehmen". Format siehe US4 Szenario 1 und 2.
+- **FR-P17**: Eine eingefügte Zeile zu einem vorhandenen Planspiel (gleiche Mannschaft, gleiches Datum, gleicher Gegner ohne Groß- und Kleinschreibung) MUSS dieses aktualisieren.
+- **FR-P18**: Nennt eine Zeile eine Mannschaft aus "Meine Mannschaften", die nicht zum Live-Spieltag gehört, MUSS die Vorschau "<Mannschaft> zum Live-Spieltag hinzufügen" anbieten.
+- **FR-P19**: "Spielplan teilen" MUSS alle Spiele ab heute im Einfügeformat über das Teilen-Menü ausgeben; die Ausgabe ist ohne Änderung wieder einfügbar.
+
+**Kader (US5)**
+
+- **FR-P20**: "Mehr" → "Kader" MUSS mehrere benannte Kader erlauben (höchstens 6): hinzufügen, umbenennen, löschen (nur leer) und Kinder zwischen Kadern verschieben. Jedes Kind gehört zu genau einem Kader. Bestehende Kinder liegen im Kader "Kader". Mit nur einem Kader bleibt die Ansicht wie bisher.
+- **FR-P21**: "Meine Mannschaften" → Mannschaft MUSS die Auswahl "Kader" haben (Vorgabe: der erste Kader). Mehrere Mannschaften dürfen denselben Kader haben.
+- **FR-P22**: "Neues Spiel" MUSS im Aufgebot die Kinder des Kaders der Mannschaft zeigen und die Kinder anderer Kader eingeklappt unter "Weitere Kinder" (wählbar als Aushilfe). Torschützen-Auswahl und Vorlagen bleiben wie bisher (Aufgebot zuerst).
+- **FR-P23**: "Kader teilen" MUSS den angezeigten Kader mit seinem Namen als erster Zeile teilen; "Liste einfügen" MUSS bei einer solchen ersten Zeile die Kinder dem gleichnamigen Kader zuordnen (fehlt er, wird er angelegt). Listen ohne Kadernamen gehen wie bisher in den angezeigten Kader.
+
+**Allgemein**
+
+- **FR-P24**: Spielplan und Kader MÜSSEN in der Sicherung enthalten sein und beim Wiederherstellen übernommen werden.
+
+### Key Entities
+
+- **Planspiel**: Kennung, Mannschaft (Kürzel des Live-Spieltags), Datum, Anstoß (optional), Heim/Auswärts, Gegner (optional), Wettbewerb (optional), Spielzeit (optional), Zeitpunkt der letzten Änderung, gelöscht ja/nein, Kennung des daraus angelegten Spiels.
+- **Spielplan**: Menge der Planspiele eines Live-Spieltags, auf jedem Trainer-Handy gespeichert.
+- **Kader**: Benannte Liste von Kindern, z. B. "E1/E2" und "E3", je Handy. Jedes Kind gehört zu genau einem Kader; jede Mannschaft spielt mit einem Kader.
+
+## Hilfe *(mandatory)*
+
+| Eintrag | Änderung | Quelle |
+|---|---|---|
+| `spielplan` "Wie trage ich den Spielplan ein?" | neu | 015 US1 |
+| `spiel-aus-plan` "Wie lege ich ein Spiel aus dem Spielplan an?" | neu | 015 US2 |
+| `spielplan-liste` "Wie füge ich den ganzen Spielplan auf einmal ein?" | neu | 015 US4 |
+| `spielplan-fehlt` "Warum fehlt ein Spiel im Spielplan?" | neu (12 Stunden, Abhilfe) | 015 FR-P07 |
+| `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: "Aus dem Spielplan" | 001 US1, 015 US2 |
+| `live-verwalten` "Wie ändere ich Titel oder Mannschaften des Live-Spieltags?" | geändert: Verweis auf "Spielplan" | 006 US5, 015 US1 |
+| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: nächstes Spiel mit Anstoß | 006 US3, 015 US3 |
+| `kader-mehrere` "Wie lege ich einen zweiten Kader an, z. B. für die E3?" | neu | 015 US5 |
+| `kader` "Wie pflege ich den Kader?" | geändert: mehrere Kader, Kinder verschieben | 001 US5, 015 US5 |
+| `kader-liste` "Wie übernehme ich eine Spielerliste aus WhatsApp?" | geändert: Kadername in der ersten Zeile | 001 FR-028, 015 FR-P23 |
+| `mannschaft` "Wie lege ich meine Mannschaft an?" | geändert: Auswahl "Kader" | 004 US1, 015 US5 |
+| `aufgebot` "Wie wähle ich das Aufgebot für ein Spiel?" | geändert: "Weitere Kinder" für Aushilfen | 004 FR-M06, 015 US5 |
+
+## Success Criteria *(mandatory)*
+
+- **SC-P01**: Ein Trainer kommt am Spieltag mit 3 Tipps vom Startbildschirm auf den Spielbildschirm (Neues Spiel, Planspiel, Weiter zum Anpfiff), ohne ein Feld auszufüllen.
+- **SC-P02**: Atti überträgt 20 Spiele per "Liste einfügen" in unter 2 Minuten in den Plan.
+- **SC-P03**: Eine Änderung am Plan erscheint bei Netz innerhalb von 10 Sekunden auf geöffneten Trainer-Handys und Dashboards.
+- **SC-P04**: Das Dashboard zeigt für ein Spiel nie zwei Karten (Planspiel und angelegtes Spiel).
+- **SC-P05**: Ein Plan mit 60 Spielen passt in eine Meldung des Vermittlungsdienstes.
+- **SC-P06**: Domain-Logik (Zusammenführen, Einfügeformat, Ordnung auf dem Dashboard, Kader) mit 100 % Branch-Coverage; Netzwerk-Wächter ohne neue Ziele.
+
+## Assumptions
+
+- Jedes Trainer-Handy darf den Plan pflegen (wie Titel und Mannschaften, Spec 006 FR-L19); eine Rolle "nur Atti" gibt es nicht. Offen für Review A.
+- Mannschaften im Plan sind die des Live-Spieltags; E3 wird für den Plan in den Live-Spieltag aufgenommen. Offen für Review A.
+- Kein automatischer Abruf von fußball.de (Netzwerk-Wächter, Constitution II); Atti fügt eine Textliste ein.
+- Aufgebot und Aufteilung auf E1/E2 bleiben beim Trainer vor Ort bzw. in der Trainergruppe; eine Unterstützung der Aufteilung in der App ist nicht Teil dieser Spec.
+- Keine neue Laufzeit-Abhängigkeit; Übertragung nach dem Muster der Konfiguration (Spec 006 R-L17).
+- Beispiele und Tests nutzen nur fiktive Vereins- und Kindernamen.
