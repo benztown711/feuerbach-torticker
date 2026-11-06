@@ -1,4 +1,4 @@
-# Roadmap und Review (Stand 05.11.2026)
+# Roadmap und Review (Stand 05.11.2026, Status aktualisiert am 06.11.2026)
 
 Ergebnis eines Reviews der App hinsichtlich Zweck, UI/UX und fehlender Funktionen, vor dem ersten produktiven Einsatz am Samstag, 07.11.2026 (E1 und E2). Diese Datei ist die Arbeitsliste: Status je Punkt pflegen, erledigte Punkte abhaken, neue Wünsche unten anfügen. Jede Umsetzung folgt dem Ablauf aus `CLAUDE.md` (Spec, Review, Mockup, PR, Hilfe).
 
@@ -17,7 +17,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - Gut: Spielbildschirm ohne Scrollen, Tor-Knöpfe groß und in Trikotfarbe, Rückgängig-Leiste, Torschützen-Auswahl schließt nach 8 s von selbst, Dashboard nur lesen und aufklappbar, Hilfe mit Suche, hell und dunkel sauber.
 - Schwach für neue Trainer: Erststart zeigt nur „Neues Spiel“, Mannschaft und Kader liegen unter „Mehr“. Mit dem Trainer-Link kommen Mannschaften mit, der Kader nicht.
 - Kader ist global, nicht je Mannschaft: Bei E1 und E2 auf einem Handy zeigt die Torschützen-Auswahl alle Kinder, sofern kein Aufgebot gewählt ist (gemerktes Aufgebot je Mannschaft mildert das).
-- Fehlt im Spiel: Nach „Schlusspfiff“ kein Zurück; ein vergessenes Tor lässt sich nur mit der aktuellen Minute nachtragen.
+- Fehlt im Spiel: Nach „Schlusspfiff“ kein Zurück; ein vergessenes Tor lässt sich nur mit der aktuellen Minute nachtragen. (Erledigt mit Spec 012, siehe A4 und C2.)
 - Risiko: ntfy.sh ist eine öffentliche Instanz mit Limits je IP-Adresse (Mobilfunk teilt Adressen). Bei 429 fällt die App auf Abfrage alle 30 s zurück; ohne Dienst bleibt „Zwischenstand teilen“.
 
 ## Reihenfolge
@@ -33,15 +33,15 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | A1 | Gerätetest Live-Spieltag G-1 bis G-10 (`specs/006-live-spieltag/quickstart.md`) mit zwei Handys und einem Browser | 2 | Atti | Pflicht | Vor allem G-4, G-5, G-8 (Tor, Funkloch, Übernehmen) | offen |
 | A2 | Einrichtung durch Atti: E1 und E2 anlegen, Kader je Mannschaft, Live-Spieltag, Trainer-Link in die Trainergruppe, Zuschauer-Link in die Elterngruppen, Trainern eine 3-Zeilen-Nachricht | 1 | Atti, Text per Haiku | Pflicht | Zuschauer-Link am Vorabend senden | offen |
-| A3 | Release 0.4.0 mergen (PR #39) | 1 | keins | niedrig | Nur Versionsnummer in der Hilfe | offen |
-| A4 | Spiel nach Schlusspfiff wieder öffnen („Spiel fortsetzen“ in den Spieldetails) | 3 | Sonnet | mittel | Rückfrage beim Schlusspfiff fängt das meiste ab | offen |
+| A3 | Release 0.4.0 mergen (PR #39) | 1 | keins | niedrig | Nur Versionsnummer in der Hilfe | erledigt (#39, 06.11.2026) |
+| A4 | Spiel nach Schlusspfiff wieder öffnen („Spiel fortsetzen“ in den Spieldetails) | 3 | Sonnet | mittel | Rückfrage beim Schlusspfiff fängt das meiste ab | erledigt, anders gelöst: „Schlusspfiff zurücknehmen“ bis 10 Minuten danach und „Tor nachtragen“ auch nach dem Schlusspfiff (Spec 012 US2, US3, #42); kein eigenes „Spiel fortsetzen“ |
 
 ## B. Einrichtung ohne Anleitung
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
 | B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | offen |
-| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | offen |
+| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | teilweise: „Trainer-Link einfügen“ auf dem Startbildschirm erkennt Trainer- und Zuschauer-Link (Spec 012 US1, #42); Paket und Kader offen |
 | B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | offen |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
@@ -50,7 +50,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
 | C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | offen |
-| C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | offen |
+| C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
 | C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | mittel | Eigener Gratis-Dienst (z. B. Cloudflare Worker); Teil 1 von Spec 007 | offen |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
 | C5 | Turniermodus (Spec 002) für das Hallenturnier am 04.01.2027 | 6 | Opus (Spec), Sonnet | bis Mitte Dezember | Zwei fremde Mannschaften, „Nächstes Spiel“ mit einem Tap | offen |
@@ -80,10 +80,16 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 
 ## Offene Fragen an Atti
 
-1. D2 und A4 noch vor dem ersten Spieltag bauen, oder bleibt der Stand eingefroren?
+1. D2 noch vor dem ersten Spieltag bauen, oder bleibt der Stand eingefroren? (A4 ist mit Spec 012 erledigt.)
 2. Trainer-Paket (B1): alle Kader mitnehmen, oder nur Mannschaften?
 3. Spielplan (C1): pflegt nur Atti ihn, oder jeder mit Trainer-Link?
 
 ## Neue Wünsche
 
-(hier anfügen)
+| Nr | Wunsch | Spec | Status |
+|---|---|---|---|
+| N1 | Kader nach Vorname oder Rückennummer sortieren (Einstellungen → Kader), Vorgabe Vorname | 013 | erledigt (#44, #47) |
+| N2 | Historie: mehrere Spiele auswählen und löschen, 10 Sekunden „Rückgängig“ | 014 | erledigt (#48, #49) |
+| N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
+
+(weitere hier anfügen)
