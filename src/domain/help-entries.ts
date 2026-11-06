@@ -428,8 +428,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
     answer:
-      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen.',
-    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen',
+      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen. Sie setzen den Text genauso über „Liste einfügen“ ein; Kürzel wie „Max Mü.“ bleiben dabei erhalten.',
+    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung',
     sources: ['001 US7'],
     open: { label: 'Kader', path: '/kader' },
     related: ['kader'],
@@ -536,8 +536,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
     answer:
-      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit.',
-    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher',
+      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit. Hat dein Handy den Live-Spieltag noch nicht geladen, wartet „Weiter zum Anpfiff“ kurz, höchstens 3 Sekunden.',
+    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang',
     sources: ['006 US6'],
     related: ['live-senden', 'trainer-link'],
   },

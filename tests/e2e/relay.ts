@@ -21,6 +21,8 @@ export class FakeRelay {
   tooMany = false;
   /** Verschiebung der Serveruhr (ms), z. B. um eine falsch gehende Uhr zu prüfen. */
   offsetMs = 0;
+  /** Langsamer Empfang: Antworten auf Abonnements kommen erst nach so vielen Millisekunden (echte Zeit). */
+  delayMs = 0;
   private seq = 0;
 
   now(): number {
@@ -68,6 +70,7 @@ export class FakeRelay {
       });
     }
     if (req.method() === 'GET' && parts[1] === 'json') {
+      if (this.delayMs > 0) await new Promise((r) => setTimeout(r, this.delayMs));
       const poll = url.searchParams.get('poll') === '1';
       if (this.tooMany && !poll) return route.fulfill({ status: 429, headers: CORS, body: '{"code":42901}' });
       const since = url.searchParams.get('since') ?? 'all';

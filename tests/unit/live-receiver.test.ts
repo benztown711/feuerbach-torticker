@@ -1,9 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { boardView } from '../../src/domain/live-board';
 import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { LiveConfig, PrivateKeyParts, SignedData } from '../../src/domain/types';
 import { newSigningKey, newViewKey, sealMessage, signData, type OpenedMessage } from '../../src/platform/live-crypto';
-import { LiveReceiver, STORAGE_PREFIX, newReceiver, type ReceiverDeps } from '../../src/platform/live-receiver';
+import {
+  LiveReceiver,
+  SETTLE_QUIET_MS,
+  STORAGE_PREFIX,
+  newReceiver,
+  type ReceiverDeps,
+} from '../../src/platform/live-receiver';
 import type { RelayState, SubscribeOptions } from '../../src/platform/relay';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
@@ -283,5 +289,98 @@ describe('006 US3 Empfänger', () => {
     await vi.waitFor(() => expect(r.get().board.games).toHaveLength(1));
     expect(r.get().board.games[0]?.snap.gameId).toBe('g1');
     r.stop();
+  });
+});
+
+describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
+  afterEach(() => vi.useRealTimers());
+  /** Uhr und Zeitgeber laufen gemeinsam (vi.useFakeTimers), damit Ruhezeit und Höchstdauer stimmen. */
+  const waiting = (maxMs = 3_000) => {
+    vi.useFakeTimers({ now: T0 });
+    const s = setup({ now: () => Date.now() });
+    let done = false;
+    void s.r.whenSettled(maxMs).then(() => (done = true));
+    const send = (id: string) =>
+      s.relay().onMessage({ id, time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
+    return { ...s, send, done: () => done, tick: (ms: number) => vi.advanceTimersByTimeAsync(ms) };
+  };
+
+  it('wartet auf Verbindung, geprüfte Meldungen und kurze Ruhe; danach ist das Spiel bekannt', async () => {
+    const w = waiting();
+    await w.tick(1_000);
+    expect(w.done()).toBe(false);
+    w.relay().onState?.('live');
+    w.send('a');
+    await w.tick(SETTLE_QUIET_MS - 100);
+    expect(w.done()).toBe(false);
+    w.send('b');
+    await w.tick(SETTLE_QUIET_MS - 1);
+    expect(w.done()).toBe(false);
+    await w.tick(1);
+    expect(w.done()).toBe(true);
+    expect(w.r.get().board.games).toHaveLength(1);
+  });
+
+  it('Stream verbunden, aber noch kein Inhalt: wartet weiter, bis "open" oder Meldungen kommen', async () => {
+    const w = waiting();
+    w.relay().onState?.('live');
+    await w.tick(SETTLE_QUIET_MS * 3);
+    expect(w.done()).toBe(false);
+    w.relay().onServerTime?.(T0 / 1000);
+    w.send('a');
+    await w.tick(SETTLE_QUIET_MS);
+    expect(w.done()).toBe(true);
+    expect(w.r.get().board.games).toHaveLength(1);
+  });
+
+  it('wartet nicht, solange eine Meldung noch geprüft wird', async () => {
+    let release: () => void = () => undefined;
+    vi.useFakeTimers({ now: T0 });
+    const s = setup({
+      now: () => Date.now(),
+      open: (_v, text) =>
+        new Promise((res) => {
+          release = () => res(JSON.parse(text) as OpenedMessage);
+        }),
+    });
+    let done = false;
+    s.relay().onState?.('live');
+    s.relay().onMessage({ id: 'a', time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
+    void s.r.whenSettled(3_000).then(() => (done = true));
+    await vi.advanceTimersByTimeAsync(SETTLE_QUIET_MS * 2);
+    expect(done).toBe(false);
+    release();
+    await vi.advanceTimersByTimeAsync(SETTLE_QUIET_MS);
+    expect(done).toBe(true);
+    expect(s.r.get().board.games).toHaveLength(1);
+  });
+
+  it('längst verbunden und ruhig: sofort; ohne Netz: sofort; beim Beenden: sofort', async () => {
+    const quiet = waiting();
+    quiet.relay().onState?.('polling');
+    await quiet.tick(SETTLE_QUIET_MS);
+    expect(quiet.done()).toBe(true);
+    let again = false;
+    void quiet.r.whenSettled(3_000).then(() => (again = true));
+    await quiet.tick(0);
+    expect(again).toBe(true);
+
+    const offline = waiting();
+    offline.relay().onState?.('offline');
+    await offline.tick(0);
+    expect(offline.done()).toBe(true);
+
+    const stopped = waiting();
+    stopped.r.stop();
+    await stopped.tick(0);
+    expect(stopped.done()).toBe(true);
+  });
+
+  it('höchstens so lange wie angegeben', async () => {
+    const w = waiting(3_000);
+    await w.tick(2_999);
+    expect(w.done()).toBe(false);
+    await w.tick(1);
+    expect(w.done()).toBe(true);
   });
 });

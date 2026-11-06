@@ -25,7 +25,7 @@ Atti wird nur in den Schritten 3, 5 und 9 gebraucht. Kleine Änderungen (Fehlerb
 
 - Lint (ESLint, Stylelint ohne Farbwerte außerhalb `tokens.css`), Prettier, `tsc --noEmit`
 - Vitest: `src/domain/**` mit 100 % Branch-Coverage
-- Playwright E2E in drei Profilen: `iphone`, `iphone-se` (WebKit) und `android` (Chromium); jedes Akzeptanzszenario der Spec ist ein Test mit ID im Namen; Offline-Test
+- Playwright E2E in drei Profilen: `iphone`, `iphone-se` (WebKit) und `android` (Chromium); jedes Akzeptanzszenario der Spec ist ein Test mit ID im Namen; Offline-Test. Die Profile laufen parallel je auf eigenem Rechner im offiziellen Playwright-Image. Bei PRs, die nur Texte ändern (`specs/`, `docs/`, `.specify/`, `.claude/`, Markdown außerhalb von `src/`, `public/`, `tests/`), entfallen E2E und Lighthouse; auf `main` läuft immer alles
 - axe-core ohne Verstöße, Kontrastmatrix beider Themes (SC-006)
 - Visueller Vergleich der Kernbildschirme (hell/dunkel)
 - Lighthouse CI (Accessibility, Best Practices ≥ 0,9); PWA-Installierbarkeit prüft der Smoke-Test (Lighthouse 12 hat keine PWA-Kategorie mehr, R-14)
