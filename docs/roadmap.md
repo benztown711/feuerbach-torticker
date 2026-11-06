@@ -23,8 +23,8 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 ## Reihenfolge
 
 1. Vor dem ersten Spieltag: A1, A2, D2, optional A4.
-2. Danach (ein bis zwei Wochen): B1 + B2 in einem PR, dann C2.
-3. Dann: C1 (Spielplan), B3, C5 bis Mitte Dezember (Hallenturnier 04.01.2027).
+2. Danach (ein bis zwei Wochen): B3 (Kader je Mannschaft, auf Wunsch von Atti vorgezogen, Spec 015), dann B1 + B2 in einem PR, dann C2.
+3. Dann: C1 (Spielplan), C5 bis Mitte Dezember (Hallenturnier 04.01.2027).
 4. Später: C3 + D1, dann C4. Lizenzfrage (E) nach der Hinrunde.
 
 ## A. Vor dem ersten Spieltag
@@ -42,7 +42,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | offen |
 | B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | offen |
-| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | offen |
+| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | in Arbeit: Spec 015, Review A offen |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
 ## C. Spieltag-Komfort für Trainer und Eltern
