@@ -34,8 +34,7 @@ async function bCreatesE2(b: Page): Promise<void> {
   await b.getByTestId('team-chips').getByRole('button', { name: 'E2', exact: true }).click();
   await expect(b.getByTestId('new-live-switch')).toHaveAttribute('aria-checked', 'true');
   await b.getByTestId('input-opponent').fill('Irgendwer');
-  // Dem Mithören einen Moment geben, den Stand zu laden.
-  await b.clock.runFor(2_000);
+  // Keine Wartezeit: "Weiter zum Anpfiff" wartet selbst auf den Live-Stand (FR-L22, US6-S6).
   await b.getByTestId('btn-create').click();
 }
 
@@ -125,4 +124,24 @@ test('006 US6-S5 ohne Empfang keine Frage: das Spiel wird normal angelegt', asyn
   await bCreatesE2(b);
   await expect(b.getByTestId('btn-kickoff')).toBeVisible();
   await expect(b.getByTestId('takeover-dialog')).toHaveCount(0);
+});
+
+test('006 US6-S6 FR-L22 langsamer Empfang: "Weiter zum Anpfiff" wartet auf den Live-Stand und fragt nach', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  await aTransmits(page, relay, links.viewer);
+  // B hat das Spiel noch nie gesehen und bekommt Antworten des Dienstes erst nach 1,5 s.
+  relay.delayMs = 1_500;
+  const b = await newDevice();
+  await pasteLink(b, links.trainer);
+  await b.evaluate(() => {
+    for (const k of Object.keys(localStorage)) if (k.startsWith('torticker-live:')) localStorage.removeItem(k);
+  });
+  await bCreatesE2(b);
+  await expect(b.getByTestId('btn-create')).toBeDisabled();
+  await expect(b.getByTestId('takeover-dialog')).toContainText('Das Spiel der E2 überträgt bereits ein anderes Handy');
 });
