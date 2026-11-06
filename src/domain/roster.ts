@@ -1,4 +1,4 @@
-import { MAX_NAME } from './roster-names';
+import { MAX_NAME, isAbbreviation } from './roster-names';
 import type { Player, RosterSort } from './types';
 
 /** Kader (US5): gemeinsamer Pool, Löschen als Soft-Delete (FR-029). */
@@ -15,7 +15,7 @@ export function validatePlayerName(name: string): string | null {
 /** FR-020: Hinweis "Bitte nur Vornamen", wenn ein zweites Wort kein Kürzel wie "Mü." ist. */
 export function looksLikeFullName(name: string): boolean {
   const words = clean(name).split(' ');
-  return words.length > 1 && !words.slice(1).every((w) => /^\p{L}{1,3}\.$/u.test(w));
+  return words.length > 1 && !words.slice(1).every(isAbbreviation);
 }
 
 export function addPlayer(players: Player[], input: { name: string; number: number | null }, id: string): Player[] {
