@@ -67,9 +67,9 @@ function Topbar() {
   );
 }
 
-function Row({ entry, lead, onOpen }: { entry: PlanEntry; lead: string; onOpen?: () => void }) {
-  // Vergangene Spiele (ohne onOpen) zeigen nur "abgesagt", kein "frei" (Endstand folgt mit US3).
-  const state = entry.cancelled ? 'abgesagt' : onOpen ? 'frei' : '';
+function Row({ entry, lead, past, onOpen }: { entry: PlanEntry; lead: string; past?: boolean; onOpen: () => void }) {
+  // Vergangene Spiele zeigen nur "abgesagt", kein "frei" (Endstand folgt mit US3).
+  const state = entry.cancelled ? 'abgesagt' : past ? '' : 'frei';
   const body = (
     <>
       <span class="plan__time">{lead}</span>
@@ -80,7 +80,7 @@ function Row({ entry, lead, onOpen }: { entry: PlanEntry; lead: string; onOpen?:
       {state ? <span class={`plan__state${entry.cancelled ? ' plan__state--off' : ''}`}>{state}</span> : <span />}
     </>
   );
-  return onOpen ? (
+  return (
     <button
       type="button"
       class={`plan__row${entry.cancelled ? ' plan__row--off' : ''}`}
@@ -89,10 +89,6 @@ function Row({ entry, lead, onOpen }: { entry: PlanEntry; lead: string; onOpen?:
     >
       {body}
     </button>
-  ) : (
-    <div class={`plan__row${entry.cancelled ? ' plan__row--off' : ''}`} data-testid={`plan-row-${entry.id}`}>
-      {body}
-    </div>
   );
 }
 
@@ -323,8 +319,9 @@ export function PlanScreen() {
 
   const topic = live?.topic;
   const orgPub = live?.orgPub;
+  const canEdit = !!live?.orgKey;
   useEffect(() => {
-    if (!live) return;
+    if (!live?.orgKey) return;
     let alive = true;
     void loadPlan(live).then((p) => alive && setStore(p));
     const off = onPlanChanged((p) => {
@@ -343,7 +340,7 @@ export function PlanScreen() {
       watch?.stop();
       window.clearInterval(retry);
     };
-  }, [topic, orgPub]);
+  }, [topic, orgPub, canEdit]);
 
   useEffect(() => {
     if (!msg) return;
@@ -394,6 +391,11 @@ export function PlanScreen() {
         schema: null,
       },
     });
+  };
+
+  const openEntry = (e: PlanEntry) => {
+    setErrors({});
+    setEditing({ id: e.id, input: toInput(e), cancelled: e.cancelled });
   };
 
   const run = async (edit: PlanEdit, done: string) => {
@@ -456,15 +458,7 @@ export function PlanScreen() {
             onToggle={() => toggle(g.date)}
           >
             {g.entries.map((e) => (
-              <Row
-                key={e.id}
-                entry={e}
-                lead={e.time ?? '–'}
-                onOpen={() => {
-                  setErrors({});
-                  setEditing({ id: e.id, input: toInput(e), cancelled: e.cancelled });
-                }}
-              />
+              <Row key={e.id} entry={e} lead={e.time ?? '–'} onOpen={() => openEntry(e)} />
             ))}
           </Group>
         ))}
@@ -477,7 +471,7 @@ export function PlanScreen() {
             onToggle={() => toggle('past')}
           >
             {view.past.map((e) => (
-              <Row key={e.id} entry={e} lead={formatPlanDate(e.date).slice(0, 6)} />
+              <Row key={e.id} entry={e} lead={formatPlanDate(e.date).slice(0, 6)} past onOpen={() => openEntry(e)} />
             ))}
           </Group>
         )}

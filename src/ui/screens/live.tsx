@@ -81,7 +81,7 @@ function PlanCard({ live }: { live: LiveSpieltag }) {
   useEffect(() => {
     let alive = true;
     void loadPlan(live).then((p) => alive && setStore(p));
-    const off = onPlanChanged((p) => p.topic === live.topic && setStore(p));
+    const off = onPlanChanged((p) => p.topic === live.topic && p.orgPub === live.orgPub && setStore(p));
     return () => {
       alive = false;
       off();

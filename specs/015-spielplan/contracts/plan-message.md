@@ -38,4 +38,4 @@ Erweitert `specs/006-live-spieltag/contracts/live-message.md`. Transport, Versch
 ## Senden
 
 - Änderung: eine Meldung mit den geänderten Einträgen.
-- Erneut senden (FR-P07): alle Einträge inklusive Grabsteinen, gestückelt, sodass jedes `d` ≤ 3.000 Zeichen bleibt.
+- Erneut senden (FR-P07): alle Einträge ab heute (auch Grabsteine), die seit 6 Stunden weder gesendet noch im gleichen Stand empfangen wurden, gestückelt, sodass jedes `d` ≤ 3.000 Zeichen bleibt.

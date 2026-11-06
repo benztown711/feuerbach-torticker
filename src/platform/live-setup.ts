@@ -248,7 +248,7 @@ export async function reissueLive(): Promise<Settings> {
   const next = await manage((live) => reissueSpieltag(live, deps()));
   if (old) void announceRetired(old, await retireConfig(old, deps()));
   // Spec 015: der Spielplan wandert mit.
-  if (old && next.live) void movePlan(old, next.live);
+  if (old && next.live) void movePlan(old, next.live).catch(() => undefined);
   return next;
 }
 

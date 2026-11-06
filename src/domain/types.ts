@@ -318,8 +318,8 @@ export interface PlanStore {
   topic: string;
   orgPub: string;
   entries: PlanEntry[];
-  /** Letzte erfolgreiche Plan-Meldung dieses Handys. */
-  sentAt: number;
+  /** Je Planspiel: wann es zuletzt über den Dienst ging (von diesem Handy gesendet oder so empfangen). */
+  seen: Record<string, number>;
   /** Geänderte Planspiele, die noch nicht gesendet wurden. */
   pending: string[];
 }

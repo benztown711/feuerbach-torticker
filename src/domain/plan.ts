@@ -1,4 +1,4 @@
-import { isObj, isText, MAX_KEY, MAX_TITLE, type Obj } from './live-validate';
+import { isObj, isText, MAX_KEY, type Obj } from './live-validate';
 import type { PlanEntry, PlanStore, Schema, Venue } from './types';
 
 /** Spec 015: Spielplan im Live-Spieltag (data-model.md, contracts/plan-message.md). */
@@ -79,7 +79,7 @@ export const emptyPlan = (topic: string, orgPub: string): PlanStore => ({
   topic,
   orgPub,
   entries: [],
-  sentAt: 0,
+  seen: {},
   pending: [],
 });
 
@@ -105,7 +105,18 @@ export function markPending(store: PlanStore, ids: readonly string[]): PlanStore
 }
 
 export function markSent(store: PlanStore, ids: readonly string[], now: number): PlanStore {
-  return { ...store, sentAt: now, pending: store.pending.filter((id) => !ids.includes(id)) };
+  const seen = { ...store.seen };
+  for (const id of ids) seen[id] = now;
+  return { ...store, seen, pending: store.pending.filter((id) => !ids.includes(id)) };
+}
+
+/** FR-P07: empfangene Planspiele, die genau dem eigenen Stand entsprechen, sind frisch auf dem Dienst. */
+export function noteSeen(store: PlanStore, incoming: readonly PlanEntry[], now: number): PlanStore {
+  const seen = { ...store.seen };
+  for (const e of incoming) {
+    if (store.entries.some((x) => x.id === e.id && x.updatedAt === e.updatedAt)) seen[e.id] = now;
+  }
+  return { ...store, seen };
 }
 
 function replace(store: PlanStore, entry: PlanEntry): PlanChange {
@@ -196,18 +207,22 @@ export function prunePlan(store: PlanStore, today: string): PlanStore {
     );
     entries = entries.filter((e) => !drop.has(e.id));
   }
-  return entries.length === store.entries.length ? store : { ...store, entries };
+  if (entries.length === store.entries.length) return store;
+  const kept = new Set(entries.map((e) => e.id));
+  return { ...store, entries, seen: Object.fromEntries(Object.entries(store.seen).filter(([id]) => kept.has(id))) };
 }
 
 /** FR-P03: kein Platz mehr für ein weiteres kommendes Spiel. */
 export const isFull = (store: PlanStore, today: string): boolean =>
   store.entries.filter((e) => !e.deleted && e.date >= today).length >= MAX_PLAN;
 
-/** FR-P07: erneut senden, wenn Unversandtes da ist oder die letzte Meldung älter als 6 Stunden ist. */
-export function needsRefresh(store: PlanStore, now: number, today: string): boolean {
-  if (store.pending.length > 0) return true;
-  return now - store.sentAt >= REFRESH_MS && store.entries.some((e) => !e.deleted && e.date >= today);
-}
+/** FR-P07: Planspiele ab heute (auch Grabsteine), die seit 6 Stunden nicht über den Dienst gingen. */
+export const staleEntries = (store: PlanStore, now: number, today: string): PlanEntry[] =>
+  store.entries.filter((e) => e.date >= today && now - (store.seen[e.id] ?? 0) >= REFRESH_MS);
+
+/** FR-P07: erneut senden, wenn Unversandtes da ist oder ein Planspiel ab heute veraltet auf dem Dienst ist. */
+export const needsRefresh = (store: PlanStore, now: number, today: string): boolean =>
+  store.pending.length > 0 || staleEntries(store, now, today).length > 0;
 
 /** contracts/plan-message.md: kompakte Form eines Planspiels. */
 function encodeEntry(e: PlanEntry): Obj {
@@ -333,6 +348,3 @@ export function nextSaturday(today: string): string {
 /** Heutiger Kalendertag im Format "JJJJ-MM-TT". */
 export const todayKey = (now: number, timeZone?: string): string =>
   new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone }).format(now);
-
-/** Für Anzeigen ohne Titel: Länge passt zu Live-Spieltag-Titeln. */
-export const PLAN_TEXT_MAX = MAX_TITLE;

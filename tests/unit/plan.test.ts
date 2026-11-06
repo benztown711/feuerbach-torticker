@@ -17,12 +17,14 @@ import {
   mergeEntries,
   needsRefresh,
   nextSaturday,
+  noteSeen,
   parsePayload,
   planFor,
   planView,
   prunePlan,
   REFRESH_MS,
   setCancelled,
+  staleEntries,
   todayKey,
   updateEntry,
   type PlanInput,
@@ -163,7 +165,7 @@ describe('015 US1 Spielplan: Ändern', () => {
     expect(s.pending).toEqual(['a1', 'b2']);
     const sent = markSent(s, ['a1'], T0);
     expect(sent.pending).toEqual(['b2']);
-    expect(sent.sentAt).toBe(T0);
+    expect(sent.seen).toEqual({ a1: T0 });
   });
 });
 
@@ -253,13 +255,42 @@ describe('015 US1 Spielplan: Kürzen und Grenzen', () => {
 });
 
 describe('015 FR-P07 Erneut senden', () => {
-  it('nach 6 Stunden mit kommenden Spielen oder bei Unversandtem', () => {
-    const s = storeWith([entry()], { sentAt: T0 });
+  it('je Planspiel ab heute nach 6 Stunden ohne Meldung, oder bei Unversandtem', () => {
+    const s = storeWith([entry()], { seen: { a1: T0 } });
     expect(needsRefresh(s, T0 + REFRESH_MS - 1, TODAY)).toBe(false);
     expect(needsRefresh(s, T0 + REFRESH_MS, TODAY)).toBe(true);
-    expect(needsRefresh(storeWith([entry({ date: '2026-11-01' })], { sentAt: 0 }), T0, TODAY)).toBe(false);
-    expect(needsRefresh(storeWith([entry({ deleted: true })], { sentAt: 0 }), T0, TODAY)).toBe(false);
-    expect(needsRefresh(storeWith([], { pending: ['a1'], sentAt: T0 }), T0, TODAY)).toBe(true);
+    expect(needsRefresh(storeWith([entry({ date: '2026-11-01' })]), T0, TODAY)).toBe(false);
+    expect(needsRefresh(storeWith([], { pending: ['a1'], seen: {} }), T0, TODAY)).toBe(true);
+  });
+
+  it('nur veraltete Planspiele gehen erneut hinaus, Grabsteine ab heute eingeschlossen', () => {
+    const s = storeWith(
+      [
+        entry({ id: 'frisch' }),
+        entry({ id: 'alt' }),
+        entry({ id: 'weg', deleted: true }),
+        entry({ id: 'vorbei', date: '2026-11-01' }),
+      ],
+      { seen: { frisch: T0 } },
+    );
+    expect(staleEntries(s, T0 + 1000, TODAY).map((e) => e.id)).toEqual(['alt', 'weg']);
+  });
+
+  it('noteSeen: empfangene Planspiele mit gleichem Stand zählen als frisch, ältere nicht', () => {
+    const s = storeWith([entry({ id: 'a1', updatedAt: T0 + 5 }), entry({ id: 'b2', updatedAt: T0 })]);
+    const r = noteSeen(
+      s,
+      [entry({ id: 'a1', updatedAt: T0 }), entry({ id: 'b2', updatedAt: T0 }), entry({ id: 'neu' })],
+      T0 + 9,
+    );
+    expect(r.seen).toEqual({ b2: T0 + 9 });
+  });
+
+  it('prunePlan entfernt Zeitpunkte gekürzter Planspiele', () => {
+    const s = storeWith([entry({ id: 'x', date: '2026-09-01', deleted: true }), entry({ id: 'a1' })], {
+      seen: { x: T0, a1: T0 },
+    });
+    expect(prunePlan(s, TODAY).seen).toEqual({ a1: T0 });
   });
 });
 

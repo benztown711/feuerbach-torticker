@@ -20,7 +20,7 @@
 
 ## R-P4 Erneut senden beim Öffnen
 
-- **Decision**: `main.tsx` lädt bei gekoppeltem Handy `live-setup` nach (R-P6) und ruft `refreshPlan()` beim Start und bei `visibilitychange` (sichtbar). Gesendet wird, wenn noch Unversandtes da ist oder die letzte Plan-Meldung dieses Handys älter als 6 Stunden ist und der Plan Spiele ab heute enthält.
+- **Decision**: `main.tsx` lädt bei gekoppeltem Handy `live-setup` nach (R-P6) und ruft `refreshPlan()` beim Start und bei `visibilitychange` (sichtbar). Gesendet werden Unversandtes und die Planspiele ab heute, die seit 6 Stunden weder von diesem Handy gesendet noch im gleichen Stand empfangen wurden (je Planspiel gemerkt, Code-Review 06.11.2026: so schickt nicht jedes Trainer-Handy morgens den ganzen Plan, und eine einzelne Änderung verzögert das erneute Senden der übrigen nicht).
 - **Rationale**: Der Dienst hält Meldungen rund 12 Stunden; 6 Stunden lassen Puffer. Ein Hintergrund-Empfänger beim Start ist für US1 nicht nötig, weil der Plan dort gebraucht wird, wo ohnehin ein Empfänger läuft (Spielplan, Neues Spiel).
 - **Alternatives considered**: Zeitgeber im Hintergrund (iOS hält PWAs im Hintergrund an); Senden bei jeder Spielmeldung (Größe, R-P1).
 

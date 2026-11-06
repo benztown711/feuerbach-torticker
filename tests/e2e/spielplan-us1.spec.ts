@@ -205,6 +205,10 @@ test('015 US1-S6 Datumsköpfe: nächstes Datum offen, nach Anstoß sortiert; ver
   await past.getByRole('button', { name: /Vergangene Spiele/ }).click();
   await expect(past.locator('[data-testid^="plan-row-"]')).toContainText('So 01.');
   await expect(past.locator('[data-testid^="plan-row-"]')).toContainText('E1 – FC Kirchberg');
+  await expect(past.locator('[data-testid^="plan-row-"]')).not.toContainText('frei');
+  // Vergangene Spiele lassen sich korrigieren oder löschen (z. B. falsches Jahr)
+  await past.locator('[data-testid^="plan-row-"]').click();
+  await expect(page.getByTestId('plan-delete')).toBeVisible();
 });
 
 test('015 US1-S7 absagen und wieder ansetzen; das andere Trainer-Handy sieht es', async ({

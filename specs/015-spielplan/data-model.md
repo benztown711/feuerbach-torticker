@@ -28,7 +28,7 @@ Zustände: frei → (abgesagt ⇄ frei) → gelöscht (Grabstein). Vergangen ist
 | `v` | 1 | |
 | `topic`, `orgPub` | string | Live-Spieltag, zu dem der Plan gehört |
 | `entries` | PlanEntry[] | höchstens 100 ohne Grabsteine; Grabsteine bis 30 Tage nach ihrem Datum |
-| `sentAt` | number | letzte erfolgreiche Plan-Meldung dieses Handys |
+| `seen` | Record<id, number> | je Planspiel: wann es zuletzt über den Dienst ging (gesendet oder im gleichen Stand empfangen); Grundlage für FR-P07 |
 | `pending` | string[] | Kennungen geänderter Planspiele, die noch nicht gesendet wurden |
 
 ## Abgeleitete Ansicht

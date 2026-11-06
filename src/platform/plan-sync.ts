@@ -6,11 +6,12 @@ import {
   markSent,
   mergeEntries,
   needsRefresh,
+  noteSeen,
   parsePayload,
   planFor,
   prunePlan,
-  REFRESH_MS,
   setCancelled,
+  staleEntries,
   todayKey,
   updateEntry,
   type PlanChange,
@@ -80,17 +81,22 @@ async function sendEntries(live: LiveSpieltag, entries: readonly PlanEntry[]): P
   return true;
 }
 
-/** Sendet Unversandtes bzw. (`full`) den ganzen Plan; merkt sich den Erfolg. */
-function flush(full: boolean): Promise<boolean> {
+/** Sendet Unversandtes und Planspiele ab heute, die seit 6 Stunden nicht über den Dienst gingen (FR-P07). */
+function flush(): Promise<boolean> {
   return serial(async () => {
     const live = (await getSettings()).live;
     if (!live?.orgKey) return false;
     const store = await loadPlan(live);
-    const ids = full ? store.entries.map((e) => e.id) : store.pending;
-    const entries = store.entries.filter((e) => ids.includes(e.id));
-    if (entries.length === 0) return true;
+    const now = Date.now();
+    const ids = new Set([...store.pending, ...staleEntries(store, now, todayKey(now)).map((e) => e.id)]);
+    const entries = store.entries.filter((e) => ids.has(e.id));
+    // Unversandtes, das es nicht mehr gibt (gekürzt), nicht ewig mitschleppen.
+    if (entries.length === 0) {
+      if (store.pending.length > 0) await putPlan({ ...store, pending: [] });
+      return true;
+    }
     if (!(await sendEntries(live, entries))) return false;
-    await putPlan(markSent(await loadPlan(live), ids, Date.now()));
+    await putPlan(markSent(await loadPlan(live), [...ids], Date.now()));
     return true;
   });
 }
@@ -104,18 +110,20 @@ export async function changePlan(edit: PlanEdit): Promise<PlanStore> {
     if (!r) throw new Error('Dieses Spiel gibt es nicht mehr im Spielplan.');
     return save(r.store);
   });
-  void flush(false);
+  void flush().catch(() => false);
   return store;
 }
 
-/** FR-P07: beim Öffnen Unversandtes senden; ist die letzte Meldung älter als 6 Stunden, den ganzen Plan. */
+/** FR-P07: beim Öffnen Unversandtes und veraltete Planspiele ab heute senden. */
 export async function refreshPlan(): Promise<void> {
-  const live = (await getSettings()).live;
-  if (!live?.orgKey) return;
-  const store = await loadPlan(live);
-  const now = Date.now();
-  if (!needsRefresh(store, now, todayKey(now))) return;
-  await flush(now - store.sentAt >= REFRESH_MS);
+  try {
+    const live = (await getSettings()).live;
+    if (!live?.orgKey) return;
+    const now = Date.now();
+    if (needsRefresh(await loadPlan(live), now, todayKey(now))) await flush();
+  } catch {
+    // Ohne Netz oder bei Fehlern beim nächsten Öffnen erneut.
+  }
 }
 
 /** US1-S4: geprüfte Planspiele eines anderen Trainer-Handys übernehmen (je Planspiel die jüngere Änderung). */
@@ -125,8 +133,12 @@ export function adoptPlan(payload: string, view: { topic: string; orgPub: string
     if (!entries) return;
     const live = (await getSettings()).live;
     if (live?.topic !== view.topic || live.orgPub !== view.orgPub) return;
+    const now = Date.now();
     const r = mergeEntries(await loadPlan(live), entries);
-    if (r.changed.length > 0) await save(prunePlan(r.store, todayKey(Date.now())));
+    // Was so auf dem Dienst steht wie bei uns, muss dieses Handy nicht erneut senden (FR-P07).
+    const next = noteSeen(r.store, entries, now);
+    if (r.changed.length > 0) await save(prunePlan(next, todayKey(now)));
+    else await putPlan(next);
   }).catch(() => undefined);
 }
 
@@ -135,7 +147,7 @@ export async function movePlan(old: Pick<LiveSpieltag, 'topic' | 'orgPub'>, next
   await serial(async () => {
     const store = planFor(await getPlan(), old.topic, old.orgPub);
     if (store.entries.length === 0) return;
-    await save({ ...store, topic: next.topic, orgPub: next.orgPub, sentAt: 0, pending: [] });
+    await save({ ...store, topic: next.topic, orgPub: next.orgPub, seen: {}, pending: [] });
   });
-  await flush(true);
+  await flush();
 }
