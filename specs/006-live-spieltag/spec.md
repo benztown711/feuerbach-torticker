@@ -70,6 +70,11 @@ Mockup: https://claude.ai/artifact/SDGYEMUyn2u5uarWLYeGFo
 - Befund (Atti, Gerätetest G-3 im Alltag): Ein Elternteil öffnet den Zuschauer-Link aus WhatsApp in Safari, das Dashboard erscheint. Nach "Zum Home-Bildschirm" öffnet das Symbol aber den Startbildschirm mit "Neues Spiel" statt des Dashboards. Ursache: iOS übernimmt die Startadresse aus dem Manifest der App (`/feuerbach-torticker/`), nicht die aktuelle Adresse; die Vorkehrung aus R-L6 (gemerkter Zuschauer-Link) greift nicht, weil die Home-Bildschirm-App getrennte Daten hat und den in Safari gemerkten Link nicht kennt.
 - Entscheidung (Fehlerbehebung, ohne Mockup): Auf der Seite des Zuschauer-Links nennt das Manifest den Zuschauer-Link als Startadresse (FR-L16, US3-S11). Symbole, die vorher angelegt wurden, behalten die alte Startadresse; sie müssen einmal gelöscht und neu angelegt werden (Hilfe-Eintrag `eltern-home`).
 
+### Session 2026-11-06 (Fehler: Spiel übernehmen bei langsamem Empfang)
+
+- Befund (CI, E2E 006 US6-S1 auf dem iPhone-Profil): Tippt ein Trainer auf "Weiter zum Anpfiff", bevor sein Handy den Live-Spieltag geladen hat (gerade "Neues Spiel" geöffnet, langsamer Empfang am Platz), fragt die App nicht nach und schickt ein zweites E2-Spiel aufs Dashboard. Nachgestellt mit 1,5 s verzögerten Antworten des Vermittlungsdienstes.
+- Entscheidung (Atti, Fehlerbehebung ohne Mockup): "Weiter zum Anpfiff" wartet höchstens 3 Sekunden auf den Live-Stand und fragt dann wie in US6 Szenario 1; ohne Verbindung geht es sofort weiter (FR-L22, US6 Szenario 6).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Live-Spieltag anlegen und Trainergruppe koppeln (Priority: P1)
@@ -185,6 +190,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 3. **Given** B hat übernommen, **When** A wieder Netz hat und das Spiel offen ist, **Then** zeigt A "E2 überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst." und sendet nichts mehr; Meldungen von A, die später noch ankommen, ändern das Dashboard nicht.
 4. **Given** die Frage aus Szenario 1, **When** "Nur hier erfassen (nicht live)" gewählt wird, **Then** wird das Spiel wie mit ausgeschaltetem "Live aufs Dashboard" angelegt (FR-L09).
 5. **Given** B hat kein Netz oder empfängt nichts, **Then** legt B das Spiel ohne Frage an (die App kann die Übertragung von A nicht sehen); ein späteres doppeltes Spiel zeigt die Karte wie bisher als Zeile (FR-L14).
+6. **Given** A überträgt ein laufendes E2-Spiel und B hat den Live-Spieltag beim Öffnen von "Neues Spiel" noch nicht geladen (langsamer Empfang), **When** B sofort "Weiter zum Anpfiff" tippt, **Then** wartet B höchstens 3 Sekunden auf den Live-Stand und fragt dann wie in Szenario 1.
 
 ### Edge Cases
 
@@ -243,7 +249,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 **Übernehmen (US6)**
 
-- **FR-L22**: Ein Trainer-Handy MUSS beim Anlegen eines Spiels mit "Live aufs Dashboard" erkennen, ob ein anderes Handy gerade ein Spiel derselben Mannschaft überträgt (heute, nicht beendet, letzte Meldung höchstens 30 Minuten alt), und dann wie in US6 Szenario 1 nachfragen.
+- **FR-L22**: Ein Trainer-Handy MUSS beim Anlegen eines Spiels mit "Live aufs Dashboard" erkennen, ob ein anderes Handy gerade ein Spiel derselben Mannschaft überträgt (heute, nicht beendet, letzte Meldung höchstens 30 Minuten alt), und dann wie in US6 Szenario 1 nachfragen. Hat das Handy den Live-Spieltag noch nicht geladen, wartet "Weiter zum Anpfiff" höchstens 3 Sekunden darauf; ohne Verbindung geht es sofort weiter (US6 Szenario 5 und 6).
 - **FR-L23**: "Spiel übernehmen" MUSS das Spiel aus dem letzten Live-Stand anlegen (alles aus FR-L10, Uhr auf die eigene Uhrzeit umgerechnet, bereits erreichte Signalschwellen als erledigt) und es mit einem um eins erhöhten Übergabezähler weitersenden. Das Dashboard MUSS Meldungen mit kleinerem Übergabezähler für dieses Spiel ignorieren.
 - **FR-L24**: Erfährt ein Handy, dass sein Spiel übernommen wurde, MUSS es das Senden dafür beenden (auch kein "off" und beim Löschen kein "deleted") und den Hinweis aus US6 Szenario 3 zeigen; lokal bleibt das Spiel vollständig erhalten und erfassbar.
 
