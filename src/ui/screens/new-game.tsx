@@ -21,6 +21,21 @@ import { navigate } from '../router';
 
 const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
+/** Spec 006 FR-L22: so lange wartet "Weiter zum Anpfiff" höchstens auf den Live-Stand. */
+const LIVE_WAIT_MS = 3_000;
+
+/** Mithören, sobald es geladen ist und den ersten Stand kennt; zusammen höchstens `ms` (ohne Netz sofort). */
+async function heardWithin(load: Promise<LiveWatch | null> | null, ms: number): Promise<LiveWatch | null> {
+  if (!load) return null;
+  const start = Date.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const w = await Promise.race([load, new Promise<null>((res) => (timer = setTimeout(() => res(null), ms)))]);
+  clearTimeout(timer);
+  if (!w) return null;
+  await w.ready(Math.max(0, ms - (Date.now() - start)));
+  return w;
+}
+
 function Mark({ colorId }: { colorId: string }) {
   return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
 }
@@ -43,6 +58,8 @@ export function NewGameScreen() {
   const [liveOn, setLiveOn] = useState(true);
   /** Spec 006 US6: Live-Spieltag mithören, um ein schon übertragenes Spiel zu erkennen (nachgeladen). */
   const watch = useRef<LiveWatch | null>(null);
+  /** Das Nachladen des Mithörens; null, solange das Handy nicht gekoppelt ist. */
+  const watchLoad = useRef<Promise<LiveWatch | null> | null>(null);
   const [running, setRunning] = useState<RunningGame | null>(null);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
@@ -72,15 +89,18 @@ export function NewGameScreen() {
     const live = settings?.live;
     if (!live) return;
     let alive = true;
-    import('../../platform/live-watch')
+    watchLoad.current = import('../../platform/live-watch')
       .then((m) => {
-        if (alive) watch.current = m.watchSpieltag(live);
+        if (!alive) return null;
+        watch.current = m.watchSpieltag(live);
+        return watch.current;
       })
-      .catch(() => undefined);
+      .catch(() => null);
     return () => {
       alive = false;
       watch.current?.stop();
       watch.current = null;
+      watchLoad.current = null;
     };
   }, [settings?.live?.topic]);
   // US5-S1: übernommene Mannschaften und geänderte Titel sofort zeigen.
@@ -138,10 +158,12 @@ export function NewGameScreen() {
   const create = async (asPrivate = false): Promise<void> => {
     if (!check.ok || busy) return;
     setBusy(true);
-    // Spec 006 FR-L22: überträgt ein anderes Handy gerade ein Spiel dieser Mannschaft?
-    if (liveTeam && liveOn && !asPrivate && watch.current) {
+    // Spec 006 FR-L22: überträgt ein anderes Handy gerade ein Spiel dieser Mannschaft? Höchstens 3 s auf den
+    // Live-Stand warten, falls das Handy ihn noch nicht geladen hat (US6-S6).
+    const w = liveTeam && liveOn && !asPrivate ? await heardWithin(watchLoad.current, LIVE_WAIT_MS) : null;
+    if (liveTeam && w) {
       const ids = (await listGames()).map((g) => g.id);
-      const other = watch.current.running(liveTeam.key, ids);
+      const other = w.running(liveTeam.key, ids);
       if (other) {
         setRunning(other);
         setBusy(false);

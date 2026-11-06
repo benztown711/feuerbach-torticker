@@ -62,6 +62,8 @@ export interface LiveWatch {
   running(team: string, localIds: string[]): RunningGame | null;
   /** FR-L23: Spiel aus dem letzten Stand anlegen. */
   takeover(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
+  /** FR-L22: wartet höchstens `maxMs`, bis der erste Stand vom Dienst geladen ist (ohne Netz sofort). */
+  ready(maxMs: number): Promise<void>;
   stop(): void;
 }
 
@@ -80,6 +82,7 @@ export function watchSpieltag(live: LiveSpieltag, deps: Partial<ReceiverDeps> = 
     },
     takeover: (entry, ownTeam, players, newId) =>
       takeoverGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
+    ready: (maxMs) => r.whenSettled(maxMs),
     stop: () => r.stop(),
   };
 }
