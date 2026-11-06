@@ -25,6 +25,11 @@
 - Q: Ein Link pro Spiel oder pro Spieltag? → A: Pro Spiel.
 - Q: Sehen die Eltern das Spiel vorab auf dem Dashboard? → A: Ja, sofern ein Gegnername eingegeben ist. Eine Uhrzeit gibt es nicht.
 
+### Session 2026-11-06 (Review A, Chat)
+
+- Q: Teilen sich E1 und E2 einen Kader, E3 hat einen eigenen? → A: Ja. E1 und E2 haben einen gemeinsamen Kader; ein Trainer schickt einige Tage vor dem Spieltag die Aufteilung auf E1 und E2 in die Trainergruppe, damit Kinder und Eltern planen können. E3 läuft separat mit eigenem Kader. Gelegentlich spielen ausgewählte E3-Kinder in der E2 mit, ebenso selten helfen E1/E2-Kinder in der E3 aus.
+- Folgerung für US4: Statt je Mannschaft Kinder anzuhaken gibt es benannte Kader ("E1/E2", "E3"); jedes Kind gehört zu genau einem Kader, jede Mannschaft spielt mit einem Kader. Aushilfen aus dem anderen Kader stehen im Aufgebot unter "Weitere Kinder".
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Spiel vorbereiten und Link schicken (Priority: P1)
@@ -90,18 +95,19 @@ Bereitet ein gekoppeltes Trainer-Handy ein Spiel mit Gegnername vor, erscheint e
 
 ### User Story 4 - Kader je Mannschaft mitschicken (Priority: P2)
 
-Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 dürfen dieselben Kinder haben, E3 eigene). Ein Spiel-Link bringt dann neben dem Aufgebot den ganzen Kader der Mannschaft mit, damit der Trainer am Platz ein Kind nachwählen kann, das nicht im Aufgebot stand.
+Atti teilt die Kinder einmal in zwei Kader auf: "E1/E2" und "E3". E1 und E2 spielen mit dem Kader "E1/E2", E3 mit "E3". Ein Spiel-Link bringt dann neben dem Aufgebot den ganzen Kader der Mannschaft mit, damit der Trainer am Platz ein Kind nachwählen kann, das nicht im Aufgebot stand. Hilft ein Kind aus dem anderen Kader aus, steht es im Aufgebot und kommt mit.
 
 **Why this priority**: Das Aufgebot aus US1 deckt den Normalfall; der ganze Kader hilft bei kurzfristigen Änderungen und räumt das E1/E2/E3-Gemisch in der Auswahl auf (Roadmap B3).
 
-**Independent Test**: Auf A gehören Max, Ben, Tom, Leo, Maxi zu E1 und E2, Paul nur zu E3. Spiel-Link für E1 mit Aufgebot Max, Ben, Tom auf Gerät B übernehmen; B zeigt im Aufgebot Max, Ben, Tom ausgewählt, Leo und Maxi auswählbar, Paul nicht.
+**Independent Test**: Auf A gehören Max, Ben, Tom, Leo, Maxi zum Kader "E1/E2", Paul zum Kader "E3". Spiel-Link für E2 mit Aufgebot Max, Ben, Tom und Aushilfe Paul auf Gerät B übernehmen; B zeigt im Aufgebot Max, Ben, Tom und Paul ausgewählt, Leo und Maxi auswählbar; Paul steht in B im Kader "E3".
 
 **Acceptance Scenarios**:
 
-1. **Given** "Meine Mannschaften" → E1, **When** der Nutzer unter "Kader" Kinder an- oder abwählt, **Then** gehören genau diese Kinder zum Kader von E1; ein Kind darf zu mehreren Mannschaften gehören.
-2. **Given** eine Mannschaft ohne festgelegten Kader, **Then** gehören alle Kinder des Handys dazu (Verhalten wie bisher).
-3. **Given** "Neues Spiel" für E1, **Then** zeigt "Aufgebot" nur die Kinder des E1-Kaders; die übrigen Kinder stehen eingeklappt unter "Weitere Kinder".
-4. **Given** ein Spiel-Link für E1, **When** er übernommen wird, **Then** werden alle Kinder des E1-Kaders ergänzt (wie US2 Szenario 3) und dem Kader von E1 auf diesem Handy zugeordnet; das Aufgebot ist vorausgewählt.
+1. **Given** "Mehr" → "Kader" mit einem einzigen Kader (wie bisher), **When** der Nutzer "Kader hinzufügen" mit Namen "E3" wählt und Paul dorthin verschiebt, **Then** gibt es die Kader "Kader" (umbenennbar, z. B. in "E1/E2") und "E3"; Paul steht nur in "E3".
+2. **Given** "Meine Mannschaften" → E1, **When** der Nutzer unter "Kader" den Kader "E1/E2" wählt, **Then** spielt E1 mit diesem Kader; E2 kann denselben Kader wählen.
+3. **Given** es gibt nur einen Kader, **Then** spielen alle Mannschaften damit, und "Neues Spiel" sowie "Mehr" → "Kader" sehen aus wie bisher.
+4. **Given** "Neues Spiel" für E2, **Then** zeigt "Aufgebot" die Kinder des Kaders "E1/E2"; die Kinder der anderen Kader stehen eingeklappt unter "Weitere Kinder" und sind dort wählbar (Aushilfe).
+5. **Given** ein Spiel-Link für E2, **When** er übernommen wird, **Then** werden die Kinder des Kaders "E1/E2" ergänzt (wie US2 Szenario 3) und auf diesem Handy dem gleichnamigen Kader zugeordnet (fehlt er, wird er angelegt); Aushilfen kommen in ihren eigenen Kader; das Aufgebot ist vorausgewählt.
 
 ---
 
@@ -116,6 +122,8 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 - **Offline beim Vorbereiten**: Vorbereiten und Link teilen gehen ohne Netz; die Meldung ans Dashboard folgt, sobald Netz da ist.
 - **Spiel-Link zu lang für WhatsApp**: WhatsApp macht auf dem iPhone lange Links nur bis zum Anfang antippbar (Spec 006 R-L20). Der Spiel-Link nutzt deshalb ein kurzes Format wie der Trainer-Link (SC-P04). Kommt nur der Anfang an, erklärt die Seite das wie Spec 006 US1-S8.
 - **Gefälschter oder beschädigter Spiel-Link**: Inhalte werden auf Länge und Format geprüft; ein ungültiger Link ändert nichts und meldet "Kein gültiger Spiel-Link".
+- **Aushilfe**: Ein E3-Kind spielt in der E2 mit. Es wird im Aufgebot unter "Weitere Kinder" gewählt, bleibt im Kader "E3" und kommt mit dem Spiel-Link mit (FR-P20).
+- **Gleicher Vorname in zwei Kadern**: Unterscheidung wie bisher über Rückennummer oder Kürzel (Spec 001 FR-020).
 - **Neu ausgestellter Live-Spieltag**: Ein Spiel-Link enthält keine Schlüssel und bleibt gültig; gesendet wird über die aktuelle Kopplung des Handys.
 
 ## Requirements *(mandatory)*
@@ -149,19 +157,20 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 
 **Kader je Mannschaft (US4)**
 
-- **FR-P17**: "Meine Mannschaften" → Mannschaft MUSS den Abschnitt "Kader" mit allen Kindern des Handys zum An- und Abwählen haben. Ohne Auswahl gehören alle Kinder dazu. Ein Kind darf zu mehreren Mannschaften gehören.
-- **FR-P18**: "Neues Spiel" MUSS im Aufgebot zuerst die Kinder des Mannschaftskaders zeigen und die übrigen eingeklappt unter "Weitere Kinder".
-- **FR-P19**: Ein Spiel-Link MUSS den Kader der Mannschaft mitbringen; beim Übernehmen werden die Kinder ergänzt (FR-P10) und dem Kader der Mannschaft auf diesem Handy zugeordnet.
+- **FR-P17**: "Mehr" → "Kader" MUSS mehrere benannte Kader erlauben (höchstens 6): hinzufügen, umbenennen, löschen (nur leer) und Kinder zwischen Kadern verschieben. Jedes Kind gehört zu genau einem Kader. Bestehende Kinder liegen im Kader "Kader". Mit nur einem Kader bleibt die Ansicht wie bisher.
+- **FR-P18**: "Meine Mannschaften" → Mannschaft MUSS die Auswahl "Kader" haben (Vorgabe: der erste Kader). Mehrere Mannschaften dürfen denselben Kader haben.
+- **FR-P19**: "Neues Spiel" MUSS im Aufgebot die Kinder des Kaders der Mannschaft zeigen und die Kinder anderer Kader eingeklappt unter "Weitere Kinder" (wählbar als Aushilfe).
+- **FR-P20**: Ein Spiel-Link MUSS den Kader der Mannschaft (Name und Kinder) mitbringen und für Aushilfen im Aufgebot den Namen ihres Kaders. Beim Übernehmen werden fehlende Kinder ergänzt (FR-P10) und dem gleichnamigen Kader zugeordnet; fehlt ein Kader, wird er angelegt. Kinder, die schon auf dem Handy sind, behalten ihren Kader.
 
 **Allgemein**
 
-- **FR-P20**: Vorbereitete Spiele und Mannschaftskader MÜSSEN in der Sicherung enthalten sein und beim Wiederherstellen übernommen werden.
+- **FR-P21**: Vorbereitete Spiele und Kader MÜSSEN in der Sicherung enthalten sein und beim Wiederherstellen übernommen werden.
 
 ### Key Entities
 
 - **Vorbereitetes Spiel**: Spielkennung, Mannschaft (Name, Heim- und Auswärtstrikot), Gegner (optional), Heim/Auswärts, Trikotfarben, Spielzeit, Spieltag (Datum), Aufgebot, Kader (US4), Zeitpunkt der letzten Änderung und des letzten Teilens.
 - **Spiel-Link**: Adresse des Torticker mit dem vorbereiteten Spiel im nicht übertragenen Teil der Adresse; ohne Schlüssel.
-- **Mannschaftskader (US4)**: Zuordnung Kind zu Mannschaft, je Handy.
+- **Kader (US4)**: Benannte Liste von Kindern, z. B. "E1/E2" und "E3", je Handy. Jedes Kind gehört zu genau einem Kader; jede Mannschaft spielt mit einem Kader.
 
 ## Hilfe *(mandatory)*
 
@@ -169,11 +178,13 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 |---|---|---|
 | `spiel-vorbereiten` "Wie bereite ich ein Spiel für einen anderen Trainer vor?" | neu | 015 US1 |
 | `spiel-link` "Wie übernehme ich ein vorbereitetes Spiel?" | neu | 015 US2 |
-| `neues-spiel` "Wie lege ich ein neues Spiel an?" | geändert: "Nur vorbereiten", Liste "Vorbereitet" | 001 US1, 015 US1 |
+| `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: "Nur vorbereiten", Liste "Vorbereitet" | 001 US1, 015 US1 |
 | `trainer-link` "Wie kopple ich das Handy eines Trainers?" | geändert: Knopf erkennt auch Spiel-Links | 012 US1, 015 US2 |
 | `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: "Nächstes Spiel" ohne Uhrzeit | 006 US3, 015 US3 |
-| `kader-mannschaft` "Wie lege ich fest, welche Kinder zu einer Mannschaft gehören?" | neu | 015 US4 |
-| `aufgebot` "Wie wähle ich das Aufgebot?" | geändert: "Weitere Kinder" | 004 FR-M06, 015 US4 |
+| `kader-mehrere` "Wie lege ich einen zweiten Kader an, z. B. für die E3?" | neu | 015 US4 |
+| `kader` "Wie pflege ich den Kader?" | geändert: mehrere Kader, Kinder verschieben | 001 US5, 015 US4 |
+| `mannschaft` "Wie lege ich meine Mannschaft an?" | geändert: Auswahl "Kader" | 004 US1, 015 US4 |
+| `aufgebot` "Wie wähle ich das Aufgebot für ein Spiel?" | geändert: "Weitere Kinder" für Aushilfen | 004 FR-M06, 015 US4 |
 
 ## Success Criteria *(mandatory)*
 
@@ -186,7 +197,7 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 ## Assumptions
 
 - Spieltag als Datum ist bekannt (WFV-Spielplan), eine Uhrzeit nicht. Vorgabe ist der nächste Samstag.
-- "Die Kader sind für E1 & E2 fix, für E3 separat" verstehen wir so: E1 und E2 teilen sich dieselben Kinder, E3 hat eigene. Das Modell erlaubt beides (ein Kind in mehreren Mannschaften).
+- E1 und E2 teilen sich einen Kader, E3 hat einen eigenen (Review A). Aushilfen zwischen den Kadern sind selten und werden im Aufgebot gewählt, nicht im Kader.
 - Vorbereiten kann jedes Handy, nicht nur Atti; aufs Dashboard kommt ein vorbereitetes Spiel nur von einem Trainer-Handy (Constitution II).
 - Der Spiel-Link wird wie "Kader teilen" bewusst und gezielt geteilt; Vornamen darin entsprechen Constitution III.
 - Keine neue Laufzeit-Abhängigkeit; Link-Format nach dem Muster der Live-Links (Spec 006 contracts/live-link.md).
