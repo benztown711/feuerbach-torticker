@@ -428,8 +428,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
     answer:
-      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen.',
-    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen',
+      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen. Sie setzen den Text genauso über „Liste einfügen“ ein; Kürzel wie „Max Mü.“ bleiben dabei erhalten.',
+    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung',
     sources: ['001 US7'],
     open: { label: 'Kader', path: '/kader' },
     related: ['kader'],
@@ -454,20 +454,38 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Unter „Historie“ stehen alle Spiele nach Monaten, neueste zuerst, mit dem Ergebnis aus Feuerbach-Sicht: S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails.',
     keywords: 'historie alte spiele früher ergebnisse filter sieg niederlage monat',
-    sources: ['001 US6', '011 US1'],
+    sources: ['001 US6', '011 US1', '014 US1'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['spiel-loeschen', 'ergebnis-teilen'],
+    related: ['spiel-loeschen', 'spiele-loeschen-mehrere', 'ergebnis-teilen'],
   },
   {
     id: 'spiel-loeschen',
     topic: 'historie',
     title: 'Wie lösche ich ein Spiel?',
     answer:
-      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Löschen“. Die App fragt einmal nach. Gelöschte Spiele lassen sich nur aus einer Sicherung zurückholen.',
-    keywords: 'löschen entfernen spiel testspiel',
-    sources: ['001 US6'],
+      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Löschen …“. Die App fragt einmal nach. Danach steht unten in der Historie 10 Sekunden lang „Rückgängig“; ein Tipp darauf holt das Spiel unverändert zurück. Später geht das nur noch aus einer Sicherung. Mehrere Spiele auf einmal löschst du mit „Auswählen“.',
+    keywords: 'löschen entfernen spiel testspiel rückgängig versehentlich gelöscht zurückholen wiederherstellen',
+    sources: ['001 US6', '014 US3'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['sichern', 'historie'],
+    related: ['spiele-loeschen-mehrere', 'sichern', 'historie'],
+  },
+  {
+    id: 'spiele-loeschen-mehrere',
+    topic: 'historie',
+    title: 'Wie lösche ich mehrere Spiele auf einmal?',
+    answer:
+      'In der Historie oben rechts „Auswählen“ tippen und die Spiele antippen, die weg sollen. „Alle auswählen“ nimmt alle beendeten Spiele, die gerade zu sehen sind; mit dem Filter „E2“ also nur die der E2. Laufende Spiele lassen sich nicht auswählen, die löschst du in den Spieldetails. Nach dem Löschen steht 10 Sekunden lang „Rückgängig“ da.',
+    steps: [
+      'In der Historie „Auswählen“ tippen.',
+      'Spiele antippen oder „Alle auswählen“ tippen.',
+      '„Löschen (3)“ tippen und mit „Löschen“ bestätigen.',
+      'Versehen? Gleich danach „Rückgängig“ tippen.',
+    ],
+    keywords:
+      'mehrere alle spiele löschen auswählen markieren aufräumen testspiele saison leeren mehrfachauswahl häkchen',
+    sources: ['014 US1', '014 US2'],
+    open: { label: 'Historie', path: '/historie' },
+    related: ['spiel-loeschen', 'historie', 'sichern'],
   },
 
   // Live-Spieltag
@@ -518,8 +536,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
     answer:
-      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit.',
-    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher',
+      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit. Hat dein Handy den Live-Spieltag noch nicht geladen, wartet „Weiter zum Anpfiff“ kurz, höchstens 3 Sekunden.',
+    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang',
     sources: ['006 US6'],
     related: ['live-senden', 'trainer-link'],
   },

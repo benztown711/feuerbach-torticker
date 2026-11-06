@@ -9,6 +9,9 @@
 :root {
   /* FR-037: Höhe der Navigationsleiste (ohne unteren Sicherheitsabstand). */
   --nav-h: 56px;
+
+  /* Spec 014: Höhe der Aktionsleiste im Auswahlmodus der Historie (Knopf 48 + Abstände + Linie). */
+  --history-actions-h: 65px;
 }
 
 body {

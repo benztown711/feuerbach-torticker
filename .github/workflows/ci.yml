@@ -17,6 +17,36 @@ env:
   NODE_VERSION: 22
 
 jobs:
+  # Ermittelt, ob der PR Code berührt. Reine Text-Änderungen (Specs, Doku, Markdown außerhalb
+  # von src/, public/, tests/) brauchen weder E2E noch Lighthouse. Auf main läuft immer alles.
+  # Liefert außerdem die Playwright-Version aus der package-lock.json für das passende Image.
+  changes:
+    name: Änderungen erkennen
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+      playwright: ${{ steps.pw.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only "$BASE...$HEAD")
+          echo "Geänderte Dateien:"; echo "$files"
+          code=$(echo "$files" | grep -vE '^(specs/|docs/|\.specify/|\.claude/)' \
+            | grep -vE '^([^/]+|design/.*|\.github/.*)\.md$' | grep -q . && echo true || echo false)
+          echo "Code betroffen: $code"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+      - id: pw
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+
   quality:
     name: Lint, Typen, Unit-Tests
     runs-on: ubuntu-latest
@@ -57,10 +87,27 @@ jobs:
           path: dist/
           retention-days: 7
 
+  # Je Profil eigene Rechner (parallel). Das offizielle Playwright-Image bringt Browser und
+  # Systempakete mit, die Version folgt automatisch der package-lock.json (Job "changes").
   e2e:
-    name: E2E (iPhone/WebKit, Android/Chromium)
-    needs: build
+    name: E2E (${{ matrix.profile }} ${{ matrix.shard }})
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.changes.outputs.playwright }}-noble
+    strategy:
+      fail-fast: false
+      # Die WebKit-Profile sind langsamer und laufen darum auf je zwei Rechnern.
+      matrix:
+        include:
+          - { profile: iphone, shard: 1/2 }
+          - { profile: iphone, shard: 2/2 }
+          - { profile: iphone-se, shard: 1/2 }
+          - { profile: iphone-se, shard: 2/2 }
+          - { profile: android, shard: 1/1 }
+    env:
+      PW_PROJECTS: ${{ matrix.profile }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -72,12 +119,11 @@ jobs:
         with:
           name: dist
           path: dist/
-      - run: npx playwright install --with-deps webkit chromium
-      - run: npm run e2e
+      - run: npm run e2e -- --shard=${{ matrix.shard }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.profile }}-${{ strategy.job-index }}
           path: |
             playwright-report/
             test-results/
@@ -85,7 +131,8 @@ jobs:
 
   lighthouse:
     name: Lighthouse
-    needs: build
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -122,7 +169,7 @@ jobs:
   ci:
     name: ci
     if: always()
-    needs: [quality, build, e2e, lighthouse, dependency-review]
+    needs: [changes, quality, build, e2e, lighthouse, dependency-review]
     runs-on: ubuntu-latest
     steps:
       - name: Ergebnis aller Jobs prüfen

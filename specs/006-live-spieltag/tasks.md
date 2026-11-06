@@ -106,6 +106,12 @@
 - [x] L059 Spec-Nummer der Historie-Spec auf 014 (`specs/014-historie-mehrfach-loeschen`), weil 013 doppelt vergeben war (Hilfe-Abdeckung rot, Auslieferung blockiert)
 - [ ] L057 Gerätetest G-3 auf dem iPhone wiederholen (altes Symbol vorher löschen)
 
+## Phase 10: Fehlerbehebung Spiel übernehmen bei langsamem Empfang (Clarifications 06.11.2026)
+
+- [x] L058 [P] [US6] (FR-L22) Unit `tests/unit/live-receiver.test.ts`, `live-watch.test.ts`: `whenSettled`/`ready` warten auf Verbindung, geprüfte Meldungen und kurze Ruhe, höchstens 3 s; ohne Netz und nach dem Beenden sofort
+- [x] L059 [P] [US6] E2E `tests/e2e/live-us6.spec.ts`: 006 US6-S6 mit verzögerten Antworten des Relay-Nachbaus (`delayMs`); S1 bis S5 ohne feste Wartezeit vor "Weiter zum Anpfiff"
+- [x] L060 [US6] `src/platform/live-receiver.ts` (`whenSettled`), `live-watch.ts` (`ready`), "Neues Spiel" wartet höchstens 3 s (macht L058 und L059 grün); Hilfe `spiel-uebernehmen`
+
 ## Zuordnung Anforderungen → Aufgaben
 
 | Anforderung | Aufgaben |
@@ -121,7 +127,7 @@
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |
-| FR-L22 bis FR-L24 | L049, L050, L051, L052, L053 |
+| FR-L22 bis FR-L24 | L049, L050, L051, L052, L053, L058 bis L060 |
 | SC-L01, SC-L03 | L022, L024 |
 | SC-L02, SC-L04 | L027, L031 |
 | SC-L05, SC-L07 | L042 (Gerätetest), Constitution VIII |

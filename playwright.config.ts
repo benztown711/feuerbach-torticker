@@ -2,10 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * E2E in drei Profilen (research.md R-10, R-15): iphone und iphone-se (WebKit) sowie android (Chromium).
- * Lokal im Cloud-Container gibt es nur Chromium: PW_CHROMIUM_PATH setzt den Browserpfad,
- * PW_PROJECTS=android beschränkt auf das Android-Profil. In der CI laufen beide.
+ * Lokal im Cloud-Container gibt es nur Chromium: PW_CHROMIUM_PATH setzt den Browserpfad und
+ * beschränkt dann ohne weitere Angabe auf das Android-Profil. PW_PROJECTS wählt Profile explizit.
+ * In der CI laufen alle drei.
  */
 const chromiumPath = process.env.PW_CHROMIUM_PATH;
+const projects = process.env.PW_PROJECTS ?? (chromiumPath ? 'android' : '');
 const PORT = 4173;
 
 export default defineConfig({
@@ -32,7 +34,7 @@ export default defineConfig({
         ...(chromiumPath ? { launchOptions: { executablePath: chromiumPath } } : {}),
       },
     },
-  ].filter((p) => !process.env.PW_PROJECTS || process.env.PW_PROJECTS.split(',').includes(p.name)),
+  ].filter((p) => !projects || projects.split(',').includes(p.name)),
   webServer: {
     command: 'npm run preview',
     url: `http://localhost:${PORT}/feuerbach-torticker/`,
