@@ -32,7 +32,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
 | A1 | Gerätetest Live-Spieltag G-1 bis G-10 (`specs/006-live-spieltag/quickstart.md`) mit zwei Handys und einem Browser | 2 | Atti | Pflicht | Vor allem G-4, G-5, G-8 (Tor, Funkloch, Übernehmen) | offen |
-| A2 | Einrichtung durch Atti: E1 und E2 anlegen, Kader je Mannschaft, Live-Spieltag, Trainer-Link in die Trainergruppe, Zuschauer-Link in die Elterngruppen, Trainern eine 3-Zeilen-Nachricht | 1 | Atti, Text per Haiku | Pflicht | Zuschauer-Link am Vorabend senden | offen |
+| A2 | Einrichtung durch Atti: E1 und E2 anlegen, Kader je Mannschaft, Live-Spieltag, Trainer-Link in die Trainergruppe, Zuschauer-Link in die Elterngruppen, Trainern eine 3-Zeilen-Nachricht | 1 | Atti, Text per Haiku | Pflicht | Zuschauer-Link am Vorabend senden. Trainern, die vor dem 06.11.2026 mit dem Zuschauer-Link getestet haben, diesen Satz mitgeben: „Falls ihr den Spieltag schon auf dem Home-Bildschirm habt und dort ‚Neues Spiel‘ erscheint: Symbol löschen und den Link neu ablegen.“ (Fehlerbehebung #50) | offen |
 | A3 | Release 0.4.0 mergen (PR #39) | 1 | keins | niedrig | Nur Versionsnummer in der Hilfe | erledigt (#39, 06.11.2026) |
 | A4 | Spiel nach Schlusspfiff wieder öffnen („Spiel fortsetzen“ in den Spieldetails) | 3 | Sonnet | mittel | Rückfrage beim Schlusspfiff fängt das meiste ab | erledigt, anders gelöst: „Schlusspfiff zurücknehmen“ bis 10 Minuten danach und „Tor nachtragen“ auch nach dem Schlusspfiff (Spec 012 US2, US3, #42); kein eigenes „Spiel fortsetzen“ |
 
