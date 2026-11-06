@@ -14,7 +14,7 @@
 
 - Q: Eine oder mehrere eigene Mannschaften in den Einstellungen? → A: Mehrere möglich (z. B. U11 und U10 mit gemeinsamem Kader), jede mit eigenem Heim- und Auswärtstrikot. Im Formular erscheint eine Auswahl nur, wenn mehr als eine angelegt ist.
 - Q: Spielzeit-Vorlagen (z. B. WFV 2 × 25, Leistungsliga 3 × 25)? → A: Nicht nötig; die Auswahl im Formular ist schnell genug.
-- Q: Ein Kader je Mannschaft? → A: Nein, ein gemeinsamer Kader reicht.
+- Q: Ein Kader je Mannschaft? → A: Nein, ein gemeinsamer Kader reicht. (Ersetzt am 06.11.2026 durch Spec 015 "Kader je Mannschaft".)
 - Q: Weitere Schalter? → A: Die Einstellungen bekommen zusätzlich den Abschnitt "Im Spiel erfassen" (Karten, Wechsel, Lesezeichen, siehe Spec 003).
 
 ## User Scenarios & Testing *(mandatory)*
