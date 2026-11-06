@@ -5,7 +5,9 @@ import { shortTeamName } from '../../domain/team-name';
 import type { Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import { verifyLink, type VerifiedLink } from '../../platform/live-setup';
+import { APP_MANIFEST, setManifest } from '../../platform/manifest-link';
 import { isStandalone } from '../../platform/storage';
+import { pointManifestTo } from '../../platform/web-manifest';
 import { CoupleFlow, isCoupledWith } from '../components/couple-flow';
 import { navigate } from '../router';
 
@@ -15,6 +17,8 @@ const base = import.meta.env.BASE_URL;
  * Spec 006 FR-L03, US1-S6, Spec 012 FR-S06: Trainer- oder Lead-Link angetippt. Schon gekoppelt: direkt zum
  * Startbildschirm (der Link wirkt wie ein Startknopf). Sonst "Koppeln und loslegen"; "Link kopieren" nur für den
  * Torticker auf dem Home-Bildschirm, weil iOS Links nie in der installierten App öffnet (research.md R-L6).
+ * Nachtrag 06.11.2026 (R-L20): Solange die Seite offen ist, nennt das Manifest den Trainer-Link als Startadresse;
+ * "Zum Home-Bildschirm" legt so ein Symbol ab, das beim ersten Start koppelt und danach wie ein Startknopf wirkt.
  */
 export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 'trainer' }) {
   const [state, setState] = useState<
@@ -34,12 +38,20 @@ export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 't
       }
       const settings = await getSettings();
       if (isCoupledWith(settings, link)) {
+        setManifest(APP_MANIFEST);
         navigate('/', true);
         return;
       }
       setState({ kind: 'ok', link, settings });
     })();
   }, [data, kind]);
+
+  // Trainer-Link als Startadresse nur, solange gekoppelt werden kann; sonst das Manifest der App (main.tsx).
+  useEffect(() => {
+    if (state.kind === 'ok' && !installed) return pointManifestTo(`/${kind}/${data}`);
+    if (state.kind === 'invalid' || installed) setManifest(APP_MANIFEST);
+    return undefined;
+  }, [state, data, kind]);
 
   const copy = async (): Promise<void> => {
     try {
@@ -66,7 +78,8 @@ export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 't
         />
         {state.kind === 'invalid' && (
           <p class="hint" data-testid="lead-link-invalid">
-            Dieser {label} ist nicht gültig. Bitte den Link erneut in der Trainergruppe anfordern.
+            Dieser {label} ist nicht gültig oder kam unvollständig an. Bitte den Link erneut in der Trainergruppe
+            anfordern.
           </p>
         )}
         {ok && (
@@ -83,6 +96,10 @@ export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 't
             </button>
             {!installed && (
               <>
+                <p class="field__help" data-testid="lead-link-home-hint">
+                  Für den Spielfeldrand: unten auf „Teilen“ und „Zum Home-Bildschirm“ tippen. Das neue Symbol öffnet
+                  diesen Trainer-Link, dort „Koppeln und loslegen“.
+                </p>
                 <p class="field__help" data-testid="lead-link-copy-hint">
                   Torticker schon auf dem Home-Bildschirm? Dann den Link kopieren und dort einfügen.
                 </p>

@@ -119,11 +119,44 @@ export async function latestState(relay: FakeRelay, viewerUrl: string, gameId?: 
 
 /* ---------- Meldungen wie ein Lead-Handy (für Dashboard-Tests) ---------- */
 
+/**
+ * Kurzer Trainer-Link (contracts/live-link.md, research.md R-L20) in derselben Form wie der lange: t, k, o, n,
+ * q (d, x, y), m; dazu `config` (unsigniert, `g` fehlt; leadMessage signiert sie mit dem Organisator-Schlüssel).
+ */
+function shortTrainerData(b: Buffer): Json {
+  let i = 1;
+  const take = (n: number): Buffer => b.subarray(i, (i += n));
+  const str = (): string => take(b[i++] as number).toString('utf8');
+  const list = (n: number): string[][] => Array.from({ length: n }, () => [str(), str(), str(), str()]);
+  const t = take(22).toString('ascii');
+  const k = take(32).toString('base64url');
+  const xy = take(64);
+  const d = take(32).toString('base64url');
+  const iat = take(6).readUIntBE(0, 6);
+  const flags = b[i++] as number;
+  const n = str();
+  const keys = Array.from({ length: b[i++] as number }, str);
+  const m = list(b[i++] as number);
+  const details = flags & 1 ? (flags & 2 ? m : list(b[i++] as number)) : undefined;
+  return {
+    v: 1,
+    t,
+    k,
+    o: Buffer.concat([Buffer.from([4]), xy]).toString('base64url'),
+    n,
+    q: { d, x: xy.subarray(0, 32).toString('base64url'), y: xy.subarray(32).toString('base64url') },
+    m,
+    config: { title: n, teams: keys, iat, ...(details ? { m: details } : {}) },
+  };
+}
+
 /** Daten eines Zuschauer-, Trainer- oder Lead-Links (contracts/live-link.md). */
 export function linkData(url: string): Json {
   const m = /#\/(?:live|lead|trainer)\/([A-Za-z0-9_-]+)/.exec(url);
   if (!m?.[1]) throw new Error(`Kein Link: ${url}`);
-  return JSON.parse(Buffer.from(m[1], 'base64url').toString('utf8')) as Json;
+  const bytes = Buffer.from(m[1], 'base64url');
+  if (bytes[0] === 2) return shortTrainerData(bytes);
+  return JSON.parse(bytes.toString('utf8')) as Json;
 }
 
 async function signWith(jwk: JsonWebKey, text: string): Promise<string> {
@@ -164,7 +197,9 @@ export async function leadMessage(
       )
     : await subtle.exportKey('jwk', pair.privateKey);
   const m = JSON.stringify(content);
-  const env = { m, s: await signWith(signer, m), c, g: link.g };
+  const configText = JSON.stringify(link.config);
+  const g = link.g ?? { d: configText, s: await signWith(org, configText) };
+  const env = { m, s: await signWith(signer, m), c, g };
   const packed = deflateRawSync(Buffer.from(JSON.stringify(env), 'utf8'));
   const key = await subtle.importKey('raw', b64(link.k as string), 'AES-GCM', false, ['encrypt']);
   const iv = webcrypto.getRandomValues(new Uint8Array(12));
@@ -353,3 +388,31 @@ const goal = (side: 'own' | 'opp', minute: number): Json => ({
   penalty: false,
   ownGoal: false,
 });
+
+/* ---------- Manifest (Spec 006 FR-L16, research.md R-L6, R-L20) ---------- */
+
+/** Manifest hinter einem Verweis: blob:-Adresse im Browser gelesen, sonst der Verweis selbst. */
+export type Manifest = { start_url?: string; scope?: string; id?: string } | string;
+export const unpack = (p: Page, href: string): Promise<Manifest> =>
+  href.startsWith('blob:') ? p.evaluate(async (h) => (await fetch(h)).json(), href) : Promise.resolve(href);
+export const manifestOf = async (p: Page) =>
+  unpack(p, (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '');
+
+/**
+ * Wie Safari: WebKit lädt das Manifest, sobald ein Verweis eingelesen oder eingefügt wird, und behält das erste
+ * für die ganze Seite (`DocumentLoader::loadApplicationManifest`). Zeichnet die Adresse jedes Manifest-Verweises
+ * zum Zeitpunkt des Einfügens auf (`window.__manifests`), auch des Verweises im HTML.
+ */
+export async function recordManifests(p: Page): Promise<void> {
+  await p.addInitScript(() => {
+    const seen: string[] = [];
+    (window as unknown as { __manifests: string[] }).__manifests = seen;
+    new MutationObserver((records) => {
+      for (const r of records)
+        for (const n of r.addedNodes)
+          if (n instanceof HTMLLinkElement && n.rel === 'manifest') seen.push(n.getAttribute('href') ?? '');
+    }).observe(document, { childList: true, subtree: true });
+  });
+}
+export const firstManifest = async (p: Page) =>
+  unpack(p, (await p.evaluate(() => (window as unknown as { __manifests: string[] }).__manifests))[0] ?? '');

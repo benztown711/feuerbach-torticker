@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04
 
-**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US6 und die Änderung "Trainergruppe" (04.11.2026, siehe Clarifications) umgesetzt; Gerätetest am 06.11.2026 auf dem iPhone bestanden (quickstart.md, research.md R-L19); offen sind nur G-6 und G-10 (tasks.md L063). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
+**Status**: Review A und Review B erledigt (04.11.2026, US5 am 05.11.2026), Plan erstellt. US1 bis US6, die Änderung "Trainergruppe" (04.11.2026) und der kurze Trainer-Link (06.11.2026, siehe Clarifications) umgesetzt; Gerätetest am 06.11.2026 auf dem iPhone bestanden (quickstart.md, research.md R-L19); offen sind nur G-6 und G-10 (tasks.md L063). Mockup: https://claude.ai/artifact/FFj3NdrNzW4UqR9munviqo Voraussetzung: Constitution 2.0.0 (Prinzip II, Live-Kopplung).
 
 **Input**: User description: "Live-Spielstände zwischen unseren beiden Mannschaften einsehen. Option C (automatische Live-Kopplung). Ein Dashboard 'Unser Spieltag E1 & E2', auf dem alle Eltern zuschauen können, neben den lokalen Tortickern. Wir legen fest, welche Handys ihre Spielstände in das Dashboard syncen: Lead-Handy 1 und Lead-Handy 2, ggf. mehr (E3). Lead-Handy ist das Handy am Spielfeldrand, das den Torticker bedient, nicht zwingend das des Trainers. Der Sync Richtung Dashboard erfolgt automatisch."
 
@@ -76,6 +76,11 @@ Mockup: https://claude.ai/artifact/SDGYEMUyn2u5uarWLYeGFo
 - Befund (CI, E2E 006 US6-S1 auf dem iPhone-Profil): Tippt ein Trainer auf "Weiter zum Anpfiff", bevor sein Handy den Live-Spieltag geladen hat (gerade "Neues Spiel" geöffnet, langsamer Empfang am Platz), fragt die App nicht nach und schickt ein zweites E2-Spiel aufs Dashboard. Nachgestellt mit 1,5 s verzögerten Antworten des Vermittlungsdienstes.
 - Entscheidung (Atti, Fehlerbehebung ohne Mockup): "Weiter zum Anpfiff" wartet höchstens 3 Sekunden auf den Live-Stand und fragt dann wie in US6 Szenario 1; ohne Verbindung geht es sofort weiter (FR-L22, US6 Szenario 6).
 
+### Session 2026-11-06 (Fehler: Trainer-Link in WhatsApp nicht antippbar)
+
+- Befund (Atti, Trainer mit iPhone und WhatsApp): Vom Trainer-Link ist in WhatsApp nur der Anfang bis `#/trainer/` unterstrichen und antippbar; der Rest steht als lange Zeichenfolge da. Antippen öffnet den Torticker ohne Link-Daten, das Kopieren gelingt nur mit dem ganzen Nachrichtentext. Ursache: Der Trainer-Link ist rund 1.450 Zeichen lang (research.md R-L20).
+- Entscheidung (Atti, Fehlerbehebung ohne Mockup, noch vor dem ersten Spieltag): (1) kurzer Trainer-Link (rund 380 Zeichen, FR-L02, contracts/live-link.md), bereits verteilte lange Links bleiben gültig; (2) die Seite des Trainer-Links nennt im Manifest den Trainer-Link als Startadresse, damit "Zum Home-Bildschirm" ein Symbol ablegt, das beim ersten Start koppelt (wie FR-L16 beim Zuschauer-Link); (3) kommt nur der Anfang des Links an, erklärt die Seite das (US1-S8). Kürzerer Teilen-Text ohne Einfüge-Anleitung.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Live-Spieltag anlegen und Trainergruppe koppeln (Priority: P1)
@@ -95,6 +100,8 @@ Ein Trainer, z. B. Atti, legt einmal pro Saison den Live-Spieltag "Unser Spielta
 5. **Given** der Zuschauer-Link wird im Torticker geöffnet oder eingefügt, **Then** wird das Handy nicht zum Trainer-Handy, sondern zeigt nur das Dashboard.
 6. **Given** ein Trainer-Link wird im Browser angetippt (z. B. aus WhatsApp), **Then** erklärt die Seite: "Kopiere den Link und füge ihn im Torticker unter Mehr → Live-Spieltag ein", bietet "Link kopieren" und zusätzlich "Hier im Browser koppeln" für alle, die den Torticker nicht installiert haben.
 7. **Given** ein Trainer-Handy, **Then** kann es den Zuschauer-Link und den Trainer-Link ebenfalls teilen (z. B. für einen neuen Trainer).
+8. **Given** der Trainer-Link wird geteilt, **Then** ist er höchstens rund 400 Zeichen lang, damit WhatsApp ihn ganz antippbar macht; der Teilen-Text lautet "Trainer-Link für "Unser Spieltag", nur für die Trainergruppe. Antippen und loslegen:" mit dem Link in der nächsten Zeile. Kommt nur der Anfang des Links an (`#/trainer/` ohne Daten), zeigt die Seite "Dieser Trainer-Link ist nicht gültig oder kam unvollständig an." statt des Startbildschirms.
+9. **Given** die Seite eines Trainer-Links ist im Browser offen (Torticker nicht als App gestartet), **Then** zeigt sie "Für den Spielfeldrand: unten auf „Teilen“ und „Zum Home-Bildschirm“ tippen. Das neue Symbol öffnet diesen Trainer-Link, dort „Koppeln und loslegen“." und das Manifest nennt den Trainer-Link als Startadresse; das so angelegte Symbol öffnet beim ersten Start die Seite mit "Koppeln und loslegen", nach dem Koppeln jedes Mal den Startbildschirm.
 
 ---
 
@@ -215,7 +222,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 **Live-Spieltag und Kopplung**
 
 - **FR-L01**: Unter "Mehr" MUSS es den Eintrag "Live-Spieltag" geben. Dort kann ein Live-Spieltag angelegt werden: Titel (1 bis 40 Zeichen, Vorgabe "Unser Spieltag") und 1 bis 6 Mannschaften aus "Meine Mannschaften" (Spec 004). Das anlegende Handy ist Trainer-Handy.
-- **FR-L02**: Zu jedem Live-Spieltag MUSS es genau einen Zuschauer-Link (nur lesen) und genau einen Trainer-Link (senden und verwalten) geben. Jedes Trainer-Handy kann beide über das System-Teilen-Menü versenden (Fallback: Zwischenablage).
+- **FR-L02**: Zu jedem Live-Spieltag MUSS es genau einen Zuschauer-Link (nur lesen) und genau einen Trainer-Link (senden und verwalten) geben. Jedes Trainer-Handy kann beide über das System-Teilen-Menü versenden (Fallback: Zwischenablage). Der Trainer-Link MUSS so kurz sein, dass WhatsApp ihn ganz antippbar macht (kurzes Format, contracts/live-link.md, US1-S8); lange Trainer-Links früherer Versionen bleiben gültig. Auf seiner Seite im Browser MUSS das Manifest den Trainer-Link als Startadresse nennen (US1-S9).
 - **FR-L03**: Ein Trainer-Link MUSS sich im Torticker unter "Mehr" → "Live-Spieltag" einfügen lassen; im Browser angetippt, erklärt er das Einfügen und bietet "Link kopieren" sowie "Hier im Browser koppeln" (US1 Szenario 6). Vor der Kopplung fragt die App nach (Titel und Mannschaften nennen). Nach Bestätigung ist das Handy Trainer-Handy; fehlen Mannschaften in "Meine Mannschaften", werden sie mit Name und Trikots übernommen. Bereits eingefügte Lead-Links aus der ersten Version bleiben gültig.
 - **FR-L04**: Für welche Mannschaft ein Trainer-Handy sendet, MUSS sich je Spiel aus der eigenen Mannschaft des Spiels ergeben; es gibt keine feste Zuordnung von Handy zu Mannschaft und nichts zurückzusetzen. Ein Handy ist höchstens mit einem Live-Spieltag gekoppelt; ein Trainer-Link eines anderen Live-Spieltags ersetzt die alte Kopplung nach Rückfrage.
 - **FR-L05**: Ohne Kopplung DARF die App keine Verbindung zu einem Vermittlungsdienst aufbauen. Mit Kopplung DARF sie ausschließlich mit dem einen Vermittlungsdienst kommunizieren (Netzwerk-Wächter, Constitution II und III).
@@ -275,7 +282,7 @@ Zwei Trainer stehen beim E2-Spiel, einer überträgt schon. Legt der zweite eben
 
 ## Hilfe
 
-Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden). Geändert mit der Fehlerbehebung vom 05.11.2026 (US3-S11): "Wie lege ich den Spieltag auf den Home-Bildschirm?" (`eltern-home`) nennt, dass ein älteres Symbol, das "Neues Spiel" zeigt, gelöscht und neu angelegt wird.
+Die Einträge zu US1 bis US3 und US6 kamen mit Spec 010 (Grundbestand). Neu mit US4: "Wie sehe ich während des Spiels, wie es bei den anderen steht?" (`andere-spiele`, Thema Live-Spieltag, Quelle 006 US4). Mit US5 folgen Einträge zum Verwalten (Titel, Mannschaft hinzufügen, Links neu ausstellen, Kopplung beenden). Geändert mit der Fehlerbehebung vom 05.11.2026 (US3-S11): "Wie lege ich den Spieltag auf den Home-Bildschirm?" (`eltern-home`) nennt, dass ein älteres Symbol, das "Neues Spiel" zeigt, gelöscht und neu angelegt wird. Geändert mit der Fehlerbehebung vom 06.11.2026 (US1-S9): "Wie kopple ich das Handy eines Trainers?" (`trainer-link`) erklärt "Zum Home-Bildschirm" von der Seite des Trainer-Links.
 
 ## Assumptions
 

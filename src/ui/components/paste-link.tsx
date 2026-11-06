@@ -33,7 +33,7 @@ export function PasteLink({
     }
     const verified = await verifyLink(link);
     if (verified) onLink(verified);
-    else setError(`Dieser ${link.kind === 'trainer' ? 'Trainer-Link' : 'Lead-Link'} ist nicht gültig.`);
+    else setError(`Dieser ${link.kind === 'lead' ? 'Lead-Link' : 'Trainer-Link'} ist nicht gültig.`);
   };
 
   return (

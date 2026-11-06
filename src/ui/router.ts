@@ -32,8 +32,9 @@ export function parseHash(hash: string): Route {
   // Zuschauer-Link, mit Eltern-Hilfe unter `/hilfe[/<id>]` (Spec 010 FR-H16).
   const view = /^\/live\/([A-Za-z0-9_-]+)(\/hilfe(?:\/([a-z0-9-]+))?)?$/.exec(path);
   if (view?.[1]) return { name: 'liveView', data: view[1], help: !!view[2], entry: view[3] ?? null };
-  const lead = /^\/(lead|trainer)\/([A-Za-z0-9_-]+)$/.exec(path);
-  if (lead?.[2]) return { name: 'leadLink', data: lead[2], kind: lead[1] === 'trainer' ? 'trainer' : 'lead' };
+  // Auch ohne Daten: WhatsApp macht lange Links teils nur bis `#/trainer/` antippbar (research.md R-L20).
+  const lead = /^\/(lead|trainer)\/([A-Za-z0-9_-]*)$/.exec(path);
+  if (lead) return { name: 'leadLink', data: lead[2] ?? '', kind: lead[1] === 'trainer' ? 'trainer' : 'lead' };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);
   if (details?.[1]) return { name: 'details', id: details[1] };
   const game = /^\/spiel\/([\w-]+)$/.exec(path);

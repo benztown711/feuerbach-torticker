@@ -150,7 +150,7 @@ Spielt E1 schon und E2 noch nicht, sehen die E2-Eltern auf dem Dashboard, dass E
 - **FR-S03**: Nach dem Koppeln über den Startbildschirm oder über die Seite des Trainer-Links MUSS der Startbildschirm erscheinen. Koppeln unter "Live-Spieltag" bleibt dort.
 - **FR-S04**: Ein gekoppeltes Handy MUSS auf dem Startbildschirm unter "Neues Spiel" "Live: <Titel> · <Mannschaften>" zeigen (Kurzformen wie auf den Mannschafts-Chips); ein Tipp öffnet "Live-Spieltag".
 - **FR-S05**: "Live-Spieltag" ohne Kopplung MUSS "Trainer-Link einfügen" als Hauptknopf vor "Live-Spieltag anlegen" (Zweitknopf mit Hinweis aus US1-S6) zeigen.
-- **FR-S06**: Die Seite des Trainer-Links MUSS bei bestehender Kopplung mit demselben Live-Spieltag und demselben Trainer-Link direkt zum Startbildschirm weiterleiten; sonst "Koppeln und loslegen" als Hauptknopf und "Link kopieren" als Zweitknopf zeigen. In der installierten App (Anzeige als eigenständige App) entfallen Anleitung und "Link kopieren". Für Lead-Links (erste Version) gilt dasselbe.
+- **FR-S06**: Die Seite des Trainer-Links MUSS bei bestehender Kopplung mit demselben Live-Spieltag und demselben Trainer-Link direkt zum Startbildschirm weiterleiten; sonst "Koppeln und loslegen" als Hauptknopf und "Link kopieren" als Zweitknopf zeigen. In der installierten App (Anzeige als eigenständige App) entfallen Anleitung und "Link kopieren". Für Lead-Links (erste Version) gilt dasselbe. Nachtrag 06.11.2026 (Spec 006 US1-S9): Im Browser steht darüber der Hinweis auf „Zum Home-Bildschirm“; das Symbol startet mit dem Trainer-Link.
 
 **Korrekturen (US2, US3)**
 
