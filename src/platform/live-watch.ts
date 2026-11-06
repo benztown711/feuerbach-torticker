@@ -12,8 +12,7 @@ import { configOf, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
-import { adoptReceived } from './live-setup';
-import { adoptPlan } from './plan-sync';
+import { adoptPlan, adoptReceived } from './live-setup';
 
 /**
  * Spec 006 US4 und US6: Trainer-Handys hören beim Anlegen und im Spielbildschirm mit: Läuft dasselbe Spiel

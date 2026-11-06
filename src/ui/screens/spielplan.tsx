@@ -14,7 +14,7 @@ import {
 import type { LiveSpieltag, PlanEntry, PlanStore, Schema } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
-import { changePlan, loadPlan, refreshPlan, type PlanEdit } from '../../platform/plan-sync';
+import { changePlan, loadPlan, refreshPlan, type PlanEdit } from '../../platform/live-setup';
 import { Confirm } from '../components/confirm';
 import { Sheet } from '../components/sheet';
 import { navigate } from '../router';

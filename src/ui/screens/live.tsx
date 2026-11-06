@@ -20,13 +20,13 @@ import { shortTeamName } from '../../domain/team-name';
 import type { LiveSpieltag, PlanStore, Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
-import { loadPlan } from '../../platform/plan-sync';
 import {
   addTeamToLive,
   coupleLink,
   createLive,
   endCoupling,
   linkOf,
+  loadPlan,
   reissueLive,
   removeTeamFromLive,
   renameLive,

@@ -20,7 +20,7 @@
 
 ## R-P4 Erneut senden beim Öffnen
 
-- **Decision**: `main.tsx` lädt bei gekoppeltem Handy `plan-sync` nach und ruft `refreshPlan()` beim Start und bei `visibilitychange` (sichtbar). Gesendet wird, wenn noch Unversandtes da ist oder die letzte Plan-Meldung dieses Handys älter als 6 Stunden ist und der Plan Spiele ab heute enthält.
+- **Decision**: `main.tsx` lädt bei gekoppeltem Handy `live-setup` nach (R-P6) und ruft `refreshPlan()` beim Start und bei `visibilitychange` (sichtbar). Gesendet wird, wenn noch Unversandtes da ist oder die letzte Plan-Meldung dieses Handys älter als 6 Stunden ist und der Plan Spiele ab heute enthält.
 - **Rationale**: Der Dienst hält Meldungen rund 12 Stunden; 6 Stunden lassen Puffer. Ein Hintergrund-Empfänger beim Start ist für US1 nicht nötig, weil der Plan dort gebraucht wird, wo ohnehin ein Empfänger läuft (Spielplan, Neues Spiel).
 - **Alternatives considered**: Zeitgeber im Hintergrund (iOS hält PWAs im Hintergrund an); Senden bei jeder Spielmeldung (Größe, R-P1).
 
@@ -28,3 +28,9 @@
 
 - Nur wer den Organisator-Schlüssel hat (Trainer-Link), kann gültige Plan-Meldungen erzeugen; Empfänger prüfen die Signatur mit `orgPub` und verwerfen sonst. Inhalte werden streng geprüft (Längen, Datum, Anstoß, Spielzeit 1 bis 4 Abschnitte à 1 bis 60 Minuten), unbekannte Felder verworfen, höchstens 100 Einträge je Meldung.
 - Wer den Zuschauer-Link hat, kann `p` lesen (wie Titel und Mannschaften), aber nicht fälschen. Der Plan enthält keine Kindernamen.
+
+## R-P6 Bündelung
+
+- **Decision**: `plan-sync` wird ausschließlich über `live-setup` erreicht (Re-Export von `adoptPlan`, `changePlan`, `loadPlan`, `refreshPlan`); Bildschirme, `live-watch`, das Dashboard und `main.tsx` importieren nie direkt `plan-sync`.
+- **Rationale**: Wird `plan-sync` aus mehreren nachgeladenen Teilen direkt geladen, legt der Bundler (Vite 8) gemeinsame Module des Hauptbundles in eigene Teile aus, die vorab geladen werden; gemessen 59,4 statt 57,0 KB gzip. Über `live-setup` bleibt alles in einem Hauptteil: 57,3 KB.
+- **Alternatives considered**: eigene Chunk-Regeln in `vite.config.ts` (zusätzliche Konfiguration, schwer nachzuvollziehen).

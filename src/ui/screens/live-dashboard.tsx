@@ -175,7 +175,7 @@ export function Dashboard({
           ? {
               onConfig: (signed) => void import('../../platform/live-setup').then((m) => m.adoptReceived(signed, view)),
               // Spec 015 US1-S4: Planspiele anderer Trainer-Handys übernehmen.
-              onPlan: (payload) => void import('../../platform/plan-sync').then((m) => m.adoptPlan(payload, view)),
+              onPlan: (payload) => void import('../../platform/live-setup').then((m) => m.adoptPlan(payload, view)),
             }
           : {},
         config,

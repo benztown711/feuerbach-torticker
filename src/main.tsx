@@ -30,7 +30,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void getSettings().then((s) => s.live?.orgKey && refreshPlan());
 });
 function refreshPlan(): void {
-  void import('./platform/plan-sync').then((m) => m.refreshPlan()).catch(() => undefined);
+  void import('./platform/live-setup').then((m) => m.refreshPlan()).catch(() => undefined);
 }
 void requestPersistentStorage();
 
