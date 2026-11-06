@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.4.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.3.0...feuerbach-torticker-v0.4.0) (2026-11-06)
+
+
+### Neue Funktionen
+
+* **gestaltung:** Karten, dunkles Theme mit Ebenen, Hauptknopf in Vereinsrot (011) ([#38](https://github.com/benztown711/feuerbach-torticker/issues/38)) ([81c9e56](https://github.com/benztown711/feuerbach-torticker/commit/81c9e562b1473babd1092f0a520b37fb881b42e8))
+* **historie:** mehrere Spiele auswählen, alle auswählen und löschen mit Rückgängig (014) ([#48](https://github.com/benztown711/feuerbach-torticker/issues/48)) ([b9b1e3e](https://github.com/benztown711/feuerbach-torticker/commit/b9b1e3e54f472d38cafae6e2f4b29bd2221451cb))
+* **kader:** Kader nach Vorname oder Rückennummer sortieren (013) ([#44](https://github.com/benztown711/feuerbach-torticker/issues/44)) ([ab8775d](https://github.com/benztown711/feuerbach-torticker/commit/ab8775d8b0874eb0257b8b76c9064bfb0f89c72e))
+* **live:** Live-Spieltag verwalten (006 US5) ([#37](https://github.com/benztown711/feuerbach-torticker/issues/37)) ([6eb9409](https://github.com/benztown711/feuerbach-torticker/commit/6eb9409e260da8f90ecd8ff2ed9a5d57588f281c))
+* Spieltag sicher, Koppeln ohne Suchen und Korrekturen (012) ([#42](https://github.com/benztown711/feuerbach-torticker/issues/42)) ([0593e3f](https://github.com/benztown711/feuerbach-torticker/commit/0593e3fe2197bb8c25404896521a4b4bdb8340cc))
+
+
+### Fehlerbehebungen
+
+* **gestaltung:** Schalter und Zeilenknöpfe in der letzten Kartenzeile mit vollem Rahmen ([#43](https://github.com/benztown711/feuerbach-torticker/issues/43)) ([dc4a98d](https://github.com/benztown711/feuerbach-torticker/commit/dc4a98d8251c07707122b8628c03410728fe867e))
+* **kader:** abgekürzte Namen beim Einfügen beibehalten ([#46](https://github.com/benztown711/feuerbach-torticker/issues/46)) ([8a6108f](https://github.com/benztown711/feuerbach-torticker/commit/8a6108f8a03b8ec720d356b732d386371c69afa1))
+* **live:** „Weiter zum Anpfiff“ wartet kurz auf den Live-Stand ([#51](https://github.com/benztown711/feuerbach-torticker/issues/51)) ([f35b014](https://github.com/benztown711/feuerbach-torticker/commit/f35b014f8c3a7a49257ed87fe78f61071c73e414))
+* **live:** Home-Bildschirm-Symbol des Zuschauer-Links öffnet das Dashboard ([#45](https://github.com/benztown711/feuerbach-torticker/issues/45)) ([ebc041b](https://github.com/benztown711/feuerbach-torticker/commit/ebc041b4d5b51284ae5fe390db861a9aa91de807))
+
+
+### Dokumentation
+
+* **spec:** Abschluss-Analyse Spec 006 nachgezogen ([#40](https://github.com/benztown711/feuerbach-torticker/issues/40)) ([7fb0d7d](https://github.com/benztown711/feuerbach-torticker/commit/7fb0d7d670618ac920d5a378ff17033ab261cb2c))
+* **spec:** Historie mehrere Spiele löschen als Spec 014 ([#49](https://github.com/benztown711/feuerbach-torticker/issues/49)) ([f54f024](https://github.com/benztown711/feuerbach-torticker/commit/f54f024446cd0a574c3508cd504d99e499328790))
+* **spec:** Spec 013 als umgesetzt markiert ([#47](https://github.com/benztown711/feuerbach-torticker/issues/47)) ([b729e05](https://github.com/benztown711/feuerbach-torticker/commit/b729e05a47cb998e54aaa68c9a4762d3565645cb))
+
 ## [0.3.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.2.0...feuerbach-torticker-v0.3.0) (2026-11-05)
 
 
