@@ -1,6 +1,7 @@
-import { textFromBase64Url, textToBase64Url } from './base64url';
+import { fromBase64Url, textFromBase64Url, textToBase64Url } from './base64url';
 import { joinList } from './format';
 import { isPaletteColor } from './jersey-colors';
+import { decodeShortTrainer, encodeShortTrainer, SHORT_FORMAT, type ShortTrainerData } from './live-link-short';
 import {
   isKey,
   isObj,
@@ -16,6 +17,7 @@ import {
 import type { PrivateKeyParts, SignedData, ViewerLink } from './types';
 
 export { isPrivateKeyParts, isSignedData };
+export type { ShortTrainerData };
 
 /** Inhalt eines Lead-Links (contracts/live-link.md). */
 export interface LeadLinkData {
@@ -48,6 +50,8 @@ export type ParsedLink =
   | { kind: 'view'; view: ViewerLink }
   | { kind: 'lead'; lead: LeadLinkData }
   | { kind: 'trainer'; trainer: TrainerLinkData }
+  /** Kurzer Trainer-Link (Nachtrag 06.11.2026): Konfiguration noch unsigniert, signiert wird beim Prüfen. */
+  | { kind: 'trainerShort'; short: ShortTrainerData }
   | { kind: 'invalid' };
 
 const INVALID: ParsedLink = { kind: 'invalid' };
@@ -72,6 +76,22 @@ export const trainerLinkPath = (t: TrainerLinkData): string =>
       m: t.teams.map((x) => [x.key, x.name, x.homeColor, x.awayColor]),
     }),
   )}`;
+
+/** Kurzer Trainer-Link (rund 400 statt 1.450 Zeichen, research.md R-L20); ersetzt beim Teilen `trainerLinkPath`. */
+export const shortTrainerLinkPath = (t: ShortTrainerData): string => `/trainer/${encodeShortTrainer(t)}`;
+
+/** Erstes Byte eines kurzen Trainer-Links; JSON beginnt dagegen mit `{`. */
+function shortTrainerOf(data: string): ParsedLink | null {
+  let bytes: Uint8Array;
+  try {
+    bytes = fromBase64Url(data);
+  } catch {
+    return INVALID;
+  }
+  if (bytes[0] !== SHORT_FORMAT) return null;
+  const short = decodeShortTrainer(bytes);
+  return short ? { kind: 'trainerShort', short } : INVALID;
+}
 
 /** Vollständiger Link: Basisadresse der App plus Fragment. */
 export const linkUrl = (base: string, path: string): string => `${base}#${path}`;
@@ -121,6 +141,10 @@ function trainerOf(raw: Obj, view: ViewerLink): ParsedLink {
 export function parseLinkPath(path: string): ParsedLink {
   const m = /^\/(live|lead|trainer)\/([A-Za-z0-9_-]+)$/.exec(path);
   if (!m) return INVALID;
+  if (m[1] === 'trainer') {
+    const short = shortTrainerOf(m[2] as string);
+    if (short) return short;
+  }
   const raw = decode(m[2] as string);
   const view = raw && viewOf(raw);
   if (!raw || !view) return INVALID;

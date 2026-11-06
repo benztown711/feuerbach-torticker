@@ -1,14 +1,16 @@
 import {
   linkUrl,
-  trainerLinkPath,
+  shortTrainerLinkPath,
   viewerLinkPath,
   type LeadLinkData,
   type ParsedLink,
+  type ShortTrainerData,
   type TrainerLinkData,
 } from '../domain/live-link';
 import {
   applyLeadLink,
   applyTrainerLink,
+  configOf,
   createSpieltag,
   parseConfig,
   parseLeadCert,
@@ -22,6 +24,7 @@ import {
 import {
   addLiveTeam,
   adoptConfig,
+  detailsOf,
   removeLiveTeam,
   renameSpieltag,
   reissueSpieltag,
@@ -106,8 +109,27 @@ export type VerifiedLink =
   | { kind: 'lead'; lead: LeadLinkData; cert: LeadCert; title: string; teams: { name: string }[] }
   | { kind: 'trainer'; trainer: TrainerLinkData; title: string; teams: { name: string }[] };
 
+/**
+ * Kurzer Trainer-Link (research.md R-L20): Die Konfiguration kommt ohne Signatur; das Handy signiert sie mit dem
+ * Organisator-Schlüssel aus dem Link. Danach gelten dieselben Prüfungen wie beim langen Link, vor allem, dass
+ * der Schlüssel zum öffentlichen Schlüssel des Zuschauer-Links gehört.
+ */
+async function fromShort(s: ShortTrainerData): Promise<TrainerLinkData | null> {
+  try {
+    const config = await signData(s.orgKey, s.config);
+    const teams = s.teams.map(([key, name, homeColor, awayColor]) => ({ key, name, homeColor, awayColor }));
+    return { view: s.view, orgKey: s.orgKey, config, teams };
+  } catch {
+    return null;
+  }
+}
+
 /** Prüft einen eingefügten oder angetippten Trainer- bzw. Lead-Link; sonst null. */
 export async function verifyLink(link: ParsedLink): Promise<VerifiedLink | null> {
+  if (link.kind === 'trainerShort') {
+    const trainer = await fromShort(link.short);
+    return trainer ? verifyLink({ kind: 'trainer', trainer }) : null;
+  }
   if (link.kind === 'trainer') {
     const config = await verifyTrainerLink(link.trainer);
     return config
@@ -151,14 +173,21 @@ export function shareViewerLink(live: LiveSpieltag): Promise<ShareResult> {
   return shareText(`${title} live verfolgen: ${viewerLinkUrl(live)}`, title);
 }
 
+/** FR-L02: kurzer Trainer-Link (research.md R-L20); null ohne Organisator-Schlüssel. */
+export function trainerLinkUrl(live: LiveSpieltag): string | null {
+  const trainer = trainerLinkFor(live);
+  const config = configOf(live.config);
+  if (!trainer || !config) return null;
+  const teams = detailsOf(trainer.teams);
+  return linkUrl(appBase(), shortTrainerLinkPath({ view: trainer.view, orgKey: trainer.orgKey, config, teams }));
+}
+
 /** FR-L02: Trainer-Link für die Trainergruppe (senden für alle Mannschaften, verwalten). */
 export function shareTrainerLink(live: LiveSpieltag): Promise<ShareResult> {
-  const trainer = trainerLinkFor(live);
-  if (!trainer) return Promise.resolve('failed');
-  const url = linkUrl(appBase(), trainerLinkPath(trainer));
-  const text =
-    `Trainer-Link für "${titleOf(live)}" (${trainer.teams.map((t) => t.key).join(', ')}). ` +
-    `Nur in der Trainergruppe teilen. Im Torticker unter Mehr → Live-Spieltag → "Link einfügen" einfügen:\n${url}`;
+  const url = trainerLinkUrl(live);
+  if (!url) return Promise.resolve('failed');
+  // Kurz halten: WhatsApp macht lange Nachrichten mit Link schlecht antippbar (research.md R-L20).
+  const text = `Trainer-Link für "${titleOf(live)}", nur für die Trainergruppe. Antippen und loslegen:\n${url}`;
   return shareText(text, `Trainer-Link ${titleOf(live)}`);
 }
 

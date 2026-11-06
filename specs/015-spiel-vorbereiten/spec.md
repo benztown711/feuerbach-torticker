@@ -13,7 +13,7 @@
 - Heute legt das Lead-Handy jedes Spiel selbst unter "Neues Spiel" an: Mannschaft, Gegner, Heim/Auswärts, Trikots, Spielzeit, Aufgebot. Mannschaft und Trikots kommen mit dem Trainer-Link (Spec 006), der Kader nicht; ihn muss jeder Trainer selbst pflegen oder per "Kader teilen" und "Liste einfügen" übernehmen (Spec 001 FR-028).
 - Der Kader ist je Handy eine einzige Liste, nicht je Mannschaft. Nur das zuletzt gewählte Aufgebot wird je Mannschaft gemerkt (Spec 004 FR-M06).
 - Das Dashboard der Eltern zeigt ein Spiel erst, wenn ein Lead-Handy es anlegt (Spec 006 FR-L06), dann mit "noch nicht angepfiffen".
-- Auf dem iPhone öffnet ein Link aus WhatsApp Safari, nicht die Home-Bildschirm-App. Links werden deshalb im Torticker eingefügt (Spec 006 FR-L03, Spec 012 FR-S02).
+- Auf dem iPhone öffnet ein Link aus WhatsApp Safari, nicht die Home-Bildschirm-App. Links werden deshalb im Torticker eingefügt (Spec 006 FR-L03, Spec 012 FR-S02). Lange Links macht WhatsApp nur bis zum Anfang antippbar; der Trainer-Link hat deshalb seit 06.11.2026 ein kurzes Format (Spec 006 FR-L02, R-L20).
 
 ## Clarifications
 
@@ -114,7 +114,7 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 - **Spieltag in der Vergangenheit beim Einfügen**: Das Spiel wird trotzdem übernommen, mit Hinweis "Spieltag war am …".
 - **Vermittlungsdienst hält Meldungen rund 12 Stunden**: Eltern, die das Dashboard erst später öffnen, sehen ein vorbereitetes Spiel, sobald ein Handy, das es kennt, den Torticker wieder öffnet (FR-P13). Wer das Dashboard schon geöffnet hatte, sieht es weiter (gemerkter Stand, Spec 006 FR-L16).
 - **Offline beim Vorbereiten**: Vorbereiten und Link teilen gehen ohne Netz; die Meldung ans Dashboard folgt, sobald Netz da ist.
-- **Spiel-Link zu lang für WhatsApp**: Bei 25 Kindern im Kader bleibt der Link unter 2.000 Zeichen (SC-P04).
+- **Spiel-Link zu lang für WhatsApp**: WhatsApp macht auf dem iPhone lange Links nur bis zum Anfang antippbar (Spec 006 R-L20). Der Spiel-Link nutzt deshalb ein kurzes Format wie der Trainer-Link (SC-P04). Kommt nur der Anfang an, erklärt die Seite das wie Spec 006 US1-S8.
 - **Gefälschter oder beschädigter Spiel-Link**: Inhalte werden auf Länge und Format geprüft; ein ungültiger Link ändert nichts und meldet "Kein gültiger Spiel-Link".
 - **Neu ausgestellter Live-Spieltag**: Ein Spiel-Link enthält keine Schlüssel und bleibt gültig; gesendet wird über die aktuelle Kopplung des Handys.
 
@@ -180,7 +180,7 @@ Atti legt einmal fest, welche Kinder zu welcher Mannschaft gehören (E1 und E2 d
 - **SC-P01**: Ein Trainer mit Spiel-Link in der Zwischenablage steht nach höchstens 4 Tipps auf dem Spielbildschirm (Spiel-Link einfügen, Einsetzen bzw. Erlaubnis, Übernehmen, Weiter zum Anpfiff), ohne ein Feld auszufüllen.
 - **SC-P02**: Atti bereitet ein Spiel mit Aufgebot von 10 Kindern in unter 1 Minute vor und teilt es.
 - **SC-P03**: Ein vorbereitetes Spiel mit Gegner erscheint bei Netz innerhalb von 10 Sekunden auf dem Dashboard; beim Anlegen entsteht nie eine zweite Karte.
-- **SC-P04**: Ein Spiel-Link mit 25 Kindern im Kader ist kürzer als 2.000 Zeichen.
+- **SC-P04**: Ein Spiel-Link mit 20 Kindern im Kader und 12 im Aufgebot ist höchstens rund 400 Zeichen lang und damit in WhatsApp ganz antippbar (wie Spec 006 FR-L02).
 - **SC-P05**: Domain-Logik (Link bauen und prüfen, Übernehmen, Kader zusammenführen, Ordnung auf dem Dashboard) mit 100 % Branch-Coverage; Netzwerk-Wächter ohne neue Ziele.
 
 ## Assumptions

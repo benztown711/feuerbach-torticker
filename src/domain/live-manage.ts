@@ -24,7 +24,9 @@ export { checkTitle };
 
 type SignDeps = Pick<LiveDeps, 'now' | 'newSigningKey' | 'signData'>;
 
-const detailsOf = (teams: LiveTeamCred[]): TeamDetail[] => teams.map((t) => [t.key, t.name, t.homeColor, t.awayColor]);
+/** Kurzlabel, Name und Trikots je Mannschaft (Konfiguration `m`, kurzer Trainer-Link). */
+export const detailsOf = (teams: Pick<LiveTeamCred, 'key' | 'name' | 'homeColor' | 'awayColor'>[]): TeamDetail[] =>
+  teams.map((t) => [t.key, t.name, t.homeColor, t.awayColor]);
 
 function orgKeyOf(live: LiveSpieltag): PrivateKeyParts {
   if (!live.orgKey) throw new Error('Nur ein Trainer-Handy kann den Live-Spieltag verwalten.');

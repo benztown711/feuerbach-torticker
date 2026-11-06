@@ -113,11 +113,16 @@
 - [x] L059 [P] [US6] E2E `tests/e2e/live-us6.spec.ts`: 006 US6-S6 mit verzögerten Antworten des Relay-Nachbaus (`delayMs`); S1 bis S5 ohne feste Wartezeit vor "Weiter zum Anpfiff"
 - [x] L060 [US6] `src/platform/live-receiver.ts` (`whenSettled`), `live-watch.ts` (`ready`), "Neues Spiel" wartet höchstens 3 s (macht L058 und L059 grün); Hilfe `spiel-uebernehmen`
 
+## Phase 11: Fehlerbehebung Trainer-Link in WhatsApp (Clarifications 06.11.2026, research.md R-L20)
+
+- [x] L064 [US1] (FR-L02, US1-S8, US1-S9) Unit `tests/unit/live-link-short.test.ts` (Format, Länge, Formfehler, 100 % Branch-Coverage); `src/domain/live-link-short.ts`, `parseLinkPath` erkennt beide Formate; `verifyLink` signiert die Konfiguration selbst; Teilen-Text kurz; Seite des Trainer-Links setzt das Manifest (`src/ui/screens/lead-link.tsx`, `src/main.tsx`), Route `#/trainer/` ohne Daten zeigt den Hinweis; E2E `tests/e2e/live-us1.spec.ts` 006 US1-S8 US1-S9; Hilfe `trainer-link`
+- [ ] L065 Gerätetest (Atti): neuen Trainer-Link per WhatsApp an ein iPhone, ganz unterstrichen? Antippen, „Zum Home-Bildschirm“, Symbol starten, „Koppeln und loslegen“
+
 ## Zuordnung Anforderungen → Aufgaben
 
 | Anforderung | Aufgaben |
 |---|---|
-| FR-L01, FR-L02 | L001, L008, L012, L014, L017, L043 bis L048 (Trainer-Link) |
+| FR-L01, FR-L02 | L001, L008, L012, L014, L017, L043 bis L048 (Trainer-Link), L064, L065 (kurzer Trainer-Link) |
 | FR-L03, FR-L04 | L008, L012, L014, L018, L043 bis L048 (Senden je Spiel) |
 | FR-L05 | L004, L014 |
 | FR-L06, FR-L07 | L003, L020, L022, L024 |
