@@ -4,6 +4,13 @@ Ergebnis eines Reviews der App hinsichtlich Zweck, UI/UX und fehlender Funktione
 
 Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer Infrastruktur). Modell: Haiku für Text und Kleinkram, Sonnet für Features im bestehenden Muster, Opus für Spec, Sync und Sicherheit. Status: offen, in Arbeit, erledigt, verworfen.
 
+## Übergabe (Stand 06.11.2026, 23:45)
+
+- **PR #63** (Spec 015 Spielplan, US1 und US2) ist fertig: CI grün, Code- und Security-Review erledigt, Review C von Atti erteilt ("i. O."). Es fehlt nur der Squash-Merge. **Erst mergen, wenn Atti "Merge #63" schreibt**: Er will die Spiele am Sa 07.11. noch mit der bisherigen Version machen und nach den Spielen am Nachmittag mergen lassen.
+- Nach dem Merge (Atti): die zwei Sonntagsspiele vom 08.11. von Hand unter "Mehr" → "Live-Spieltag" → "Spielplan" eintragen (E1 heim gegen SF Wernau E1, E2 heim gegen Sportvg Feuerbach D3, beide 10:00, 3 × 25). Sonntag vor 9:30 Uhr den Torticker einmal öffnen, damit der Plan erneut hinausgeht; die Lead-Handys wählen das Spiel unter "Neues Spiel" → "Aus dem Spielplan".
+- Spielplan der Hinrunde aus fußball.de (Stand 06.11.2026) im Einfügeformat: `docs/spielplan-hinrunde-2026.txt`. Bis "Liste einfügen" (Spec 015 US4) fertig ist, werden Spiele von Hand eingetragen; vergangene Zeilen (07./08.11.) beim Einfügen weglassen. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
+- Nächste Schritte Spec 015 (siehe `specs/015-spielplan/tasks.md`): US3 und US7 (Dashboard: nächstes Spiel, Spielplan, vergangene Spiele mit Endstand), US4 (Liste einfügen und teilen), US6 ("Ich tickere"), US5 (Kader "E1/E2" und "E3").
+
 ## Kurzfassung des Reviews
 
 - Zweck und Kern sind stark: ein Tap pro Tor, Uhr als Berechnung, offline, Live-Dashboard für Eltern ohne Installation.
