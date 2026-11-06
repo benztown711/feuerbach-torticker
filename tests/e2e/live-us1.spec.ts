@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures';
 import { addTeam, readStored, startGame } from './helpers';
-import { asPath, createLive, firstManifest, recordedOf, recordManifests } from './live-helpers';
+import { asPath, createLive, firstManifest, linkData, recordedOf, recordManifests } from './live-helpers';
 
 /** Spec 006 US1: Live-Spieltag anlegen und Trainergruppe koppeln (ein Trainer-Link für alle). */
 
@@ -109,6 +109,19 @@ test('006 US1-S2 Abbrechen koppelt nicht; ungültige und veränderte Links werde
   bytes[119] = (bytes[119] as number) ^ 1;
   const forged = raw.replace(data, bytes.toString('base64url'));
   await b.getByTestId('paste-link-input').fill(forged);
+  await b.getByTestId('paste-link-apply').click();
+  await expect(b.getByTestId('paste-link-error')).toHaveText('Dieser Trainer-Link ist nicht gültig.');
+
+  // Langer Trainer-Link früherer Versionen (bleibt gültig): Konfiguration mit Signatur, Titel verändert.
+  const d = linkData(links.trainer) as { q: unknown; m: unknown; config: { title: string } } & Record<string, unknown>;
+  const fakeConfig = JSON.stringify({ ...d.config, title: 'Fremder Spieltag' });
+  const longForged = links.trainer.replace(
+    data,
+    Buffer.from(
+      JSON.stringify({ v: 1, t: d.t, k: d.k, o: d.o, n: d.n, q: d.q, g: { d: fakeConfig, s: 'A'.repeat(86) }, m: d.m }),
+    ).toString('base64url'),
+  );
+  await b.getByTestId('paste-link-input').fill(longForged);
   await b.getByTestId('paste-link-apply').click();
   await expect(b.getByTestId('paste-link-error')).toHaveText('Dieser Trainer-Link ist nicht gültig.');
 

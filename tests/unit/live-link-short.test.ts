@@ -53,6 +53,8 @@ describe('006 FR-L02 kurzer Trainer-Link (research.md R-L20)', () => {
     expect(roundTrip(other)).toEqual(other);
     const retired = { ...short, config: { ...short.config, retired: true as const } };
     expect(roundTrip(retired)).toEqual(retired);
+    const empty = { ...short, config: { ...short.config, m: [] } };
+    expect(roundTrip(empty)).toEqual(empty);
   });
 
   it('wird in Link und eingefügtem Text erkannt, der lange Trainer-Link bleibt gültig', () => {
@@ -86,6 +88,7 @@ describe('006 FR-L02 kurzer Trainer-Link (research.md R-L20)', () => {
     expect(broken((b) => (b[0] = 3))).toBeNull(); // anderes Format
     expect(broken((b) => (b[1] = 0x2b))).toBeNull(); // "+" im Topic
     expect(broken((b) => (b[titleLen] = 0))).toBeNull(); // leerer Titel
+    expect(broken((b) => b.fill(0x20, titleLen + 1, keyCount))).toBeNull(); // Titel nur aus Leerzeichen
     expect(broken((b) => (b[titleLen + 1] = 0xff))).toBeNull(); // kein UTF-8
     expect(broken((b) => (b[keyCount] = 0))).toBeNull(); // keine Mannschaft in der Konfiguration
     expect(broken((b) => (b[keyCount] = 7))).toBeNull(); // zu viele

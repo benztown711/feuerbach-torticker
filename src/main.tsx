@@ -13,8 +13,8 @@ import { parseHash } from './ui/router';
 // Spec 006 FR-L16: Safari liest nur den ersten Manifest-Verweis der Seite. Auf der Seite des Zuschauer-Links
 // setzt ihn das Dashboard (Startadresse ist der Zuschauer-Link), auf der Seite des Trainer-Links die Seite selbst
 // (research.md R-L20), sonst gilt sofort das Manifest der App.
-const first = parseHash(window.location.hash).name;
-if (first !== 'liveView' && first !== 'leadLink') setManifest(APP_MANIFEST);
+const first = parseHash(window.location.hash);
+if (first.name !== 'liveView' && !(first.name === 'leadLink' && first.kind === 'trainer')) setManifest(APP_MANIFEST);
 
 // FR-018: gespeichertes Theme anwenden; FR-023: dauerhaften Speicher anfragen.
 void getSettings().then((s) => {

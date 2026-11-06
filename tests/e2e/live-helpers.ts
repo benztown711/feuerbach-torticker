@@ -146,7 +146,7 @@ function shortTrainerData(b: Buffer): Json {
     n,
     q: { d, x: xy.subarray(0, 32).toString('base64url'), y: xy.subarray(32).toString('base64url') },
     m,
-    config: { title: n, teams: keys, iat, ...(details ? { m: details } : {}) },
+    config: { title: n, teams: keys, iat, ...(details ? { m: details } : {}), ...(flags & 4 ? { retired: true } : {}) },
   };
 }
 

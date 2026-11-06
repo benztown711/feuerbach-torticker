@@ -47,11 +47,13 @@ export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 't
   }, [data, kind]);
 
   // Trainer-Link als Startadresse nur, solange gekoppelt werden kann; sonst das Manifest der App (main.tsx).
+  // Lead-Links (erste Version) behalten das Manifest der App.
+  const home = kind === 'trainer' && !installed;
   useEffect(() => {
-    if (state.kind === 'ok' && !installed) return pointManifestTo(`/${kind}/${data}`);
-    if (state.kind === 'invalid' || installed) setManifest(APP_MANIFEST);
+    if (state.kind === 'ok' && home) return pointManifestTo(`/${kind}/${data}`);
+    if (state.kind !== 'loading') setManifest(APP_MANIFEST);
     return undefined;
-  }, [state, data, kind]);
+  }, [state, data, kind, home]);
 
   const copy = async (): Promise<void> => {
     try {
@@ -94,12 +96,14 @@ export function LeadLinkScreen({ data, kind }: { data: string; kind: 'lead' | 't
             <button type="button" class="btn btn--primary" data-testid="btn-couple-here" onClick={() => setAsk(true)}>
               Koppeln und loslegen
             </button>
+            {home && (
+              <p class="field__help" data-testid="lead-link-home-hint">
+                Für den Spielfeldrand: unten auf „Teilen“ und „Zum Home-Bildschirm“ tippen. Das neue Symbol öffnet
+                diesen Trainer-Link, dort „Koppeln und loslegen“.
+              </p>
+            )}
             {!installed && (
               <>
-                <p class="field__help" data-testid="lead-link-home-hint">
-                  Für den Spielfeldrand: unten auf „Teilen“ und „Zum Home-Bildschirm“ tippen. Das neue Symbol öffnet
-                  diesen Trainer-Link, dort „Koppeln und loslegen“.
-                </p>
                 <p class="field__help" data-testid="lead-link-copy-hint">
                   Torticker schon auf dem Home-Bildschirm? Dann den Link kopieren und dort einfügen.
                 </p>

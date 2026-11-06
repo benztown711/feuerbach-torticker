@@ -1,6 +1,6 @@
 import { fromBase64Url, toBase64Url } from './base64url';
 import { isPaletteColor } from './jersey-colors';
-import { isTopic, MAX_KEY, MAX_LIVE_TEAMS, MAX_TITLE } from './live-validate';
+import { isText, isTopic, MAX_KEY, MAX_LIVE_TEAMS, MAX_TITLE } from './live-validate';
 import type { LiveConfig, PrivateKeyParts, TeamDetail, ViewerLink } from './types';
 
 /**
@@ -84,7 +84,8 @@ class Reader {
   }
   str(max: number): string {
     const s = dec.decode(this.take(this.byte()));
-    if (s.length === 0 || s.length > max) throw new Error('Text');
+    // Wie beim langen Link (isText): nicht leer, nicht nur Leerzeichen, höchstens `max` Zeichen.
+    if (!isText(s, max)) throw new Error('Text');
     return s;
   }
   team(): TeamDetail {
@@ -92,9 +93,10 @@ class Reader {
     if (!isPaletteColor(team[2]) || !isPaletteColor(team[3])) throw new Error('Farbe');
     return team;
   }
-  teams(): TeamDetail[] {
+  /** `empty`: Mannschaftsdetails `m` einer Konfiguration dürfen leer sein (parseConfig). */
+  teams(empty = false): TeamDetail[] {
     const n = this.byte();
-    if (n === 0 || n > MAX_LIVE_TEAMS) throw new Error('Mannschaften');
+    if ((n === 0 && !empty) || n > MAX_LIVE_TEAMS) throw new Error('Mannschaften');
     return Array.from({ length: n }, () => this.team());
   }
   get done(): boolean {
@@ -120,7 +122,7 @@ export function decodeShortTrainer(bytes: Uint8Array): ShortTrainerData | null {
     if (keyCount === 0 || keyCount > MAX_LIVE_TEAMS) return null;
     const keys = Array.from({ length: keyCount }, () => r.str(MAX_KEY));
     const teams = r.teams();
-    const m = flags & FLAG_M ? (flags & FLAG_M_SAME ? teams : r.teams()) : undefined;
+    const m = flags & FLAG_M ? (flags & FLAG_M_SAME ? teams : r.teams(true)) : undefined;
     if (!r.done || new Set(teams.map((t) => t[0])).size !== teams.length) return null;
     const pub = new Uint8Array(65);
     pub[0] = 4;

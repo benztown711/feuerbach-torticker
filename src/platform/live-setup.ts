@@ -24,6 +24,7 @@ import {
 import {
   addLiveTeam,
   adoptConfig,
+  detailsOf,
   removeLiveTeam,
   renameSpieltag,
   reissueSpieltag,
@@ -177,7 +178,7 @@ export function trainerLinkUrl(live: LiveSpieltag): string | null {
   const trainer = trainerLinkFor(live);
   const config = configOf(live.config);
   if (!trainer || !config) return null;
-  const teams = trainer.teams.map((t): [string, string, string, string] => [t.key, t.name, t.homeColor, t.awayColor]);
+  const teams = detailsOf(trainer.teams);
   return linkUrl(appBase(), shortTrainerLinkPath({ view: trainer.view, orgKey: trainer.orgKey, config, teams }));
 }
 
