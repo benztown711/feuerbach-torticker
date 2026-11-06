@@ -60,6 +60,14 @@ export function NewGameScreen() {
   const watch = useRef<LiveWatch | null>(null);
   /** Das Nachladen des Mithörens; null, solange das Handy nicht gekoppelt ist. */
   const watchLoad = useRef<Promise<LiveWatch | null> | null>(null);
+  /** FR-L22: Wer während des Wartens auf den Live-Stand die Seite verlässt, legt kein Spiel an. */
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
   const [running, setRunning] = useState<RunningGame | null>(null);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
@@ -161,6 +169,7 @@ export function NewGameScreen() {
     // Spec 006 FR-L22: überträgt ein anderes Handy gerade ein Spiel dieser Mannschaft? Höchstens 3 s auf den
     // Live-Stand warten, falls das Handy ihn noch nicht geladen hat (US6-S6).
     const w = liveTeam && liveOn && !asPrivate ? await heardWithin(watchLoad.current, LIVE_WAIT_MS) : null;
+    if (!mounted.current) return;
     if (liveTeam && w) {
       const ids = (await listGames()).map((g) => g.id);
       const other = w.running(liveTeam.key, ids);
@@ -473,7 +482,13 @@ export function NewGameScreen() {
           )}
         </section>
 
-        <button type="submit" class="btn btn--primary btn--large" data-testid="btn-create" disabled={!check.ok || busy}>
+        <button
+          type="submit"
+          class="btn btn--primary btn--large"
+          data-testid="btn-create"
+          disabled={!check.ok || busy}
+          aria-busy={busy}
+        >
           Weiter zum Anpfiff
         </button>
       </form>

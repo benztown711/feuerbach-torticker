@@ -114,11 +114,17 @@ export class LiveReceiver {
         this.active(1);
         void this.receive(m).finally(() => this.active(-1));
       },
-      onServerTime: (sec) => this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() }),
+      onServerTime: (sec) => {
+        // "open"/"keepalive" stehen im Stream vor den vorgehaltenen Meldungen: ab hier zählt die Ruhezeit.
+        this.lastActivity = this.deps.now();
+        this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() });
+        this.wake();
+      },
       onAlive: () => this.update({ liveAt: this.deps.now() }),
       onState: (relay) => {
         const connected = relay === 'live' || relay === 'polling';
-        if (connected) this.lastActivity = this.deps.now();
+        // Eine Abfrage (polling) liefert alles auf einmal und hat kein "open".
+        if (relay === 'polling') this.lastActivity = this.deps.now();
         this.update(connected ? { relay, liveAt: this.deps.now() } : { relay });
         this.wake();
       },

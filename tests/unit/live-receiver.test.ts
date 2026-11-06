@@ -321,6 +321,18 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     expect(w.r.get().board.games).toHaveLength(1);
   });
 
+  it('Stream verbunden, aber noch kein Inhalt: wartet weiter, bis "open" oder Meldungen kommen', async () => {
+    const w = waiting();
+    w.relay().onState?.('live');
+    await w.tick(SETTLE_QUIET_MS * 3);
+    expect(w.done()).toBe(false);
+    w.relay().onServerTime?.(T0 / 1000);
+    w.send('a');
+    await w.tick(SETTLE_QUIET_MS);
+    expect(w.done()).toBe(true);
+    expect(w.r.get().board.games).toHaveLength(1);
+  });
+
   it('wartet nicht, solange eine Meldung noch geprüft wird', async () => {
     let release: () => void = () => undefined;
     vi.useFakeTimers({ now: T0 });
