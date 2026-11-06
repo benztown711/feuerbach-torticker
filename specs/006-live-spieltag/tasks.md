@@ -102,8 +102,8 @@
 - [x] L054 [P] [US3] (FR-L16) Unit `tests/unit/web-manifest.test.ts`: `viewerManifest` (Startadresse Zuschauer-Link, `id` und `scope` der App, absolute Symbol-Adressen, Ausgangs-Manifest unverändert)
 - [x] L055 [US3] Domäne `src/domain/web-manifest.ts` (macht L054 grün, 100 % Branch-Coverage); `src/platform/web-manifest.ts` (`pointManifestTo`), Aufruf im nachgeladenen `ViewerScreen` (`src/ui/screens/live-dashboard.tsx`, Hauptbundle unverändert, R-L7); Manifest in `vite.config.ts` zusätzlich als `__MANIFEST__`
 - [x] L056 [US3] E2E `tests/e2e/live-us3.spec.ts`: 006 US3-S11 (Manifest der Zuschauer-Seite auch in der Eltern-Hilfe, Chromium liest es fehlerfrei, frisches Gerät startet mit der Startadresse im Dashboard, "Zum Torticker" stellt das App-Manifest wieder her); Hilfe `eltern-home`
-- [x] L058 [US3] 2. Fassung nach Nachtest (R-L6): E2E 006 US3-S11 prüft wie Safari den ersten Manifest-Verweis der Seite (rot mit PR #45), dazu "Startbildschirm: erster Manifest-Verweis ist das Manifest der App"; kein Verweis im HTML (Vite-Plugin), `setManifest` in `src/platform/manifest-link.ts` beim Start (`src/main.tsx`), Zuschauer-Manifest als `blob:`-Adresse
-- [x] L059 Spec-Nummer der Historie-Spec auf 014 (`specs/014-historie-mehrfach-loeschen`), weil 013 doppelt vergeben war (Hilfe-Abdeckung rot, Auslieferung blockiert)
+- [x] L061 [US3] 2. Fassung nach Nachtest (R-L6): E2E 006 US3-S11 prüft wie Safari den ersten Manifest-Verweis der Seite (rot mit PR #45), dazu "Startbildschirm: erster Manifest-Verweis ist das Manifest der App"; kein Verweis im HTML (Vite-Plugin), `setManifest` in `src/platform/manifest-link.ts` beim Start (`src/main.tsx`), Zuschauer-Manifest als `blob:`-Adresse
+- [x] L062 Spec-Nummer der Historie-Spec auf 014 (`specs/014-historie-mehrfach-loeschen`), weil 013 doppelt vergeben war (Hilfe-Abdeckung rot, Auslieferung blockiert); gleichzeitig mit #49 auf `main` erledigt
 - [ ] L057 Gerätetest G-3 auf dem iPhone wiederholen (altes Symbol vorher löschen)
 
 ## Phase 10: Fehlerbehebung Spiel übernehmen bei langsamem Empfang (Clarifications 06.11.2026)
@@ -123,7 +123,7 @@
 | FR-L08, FR-L09 | L022, L024, L025, L026, L046, L047 ("Live aufs Dashboard") |
 | FR-L10 | L020, L024 |
 | FR-L11 | L006, L029, L031 |
-| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057 |
+| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057, L061 |
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |
