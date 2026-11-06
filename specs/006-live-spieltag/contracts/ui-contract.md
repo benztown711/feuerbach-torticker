@@ -8,6 +8,7 @@ Ergänzt `specs/001-spiel-erfassen/contracts/ui-contract.md`. Test-IDs sind Vert
 |---|---|---|
 | `#/live-spieltag` | "Mehr" → "Live-Spieltag": leer, anlegen, Übersicht (Organisator), Lead-Ansicht | ja, "Mehr" aktiv |
 | `#/live-spieltag/dashboard` | Dashboard in der App | ja, "Mehr" aktiv |
+| `#/live-spieltag/spielplan` | Spielplan (Spec 015 US1): Liste, Blatt "Planspiel" (`plan-add`, `plan-row-<id>`, `plan-sheet`, `plan-save`, `plan-cancel`, `plan-delete`) | ja, "Mehr" aktiv |
 | `#/live/<Daten>` | Dashboard für Zuschauer (Zuschauer-Link) | nein |
 | `#/trainer/<Daten>`, `#/lead/<Daten>` | Trainer- bzw. Lead-Link im Browser: Anleitung, kopieren, hier koppeln | nein |
 

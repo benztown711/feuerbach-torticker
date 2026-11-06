@@ -79,7 +79,7 @@ specs/015-spielplan/
 - **Datenhaltung** (R-P3): `PlanStore` unter eigenem Schlüssel, nicht in `Settings`, damit Bildschirme mit altem `Settings`-Stand den Plan nie überschreiben. Der Plan gilt nur für Topic und Organisator-Schlüssel, unter denen er gespeichert wurde; passt die Kopplung nicht (beendet, anderer Live-Spieltag), zeigt die App keinen Plan und verwirft ihn beim nächsten Speichern. Neu ausstellen übernimmt den Plan auf das neue Topic.
 - **Senden** (R-P1, R-P2): Ändern sendet nur die geänderten Planspiele; "erneut senden" stückelt den ganzen Plan in Meldungen bis `MAX_PLAN_SIGNED`. Scheitert das Senden, merkt sich der Plan `pending` und versucht es bei der nächsten Gelegenheit (Öffnen, Vordergrund, alle 30 s während die Spielplan-Seite offen ist).
 - **Empfangen**: Jeder Empfänger eines Trainer-Handys (Neues Spiel, Spiel, Dashboard in der App, Live-Spieltag, Spielplan) meldet geprüfte Planspiele an `adoptPlan`; das führt sie zusammen, speichert und meldet `planChanged`. Eltern-Dashboards ignorieren `p` bis US3.
-- **Nur Trainer mit Organisator-Schlüssel ändern**: Ältere Lead-Handys (Lead-Link aus der ersten Version) sehen den Plan, können ihn aber nicht ändern.
+- **Nur Trainer mit Organisator-Schlüssel**: Ältere Lead-Handys (Lead-Link aus der ersten Version) haben keinen Spielplan; die Seite bittet um den Trainer-Link.
 - **Anzeige**: kommende Planspiele nach Datum gruppiert (heute bzw. das nächste Datum aufgeklappt), darin nach Anstoß (ohne Anstoß zuletzt); darunter eingeklappt "Vergangene Spiele", neueste zuerst. Zeile: Anstoß, "E1 – Gegner" (Heim) bzw. "E1 bei Gegner" (Auswärts), darunter "Heim · Wettbewerb · 2×25", rechts "frei" bzw. "abgesagt".
 
 ## Risiken
