@@ -104,7 +104,7 @@
 - [x] L056 [US3] E2E `tests/e2e/live-us3.spec.ts`: 006 US3-S11 (Manifest der Zuschauer-Seite auch in der Eltern-Hilfe, Chromium liest es fehlerfrei, frisches Gerät startet mit der Startadresse im Dashboard, "Zum Torticker" stellt das App-Manifest wieder her); Hilfe `eltern-home`
 - [x] L061 [US3] 2. Fassung nach Nachtest (R-L6): E2E 006 US3-S11 prüft wie Safari den ersten Manifest-Verweis der Seite (rot mit PR #45), dazu "Startbildschirm: erster Manifest-Verweis ist das Manifest der App"; kein Verweis im HTML (Vite-Plugin), `setManifest` in `src/platform/manifest-link.ts` beim Start (`src/main.tsx`), Zuschauer-Manifest als `blob:`-Adresse
 - [x] L062 Spec-Nummer der Historie-Spec auf 014 (`specs/014-historie-mehrfach-loeschen`), weil 013 doppelt vergeben war (Hilfe-Abdeckung rot, Auslieferung blockiert); gleichzeitig mit #49 auf `main` erledigt
-- [ ] L057 Gerätetest G-3 auf dem iPhone wiederholen (altes Symbol vorher löschen)
+- [x] L057 Gerätetest G-3 auf dem iPhone wiederholen (altes Symbol vorher löschen): bestanden am 06.11.2026 nach Auslieferung von #50, Dashboard erscheint
 
 ## Phase 10: Fehlerbehebung Spiel übernehmen bei langsamem Empfang (Clarifications 06.11.2026)
 

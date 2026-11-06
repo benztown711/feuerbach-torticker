@@ -51,7 +51,8 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
   - `ApplicationManifestLoader` lädt im CORS-Modus; eine `data:`-Adresse hat eine undurchsichtige Herkunft und gilt als fremd, ohne CORS-Freigabe scheitert das Laden. Darum eine `blob:`-Adresse (Herkunft der Seite). Sie entsteht im Browser, die Schlüssel verlassen das Gerät nicht (Constitution II).
   - `ApplicationManifestParser::parseStartURL` übernimmt eine `start_url` derselben Herkunft samt Fragment (`#/live/…`).
   - Code für das Zuschauer-Manifest liegt im nachgeladenen Dashboard; das Hauptbundle wächst nur um das Setzen des Verweises (R-L7).
-- **Grenzen**: Vorher angelegte Symbole behalten die alte Startadresse und müssen neu angelegt werden (Hilfe `eltern-home`). Öffnet jemand die Startseite und fügt den Zuschauer-Link erst dort ein, gilt in Safari weiter das App-Manifest (selten; Eltern öffnen den Link). Endgültig bestätigt nur ein Gerät: G-3 wiederholen.
+- **Grenzen**: Vorher angelegte Symbole behalten die alte Startadresse und müssen neu angelegt werden (Hilfe `eltern-home`). Öffnet jemand die Startseite und fügt den Zuschauer-Link erst dort ein, gilt in Safari weiter das App-Manifest (selten; Eltern öffnen den Link).
+- **Ergebnis G-3, Wiederholung (06.11.2026, Attis iPhone, nach Auslieferung von #50)**: bestanden. Zuschauer-Link aus iMessage in Safari geöffnet, "Zum Home-Bildschirm", das neue Symbol öffnet das Dashboard.
 - **Alternatives**: Universal Links/App Clips (nur mit Apple-Developer-Konto, Constitution VIII); QR-Code (zusätzliche Bibliothek, Kamera-Zugriff, kein Gewinn gegenüber Einfügen).
 
 ## R-L7 Bundle-Budget
