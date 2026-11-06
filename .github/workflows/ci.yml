@@ -87,10 +87,10 @@ jobs:
           path: dist/
           retention-days: 7
 
-  # Je Profil ein eigener Rechner (parallel). Das offizielle Playwright-Image bringt Browser und
+  # Je Profil eigene Rechner (parallel). Das offizielle Playwright-Image bringt Browser und
   # Systempakete mit, die Version folgt automatisch der package-lock.json (Job "changes").
   e2e:
-    name: E2E (${{ matrix.profile }})
+    name: E2E (${{ matrix.profile }} ${{ matrix.shard }})
     needs: [changes, build]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -98,8 +98,14 @@ jobs:
       image: mcr.microsoft.com/playwright:v${{ needs.changes.outputs.playwright }}-noble
     strategy:
       fail-fast: false
+      # Die WebKit-Profile sind langsamer und laufen darum auf je zwei Rechnern.
       matrix:
-        profile: [iphone, iphone-se, android]
+        include:
+          - { profile: iphone, shard: 1/2 }
+          - { profile: iphone, shard: 2/2 }
+          - { profile: iphone-se, shard: 1/2 }
+          - { profile: iphone-se, shard: 2/2 }
+          - { profile: android, shard: 1/1 }
     env:
       PW_PROJECTS: ${{ matrix.profile }}
     steps:
@@ -113,11 +119,11 @@ jobs:
         with:
           name: dist
           path: dist/
-      - run: npm run e2e
+      - run: npm run e2e -- --shard=${{ matrix.shard }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: playwright-report-${{ matrix.profile }}
+          name: playwright-report-${{ matrix.profile }}-${{ strategy.job-index }}
           path: |
             playwright-report/
             test-results/
