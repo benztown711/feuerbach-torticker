@@ -127,3 +127,9 @@ Nummern R-L1 bis R-L9. Grundlagen (PWA, IndexedDB, Minutenformel) stehen in `spe
 - Gehärtet (Konfidenz 7): Eine fremde, präparierte Sicherung hätte ein Handy ohne Live-Spieltag ohne Rückfrage an einen fremden Live-Spieltag koppeln können (Signaturen in der Datei beweisen nur, dass sie zueinander passen). Jetzt fragt die App wie beim Koppeln per Link nach (Titel, Mannschaften, "nur übernehmen, wenn die Sicherung von dir stammt"); die Anlegezeit ist mindestens der Zeitpunkt des Wiederherstellens (R-L11).
 - Gehärtet (Konfidenz 6): "Neu ausgestellt" ist endgültig. Ein so markiertes Handy übernimmt keine weitere Konfiguration mehr (auch nicht vom alten Trainer-Link), und der Hinweis gilt auch, wenn die Uhr des Handys vorging.
 
+## R-L19 Gerätetest Live-Spieltag (06.11.2026)
+
+- **Aufbau**: A iPhone 17 Pro (legt den Spieltag „Test“ an, überträgt E1), B iPhone 16e (zweiter Trainer, Trainer-Link per Nachricht), C und D je ein Rechner im Browser (Zuschauer). Kein Android-Gerät.
+- **Ergebnis**: G-1, G-2, G-4, G-5, G-7, G-8 und G-9 bestanden; G-3 bereits am 06.11.2026 bestanden (R-L6). Damit sind SC-L05 und SC-L07 auf dem iPhone bestätigt: Tor auf dem Dashboard nach höchstens 10 s, Funkloch ohne Verzögerung der Erfassung, Spiel übernehmen mit Stand, Uhr und Torschützen.
+- **G-2, Befund (Atti)**: Den Trainer-Link aus der Nachricht herauszukopieren war mühsam. Das Einfügen selbst klappt. Weiter in Roadmap B1 und B2 (ein Link für alles, „Link einfügen“ auf dem Startbildschirm); hier keine Änderung.
+- **Offen (L063)**: G-6 (Handy-Uhr 5 Minuten verstellt) ausgelassen. Restrisiko gering: Das Dashboard rechnet mit der Serverzeit des Dienstes (`skew`, R-L4), und `tests/unit/live-board.test.ts` prüft ein Lead-Handy, dessen Uhr 63 Minuten vorgeht. G-10 (Links neu ausstellen) optional und offen; durch E2E 006 US5-S3 abgedeckt.
