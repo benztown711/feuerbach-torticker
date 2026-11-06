@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A erledigt (06.11.2026), Review B (Mockup) offen. Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A erledigt (06.11.2026), Review B (Mockup) offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -166,16 +166,16 @@ Ein Trainer wählt im Spielplan ein Spiel und bestätigt kurz, dass sein Handy d
 
 **Why this priority**: Klärt vorab, wer tickert, und spart am Spieltag die Suche; ohne Vormerken geht es mit US2.
 
-**Independent Test**: Trainer-Handy B merkt "Sa 14.11. 12:00 E1 gegen TSV Musterstadt" vor; Trainer-Handy A zeigt im Plan "Tickert: Ben" (fiktiver Trainername). Am 14.11. zeigt B auf dem Startbildschirm "Heute tickerst du: 12:00 E1 gegen TSV Musterstadt"; Tipp und "Weiter zum Anpfiff" führen zum Spielbildschirm.
+**Independent Test**: Trainer-Handy B merkt "Sa 14.11. 12:00 E1 gegen TSV Musterstadt" vor; Trainer-Handy A zeigt im Plan "Tickert: Jonas" (fiktiver Trainername). Am 14.11. zeigt B auf dem Startbildschirm "Heute tickerst du: 12:00 E1 gegen TSV Musterstadt"; Tipp und "Weiter zum Anpfiff" führen zum Spielbildschirm.
 
 **Acceptance Scenarios**:
 
 1. **Given** ein Planspiel ohne Vormerkung, **When** der Trainer es im Plan antippt und "Ich tickere" wählt, **Then** fragt die App "Du tickerst Sa 14.11., 12:00 E1 gegen TSV Musterstadt. Die anderen Trainer sehen das." mit "Ja, ich tickere" und "Abbrechen"; nach "Ja" steht im Plan auf allen Trainer-Handys "Tickert: <Name>".
 2. **Given** der Trainer merkt zum ersten Mal vor, **Then** fragt die App einmal nach "Dein Name für die Trainer" (Vorname, optional); ohne Namen steht "Tickert: vergeben", auf dem eigenen Handy "Tickert: du".
-3. **Given** ein Spiel ist vorgemerkt, **When** ein anderer Trainer "Ich tickere" wählt, **Then** fragt die App "Ben tickert dieses Spiel. Trotzdem übernehmen?"; nach "Übernehmen" gilt die neue Vormerkung auf allen Handys.
+3. **Given** ein Spiel ist vorgemerkt, **When** ein anderer Trainer "Ich tickere" wählt, **Then** fragt die App "Jonas tickert dieses Spiel. Trotzdem übernehmen?"; nach "Übernehmen" gilt die neue Vormerkung auf allen Handys.
 4. **Given** eine eigene Vormerkung, **When** "Nicht mehr tickern" gewählt wird, **Then** ist das Spiel wieder frei.
 5. **Given** am Spieltag ein vorgemerktes Spiel, **Then** zeigt der Startbildschirm des vormerkenden Handys oben "Heute tickerst du: 12:00 E1 gegen TSV Musterstadt"; ein Tipp öffnet "Neues Spiel" mit dem Planspiel ausgewählt (wie US2 Szenario 2).
-6. **Given** ein vorgemerktes Spiel, **When** ein anderes Handy es trotzdem unter "Neues Spiel" anlegt, **Then** fragt die App vor "Weiter zum Anpfiff" "Ben tickert dieses Spiel. Trotzdem hier erfassen?"; die Übertragung regelt danach Spec 006 US6.
+6. **Given** ein vorgemerktes Spiel, **When** ein anderes Handy es trotzdem unter "Neues Spiel" anlegt, **Then** fragt die App vor "Weiter zum Anpfiff" "Jonas tickert dieses Spiel. Trotzdem hier erfassen?"; die Übertragung regelt danach Spec 006 US6.
 7. **Given** Vormerkungen, **Then** erscheinen sie nicht auf dem Dashboard.
 
 ---
@@ -190,7 +190,7 @@ Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nac
 
 **Acceptance Scenarios**:
 
-1. **Given** Planspiele ab heute, **Then** zeigt "Spielplan" je Datum eine Zeile ("Sa 14.11.", Anzahl Spiele); das nächste Datum ist aufgeklappt, alle anderen zugeklappt; ein Tipp klappt auf bzw. zu.
+1. **Given** Planspiele ab morgen, **Then** zeigt "Spielplan" je Datum eine Zeile ("Sa 21.11.", Anzahl Spiele); das nächste Datum ist aufgeklappt, alle anderen zugeklappt; ein Tipp klappt auf bzw. zu. Heutige Spiele stehen als Karten darüber (US3), nicht noch einmal im Plan.
 2. **Given** ein aufgeklapptes Datum, **Then** steht je Spiel eine Zeile: Anstoß, Mannschaft, "gegen <Gegner>" bzw. "bei <Gegner>" (auswärts), Wettbewerb; abgesagte mit "abgesagt".
 3. **Given** vergangene Planspiele, **Then** stehen sie eingeklappt unter "Vergangene Spiele", neueste zuerst, mit Endstand (Heim zuerst), sofern bekannt.
 4. **Given** Planspiele ohne Gegner, **Then** erscheinen sie nicht.
