@@ -6,11 +6,14 @@ import {
   createLive,
   e1At37,
   e2AtHalf,
+  firstManifest,
   later,
   liveSnap,
+  manifestOf,
   MATCHDAY,
   onMatchday,
   openViewer,
+  recordManifests,
   sendAs,
 } from './live-helpers';
 
@@ -337,31 +340,6 @@ test('006 R-L6 Start ohne eigene Daten öffnet das gemerkte Dashboard', async ({
   await v.clock.runFor(2_000);
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
 });
-
-/** Manifest hinter einem Verweis: blob:-Adresse im Browser gelesen, sonst der Verweis selbst. */
-type Manifest = { start_url?: string; scope?: string; id?: string } | string;
-const unpack = (p: Page, href: string): Promise<Manifest> =>
-  href.startsWith('blob:') ? p.evaluate(async (h) => (await fetch(h)).json(), href) : Promise.resolve(href);
-const manifestOf = async (p: Page) => unpack(p, (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '');
-
-/**
- * Wie Safari: WebKit lädt das Manifest, sobald ein Verweis eingelesen oder eingefügt wird, und behält das erste
- * für die ganze Seite (`DocumentLoader::loadApplicationManifest`). Zeichnet die Adresse jedes Manifest-Verweises
- * zum Zeitpunkt des Einfügens auf (`window.__manifests`), auch des Verweises im HTML.
- */
-async function recordManifests(p: Page): Promise<void> {
-  await p.addInitScript(() => {
-    const seen: string[] = [];
-    (window as unknown as { __manifests: string[] }).__manifests = seen;
-    new MutationObserver((records) => {
-      for (const r of records)
-        for (const n of r.addedNodes)
-          if (n instanceof HTMLLinkElement && n.rel === 'manifest') seen.push(n.getAttribute('href') ?? '');
-    }).observe(document, { childList: true, subtree: true });
-  });
-}
-const firstManifest = async (p: Page) =>
-  unpack(p, (await p.evaluate(() => (window as unknown as { __manifests: string[] }).__manifests))[0] ?? '');
 
 test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den Startbildschirm', async ({
   page,

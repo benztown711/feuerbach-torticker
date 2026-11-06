@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures';
 import { addTeam, readStored, startGame } from './helpers';
-import { asPath, createLive, recordedOf } from './live-helpers';
+import { asPath, createLive, firstManifest, linkData, recordedOf, recordManifests } from './live-helpers';
 
 /** Spec 006 US1: Live-Spieltag anlegen und Trainergruppe koppeln (ein Trainer-Link für alle). */
 
@@ -33,7 +33,10 @@ test('006 US1-S1 Live-Spieltag mit E1 und E2 anlegen, Zuschauer- und Trainer-Lin
   await expect.poll(async () => (await recorded()).shares.length).toBe(2);
   const [viewer, trainer] = (await recorded()).shares;
   expect(viewer?.text).toMatch(/^Unser Spieltag live verfolgen: http\S+#\/live\/[A-Za-z0-9_-]+$/);
-  expect(trainer?.text).toContain('Trainer-Link für "Unser Spieltag" (E1, E2). Nur in der Trainergruppe teilen.');
+  // Kurz, damit WhatsApp den Link antippbar macht (research.md R-L20).
+  expect(trainer?.text).toContain(
+    'Trainer-Link für "Unser Spieltag", nur für die Trainergruppe. Antippen und loslegen:',
+  );
   expect(trainer?.text).toMatch(/#\/trainer\/[A-Za-z0-9_-]+$/);
 
   // Die Konfiguration geht verschlüsselt an den Dienst (FR-L19, SC-L06).
@@ -98,13 +101,27 @@ test('006 US1-S2 Abbrechen koppelt nicht; ungültige und veränderte Links werde
   await b.getByTestId('paste-link-apply').click();
   await expect(b.getByTestId('paste-link-error')).toContainText('Kein gültiger Link');
 
-  // Signatur passt nicht mehr: Titel in der Konfiguration verändert
+  // Privater Organisator-Schlüssel verändert: passt nicht mehr zum öffentlichen Schlüssel des Zuschauer-Links
+  // (kurzer Trainer-Link, research.md R-L20: Byte 119 ist das erste Byte des Schlüssels).
   const raw = links.trainer;
   const data = raw.slice(raw.indexOf('/trainer/') + 9);
-  const json = JSON.parse(Buffer.from(data, 'base64url').toString('utf8')) as { g: { d: string } };
-  json.g.d = json.g.d.replace('Unser Spieltag', 'Fremder Spieltag');
-  const forged = raw.replace(data, Buffer.from(JSON.stringify(json)).toString('base64url'));
+  const bytes = Buffer.from(data, 'base64url');
+  bytes[119] = (bytes[119] as number) ^ 1;
+  const forged = raw.replace(data, bytes.toString('base64url'));
   await b.getByTestId('paste-link-input').fill(forged);
+  await b.getByTestId('paste-link-apply').click();
+  await expect(b.getByTestId('paste-link-error')).toHaveText('Dieser Trainer-Link ist nicht gültig.');
+
+  // Langer Trainer-Link früherer Versionen (bleibt gültig): Konfiguration mit Signatur, Titel verändert.
+  const d = linkData(links.trainer) as { q: unknown; m: unknown; config: { title: string } } & Record<string, unknown>;
+  const fakeConfig = JSON.stringify({ ...d.config, title: 'Fremder Spieltag' });
+  const longForged = links.trainer.replace(
+    data,
+    Buffer.from(
+      JSON.stringify({ v: 1, t: d.t, k: d.k, o: d.o, n: d.n, q: d.q, g: { d: fakeConfig, s: 'A'.repeat(86) }, m: d.m }),
+    ).toString('base64url'),
+  );
+  await b.getByTestId('paste-link-input').fill(longForged);
   await b.getByTestId('paste-link-apply').click();
   await expect(b.getByTestId('paste-link-error')).toHaveText('Dieser Trainer-Link ist nicht gültig.');
 
@@ -160,5 +177,42 @@ test('006 US1-S6 Trainer-Link im Browser: Link kopieren, hier koppeln', async ({
   await expect(b.getByTestId('live-overview')).toBeVisible();
 
   await b.goto('./#/trainer/kaputt');
-  await expect(b.getByTestId('lead-link-invalid')).toContainText('Dieser Trainer-Link ist nicht gültig.');
+  await expect(b.getByTestId('lead-link-invalid')).toContainText(
+    'Dieser Trainer-Link ist nicht gültig oder kam unvollständig an.',
+  );
+});
+
+test('006 US1-S8 US1-S9 kurzer Trainer-Link: in WhatsApp antippbar, Symbol auf dem Home-Bildschirm koppelt', async ({
+  page,
+  recorded,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  // research.md R-L20: der lange Link (rund 1.450 Zeichen) war in WhatsApp nur bis "#/trainer/" antippbar.
+  const path = links.trainer.slice(links.trainer.indexOf('#'));
+  expect(path.length).toBeLessThan(380);
+  const share = (await recorded()).shares.at(-1)?.text ?? '';
+  expect(share).toContain('Antippen und loslegen');
+
+  // US1-S9: Auf der Seite des Trainer-Links nennt schon der erste Manifest-Verweis den Trainer-Link.
+  const b = await newDevice();
+  await recordManifests(b);
+  await b.goto(asPath(links.trainer));
+  await expect(b.getByTestId('lead-link-home-hint')).toContainText('„Zum Home-Bildschirm“');
+  const app = new URL('./', b.url()).href;
+  await expect.poll(() => firstManifest(b)).toMatchObject({ start_url: links.trainer, scope: app, id: app });
+
+  // Die Home-Bildschirm-App hat eigene, leere Daten und startet mit dem Trainer-Link: ein Tipp koppelt.
+  const home = await newDevice();
+  await home.goto(links.trainer);
+  await home.getByTestId('btn-couple-here').click();
+  await home.getByTestId('couple-yes').click();
+  await expect(home.getByTestId('start-live-line')).toBeVisible();
+  // Jeder weitere Start über das Symbol führt direkt zum Startbildschirm.
+  await home.goto(links.trainer);
+  await expect(home.getByTestId('start-live-line')).toBeVisible();
+
+  // US1-S8: Kommt nur der Anfang an ("#/trainer/"), erklärt die Seite das statt des Startbildschirms.
+  await b.goto('./#/trainer/');
+  await expect(b.getByTestId('lead-link-invalid')).toContainText('kam unvollständig an');
 });

@@ -505,8 +505,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link und dann auf „Koppeln und loslegen“. Hat er den Torticker auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Trainer-Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst. Den Link kann er jede Woche wieder antippen.',
-    keywords: 'trainer link koppeln kollege handy einfügen zwischenablage startknopf',
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Trainer-Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst.',
+    keywords: 'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp',
     sources: ['006 US1', '012 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['live-anlegen', 'live-senden'],
