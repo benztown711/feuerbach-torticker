@@ -39,6 +39,12 @@
 - Anstoßzeit: optional, aus fußball.de bekannt; Eltern sehen sie.
 - Damit Atti die Spiele nicht abtippen muss: "Spielplan einfügen" aus einer Textliste, Zeile für Zeile wie "Liste einfügen" beim Kader (US4).
 
+### Session 2026-11-06 (Leistungsliga)
+
+- Atti: Leistungsliga sonntags mit 3 × 25 Minuten, WFV-Spieltage (Kreisstaffel) mit 2 × 25 Minuten. Manche Termine haben zwei parallele Spiele gegen denselben Verein (E1 und E2), andere nur ein Spiel für die E1; für die E2 wird dann evtl. noch ein Gegner gesucht.
+- Folgerung: Die Einfügezeile kann die Spielzeit tragen ("(Leistungsliga, 3×25)"), und "?" steht für "Gegner offen". Zwei Planspiele am selben Tag gegen denselben Verein für verschiedene Mannschaften sind zwei Einträge.
+- Q (Atti): Kann man ein zusätzliches Spiel anlegen und trotzdem aufs Dashboard übertragen? → A: Ja. Jedes Spiel einer Mannschaft des Live-Spieltags geht vom Trainer-Handy aufs Dashboard, ob aus dem Plan oder nicht (Spec 006 FR-L06, US2 Szenario 6).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Spielplan pflegen (Priority: P1)
@@ -75,7 +81,7 @@ Am Spieltag öffnet der Trainer "Neues Spiel". Oben stehen die Spiele aus dem Pl
 3. **Given** ein ausgewählter Eintrag, **When** der Trainer Gegner, Heim/Auswärts, Farben, Spielzeit oder Aufgebot ändert, **Then** gilt das nur für dieses Spiel; der Plan bleibt unverändert.
 4. **When** "Weiter zum Anpfiff" getippt wird, **Then** ist das angelegte Spiel mit dem Planeintrag verknüpft: Im Plan steht "angelegt", und das Dashboard zeigt keine zweite Karte (US3).
 5. **Given** ein anderes Handy überträgt dasselbe Planspiel schon, **When** der Eintrag angetippt und "Weiter zum Anpfiff" getippt wird, **Then** fragt die App wie in Spec 006 US6 ("Spiel übernehmen").
-6. **Given** kein Eintrag passt (z. B. Spiel kurzfristig angesetzt), **Then** legt der Trainer das Spiel wie bisher ohne Plan an.
+6. **Given** kein Eintrag passt (z. B. Spiel kurzfristig angesetzt), **Then** legt der Trainer das Spiel wie bisher ohne Plan an; es geht wie jedes Spiel einer Mannschaft des Live-Spieltags aufs Dashboard.
 
 ---
 
@@ -108,7 +114,7 @@ Atti kopiert eine Textliste mit allen Spielen (eine Zeile je Spiel) und fügt si
 
 **Acceptance Scenarios**:
 
-1. **Given** eine Zeile im Format "<Wochentag> <TT.MM.> [<HH:MM>] <Mannschaft> heim|auswärts <Gegner> [(<Wettbewerb>)]", **When** sie eingefügt wird, **Then** erkennt die App Datum, Anstoß, Mannschaft (Kürzel wie im Live-Spieltag, z. B. "E1"), Heim/Auswärts, Gegner und Wettbewerb. Wochentag, Anstoß und Wettbewerb sind optional; "H"/"A" gelten wie "heim"/"auswärts".
+1. **Given** eine Zeile im Format "<Wochentag> <TT.MM.> [<HH:MM>] <Mannschaft> heim|auswärts <Gegner> [(<Wettbewerb>[, <Spielzeit>])]", z. B. "So 15.11. 10:00 E1 auswärts SV Beispielhausen E1 (Leistungsliga, 3×25)", **When** sie eingefügt wird, **Then** erkennt die App Datum, Anstoß, Mannschaft (Kürzel wie im Live-Spieltag, z. B. "E1"), Heim/Auswärts, Gegner, Wettbewerb und Spielzeit. Wochentag, Anstoß, Wettbewerb und Spielzeit sind optional; "H"/"A" gelten wie "heim"/"auswärts"; Spielzeit als "<Abschnitte>×<Minuten>" (auch "x"); "?" als Gegner bedeutet "Gegner offen".
 2. **Given** eine Zeile ohne Jahr, **Then** gilt das nächste passende Datum ab 7 Tagen vor heute (Saisonwechsel über Silvester).
 3. **Given** eine Zeile passt nicht ins Format, nennt eine unbekannte Mannschaft oder Wochentag und Datum passen nicht zusammen, **Then** zeigt die Vorschau sie mit Hinweis und übernimmt sie nicht; die übrigen Zeilen werden übernommen.
 4. **Given** ein Spiel derselben Mannschaft am selben Tag gegen denselben Gegner steht schon im Plan, **Then** aktualisiert die Zeile diesen Eintrag statt ihn doppelt anzulegen.
