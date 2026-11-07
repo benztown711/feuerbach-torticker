@@ -54,14 +54,15 @@ function memoryStore(init: Record<string, string> = {}) {
 /** Fake-Verbindung: Meldungstext ist JSON eines geöffneten Umschlags. */
 function setup(o: Partial<ReceiverDeps> = {}) {
   let opts: SubscribeOptions | null = null;
+  const since: (number | undefined)[] = [];
   const stop = vi.fn();
   let now = T0;
-  const storage = memoryStore();
+  const storage = (o.storage as ReturnType<typeof memoryStore> | undefined) ?? memoryStore();
   const deps: ReceiverDeps = {
     now: () => now,
-    subscribe: (topic, s) => {
-      expect(topic).toBe(TOPIC);
-      expect(s.since).toBe('12h');
+    subscribe: (target, s) => {
+      expect([target.topic, target.orgPub]).toEqual([TOPIC, 'org']);
+      since.push(s.since);
       opts = s;
       return stop;
     },
@@ -78,12 +79,12 @@ function setup(o: Partial<ReceiverDeps> = {}) {
   r.onChange(changes);
   r.start();
   const relay = () => opts as SubscribeOptions;
-  const msg = async (m: Partial<OpenedMessage>, time = T0 / 1000, id = 'm1') => {
-    relay().onMessage({ id, time, message: JSON.stringify({ content: null, cert: null, config: null, ...m }) });
+  const msg = async (m: Partial<OpenedMessage>, time = T0 / 1000, seq = 1) => {
+    relay().onMessage({ seq, time, message: JSON.stringify({ content: null, cert: null, config: null, ...m }) });
     await vi.waitFor(() => undefined);
     await Promise.resolve();
   };
-  return { r, deps, storage, stop, changes, relay, msg, setNow: (t: number) => (now = t) };
+  return { r, deps, storage, stop, changes, relay, msg, since, setNow: (t: number) => (now = t) };
 }
 
 const flush = () => new Promise((res) => setTimeout(res, 0));
@@ -103,10 +104,10 @@ describe('006 US3 Empfänger', () => {
   it('nicht prüfbare, fehlerhafte oder unbekannte Meldungen ändern nichts', async () => {
     const { r, relay } = setup();
     const before = r.get().board;
-    relay().onMessage({ id: 'a', time: T0 / 1000, message: 'bad' });
-    relay().onMessage({ id: 'b', time: T0 / 1000, message: 'throw' });
+    relay().onMessage({ seq: 101, time: T0 / 1000, message: 'bad' });
+    relay().onMessage({ seq: 102, time: T0 / 1000, message: 'throw' });
     relay().onMessage({
-      id: 'c',
+      seq: 103,
       time: T0 / 1000,
       message: JSON.stringify({ content: { v: 1, kind: 'x' }, cert: null, config: { title: '' } }),
     });
@@ -121,14 +122,14 @@ describe('006 US3 Empfänger', () => {
     expect(r.get().skew).toBe(60_000);
     expect(r.serverNow()).toBe(T0 + 65_000);
     relay().onMessage({
-      id: 'x',
+      seq: 104,
       time: 0,
       message: JSON.stringify({ content: snap({ sentAt: T0 + 3_000 }), cert: null, config: null }),
     });
     await flush();
     expect(r.get().board.games[0]?.at).toBe(T0 + 65_000);
     relay().onMessage({
-      id: 'y',
+      seq: 105,
       time: T0 / 1000 + 70,
       message: JSON.stringify({ content: snap({ sentAt: T0 + 9_000 }), cert: null, config: null }),
     });
@@ -136,7 +137,7 @@ describe('006 US3 Empfänger', () => {
     expect(r.get().board.games[0]?.at).toBe(T0 + 70_000);
   });
 
-  it('Verbindungsstatus live/offline/polling; "Stand von" merkt die letzte Verbindung', () => {
+  it('Verbindungsstatus live/offline/connecting; "Stand von" merkt die letzte Verbindung', () => {
     const { r, relay, setNow } = setup();
     const states: RelayState[] = [];
     r.onChange(() => states.push(r.get().relay));
@@ -146,9 +147,11 @@ describe('006 US3 Empfänger', () => {
     setNow(T0 + 9_000);
     relay().onState?.('offline');
     expect(r.get().liveAt).toBe(T0 + 1_000);
-    relay().onState?.('polling');
+    relay().onState?.('connecting');
+    expect(r.get().liveAt).toBe(T0 + 1_000);
+    relay().onState?.('live');
     expect(r.get().liveAt).toBe(T0 + 9_000);
-    expect(states).toEqual(['live', 'offline', 'polling']);
+    expect(states).toEqual(['live', 'offline', 'connecting', 'live']);
   });
 
   it('erfolgreiche Abfragen halten "Stand von" aktuell; bekannte Konfiguration gilt sofort', () => {
@@ -175,6 +178,55 @@ describe('006 US3 Empfänger', () => {
     expect(again.get().board.games).toHaveLength(1);
     expect(again.get().board.config?.title).toBe('Unser Spieltag');
     expect(again.get().liveAt).toBe(T0);
+  });
+
+  it('007 FR-N03: merkt die zuletzt verarbeitete seq mit dem Stand und verbindet beim nächsten Mal mit since', async () => {
+    const first = setup();
+    expect(first.since).toEqual([undefined]);
+    await first.msg({ config, content: snap() }, T0 / 1000, 7);
+    await first.msg({ content: null, cert: null, config: null }, T0 / 1000, 9);
+    await flush();
+    expect(JSON.parse(first.storage.data[KEY] ?? '{}').seq).toBe(7);
+    // eine weitere Meldung mit neuem Stand speichert die höchste verarbeitete seq
+    await first.msg({ content: snap({ sentAt: T0 + 5_000 }) }, T0 / 1000, 12);
+    await flush();
+    expect(JSON.parse(first.storage.data[KEY] ?? '{}').seq).toBe(12);
+    const again = setup({ storage: first.storage });
+    expect(again.since).toEqual([12]);
+    expect(again.r.get().board.games).toHaveLength(1);
+  });
+
+  it('007: ungültige gemerkte seq wird ignoriert (alles neu laden)', () => {
+    for (const bad of [0, -3, 1.5, '7', null]) {
+      const storage = memoryStore({ [KEY]: JSON.stringify({ games: [], removed: [], seq: bad }) });
+      expect(setup({ storage }).since, String(bad)).toEqual([undefined]);
+    }
+  });
+
+  it('007: Meldungen werden nacheinander geprüft, auch wenn eine spätere schneller fertig wäre', async () => {
+    const order: number[] = [];
+    let releaseFirst: () => void = () => undefined;
+    const s = setup({
+      open: (_v, text) => {
+        const o = JSON.parse(text) as OpenedMessage & { n: number };
+        return new Promise((res) => {
+          const done = () => {
+            order.push(o.n);
+            res(o);
+          };
+          if (o.n === 1) releaseFirst = done;
+          else done();
+        });
+      },
+    });
+    const send = (n: number) =>
+      s.relay().onMessage({ seq: n, time: T0 / 1000, message: JSON.stringify({ n, content: null, cert: null, config: null }) });
+    send(1);
+    send(2);
+    await flush();
+    expect(order).toEqual([]);
+    releaseFirst();
+    await vi.waitFor(() => expect(order).toEqual([1, 2]));
   });
 
   it('R-L12: gemerkter Stand gilt nur für denselben Organisator-Schlüssel', async () => {
@@ -223,7 +275,7 @@ describe('006 US3 Empfänger', () => {
     expect(JSON.parse(storage.getItem(KEY) as string).plan).toEqual(JSON.parse(payload));
     expect(new LiveReceiver(view, deps).get().board.plan).toEqual(r.get().board.plan);
     // ungültige Nutzlast ändert nichts
-    await msg({ content: null, cert: null, config: null, plan: '{kaputt' }, T0 / 1000, 'm2');
+    await msg({ content: null, cert: null, config: null, plan: '{kaputt' }, T0 / 1000, 2);
     await flush();
     expect(r.get().board.plan).toHaveLength(1);
   });
@@ -234,7 +286,7 @@ describe('006 US3 Empfänger', () => {
     // Eine nachgelesene, 6 Stunden alte Meldung zählt mit ihrer Sendezeit, nicht als gerade empfangen.
     const old = T0 - 6 * 3600_000;
     await msg({ content: null, cert: null, config: null, plan: '{"v":1}' }, old / 1000);
-    await msg({ content: null, cert: null, config: null }, T0 / 1000, 'm2');
+    await msg({ content: null, cert: null, config: null }, T0 / 1000, 2);
     await flush();
     expect(onPlan).toHaveBeenCalledTimes(1);
     expect(onPlan).toHaveBeenCalledWith('{"v":1}', old);
@@ -253,8 +305,8 @@ describe('006 US3 Empfänger', () => {
     await flush();
     expect(onConfig).not.toHaveBeenCalled();
     const newer = { ...config, title: 'Neu', iat: T0 + 1 };
-    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 'm2');
-    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 'm3');
+    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 2);
+    await msg({ config: newer, signedConfig: signed(T0 + 1) }, T0 / 1000, 3);
     await flush();
     expect(onConfig).toHaveBeenCalledTimes(1);
     expect(onConfig).toHaveBeenCalledWith(signed(T0 + 1));
@@ -273,7 +325,7 @@ describe('006 US3 Empfänger', () => {
     expect(stop).toHaveBeenCalledTimes(1);
     changes.mockClear();
     relay().onMessage({
-      id: 'z',
+      seq: 106,
       time: T0 / 1000,
       message: JSON.stringify({ content: snap(), cert: null, config: null }),
     });
@@ -317,8 +369,8 @@ describe('006 US3 Empfänger', () => {
     // Ohne Browser (kein window) gibt es keinen Speicher, die Anzeige läuft trotzdem.
     r.start();
     const o = opts as unknown as SubscribeOptions;
-    o.onMessage({ id: '1', time: T0 / 1000, message: forged });
-    o.onMessage({ id: '2', time: T0 / 1000, message: good });
+    o.onMessage({ seq: 107, time: T0 / 1000, message: forged });
+    o.onMessage({ seq: 108, time: T0 / 1000, message: good });
     await vi.waitFor(() => expect(r.get().board.games).toHaveLength(1));
     expect(r.get().board.games[0]?.snap.gameId).toBe('g1');
     r.stop();
@@ -333,8 +385,8 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     const s = setup({ now: () => Date.now() });
     let done = false;
     void s.r.whenSettled(maxMs).then(() => (done = true));
-    const send = (id: string) =>
-      s.relay().onMessage({ id, time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
+    const send = (seq: number) =>
+      s.relay().onMessage({ seq, time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
     return { ...s, send, done: () => done, tick: (ms: number) => vi.advanceTimersByTimeAsync(ms) };
   };
 
@@ -343,10 +395,10 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     await w.tick(1_000);
     expect(w.done()).toBe(false);
     w.relay().onState?.('live');
-    w.send('a');
+    w.send(1);
     await w.tick(SETTLE_QUIET_MS - 100);
     expect(w.done()).toBe(false);
-    w.send('b');
+    w.send(2);
     await w.tick(SETTLE_QUIET_MS - 1);
     expect(w.done()).toBe(false);
     await w.tick(1);
@@ -360,7 +412,7 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     await w.tick(SETTLE_QUIET_MS * 3);
     expect(w.done()).toBe(false);
     w.relay().onServerTime?.(T0 / 1000);
-    w.send('a');
+    w.send(1);
     await w.tick(SETTLE_QUIET_MS);
     expect(w.done()).toBe(true);
     expect(w.r.get().board.games).toHaveLength(1);
@@ -378,7 +430,7 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     });
     let done = false;
     s.relay().onState?.('live');
-    s.relay().onMessage({ id: 'a', time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
+    s.relay().onMessage({ seq: 109, time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
     void s.r.whenSettled(3_000).then(() => (done = true));
     await vi.advanceTimersByTimeAsync(SETTLE_QUIET_MS * 2);
     expect(done).toBe(false);
@@ -390,7 +442,8 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
 
   it('längst verbunden und ruhig: sofort; ohne Netz: sofort; beim Beenden: sofort', async () => {
     const quiet = waiting();
-    quiet.relay().onState?.('polling');
+    quiet.relay().onState?.('live');
+    quiet.relay().onServerTime?.(T0 / 1000);
     await quiet.tick(SETTLE_QUIET_MS);
     expect(quiet.done()).toBe(true);
     let again = false;

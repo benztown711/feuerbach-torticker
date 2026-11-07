@@ -5,7 +5,7 @@ import { asPath, createLive, latestState, liveStates, pasteLink } from './live-h
 
 /** Spec 006 US2: Das erfassende Trainer-Handy sendet automatisch, je Spiel für dessen Mannschaft. */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const E1 = 'Sportvg Feuerbach E1';
@@ -292,7 +292,7 @@ test('006 US2-S10 am Vorabend angelegtes Spiel geht am Spieltag beim Öffnen ern
   const opps = async () => (await liveStates(relay, links.viewer)).map((s) => s.opp);
   await expect.poll(opps).toEqual(['TSV Musterstadt']);
   // Über Nacht: Der Dienst hält die Meldung nicht mehr vor (rund 12 Stunden).
-  relay.topics.clear();
+  relay.clear();
   // Innerhalb einer Stunde nach der letzten Sendung zurück in den Vordergrund: nichts Neues.
   await backAndForth(page);
   await settle(page);
@@ -303,7 +303,7 @@ test('006 US2-S10 am Vorabend angelegtes Spiel geht am Spieltag beim Öffnen ern
   await settle(page);
   await expect.poll(opps).toEqual(['TSV Musterstadt']);
   // Ebenso beim Neustart des Torticker.
-  relay.topics.clear();
+  relay.clear();
   await page.reload();
   await expect(page.getByTestId('btn-kickoff')).toBeVisible();
   await settle(page);

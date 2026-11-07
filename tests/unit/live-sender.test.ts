@@ -66,10 +66,16 @@ function setup(o: { online?: boolean; big?: boolean; live?: LiveSpieltag } = {})
       const text = JSON.stringify({ ...parts, snap: JSON.parse(parts.content as string) });
       return o.big && parts.config ? 'x'.repeat(5000) : text;
     },
-    publish: async (topic, text) => {
+    publish: async (target, team, snap, text) => {
       attempts.push(Date.now() - T0);
       if (!online) return false;
-      sent.push({ topic, parts: JSON.parse(text) });
+      // Spec 007: Ordnungsangaben (Spiel, Mannschaft, h, sentAt, Zustand) aus demselben Stand, der versiegelt wurde
+      // (bei zu großen Meldungen ohne Namen), mit dem Schlüssel der Mannschaft des Spiels.
+      const parts = JSON.parse(text) as MessageParts & { snap: LiveSnapshot };
+      const order = (x: LiveSnapshot) => [x.gameId, x.team, x.h, x.sentAt, x.state];
+      if (JSON.stringify(order(snap)) !== JSON.stringify(order(parts.snap)) || team.key !== snap.team)
+        throw new Error('Ordnungsangaben passen nicht zur Meldung');
+      sent.push({ topic: target.topic, parts });
       return true;
     },
     visibility: {

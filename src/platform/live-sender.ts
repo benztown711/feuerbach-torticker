@@ -3,7 +3,7 @@ import { isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
 import { getPlayers, getSettings, listGames, onGameWrite, type GameChange } from './db';
 import { MAX_MESSAGE, sealMessage, type MessageParts } from './live-crypto';
-import { publish } from './relay';
+import { sendGame } from './relay-write';
 
 /**
  * Spec 006 R-L3: sendet den jeweils letzten Stand jedes Spiels einer gekoppelten Mannschaft.
@@ -18,7 +18,7 @@ export const HEARTBEAT_MS = 180_000;
 export const RETRY_MS = [5_000, 10_000, 20_000, 30_000];
 /**
  * US2-S10: Angelegte Spiele beim Zurückkehren in den Vordergrund erneut senden, wenn die letzte Sendung so lange
- * zurückliegt; der Dienst hält Meldungen nur rund 12 Stunden vor (research.md R-L21).
+ * zurückliegt. Seit Spec 007 hält der eigene Dienst alles vor; das erneute Senden bleibt als Absicherung (FR-N08).
  */
 export const RESEND_CREATED_MS = 60 * 60_000;
 /** Nur Spiele, die höchstens so alt sind (am Vorabend vorbereitet), nicht längst vergessene. */
@@ -36,7 +36,8 @@ export interface SenderDeps {
   now(): number;
   getPlayers(): Promise<Player[]>;
   seal(viewKey: string, parts: MessageParts): Promise<string>;
-  publish(topic: string, text: string): Promise<boolean>;
+  /** Spec 007: Live-Stand mit Ordnungsangaben und Schreibnachweis an den eigenen Dienst. */
+  publish(live: LiveSpieltag, team: LiveTeamCred, snap: LiveSnapshot, text: string): Promise<boolean>;
   visibility?: { hidden(): boolean; onChange(cb: () => void): () => void };
 }
 
@@ -205,8 +206,9 @@ export class LiveSender {
       }
       for (const [id, entry] of [...this.pending]) {
         const team = this.teamOfPending.get(id) as LiveTeamCred;
-        const text = await this.seal(entry.build(), team);
-        const ok = text === null || (await this.deps.publish(this.live.topic, text));
+        const snap = entry.build();
+        const text = await this.seal(snap, team);
+        const ok = text === null || (await this.deps.publish(this.live, team, snap, text));
         if (!ok) {
           failed = true;
           continue;
@@ -333,7 +335,7 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
     now: () => Date.now(),
     getPlayers,
     seal: sealMessage,
-    publish: (topic, text) => publish(topic, text),
+    publish: sendGame,
     visibility: docVisibility,
   });
   const sender = current;

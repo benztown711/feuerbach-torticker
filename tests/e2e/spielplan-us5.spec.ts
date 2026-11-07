@@ -174,7 +174,7 @@ test('015 US5-S4 Aufgebot zeigt den Kader der Mannschaft, Aushilfen unter "Weite
 });
 
 test.describe('015 zwei Handys', () => {
-  // Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+  // Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
   test.use({ serviceWorkers: 'block' });
 
   test('015 US5-S5 Kader "E3" teilen und auf einem anderen Handy einfügen', async ({ page, recorded, newDevice }) => {

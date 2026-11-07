@@ -281,7 +281,7 @@ test.describe('009 US4 Schlanke Anzeige: nur Namen', () => {
 });
 
 test.describe('009 US3 Teilen-Text und Dashboard', () => {
-  // Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+  // Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
   test.use({ serviceWorkers: 'block' });
 
   test('009 US3-S1 US3-S2 Teilen-Text mit "Max (Vorlage: Ben)", Torschützen-Zeile unverändert', async ({

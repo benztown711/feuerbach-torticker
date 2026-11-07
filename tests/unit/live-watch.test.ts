@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag } from '../../src/domain/types';
 import type { OpenedMessage } from '../../src/platform/live-crypto';
-import type { SubscribeOptions } from '../../src/platform/relay';
+import type { RelayTarget, SubscribeOptions } from '../../src/platform/relay';
 import { watchGame, watchLive, watchSpieltag } from '../../src/platform/live-watch';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
@@ -41,21 +41,22 @@ const snap = (p: Partial<LiveGameSnapshot> = {}): LiveGameSnapshot => ({
 /** Fake-Verbindung: Meldungstext ist der Live-Stand als JSON. */
 function fakeDeps() {
   let opts: SubscribeOptions | null = null;
+  let seq = 0;
   const stop = vi.fn();
   return {
     stop,
     send: async (s: LiveGameSnapshot, time = (T0 + 60_000) / 1000) => {
-      opts?.onMessage({ id: String(Math.random()), time, message: JSON.stringify(s) });
+      opts?.onMessage({ seq: ++seq, time, message: JSON.stringify(s) });
       await new Promise((r) => setTimeout(r, 0));
     },
     sendRaw: async (message: string) => {
-      opts?.onMessage({ id: String(Math.random()), time: (T0 + 60_000) / 1000, message });
+      opts?.onMessage({ seq: ++seq, time: (T0 + 60_000) / 1000, message });
       await new Promise((r) => setTimeout(r, 0));
     },
     deps: {
       now: () => T0 + 2 * 60_000,
       storage: null,
-      subscribe: (_t: string, o: SubscribeOptions) => {
+      subscribe: (_t: RelayTarget, o: SubscribeOptions) => {
         opts = o;
         return stop;
       },

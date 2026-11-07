@@ -4,7 +4,7 @@ import { asPath, createLive, firstManifest, linkData, recordedOf, recordManifest
 
 /** Spec 006 US1: Live-Spieltag anlegen und Trainergruppe koppeln (ein Trainer-Link für alle). */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 test('006 US1-S1 Live-Spieltag mit E1 und E2 anlegen, Zuschauer- und Trainer-Link teilen', async ({
@@ -148,7 +148,7 @@ test('006 US1-S2 Trainer-Handy eines anderen Live-Spieltags: Warnung, dass die a
   await expect(b.getByTestId('live-title')).toHaveText('Unser Spieltag');
 });
 
-test('006 US1-S4 SC-L06 ohne Kopplung geht kein Request an ntfy.sh', async ({ page }) => {
+test('006 US1-S4 SC-L06 ohne Kopplung geht kein Request an den Vermittlungsdienst', async ({ page }) => {
   // Kein Relay: der Netzwerk-Wächter lässt jeden Request an Dritte scheitern.
   await startGame(page);
   await page.getByTestId('btn-goal-own').click();
