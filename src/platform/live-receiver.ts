@@ -39,7 +39,8 @@ export interface ReceiverDeps {
   /** Spec 006 US5: jüngere signierte Konfiguration (Trainer-Handy übernimmt Titel und Mannschaften). */
   onConfig?(signed: SignedData): void;
   /** Spec 015: geprüfte Nutzlast einer Plan-Meldung (Trainer-Handys übernehmen die Planspiele). */
-  onPlan?(payload: string): void;
+  /** Spec 015: Plan-Meldung mit ihrer Sendezeit (Serverzeit, FR-P07), nur auf Trainer-Handys gesetzt. */
+  onPlan?(payload: string, sentAt: number): void;
 }
 
 export class LiveReceiver {
@@ -195,7 +196,7 @@ export class LiveReceiver {
       this.knownIat = config.iat;
       this.deps.onConfig?.(opened.signedConfig);
     }
-    if (opened.plan) this.deps.onPlan?.(opened.plan);
+    if (opened.plan) this.deps.onPlan?.(opened.plan, at);
     const snap = parseSnapshot(opened.content);
     if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone);
     const liveAt = this.deps.now();

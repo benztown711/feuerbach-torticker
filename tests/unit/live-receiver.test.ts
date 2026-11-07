@@ -211,14 +211,16 @@ describe('006 US3 Empfänger', () => {
     expect(new LiveReceiver(view, { ...setup().deps, storage: garbage }).get().board.games).toEqual([]);
   });
 
-  it('015 US1-S4: reicht geprüfte Plan-Meldungen an Trainer-Handys weiter, Zuschauer ignorieren sie', async () => {
+  it('015 US1-S4 FR-P07: reicht geprüfte Plan-Meldungen mit Sendezeit an Trainer-Handys weiter, Zuschauer ignorieren sie', async () => {
     const onPlan = vi.fn();
     const { msg } = setup({ onPlan });
-    await msg({ content: null, cert: null, config: null, plan: '{"v":1}' });
+    // Eine nachgelesene, 6 Stunden alte Meldung zählt mit ihrer Sendezeit, nicht als gerade empfangen.
+    const old = T0 - 6 * 3600_000;
+    await msg({ content: null, cert: null, config: null, plan: '{"v":1}' }, old / 1000);
     await msg({ content: null, cert: null, config: null }, T0 / 1000, 'm2');
     await flush();
     expect(onPlan).toHaveBeenCalledTimes(1);
-    expect(onPlan).toHaveBeenCalledWith('{"v":1}');
+    expect(onPlan).toHaveBeenCalledWith('{"v":1}', old);
     const viewer = setup();
     await viewer.msg({ content: null, cert: null, config: null, plan: '{"v":1}' });
     await flush();

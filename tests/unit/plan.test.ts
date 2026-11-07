@@ -302,6 +302,12 @@ describe('015 FR-P07 Erneut senden', () => {
     expect(r.seen).toEqual({ b2: T0 + 9 });
   });
 
+  it('noteSeen: eine ältere Meldung (beim Öffnen nachgelesen) macht den Zeitpunkt nicht früher', () => {
+    const s = { ...storeWith([entry({ id: 'a1', updatedAt: T0 })]), seen: { a1: T0 + 100 } };
+    expect(noteSeen(s, [entry({ id: 'a1', updatedAt: T0 })], T0 + 50).seen).toEqual({ a1: T0 + 100 });
+    expect(noteSeen(s, [entry({ id: 'a1', updatedAt: T0 })], T0 + 200).seen).toEqual({ a1: T0 + 200 });
+  });
+
   it('prunePlan entfernt Zeitpunkte gekürzter Planspiele', () => {
     const s = storeWith([entry({ id: 'x', date: '2026-09-01', deleted: true }), entry({ id: 'a1' })], {
       seen: { x: T0, a1: T0 },
