@@ -14,10 +14,15 @@
 
 <!-- hell und dunkel, falls die Oberfläche betroffen ist -->
 
+## Design-Check
+
+<!-- Kurzfassung und "Meine Empfehlung" aus dem Skill design-check; behobene P0/P1, offene Empfehlungen. Oder: "entfällt, keine sichtbare Änderung" bzw. "nicht gelaufen: <Grund>". -->
+
 ## Checkliste
 
 - [ ] Keine echten Kindernamen (nur fiktive Namen wie Max, Ben, Tom)
 - [ ] Keine Farbwerte, Schriften oder Logos außerhalb von `design/`
 - [ ] Spec, Plan und Tasks passen zum Code
 - [ ] Hilfe aktualisiert (Einträge: …) oder keine für Nutzer sichtbare Änderung (Constitution IX)
+- [ ] Design-Check gelaufen (P0/P1 behoben, Rest an Atti) oder keine sichtbare Änderung
 - [ ] CI grün (Sammel-Check `ci`)
