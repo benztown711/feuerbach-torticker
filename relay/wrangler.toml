@@ -5,8 +5,9 @@ compatibility_date = "2026-10-01"
 workers_dev = true
 
 [vars]
-# R-N6: nur die App darf den Dienst aus dem Browser ansprechen (Komma-getrennt).
-ALLOWED_ORIGINS = "https://benztown711.github.io,http://localhost:4173"
+# R-N6: nur die App darf den Dienst aus dem Browser ansprechen (Komma-getrennt). Für `wrangler dev`
+# eine lokale Herkunft in `.dev.vars` ergänzen, z. B. ALLOWED_ORIGINS="https://benztown711.github.io,http://localhost:5173".
+ALLOWED_ORIGINS = "https://benztown711.github.io"
 
 [[durable_objects.bindings]]
 name = "SPIELTAG"

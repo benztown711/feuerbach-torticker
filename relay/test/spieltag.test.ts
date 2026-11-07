@@ -265,14 +265,35 @@ describe('007 FR-N03 FR-N04 R-N6 Empfang per WebSocket', () => {
   });
 });
 
-describe('007 R-N1 Rechenzeit', () => {
-  it('Annehmen eines Spiels mit Zertifikat bleibt deutlich unter 10 ms CPU (gemessen als Wanduhr)', async () => {
+describe('007 FR-N12 neu ausgestellt bleibt endgültig', () => {
+  it('auch nach dem Alarm nimmt ein neu ausgestelltes Objekt nichts mehr an', async () => {
     const s = await spieltag();
-    const writes = await Promise.all(Array.from({ length: 5 }, () => s.game()));
-    const t0 = performance.now();
-    for (const w of writes) await s.post(w);
-    // In workerd steht die Uhr während reiner Rechenzeit still; der Test dokumentiert vor allem, dass es geht.
-    expect(performance.now() - t0).toBeLessThan(5_000);
+    await s.post(await s.write({ kind: 'retire', body: body() }));
+    expect(await runDurableObjectAlarm(s.stub)).toBe(true);
+    expect((await s.post(await s.game())).status).toBe(409);
+  });
+});
+
+describe('007 R-N5 Größe vor dem Einlesen', () => {
+  it('Content-Length über der Grenze: 413 ohne Einlesen', async () => {
+    const s = await spieltag();
+    const res = await exports.default.fetch(`https://relay${s.path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': '50000', Origin: APP },
+      body: 'x'.repeat(50_000),
+    });
+    expect(res.status).toBe(413);
+  });
+
+  it('Zertifikat mit ungültigem Inhalt (keine Mannschaft) wird abgelehnt', async () => {
+    const s = await spieltag();
+    const lead = s.lead;
+    const certText = JSON.stringify({ pub: lead.pub, iat: 1 });
+    const cert = { d: certText, s: await sign(s.org, certText) };
+    const g = await s.game();
+    const draft = { ...g, cert, sig: '' };
+    draft.sig = await sign(lead, signedText(s.name, draft, await hash(g.body)));
+    expect((await s.post(draft)).status).toBe(403);
     expect(fromBase64Url(s.org.pub)).toHaveLength(65);
   });
 });

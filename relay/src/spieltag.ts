@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { fromBase64Url, toBase64Url } from '../../src/domain/base64url';
-import { isKey, isObj } from '../../src/domain/live-validate';
+import { MAX_KEY, isKey, isObj, isText } from '../../src/domain/live-validate';
 import {
   RETENTION_MS,
   acceptsCfg,
@@ -103,6 +103,9 @@ export class Spieltag extends DurableObject<Env> {
 
   /** R-N4, R-N5: Schreibanfrage prüfen, ordnen, speichern, verteilen. */
   private async write(request: Request, name: string): Promise<Response> {
+    // Größe vor dem Einlesen prüfen (Content-Length), danach noch einmal am Text.
+    const declared = Number(request.headers.get('content-length') ?? '0');
+    if (!Number.isFinite(declared) || declared > MAX_REQUEST) return json(413);
     const text = await request.text();
     if (text.length > MAX_REQUEST) return json(413);
     let raw: unknown;
@@ -148,7 +151,8 @@ export class Spieltag extends DurableObject<Env> {
     } catch {
       return null;
     }
-    if (!isObj(cert) || !isKey(cert.pub, 65)) return null;
+    // Wie parseLeadCert in der App (Spec 006 R-L5) mindestens Mannschaft und Schlüssel; den Rest prüft das Dashboard.
+    if (!isObj(cert) || !isText(cert.key, MAX_KEY) || !isKey(cert.pub, 65)) return null;
     const hash = await sha256(`${w.cert.d}|${w.cert.s}`);
     const known = this.sql.exec('SELECT 1 FROM cert WHERE hash = ?', hash).toArray().length > 0;
     if (!known) {
@@ -253,8 +257,14 @@ export class Spieltag extends DurableObject<Env> {
     }
   }
 
-  /** FR-N12: ein Jahr ohne Meldung: alles löschen. */
+  /** FR-N12: ein Jahr ohne Meldung: alles löschen; "neu ausgestellt" bleibt endgültig. */
   override async alarm(): Promise<void> {
+    this.schema();
+    const retired = this.retired();
     await this.ctx.storage.deleteAll();
+    if (retired) {
+      this.schema();
+      this.sql.exec("INSERT INTO meta (k, v) VALUES ('retired', 1)");
+    }
   }
 }
