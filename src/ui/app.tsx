@@ -68,7 +68,7 @@ export function App() {
       )}
       {route.name === 'liveDash' && <Lazy load={loadAppDashboard} props={{}} />}
       {route.name !== 'leadLink' && route.name !== 'liveView' && <NavBar route={route} />}
-      <UpdatePrompt blocked={route.name === 'game'} />
+      <UpdatePrompt route={route.name} />
     </>
   );
 }

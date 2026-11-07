@@ -67,15 +67,14 @@ function Chevron() {
 
 const STATE_TEXT: Record<RelayState, string> = {
   live: 'Live',
-  polling: 'Live, alle 30 Sekunden',
   connecting: 'Verbinde …',
   offline: 'Keine Verbindung',
 };
 
-/** "Stand" ist die letzte bestätigte Verbindung (keepalive, Abfrage, Meldung), nicht die Uhrzeit (FR-L15). */
+/** "Stand" ist die letzte bestätigte Verbindung (Lebenszeichen, Meldung), nicht die Uhrzeit (FR-L15). */
 function statusDetail(relay: RelayState, liveAt: number | null): string {
   const time = liveAt === null ? '' : `${formatClockTime(liveAt)} Uhr`;
-  if (relay === 'live' || relay === 'polling') return time && ` · Stand ${time}`;
+  if (relay === 'live') return time && ` · Stand ${time}`;
   const since = time && ` · Stand von ${time}`;
   return relay === 'offline' ? `${since}. Aktualisiert sich von selbst.` : since;
 }

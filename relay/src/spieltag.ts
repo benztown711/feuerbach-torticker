@@ -134,17 +134,23 @@ export class Spieltag extends DurableObject<Env> {
     return json(200, { seq });
   }
 
-  /** Signatur gegen den Organisator-Schlüssel bzw. das von ihm signierte Lead-Zertifikat (R-N4). */
+  /**
+   * Signatur gegen den Organisator-Schlüssel bzw. das von ihm signierte Lead-Zertifikat (R-N4). Ein Spiel ohne
+   * Zertifikat muss vom Organisator-Schlüssel signiert sein (Trainer-Handy, FR-N05).
+   */
   private async verified(name: string, w: RelayWrite): Promise<boolean> {
     const orgPub = name.slice(name.indexOf('.') + 1);
     const signed = signedText(name, w, await sha256(w.body));
-    if (w.kind !== 'game') return verify(orgPub, signed, w.sig);
-    const leadPub = await this.leadKey(orgPub, w);
+    if (w.kind !== 'game' || !w.cert) return verify(orgPub, signed, w.sig);
+    const leadPub = await this.leadKey(orgPub, w as GameWrite & { cert: NonNullable<GameWrite['cert']> });
     return leadPub !== null && verify(leadPub, signed, w.sig);
   }
 
   /** Öffentlicher Lead-Schlüssel aus einem gültigen Zertifikat; geprüfte Zertifikate werden gemerkt. */
-  private async leadKey(orgPub: string, w: GameWrite): Promise<string | null> {
+  private async leadKey(
+    orgPub: string,
+    w: GameWrite & { cert: NonNullable<GameWrite['cert']> },
+  ): Promise<string | null> {
     let cert: unknown;
     try {
       cert = JSON.parse(w.cert.d);

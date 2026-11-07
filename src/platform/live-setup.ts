@@ -54,7 +54,7 @@ export {
   type PlanChoice,
   type PlanEdit,
 } from './plan-sync';
-import { publish } from './relay';
+import { sendOrg } from './relay-write';
 import { shareText, type ShareResult } from './share';
 
 /** Spec 006 US1: Live-Spieltag anlegen, Links teilen, Lead-Link prüfen und koppeln. */
@@ -70,7 +70,9 @@ const deps = (): LiveDeps => ({
 
 /** Sendet die Konfiguration (Titel, Mannschaften), damit Zuschauer sie sofort haben (FR-L19). */
 export async function publishConfig(live: LiveSpieltag): Promise<boolean> {
-  return publish(live.topic, await sealMessage(live.viewKey, { config: live.config }));
+  const iat = configOf(live.config)?.iat;
+  if (!iat) return false;
+  return sendOrg(live, { kind: 'cfg', iat, body: await sealMessage(live.viewKey, { config: live.config }) });
 }
 
 /** FR-L01: anlegen und speichern; ersetzt einen bisherigen Live-Spieltag dieses Geräts. */
@@ -265,11 +267,14 @@ export async function reissueLive(): Promise<Settings> {
   return next;
 }
 
-/** Hinweis "neu ausgestellt" aufs alte Topic; ohne Netz erneut (5 s, 10 s, … bis gut 10 Minuten). */
+/**
+ * Hinweis "neu ausgestellt" aufs alte Topic; ohne Netz erneut (5 s, 10 s, … bis gut 10 Minuten). Spec 007 FR-N12:
+ * als `retire`, der Dienst löscht danach die Stände des alten Topics und nimmt dort nichts mehr an.
+ */
 async function announceRetired(old: LiveSpieltag, retired: SignedData): Promise<void> {
-  const text = await sealMessage(old.viewKey, { config: retired });
+  const body = await sealMessage(old.viewKey, { config: retired });
   for (let wait = 5_000; wait <= 320_000; wait *= 2) {
-    if (await publish(old.topic, text).catch(() => false)) return;
+    if (await sendOrg(old, { kind: 'retire', body }).catch(() => false)) return;
     await new Promise((r) => setTimeout(r, wait));
   }
 }

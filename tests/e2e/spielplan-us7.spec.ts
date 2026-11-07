@@ -7,7 +7,7 @@ import { setupPlan } from './plan-helpers';
  * Datum (das nächste aufgeklappt), darunter eingeklappt "Vergangene Spiele" mit Endstand. Heute ist Sa 07.11.2026.
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const entry = (i: string, k: string, d: string, more: Record<string, unknown> = {}) => ({

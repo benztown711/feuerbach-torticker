@@ -9,7 +9,7 @@ import { addGame, fillGame, openPlan, pendingCount, row, rows, setupPlan as setu
  * Uhr aller Geräte: Sa 07.11.2026, 10:41 (MATCHDAY).
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 test('015 US1-S1 Spiel hinzufügen: steht unter dem Datum und geht als Plan-Meldung hinaus', async ({

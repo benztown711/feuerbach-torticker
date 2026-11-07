@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04 (Backlog), überarbeitet 2026-11-07
 
-**Status**: Review A und Review B erledigt (07.11.2026, "passt"), Plan in Arbeit. Mockup "Letzte Spiele": https://claude.ai/artifact/GjfjzQUmiJYW8wBZByjxRx Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
+**Status**: Review A und Review B erledigt (07.11.2026, "passt"). PR A (Dienst, #69) übernommen, Dienst ausgeliefert (07.11.2026). PR B (App auf den eigenen Dienst, US1, US2) umgesetzt und übernommen (PR #73, Merge 07.11.2026 auf Attis Wunsch vor dem Leistungsligaspiel am 08.11.2026, dort erster Praxistest). Offen: PR C (US3 "Letzte Spiele"). Mockup "Letzte Spiele": https://claude.ai/artifact/GjfjzQUmiJYW8wBZByjxRx Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
 
 **Input**: Review B zu Spec 006 (04.11.2026): "Ich würde für den Moment C wählen und danach B angehen." Atti nach dem ersten Spieltag (07.11.2026): "Diese Daten werden doch eigentlich zentral gehostet oder?", "würde ein kostenloser zentraler Server helfen?", "cloudflare habe ich schon. solange alles kostenlos bleibt bin ich entspannt!"
 

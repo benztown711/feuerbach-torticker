@@ -14,17 +14,18 @@ import { isTime } from '../domain/live-validate';
 import { parsePayload } from '../domain/plan';
 import type { LiveConfig, SignedData, ViewerLink } from '../domain/types';
 import { openMessage, type OpenedMessage } from './live-crypto';
-import { subscribe, type RelayMessage, type RelayState, type SubscribeOptions } from './relay';
+import { subscribe, type RelayMessage, type RelayState, type RelayTarget, type SubscribeOptions } from './relay';
 
 /**
  * Spec 006 US3: empfängt die Meldungen eines Live-Spieltags, prüft sie (FR-L11) und führt den
  * Stand des Dashboards. Der letzte Stand wird im Gerät gemerkt (FR-L16), Fehler dabei ignoriert.
+ * Spec 007: mit dem Stand die zuletzt verarbeitete `seq`; beim nächsten Verbinden kommt nur Neueres.
  */
 
 export const STORAGE_PREFIX = 'torticker-live:';
 /**
- * Spec 006 FR-L22: so lange ohne neue Meldung gilt der erste Stand als geladen. ntfy schickt die
- * vorgehaltenen Meldungen direkt nach dem Verbinden, ohne Ende-Zeichen.
+ * Spec 006 FR-L22: so lange ohne neue Meldung gilt der erste Stand als geladen. Der Dienst schickt alles
+ * Gespeicherte gleich nach dem Verbinden (`hello`); geprüft wird nacheinander.
  */
 export const SETTLE_QUIET_MS = 300;
 
@@ -42,7 +43,7 @@ type KeyValueStore = Pick<Storage, 'getItem' | 'setItem'>;
 
 export interface ReceiverDeps {
   now(): number;
-  subscribe(topic: string, opts: SubscribeOptions): () => void;
+  subscribe(target: RelayTarget, opts: SubscribeOptions): () => void;
   open(view: View, text: string): Promise<OpenedMessage | null>;
   storage: KeyValueStore | null;
   timeZone?: string;
@@ -63,12 +64,16 @@ export class LiveReceiver {
   private pending = 0;
   private lastActivity: number | null = null;
   private readonly waiters = new Set<() => void>();
+  /** Spec 007: zuletzt verarbeitete `seq` (gemerkt mit dem Stand) und Kette der Prüfungen in Reihenfolge. */
+  private seq: number | undefined;
+  private chain: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly view: View,
     private readonly deps: ReceiverDeps,
   ) {
     const saved = this.load();
+    this.seq = saved.seq;
     this.state = { board: saved.board, relay: 'connecting', skew: 0, liveAt: saved.liveAt };
   }
 
@@ -80,12 +85,16 @@ export class LiveReceiver {
     return `${STORAGE_PREFIX}${this.view.topic}:${this.view.orgPub}`;
   }
 
-  private load(): { board: Board; liveAt: number | null } {
+  private load(): { board: Board; liveAt: number | null; seq?: number } {
     try {
       const raw = this.deps.storage?.getItem(this.key);
       const v = raw ? (JSON.parse(raw) as unknown) : null;
-      const liveAt = (v as { liveAt?: unknown } | null)?.liveAt;
-      return { board: parseBoard(v), liveAt: isTime(liveAt) ? liveAt : null };
+      const { liveAt, seq } = (v ?? {}) as { liveAt?: unknown; seq?: unknown };
+      return {
+        board: parseBoard(v),
+        liveAt: isTime(liveAt) ? liveAt : null,
+        ...(Number.isSafeInteger(seq) && (seq as number) > 0 ? { seq: seq as number } : {}),
+      };
     } catch {
       return { board: emptyBoard(), liveAt: null };
     }
@@ -95,7 +104,7 @@ export class LiveReceiver {
     try {
       this.deps.storage?.setItem(
         this.key,
-        JSON.stringify({ ...boardJson(this.state.board), liveAt: this.state.liveAt }),
+        JSON.stringify({ ...boardJson(this.state.board), liveAt: this.state.liveAt, seq: this.seq }),
       );
     } catch {
       // Speicher voll oder gesperrt (privates Surfen): Anzeige läuft trotzdem.
@@ -123,24 +132,28 @@ export class LiveReceiver {
 
   start(): void {
     if (this.stopRelay || this.stopped) return;
-    this.stopRelay = this.deps.subscribe(this.view.topic, {
-      since: '12h',
+    // Trainer-Handys übernehmen Konfiguration und Spielplan aus jeder Meldung: Sie holen immer alles, denn den
+    // gemerkten Stand kann auch ein Empfänger ohne Übernahme (Seite des Zuschauer-Links) geschrieben haben.
+    const adopts = this.deps.onConfig !== undefined || this.deps.onPlan !== undefined;
+    this.stopRelay = this.deps.subscribe(this.view, {
+      since: adopts ? undefined : this.seq,
       onMessage: (m) => {
         this.active(1);
-        void this.receive(m).finally(() => this.active(-1));
+        // Nacheinander, damit die gemerkte `seq` nie vor einer noch nicht verarbeiteten Meldung steht.
+        this.chain = this.chain
+          .then(() => this.receive(m))
+          .catch(() => undefined)
+          .finally(() => this.active(-1));
       },
       onServerTime: (sec) => {
-        // "open"/"keepalive" stehen im Stream vor den vorgehaltenen Meldungen: ab hier zählt die Ruhezeit.
+        // `hello` kommt vor den gespeicherten Meldungen: ab hier zählt die Ruhezeit.
         this.lastActivity = this.deps.now();
         this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() });
         this.wake();
       },
       onAlive: () => this.update({ liveAt: this.deps.now() }),
       onState: (relay) => {
-        const connected = relay === 'live' || relay === 'polling';
-        // Eine Abfrage (polling) liefert alles auf einmal und hat kein "open".
-        if (relay === 'polling') this.lastActivity = this.deps.now();
-        this.update(connected ? { relay, liveAt: this.deps.now() } : { relay });
+        this.update(relay === 'live' ? { relay, liveAt: this.deps.now() } : { relay });
         this.wake();
       },
     });
@@ -198,8 +211,11 @@ export class LiveReceiver {
   }
 
   private async receive(m: RelayMessage): Promise<void> {
+    if (this.stopped) return;
     const opened = await this.deps.open(this.view, m.message).catch((): null => null);
-    if (!opened || this.stopped) return;
+    if (this.stopped) return;
+    this.seq = Math.max(this.seq ?? 0, m.seq);
+    if (!opened) return;
     const at = m.time > 0 ? m.time * 1000 : this.serverNow();
     let board = this.state.board;
     const config = parseConfig(opened.config);

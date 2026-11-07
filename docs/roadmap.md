@@ -12,6 +12,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - **PR #68** (Spec 015 US3 und US7: Dashboard mit nächstem Spiel und Anstoß, Spielplan für Eltern, vergangene Spiele mit Endstand) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #70** (Spec 015 US6, "Ich tickere": Spiel vormerken, "Heute tickerst du" auf dem Startbildschirm; dazu Blätter scrollen auf kleinen iPhones) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #72** (Spec 015 US5, Kader "E1/E2" und "E3": mehrere Kader, Auswahl je Mannschaft, Aushilfen unter "Weitere Kinder", Sicherung mit Kadern und Spielplan) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026). Spec 015 ist damit vollständig.
+- **PR #73** (Spec 007 PR B: App spricht nur noch mit dem eigenen Dienst bei Cloudflare, US1 und US2; ntfy.sh entfällt) ist übernommen (Squash-Merge 07.11.2026, erster Praxistest beim Leistungsligaspiel am 08.11.2026). Hinweis in die Gruppen: "Torticker einmal öffnen und aktualisieren". Als Nächstes: Spec 007 PR C (US3 "Letzte Spiele").
 
 ## Kurzfassung des Reviews
 
@@ -60,7 +61,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | erledigt: Spec 015 (Spielplan mit Anstoß, Liste einfügen, N6; #63 bis #72) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
-| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | in Arbeit: Spec 007 Teil 1 (Review A am 07.11.2026; Antworten: Push später, Dienst blind, harter Wechsel, letzte 10 Spiele je Mannschaft, Links bleiben) |
+| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | in Arbeit: Spec 007 Teil 1, eigener Dienst live seit #73 (07.11.2026); offen PR C "Letzte Spiele" |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
 | C5 | Turniermodus (Spec 002) für das Hallenturnier am 04.01.2027 | 6 | Opus (Spec), Sonnet | bis Mitte Dezember | Zwei fremde Mannschaften, „Nächstes Spiel“ mit einem Tap | offen |
 | C6 | Saison-Torschützenliste in der Historie | 3 | Sonnet | niedrig | Nett, kein Muss | offen |
@@ -70,7 +71,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N7), harter Wechsel | in Arbeit (Spec 007) |
+| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N7), harter Wechsel | erledigt (#73, 07.11.2026) |
 | D2 | Hilfe-Eintrag „Dashboard zeigt nichts“ mit „Zwischenstand teilen“ als Ausweg | 1 | Haiku | mittel | Vor dem ersten Spieltag machbar | offen |
 
 ## E. Apple- und Android-Lizenz
@@ -105,6 +106,6 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
 | N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026); US3 und US7 Dashboard übernommen (#68, 07.11.2026); US6 "Ich tickere" übernommen (#70, 07.11.2026); US5 Kader übernommen (#72, 07.11.2026); Spec 015 vollständig |
 
-| N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
+| N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | erledigt: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit dem eigenen Dienst (#73) |
 
 (weitere hier anfügen)

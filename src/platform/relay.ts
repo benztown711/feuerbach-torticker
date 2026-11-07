@@ -1,53 +1,79 @@
+import { parseServerFrame, type RelayWrite } from '../domain/relay-protocol';
+
 /**
- * Spec 006 research.md R-L1, R-L2: Vermittlungsdienst ntfy.sh.
- * Senden per POST, Empfangen als JSON-Stream mit `fetch`; Neuverbindung mit `since=<letzte ID>`,
- * bei 429 (zu viele Verbindungen) Abfrage alle 30 s. Bei verborgener Seite ruht der Stream.
+ * Spec 007 research.md R-N6, contracts/relay-api.md: eigener Vermittlungsdienst (Cloudflare Worker).
+ * Senden per POST mit Ordnungsangaben und Schreibnachweis; Empfangen per WebSocket: `hello` mit allem
+ * Gespeicherten nach `since`, danach je Schreibvorgang `msg`. `ping` alle 30 s, Neuverbindung nach Stille, Abbruch
+ * und beim Zurückkehren in den Vordergrund. Bei verborgener Seite ruht die Verbindung.
  */
 
-export const RELAY_ORIGIN = 'https://ntfy.sh';
-export const POLL_MS = 30_000;
-/** Nach so vielen Abfragen (5 Minuten) wird wieder der Stream versucht. */
-export const POLLS_BEFORE_STREAM = 10;
-const MAX_BACKOFF_MS = 30_000;
-/**
- * ntfy schickt alle 45 s ein keepalive. Kommt so lange gar nichts, hängt der Stream (iOS hält ihn
- * manchmal still offen): abbrechen und neu verbinden, damit "Stand von" stimmt (FR-L15).
- */
+/** Adresse des Dienstes; nicht geheim (R-N8). Für Tests über `VITE_RELAY_ORIGIN` überschreibbar. */
+export const RELAY_ORIGIN: string =
+  (import.meta.env?.VITE_RELAY_ORIGIN as string | undefined) ?? 'https://torticker-relay.sportvg-feuerbach.workers.dev';
+/** R-N6: Lebenszeichen des Clients; der Dienst antwortet `pong` ohne aufzuwachen. */
+export const PING_MS = 30_000;
+/** Kommt so lange gar nichts (auch kein `pong`), hängt die Verbindung: neu aufbauen, damit "Stand von" stimmt (FR-L15). */
 export const STALL_MS = 90_000;
+const MAX_BACKOFF_MS = 30_000;
 
 export interface RelayMessage {
-  id: string;
+  /** Laufende Nummer beim Dienst (`seq`), für `since`. */
+  seq: number;
   /** Serverzeit in Sekunden. */
   time: number;
   message: string;
 }
 
-export type RelayState = 'connecting' | 'live' | 'offline' | 'polling';
+export type RelayState = 'connecting' | 'live' | 'offline';
+
+/** Objekt eines Live-Spieltags beim Dienst: Topic und Organisator-Schlüssel aus dem Zuschauer-Link (R-N4). */
+export interface RelayTarget {
+  topic: string;
+  orgPub: string;
+}
+
+const objectUrl = (t: RelayTarget): string => `${RELAY_ORIGIN}/v1/${t.topic}/${t.orgPub}`;
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
-/** Sendet einen Meldungstext; true bei Erfolg. Fehler (kein Netz, Dienst weg) ergeben false. */
-export async function publish(topic: string, text: string, fetchImpl: FetchLike = fetch): Promise<boolean> {
+/**
+ * Sendet eine signierte Schreibanfrage. true, wenn nichts mehr zu tun ist: angenommen (200), älter als der
+ * gespeicherte Stand (204) oder endgültig abgelehnt (andere 4xx; erneutes Senden änderte nichts). false bei
+ * fehlendem Netz, Gratis-Grenze (429) und Fehlern des Dienstes (5xx): dann später erneut.
+ * Ohne `content-type` (Text) ist die Anfrage "einfach" und braucht keine CORS-Vorabfrage.
+ */
+export async function publish(target: RelayTarget, write: RelayWrite, fetchImpl: FetchLike = fetch): Promise<boolean> {
   try {
-    const res = await fetchImpl(`${RELAY_ORIGIN}/${topic}`, { method: 'POST', body: text, cache: 'no-store' });
-    return res.ok;
+    const res = await fetchImpl(objectUrl(target), { method: 'POST', body: JSON.stringify(write), cache: 'no-store' });
+    return res.status < 500 && res.status !== 429 && res.status !== 408;
   } catch {
     return false;
   }
 }
 
+/** Was der Client von einer WebSocket-Verbindung braucht (Browser-`WebSocket` oder Testnachbau). */
+export interface SocketLike {
+  onopen: (() => void) | null;
+  onmessage: ((ev: { data: unknown }) => void) | null;
+  onclose: (() => void) | null;
+  onerror: (() => void) | null;
+  send(data: string): void;
+  close(): void;
+}
+
 export interface SubscribeOptions {
-  /** Startpunkt: Meldungs-ID oder Dauer; Vorgabe "12h" (alles, was der Dienst vorhält). */
-  since?: string;
+  /** Startpunkt: zuletzt empfangene `seq`; ohne: alles Gespeicherte. */
+  since?: number;
   onMessage: (m: RelayMessage) => void;
-  /** Serverzeit (Sekunden) aus `open`/`keepalive` für den Uhrenabgleich (R-L4). */
+  /** Serverzeit (Sekunden) aus `hello` für den Uhrenabgleich (R-L4); kommt vor den gespeicherten Meldungen. */
   onServerTime?: (seconds: number) => void;
   onState?: (s: RelayState) => void;
-  /** Jede erfolgreiche Antwort des Dienstes (auch eine Abfrage ohne neue Meldungen). */
+  /** Jedes Lebenszeichen des Dienstes (`hello`, `msg`, `pong`). */
   onAlive?: () => void;
-  fetchImpl?: FetchLike;
+  socket?: (url: string) => SocketLike;
   /** Sichtbarkeit der Seite; Vorgabe `document`. */
   visibility?: { hidden(): boolean; onChange(cb: () => void): () => void };
+  now?: () => number;
 }
 
 const docVisibility = {
@@ -59,17 +85,19 @@ const docVisibility = {
   },
 };
 
-/** Abonniert ein Topic; liefert die Funktion zum Beenden. */
-export function subscribe(topic: string, opts: SubscribeOptions): () => void {
-  const fetchImpl = opts.fetchImpl ?? fetch;
+/** Abonniert den Live-Spieltag; liefert die Funktion zum Beenden. */
+export function subscribe(target: RelayTarget, opts: SubscribeOptions): () => void {
+  const open = opts.socket ?? ((url: string) => new WebSocket(url) as unknown as SocketLike);
   const vis = opts.visibility ?? docVisibility;
-  let since = opts.since ?? '12h';
-  let polling = false;
-  let polls = 0;
+  const now = opts.now ?? Date.now;
+  const base = `${objectUrl(target).replace(/^http/, 'ws')}/ws`;
+  let since = opts.since;
   let stopped = false;
   let backoff = 1000;
-  let ctrl: AbortController | null = null;
-  let wake: (() => void) | null = null;
+  let socket: SocketLike | null = null;
+  let retry: ReturnType<typeof setTimeout> | null = null;
+  let beat: ReturnType<typeof setInterval> | null = null;
+  let lastFrame = 0;
   let state: RelayState | null = null;
 
   const setState = (s: RelayState): void => {
@@ -79,106 +107,104 @@ export function subscribe(topic: string, opts: SubscribeOptions): () => void {
     }
   };
 
-  /** Wartet `ms` oder bis `wake()` (Ende, Sichtbarkeit). */
-  const sleep = (ms: number): Promise<void> =>
-    new Promise((resolve) => {
-      const t = setTimeout(done, ms);
-      function done(): void {
-        clearTimeout(t);
-        wake = null;
-        resolve();
-      }
-      wake = done;
-    });
-
-  const offVis = vis.onChange(() => {
-    if (vis.hidden()) ctrl?.abort();
-    else wake?.();
-  });
-
-  const handle = (line: string): void => {
-    let ev: Record<string, unknown>;
+  /** Verbindung schließen, ohne dass ihr `onclose` noch etwas auslöst. */
+  const drop = (): void => {
+    if (beat !== null) clearInterval(beat);
+    beat = null;
+    const s = socket;
+    socket = null;
+    if (!s) return;
+    s.onopen = s.onmessage = s.onclose = s.onerror = null;
     try {
-      ev = JSON.parse(line) as Record<string, unknown>;
+      s.close();
     } catch {
-      return;
-    }
-    if ((ev.event === 'open' || ev.event === 'keepalive') && typeof ev.time === 'number') opts.onServerTime?.(ev.time);
-    if (ev.event === 'message' && typeof ev.id === 'string' && typeof ev.message === 'string') {
-      since = ev.id;
-      opts.onMessage({ id: ev.id, time: typeof ev.time === 'number' ? ev.time : 0, message: ev.message });
+      // schon zu
     }
   };
 
-  async function readLines(body: ReadableStream<Uint8Array>, abort: AbortController): Promise<void> {
-    const reader = body.getReader();
-    const dec = new TextDecoder();
-    let buf = '';
-    let watchdog = setTimeout(() => abort.abort(), STALL_MS);
+  const later = (): void => {
+    if (stopped || retry !== null || vis.hidden()) return;
+    setState('offline');
+    retry = setTimeout(() => {
+      retry = null;
+      connect();
+    }, backoff);
+    backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+  };
+
+  const deliver = (m: { seq: number; time: number; body: string }): void => {
+    since = Math.max(since ?? 0, m.seq);
+    opts.onMessage({ seq: m.seq, time: m.time, message: m.body });
+  };
+
+  const onFrame = (data: unknown): void => {
+    lastFrame = now();
+    if (data === 'pong') {
+      opts.onAlive?.();
+      return;
+    }
+    const frame = typeof data === 'string' ? parseServerFrame(data) : null;
+    if (!frame) return;
+    if (frame.t === 'hello') {
+      backoff = 1000;
+      setState('live');
+      opts.onServerTime?.(frame.time);
+      opts.onAlive?.();
+      for (const m of frame.msgs) deliver(m);
+      return;
+    }
+    opts.onAlive?.();
+    deliver(frame);
+  };
+
+  function connect(): void {
+    if (stopped || socket || vis.hidden()) return;
+    if (state !== 'offline') setState('connecting');
+    let s: SocketLike;
     try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        clearTimeout(watchdog);
-        if (done) break;
-        watchdog = setTimeout(() => abort.abort(), STALL_MS);
-        buf += dec.decode(value, { stream: true });
-        let nl = buf.indexOf('\n');
-        while (nl >= 0) {
-          const line = buf.slice(0, nl).trim();
-          buf = buf.slice(nl + 1);
-          if (line) handle(line);
-          nl = buf.indexOf('\n');
-        }
-      }
-    } finally {
-      clearTimeout(watchdog);
+      s = open(since === undefined ? base : `${base}?since=${since}`);
+    } catch {
+      later();
+      return;
     }
-    if (buf.trim()) handle(buf.trim());
-  }
-
-  async function run(): Promise<void> {
-    setState('connecting');
-    while (!stopped) {
-      if (vis.hidden()) {
-        await sleep(MAX_BACKOFF_MS);
-        continue;
+    socket = s;
+    lastFrame = now();
+    s.onmessage = (ev) => onFrame(ev.data);
+    s.onclose = s.onerror = () => {
+      drop();
+      later();
+    };
+    beat = setInterval(() => {
+      if (now() - lastFrame > STALL_MS) {
+        drop();
+        later();
+        return;
       }
-      const abort = new AbortController();
-      ctrl = abort;
-      const url = `${RELAY_ORIGIN}/${topic}/json?since=${encodeURIComponent(since)}${polling ? '&poll=1' : ''}`;
       try {
-        const res = await fetchImpl(url, { signal: abort.signal, cache: 'no-store' });
-        if (res.status === 429) {
-          polling = true;
-          setState('polling');
-          await sleep(POLL_MS);
-          continue;
-        }
-        if (!res.ok || !res.body) throw new Error(`Status ${res.status}`);
-        setState(polling ? 'polling' : 'live');
-        opts.onAlive?.();
-        await readLines(res.body, abort);
-        backoff = 1000;
-        if (polling && ++polls >= POLLS_BEFORE_STREAM) {
-          polling = false;
-          polls = 0;
-        }
-        await sleep(polling ? POLL_MS : 1000);
+        socket?.send('ping');
       } catch {
-        if (stopped) break;
-        if (vis.hidden()) continue;
-        setState('offline');
-        await sleep(backoff);
-        backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+        // Verbindung bricht ab: onclose baut neu auf.
       }
-    }
+    }, PING_MS);
   }
 
-  void run();
+  const offVis = vis.onChange(() => {
+    if (vis.hidden()) {
+      // iOS trennt im Hintergrund ohnehin; beim Zurückkehren sofort neu (R-N6).
+      drop();
+      return;
+    }
+    if (retry !== null) clearTimeout(retry);
+    retry = null;
+    backoff = 1000;
+    connect();
+  });
+
+  connect();
   return () => {
     stopped = true;
     offVis();
-    ctrl?.abort();
-    wake?.();
+    if (retry !== null) clearTimeout(retry);
+    drop();
   };
 }

@@ -157,6 +157,11 @@ export function guardRequests(page: Page, origin: string, foreign: string[], all
     const o = new URL(url).origin;
     if (o !== origin && !allowed.has(o)) foreign.push(url);
   });
+  // Spec 007: WebSocket-Verbindungen zählen mit (wss:// wie https://).
+  page.on('websocket', (ws) => {
+    const o = new URL(ws.url().replace(/^ws/, 'http')).origin;
+    if (o !== origin && !allowed.has(o)) foreign.push(ws.url());
+  });
 }
 
 /**
@@ -189,7 +194,7 @@ export const test = base.extend<{
     { auto: true },
   ],
   /**
-   * Spec 006 R-L8: Nachbau von ntfy.sh; nur Tests mit dieser Fixture dürfen ntfy.sh erreichen.
+   * Spec 007 T013: Nachbau des eigenen Vermittlungsdienstes; nur Tests mit dieser Fixture dürfen ihn erreichen.
    * Verlangt `test.use({ serviceWorkers: 'block' })`, sonst umgehen Anfragen in WebKit den Nachbau.
    */
   relay: async ({ context, allowedOrigins, serviceWorkers }, use) => {

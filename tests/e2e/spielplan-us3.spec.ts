@@ -10,7 +10,7 @@ import { addGame, openPlan, setupPlan, sync } from './plan-helpers';
  * Heute ist Sa 07.11.2026, 10:41 (MATCHDAY).
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 /** Planspiel in der Form der Plan-Meldung (contracts/plan-message.md). */

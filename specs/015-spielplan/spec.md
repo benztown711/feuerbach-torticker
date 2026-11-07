@@ -267,7 +267,7 @@ Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nac
 **Übertragen**
 
 - **FR-P06**: Der Spielplan MUSS wie die Konfiguration des Live-Spieltags übertragen werden: mit dem Organisator-Schlüssel signiert, verschlüsselt, über denselben Vermittlungsdienst, sofort bei jeder Änderung. Übertragen werden nur die Angaben aus FR-P02 und die Verknüpfung mit einem angelegten Spiel; keine Kindernamen.
-- **FR-P07**: Jedes Trainer-Handy MUSS den zuletzt empfangenen Spielplan speichern und beim Öffnen des Torticker die Planspiele ab heute erneut senden, die seit mehr als 6 Stunden weder von ihm gesendet noch in diesem Stand empfangen wurden; bei empfangenen Meldungen zählt ihre Sendezeit.
+- **FR-P07**: Jedes Trainer-Handy MUSS den zuletzt empfangenen Spielplan speichern und beim Öffnen des Torticker die Planspiele ab heute erneut senden, die seit mehr als 6 Stunden weder von ihm gesendet noch in diesem Stand empfangen wurden; bei empfangenen Meldungen zählt ihre Sendezeit. Seit Spec 007 hebt der eigene Dienst die Plan-Meldungen auf (FR-N03); das erneute Senden bleibt als Absicherung.
 - **FR-P08**: Spec 006 FR-L10 wird um den Spielplan (FR-P06) ergänzt.
 
 **Spiel aus dem Plan (US2)**

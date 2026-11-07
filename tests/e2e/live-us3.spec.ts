@@ -22,7 +22,7 @@ import {
  * Lead-Schlüssel aus dem Lead-Link, verschlüsselt mit dem Zuschauer-Schlüssel) über den Relay-Nachbau.
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const T = MATCHDAY;
@@ -339,22 +339,6 @@ test('006 US3-S10 FR-L11 gefälschte Meldungen werden ignoriert', async ({ page,
   await expect(v.getByTestId('dash-card-E1')).toBeVisible();
   await expect(v.getByTestId('dash-card-E2')).toHaveCount(0);
   await expect(v.locator('[data-game="falsch"]')).toHaveCount(0);
-});
-
-test('006 SC-L08 zu viele Verbindungen (429): Abfrage alle 30 s statt Stream', async ({
-  page,
-  recorded,
-  relay,
-  newDevice,
-}) => {
-  const links = await createLive(page, recorded, { teams: ['E1'] });
-  onMatchday(relay);
-  await sendAs(relay, links.trainer, e1At37());
-  relay.tooMany = true;
-  const v = await openViewer(newDevice, relay, links);
-  await expect(v.getByTestId('dash-status')).toHaveAttribute('data-state', 'polling');
-  await v.clock.fastForward(31_000);
-  await expect(v.getByTestId('dash-score-E1')).toHaveText('2:1');
 });
 
 test('006 R-L6 Start ohne eigene Daten öffnet das gemerkte Dashboard', async ({ page, recorded, relay, newDevice }) => {

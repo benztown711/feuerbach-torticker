@@ -9,7 +9,7 @@ import type { FakeRelay } from './relay';
  * kommen wie von anderen Trainer-Handys über den Relay-Nachbau.
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const E1 = 'Sportvg Feuerbach E1';

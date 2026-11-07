@@ -36,7 +36,11 @@ export interface GameWrite extends Base {
   h: number;
   at: number;
   gone: boolean;
-  cert: SignedData;
+  /**
+   * Lead-Zertifikat, nur von Handys ohne Organisator-Schlüssel (Lead-Link). Trainer-Handys signieren mit dem
+   * Organisator-Schlüssel und lassen es weg, denn es nennt Mannschaft und Trikotfarben im Klartext (FR-N05).
+   */
+  cert?: SignedData;
 }
 export interface CfgWrite extends Base {
   kind: 'cfg';
@@ -86,7 +90,7 @@ export function parseWrite(v: unknown): RelayWrite | null {
       isHandover(v.h) &&
       isMs(v.at) &&
       typeof v.gone === 'boolean' &&
-      isSignedData(v.cert);
+      (v.cert === undefined || isSignedData(v.cert));
     return ok
       ? {
           kind,
@@ -96,7 +100,7 @@ export function parseWrite(v: unknown): RelayWrite | null {
           at: v.at as number,
           gone: v.gone as boolean,
           ...base,
-          cert: v.cert as SignedData,
+          ...(v.cert === undefined ? {} : { cert: v.cert as SignedData }),
         }
       : null;
   }

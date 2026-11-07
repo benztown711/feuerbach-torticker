@@ -36,7 +36,7 @@ import type { LiveSpieltag, PlanEntry, PlanStore, Score } from '../domain/types'
 import { getPlan, getSettings, putPlan, putSettings } from './db';
 import { sealMessage, signData } from './live-crypto';
 import { planChanged } from './live-events';
-import { publish } from './relay';
+import { sendOrg } from './relay-write';
 
 /**
  * Spec 015 US1: Spielplan laden, ändern, senden und von anderen Trainer-Handys übernehmen (plan.md, R-P1 bis
@@ -134,7 +134,9 @@ async function sendEntries(live: LiveSpieltag, entries: readonly PlanEntry[]): P
   if (!live.orgKey) return false;
   for (const chunk of chunkEntries(entries, MAX_PLAN_SIGNED)) {
     const plan = await signData(live.orgKey, encodePayload(chunk));
-    const ok = await publish(live.topic, await sealMessage(live.viewKey, { plan })).catch(() => false);
+    const ok = await sendOrg(live, { kind: 'plan', body: await sealMessage(live.viewKey, { plan }) }).catch(
+      () => false,
+    );
     if (!ok) return false;
   }
   return true;

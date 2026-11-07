@@ -553,10 +553,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Kann ich das Spiel schon am Vorabend anlegen?',
     answer:
-      'Ja. Öffne am Spieltag einmal kurz den Torticker, zum Beispiel morgens oder bei der Ankunft am Platz. Dann schickt dein Handy das angelegte Spiel erneut, und alle Eltern sehen es mit „noch nicht angepfiffen“. Der kostenlose Dienst hält Stände nur rund 12 Stunden vor; ohne das Öffnen erscheint das Spiel bei manchen Eltern erst mit dem Anpfiff.',
-    keywords:
-      'vorabend vorher anlegen vorbereiten abend früher fehlt nicht sichtbar eltern sehen nicht nur ein spiel 12 stunden',
-    sources: ['006 US2'],
+      'Ja. Das angelegte Spiel geht gleich an den Dienst des Live-Spieltags, und der hebt es auf. Alle Eltern sehen es mit „noch nicht angepfiffen“, auch wer den Zuschauer-Link erst am Spieltag öffnet. Den Torticker musst du dafür am Spieltag nicht vorher öffnen.',
+    keywords: 'vorabend vorher anlegen vorbereiten abend früher fehlt nicht sichtbar eltern sehen nicht nur ein spiel',
+    sources: ['006 US2', '007 US1'],
     related: ['live-senden', 'eltern-dashboard'],
   },
   {
@@ -646,9 +645,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Warum fehlt ein Spiel im Spielplan?',
     answer:
-      'Der Spielplan kommt über den Vermittlungsdienst, und der hält Meldungen nur rund 12 Stunden. Ein Handy, das den Torticker länger nicht geöffnet hat, verpasst Änderungen. Jedes Trainer-Handy sendet den Plan beim Öffnen erneut, wenn die letzte Meldung älter als 6 Stunden ist; oft hilft es also, den Torticker auf einem anderen Trainer-Handy zu öffnen. Schneller geht es mit „Spielplan teilen“ auf einem Handy mit vollständigem Plan und „Liste einfügen“ auf deinem. Zur Not legst du das Spiel unter „Neues Spiel“ von Hand an.',
-    keywords: 'fehlt nicht da verschwunden leer abgleich synchron 12 stunden aktualisieren anderes handy',
-    sources: ['015 FR-P07'],
+      'Der Spielplan kommt über den Dienst des Live-Spieltags. Er hebt die Änderungen auf, und jedes Trainer-Handy holt sie beim Öffnen, auch nach Tagen. Fehlt trotzdem ein Spiel, hat das Handy, auf dem es eingetragen wurde, vermutlich noch kein Netz gehabt: Dort einmal den Torticker mit Netz öffnen. Schneller geht es mit „Spielplan teilen“ auf einem Handy mit vollständigem Plan und „Liste einfügen“ auf deinem. Zur Not legst du das Spiel unter „Neues Spiel“ von Hand an.',
+    keywords: 'fehlt nicht da verschwunden leer abgleich synchron aktualisieren anderes handy',
+    sources: ['015 FR-P07', '007 US2'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['spielplan-liste', 'spielplan', 'spiel-aus-plan'],
   },
@@ -808,9 +807,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'datenschutz',
     title: 'Welche Daten verlassen mein Handy?',
     answer:
-      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Beim Live-Spieltag werden Mannschaften und Spielstände verschlüsselt übertragen; Kader, Karten und Lesezeichen bleiben auf dem Handy.',
-    keywords: 'datenschutz daten privat verschlüsselt server tracking',
-    sources: ['006 US2'],
+      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Beim Live-Spieltag gehen Mannschaften, Spielplan und Spielstände verschlüsselt an einen eigenen Dienst des Vereins bei Cloudflare (Gratis-Plan, ohne Konto für Eltern und Trainer). Der Dienst kann nichts davon lesen; er hebt je Mannschaft die letzten 10 Spiele auf und löscht alles, wenn ein Jahr lang nichts kommt oder die Links neu ausgestellt werden. Kader, Karten und Lesezeichen bleiben auf dem Handy.',
+    keywords: 'datenschutz daten privat verschlüsselt server tracking cloudflare dienst speichern löschen',
+    sources: ['006 US2', '007 FR-N05', '007 FR-N12'],
     parents: true,
     related: ['eltern-teilen'],
   },

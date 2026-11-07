@@ -8,7 +8,7 @@ import { addGame, openPlan, row, rows, setupPlan, sync } from './plan-helpers';
  * fehlerhafte Zeilen bleiben draußen. "Spielplan teilen" gibt dieselbe Liste wieder aus. Heute ist Sa 07.11.2026.
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const preview = (page: Page) => page.locator('[data-testid^="plan-preview-row-"]');

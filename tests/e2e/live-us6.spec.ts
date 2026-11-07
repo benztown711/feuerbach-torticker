@@ -9,7 +9,7 @@ import type { FakeRelay } from './relay';
  * Trainer-Link ein und legt ebenfalls ein E2-Spiel an.
  */
 
-// Service Worker blockieren, damit WebKit die Anfragen an ntfy.sh durch den Relay-Nachbau leitet (fixtures.ts).
+// Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
 
 const E2 = 'Sportvg Feuerbach E2';
