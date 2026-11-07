@@ -68,12 +68,12 @@ function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: S
               `„${titleOf(live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link ein.`
             ) : (
               <>
-                <strong>Trainer?</strong> Füge den Trainer-Link aus der Trainergruppe ein.
+                <strong>Trainer?</strong> Füge den Link aus der Trainergruppe ein.
               </>
             )}
           </p>
           <button type="button" class="btn btn--secondary" data-testid="btn-start-paste" onClick={onPaste}>
-            Trainer-Link einfügen
+            Link einfügen
           </button>
           {msg && (
             <p class="field__error" role="status">

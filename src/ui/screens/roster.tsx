@@ -37,6 +37,7 @@ import { onSquadsChanged } from '../../platform/live-events';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { usePlayers } from '../hooks';
+import { takeList } from '../paste-handoff';
 import { navigate } from '../router';
 
 const WARNING_TEXT: Record<ImportWarning, string> = {
@@ -209,8 +210,10 @@ function PasteList(props: {
   shownId: string;
   onApply: (players: Player[], squads: Squad[] | null, shownId: string) => void;
   onCancel: () => void;
+  /** Spec 016 FR-B15: Kader-Liste aus "Link einfügen". */
+  initial?: string;
 }) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(props.initial ?? '');
   // Spec 015 FR-P23: Zielkader aus der ersten Zeile ("Kader E3:"), sonst der angezeigte; fehlt er, wird er angelegt.
   const [newSquadId] = useState(newId);
   const target = importTarget(props.squads, props.shownId, text, () => newSquadId);
@@ -341,7 +344,9 @@ const sync = () => import('../../platform/squad-sync');
 /** Kader (US5, US7): Spieler pflegen, Liste einfügen, Kader teilen; Spec 015 US5: mehrere benannte Kader. */
 export function RosterScreen() {
   const [players, reload] = usePlayers();
-  const [mode, setMode] = useState<Mode>({ kind: 'list' });
+  // Spec 016 FR-B15: von "Link einfügen" übergebene Kader-Liste gleich in der Vorschau.
+  const [handed, setHanded] = useState(takeList);
+  const [mode, setMode] = useState<Mode>(handed === null ? { kind: 'list' } : { kind: 'paste' });
   const [toDelete, setToDelete] = useState<Player | null>(null);
   const [squadToDelete, setSquadToDelete] = useState<Squad | null>(null);
   /** Spec 016 FR-B01: Rückfrage vor "nicht mehr teilen". */
@@ -438,8 +443,13 @@ export function RosterScreen() {
           players={players}
           squads={squads}
           shownId={shownId}
-          onCancel={() => setMode({ kind: 'list' })}
+          initial={handed ?? undefined}
+          onCancel={() => {
+            setHanded(null);
+            setMode({ kind: 'list' });
+          }}
           onApply={(next, nextSquads, target) => {
+            setHanded(null);
             setShown(target);
             void (nextSquads ? saveSquads(nextSquads) : Promise.resolve()).then(() => save(next));
           }}

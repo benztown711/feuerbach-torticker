@@ -9,7 +9,6 @@ export const ROSTER = '7 Max\n9 Ben\n10 Tom\n11 Leo\n14 Maxi\n4 Paul';
 
 export const squadTabs = (page: Page) => page.getByTestId('roster-squads').getByRole('button');
 export const squadTab = (page: Page, name: RegExp) => page.getByTestId('roster-squads').getByRole('button', { name });
-export const rosterNames = (page: Page) => page.getByTestId('roster-list').locator('.roster-row__name');
 
 /** Kader "E1/E2" mit Max, Ben, Tom, Leo, Maxi und "E3" mit Paul; E3 spielt mit "E3". */
 export async function twoSquads(page: Page, teamE3Row = 2): Promise<void> {

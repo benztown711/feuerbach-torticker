@@ -25,7 +25,7 @@ test('012 US1-S1 US1-S2 US1-S5 Startbildschirm: Karte, Trainer-Link aus der Zwis
   const b = await newDevice();
   await b.goto('./');
   const card = b.getByTestId('start-trainer-card');
-  await expect(card).toContainText('Trainer? Füge den Trainer-Link aus der Trainergruppe ein.');
+  await expect(card).toContainText('Trainer? Füge den Link aus der Trainergruppe ein.');
   await expect(b.getByTestId('start-live-line')).toHaveCount(0);
 
   await setClipboard(b, `Hier der Trainer-Link:\n${links.trainer}\n`);

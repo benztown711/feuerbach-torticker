@@ -3,16 +3,7 @@ import { expect, test } from './fixtures';
 import { chipLabel, forward } from './helpers';
 import { createLive, pasteLink, type LiveLinks } from './live-helpers';
 import type { Recorded } from './fixtures';
-import {
-  rosterNames,
-  settle,
-  shareTrainerWithSquads,
-  squadTab,
-  squadTabs,
-  teamSquad,
-  twoSquads,
-  writes,
-} from './paket-helpers';
+import { settle, shareTrainerWithSquads, squadTab, squadTabs, teamSquad, twoSquads, writes } from './paket-helpers';
 
 /**
  * Spec 016 US3: Änderungen an geteilten Kadern kommen auf allen Trainer-Handys an, ohne Teilen oder Einfügen,

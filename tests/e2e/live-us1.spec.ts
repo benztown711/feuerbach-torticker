@@ -99,7 +99,7 @@ test('006 US1-S2 Abbrechen koppelt nicht; ungültige und veränderte Links werde
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill('irgendein Text');
   await b.getByTestId('paste-link-apply').click();
-  await expect(b.getByTestId('paste-link-error')).toContainText('Kein gültiger Link');
+  await expect(b.getByTestId('paste-link-error')).toHaveText('Link oder Kader-Liste aus der Trainergruppe einfügen.');
 
   // Privater Organisator-Schlüssel verändert: passt nicht mehr zum öffentlichen Schlüssel des Zuschauer-Links
   // (kurzer Trainer-Link, research.md R-L20: Byte 119 ist das erste Byte des Schlüssels).

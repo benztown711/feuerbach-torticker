@@ -1,11 +1,17 @@
 import { useState } from 'preact/hooks';
 import { findLink, viewerLinkPath } from '../../domain/live-link';
+import { isSquadList } from '../../domain/squad-list';
 import { verifyLink, type VerifiedLink } from '../../platform/live-setup';
+import { handOffList } from '../paste-handoff';
 import { navigate } from '../router';
+
+/** Spec 016 FR-B16: Hinweis, wenn weder Link noch Kader-Liste erkannt wurde. */
+export const NOTHING_USABLE = 'Link oder Kader-Liste aus der Trainergruppe einfügen.';
 
 /**
  * Spec 006 FR-L03, Spec 012 FR-S02: Einfügefeld für Trainer-, Lead- und Zuschauer-Link. Ein Zuschauer-Link öffnet
- * das Dashboard; ein geprüfter Trainer- oder Lead-Link geht an `onLink` (Kopplungsfrage).
+ * das Dashboard; ein geprüfter Trainer- oder Lead-Link geht an `onLink` (Kopplungsfrage). Spec 016 FR-B16: eine
+ * Kader-Liste öffnet die Vorschau unter "Kader".
  */
 export function PasteLink({
   onCancel,
@@ -28,7 +34,13 @@ export function PasteLink({
       return;
     }
     if (link.kind === 'invalid') {
-      setError('Kein gültiger Link. Bitte den ganzen Link aus WhatsApp kopieren.');
+      // Spec 016 FR-B16: auch eine Kader-Liste aus "Kader teilen" geht hier.
+      if (isSquadList(text)) {
+        handOffList(text);
+        navigate('/kader');
+        return;
+      }
+      setError(NOTHING_USABLE);
       return;
     }
     const verified = await verifyLink(link);
@@ -46,14 +58,14 @@ export function PasteLink({
     >
       <div class="field">
         <label class="field__label t-label" for="paste-link">
-          LINK
+          LINK ODER KADER-LISTE
         </label>
         <textarea
           id="paste-link"
           class="textarea"
           rows={4}
           data-testid="paste-link-input"
-          placeholder="Link aus WhatsApp hier einfügen"
+          placeholder="Link oder Kader-Liste aus WhatsApp hier einfügen"
           value={text}
           onInput={(e) => {
             setText((e.target as HTMLTextAreaElement).value);
