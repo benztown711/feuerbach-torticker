@@ -590,7 +590,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie füge ich den ganzen Spielplan auf einmal ein?',
     answer:
-      'Unter „Spielplan“ tippst du auf „Liste einfügen“ und setzt eine Liste ein, eine Zeile je Spiel, z. B. „So 15.11. 10:00 E1 auswärts SV Beispielhausen (Leistungsliga, 3×25)“. Anstoß, Wettbewerb und Spielzeit dürfen fehlen; „?“ heißt Gegner offen. Die Vorschau zeigt, was erkannt wurde; fehlerhafte Zeilen bleiben draußen. Steht ein Spiel schon im Plan (gleiche Mannschaft, gleicher Tag, gleicher Gegner), wird es aktualisiert. „Spielplan teilen“ gibt dieselbe Liste aus, z. B. für die Elterngruppe.',
+      'Unter „Spielplan“ tippst du auf „Liste einfügen“ und setzt eine Liste ein, eine Zeile je Spiel, z. B. „So 15.11. 10:00 E1 auswärts SV Beispielhausen (Leistungsliga, 3×25)“. Anstoß, Wettbewerb und Spielzeit dürfen fehlen; „?“ heißt Gegner offen. Die Vorschau zeigt, was erkannt wurde; fehlerhafte Zeilen bleiben draußen. Steht ein Spiel schon im Plan (gleiche Mannschaft, gleicher Tag, gleicher Gegner), wird es aktualisiert; ein Spiel mit „?“ bekommt so seinen Gegner. „Spielplan teilen“ gibt dieselbe Liste aus, z. B. für die Elterngruppe.',
     steps: [
       '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
       '„Liste einfügen“ tippen, die Liste einsetzen und „Weiter“ tippen.',

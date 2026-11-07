@@ -162,6 +162,12 @@ const sameGame = (e: PlanEntry, input: PlanInput): boolean =>
   e.date === input.date &&
   e.opponent.toLowerCase() === input.opponent.toLowerCase();
 
+/** Genau ein Platzhalter "Gegner offen" derselben Mannschaft am selben Tag bekommt den Gegner aus der Liste. */
+function placeholderFor(entries: readonly PlanEntry[], input: PlanInput): PlanEntry | undefined {
+  const open = entries.filter((e) => !e.deleted && e.team === input.team && e.date === input.date && !e.opponent);
+  return open.length === 1 ? open[0] : undefined;
+}
+
 const sameAngaben = (e: PlanEntry, input: PlanInput): boolean =>
   (e.time ?? '') === input.time &&
   e.venue === input.venue &&
@@ -170,8 +176,8 @@ const sameAngaben = (e: PlanEntry, input: PlanInput): boolean =>
   (e.schema ? schemaText(e.schema) : '') === (input.schema ? schemaText(input.schema) : '');
 
 /**
- * US4-S4, FR-P17: Zeilen übernehmen. Vorhandene Spiele werden aktualisiert (nur bei Änderung), neue angelegt,
- * solange Platz ist (FR-P03). Gleiche Zeilen ein zweites Mal ändern nichts.
+ * US4-S4, FR-P17: Zeilen übernehmen. Vorhandene Spiele werden aktualisiert (nur bei Änderung), auch ein
+ * Platzhalter "Gegner offen", neue angelegt, solange Platz ist (FR-P03). Gleiche Zeilen ein zweites Mal ändern nichts.
  */
 export function importPlan(
   store: PlanStore,
@@ -182,7 +188,9 @@ export function importPlan(
 ): { store: PlanStore; statuses: ImportStatus[] } {
   let next = store;
   const statuses = inputs.map((input): ImportStatus => {
-    const match = next.entries.find((e) => sameGame(e, input));
+    const match =
+      next.entries.find((e) => sameGame(e, input)) ??
+      (input.opponent ? placeholderFor(next.entries, input) : undefined);
     if (match) {
       if (sameAngaben(match, input)) return 'unverändert';
       next = updateEntry(next, match.id, input, now)!.store;

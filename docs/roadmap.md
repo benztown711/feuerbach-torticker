@@ -7,7 +7,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 ## Übergabe (Stand 07.11.2026)
 
 - **PR #63** (Spec 015 Spielplan, US1 und US2) ist übernommen (Squash-Merge 07.11.2026 nach den Samstagsspielen).
-- **Spec 015 US4** (Liste einfügen und teilen) ist umgesetzt im Arbeitsbranch `claude/sharp-brahmagupta-kxgyie` (Draft-PR); offen ist Review C von Atti, gemergt wird erst auf "Merge #x".
+- **Spec 015 US4** (Liste einfügen und teilen) ist umgesetzt im Arbeitsbranch `claude/sharp-brahmagupta-kxgyie` (PR #66); offen ist Review C von Atti, gemergt wird erst auf "Merge #66".
 - Nach dem Merge von US4 (Atti): unter "Mehr" → "Live-Spieltag" → "Spielplan" → "Liste einfügen" den Inhalt von `docs/spielplan-hinrunde-2026.txt` einsetzen. Vergangene Zeilen zeigt die Vorschau mit "Datum vorbei" und lässt sie weg; schon von Hand eingetragene Spiele (gleiche Mannschaft, Tag, Gegner) werden aktualisiert statt doppelt angelegt. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
 - Nächste Schritte Spec 015 (siehe `specs/015-spielplan/tasks.md`): US3 und US7 (Dashboard: nächstes Spiel, Spielplan, vergangene Spiele mit Endstand), US6 ("Ich tickere"), US5 (Kader "E1/E2" und "E3").
 
@@ -101,6 +101,6 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 
 | N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
-| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen umgesetzt, Review C offen |
+| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen in #66, Review C offen |
 
 (weitere hier anfügen)

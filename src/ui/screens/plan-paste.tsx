@@ -3,6 +3,7 @@ import type { LiveTeamOption } from '../../domain/live-spieltag';
 import { entryDetail, entryTitle, formatPlanDate, todayKey, type PlanInput } from '../../domain/plan';
 import { importPlan, missingTeams, parsePlanList, type ListRow } from '../../domain/plan-list';
 import type { LiveSpieltag, PlanEntry, PlanStore } from '../../domain/types';
+import { readClipboard } from '../clipboard';
 
 /** Spec 015 US4: "Spielplan" → "Liste einfügen" mit Vorschau (FR-P16 bis FR-P18, Mockup "Liste einfügen"). */
 
@@ -10,16 +11,6 @@ const EXAMPLE = [
   'Sa 14.11. 12:00 E1 heim TSV Musterstadt (Kreisstaffel, 2×25)',
   'So 15.11. 10:00 E2 auswärts SV Beispielhausen (Leistungsliga, 3×25)',
 ].join('\n');
-
-/** Spec 012 FR-S02: Zwischenablage lesen, direkt im Tipp (iOS verlangt die Berührung); null = nicht lesbar. */
-function readClipboard(): Promise<string | null> {
-  try {
-    const read = navigator.clipboard?.readText?.();
-    return read ? read.catch(() => null) : Promise.resolve(null);
-  } catch {
-    return Promise.resolve(null);
-  }
-}
 
 const asEntry = (input: PlanInput): PlanEntry => ({
   id: '',
@@ -71,28 +62,6 @@ export function PlanPaste({
   const [step, setStep] = useState<'text' | 'preview'>('text');
   const [clipMsg, setClipMsg] = useState('');
 
-  const today = todayKey(Date.now());
-  const rows = parsePlanList(
-    text,
-    today,
-    live.teams.map((t) => t.key),
-  );
-  const ok = rows.filter((r): r is ListRow & { input: PlanInput } => r.problem === null && r.input !== null);
-  const inputs = ok.map((r) => r.input);
-  let n = 0;
-  // Wie es beim Übernehmen ausgeht, auf einer Kopie des Plans (Vorschau-Kennungen werden verworfen).
-  const statuses = importPlan(store, inputs, today, Date.now(), () => `v${n++}`).statuses;
-  const count = statuses.filter((s) => s === 'neu' || s === 'aktualisiert').length;
-  const shown = ok.map((r, i) => ({ row: r, status: statuses[i] })).filter((x) => x.status !== 'voll');
-  const warnings: Warning[] = [
-    ...rows.filter((r) => r.problem !== null),
-    ...ok.filter((_, i) => statuses[i] === 'voll').map((r) => ({ ...r, hint: 'Der Spielplan ist voll (100 Spiele).' })),
-  ].sort((a, b) => a.line - b.line);
-  const missing = missingTeams(
-    rows,
-    addable.map((o) => o.key),
-  );
-
   const paste = (): void => {
     setClipMsg('');
     void readClipboard().then((t) => {
@@ -135,7 +104,7 @@ export function PlanPaste({
             type="button"
             class="btn btn--primary"
             data-testid="plan-paste-next"
-            disabled={rows.length === 0}
+            disabled={text.trim() === ''}
             onClick={() => setStep('preview')}
           >
             Weiter
@@ -144,6 +113,29 @@ export function PlanPaste({
       </main>
     );
   }
+
+  // Vorschau erst hier berechnen, nicht bei jedem Tastendruck im Textfeld.
+  const today = todayKey(Date.now());
+  const rows = parsePlanList(
+    text,
+    today,
+    live.teams.map((t) => t.key),
+  );
+  const ok = rows.filter((r): r is ListRow & { input: PlanInput } => r.problem === null && r.input !== null);
+  const inputs = ok.map((r) => r.input);
+  let n = 0;
+  // Wie es beim Übernehmen ausgeht, auf einer Kopie des Plans (Vorschau-Kennungen werden verworfen).
+  const statuses = importPlan(store, inputs, today, Date.now(), () => `v${n++}`).statuses;
+  const count = statuses.filter((s) => s === 'neu' || s === 'aktualisiert').length;
+  const shown = ok.map((r, i) => ({ row: r, status: statuses[i] })).filter((x) => x.status !== 'voll');
+  const warnings: Warning[] = [
+    ...rows.filter((r) => r.problem !== null),
+    ...ok.filter((_, i) => statuses[i] === 'voll').map((r) => ({ ...r, hint: 'Der Spielplan ist voll (100 Spiele).' })),
+  ].sort((a, b) => a.line - b.line);
+  const missing = missingTeams(
+    rows,
+    addable.map((o) => o.key),
+  );
 
   return (
     <main class="page">

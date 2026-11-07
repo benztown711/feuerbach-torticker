@@ -5,6 +5,7 @@ import type { Game, Settings } from '../../domain/types';
 import { findOpenGame, getSettings, listGames } from '../../platform/db';
 import { onLiveSettings } from '../../platform/live-events';
 import { navigate, parseHash } from '../router';
+import { readClipboard } from '../clipboard';
 
 const base = import.meta.env.BASE_URL;
 
@@ -27,16 +28,6 @@ async function viewerToOpen(): Promise<string | null> {
 }
 
 type StartCoupleModule = typeof import('../components/start-couple');
-
-/** Spec 012 FR-S02: Zwischenablage lesen, direkt im Tipp (iOS verlangt die Berührung); null = nicht lesbar. */
-function readClipboard(): Promise<string | null> {
-  try {
-    const read = navigator.clipboard?.readText?.();
-    return read ? read.catch(() => null) : Promise.resolve(null);
-  } catch {
-    return Promise.resolve(null);
-  }
-}
 
 /** Spec 012 FR-S01, FR-S04: Hinweis zum Koppeln bzw. Zeile "Live: …" unter "Neues Spiel". */
 function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: Settings) => void }) {

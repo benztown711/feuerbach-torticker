@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt (Draft-PR), Review C offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt (PR #66), Review C offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -73,6 +73,7 @@
 - Entscheidung: Eine Zeile, die genau dem Planspiel entspricht, ändert nichts ("unverändert") und geht nicht erneut hinaus; sind alle Zeilen unverändert, heißt der Knopf "Nichts Neues".
 - Entscheidung: "Spielplan teilen" lässt abgesagte Spiele weg; Wochentag und Datum ohne Jahr, damit die Liste in WhatsApp gut lesbar bleibt.
 - Entscheidung: Ist der Plan voll (100 Spiele, FR-P03), zeigt die Vorschau weitere neue Zeilen mit Hinweis; Aktualisieren vorhandener Spiele geht weiter.
+- Befund im Code-Review (FR-P17): Der Platzhalter "So 15.11. E2 heim ?" wäre beim Einfügen der Liste mit bekanntem Gegner doppelt entstanden. Entscheidung: Genau ein Platzhalter derselben Mannschaft am selben Tag wird aktualisiert; bei mehreren bleibt es bei einem neuen Spiel.
 - Befund beim Prüfen (FR-P07): Ein Handy, das beim Öffnen ältere Plan-Meldungen vom Vermittlungsdienst nachlas, hielt sie für gerade gesendet und sendete den Plan deshalb nicht erneut. Korrektur: Maßgeblich ist die Sendezeit der empfangenen Meldung; eine ältere Meldung macht den Zeitpunkt nie früher.
 - Erlaubte Schreibweisen zusätzlich zum Format: Wochentag ausgeschrieben ("Samstag,"), Datum mit Jahr ("14.11.2026" oder "14.11.26"), Anstoß "9.30 Uhr", "auswaerts", Spielzeit "2 x 20 min", Aufzählungszeichen am Zeilenanfang, Mannschaft in Klein- oder Großbuchstaben.
 
@@ -260,7 +261,7 @@ Unter den Karten steht auf dem Dashboard "Spielplan": alle kommenden Spiele, nac
 **Liste einfügen und teilen (US4)**
 
 - **FR-P16**: "Spielplan" MUSS "Liste einfügen" anbieten: Textfeld (Zwischenablage wie Spec 012 FR-S02), Vorschau mit erkannten Spielen und Hinweisen je Zeile (Format, unbekannte Mannschaft, Wochentag passt nicht zum Datum, Datum vorbei), dann "Übernehmen". Format siehe US4 Szenario 1 und 2.
-- **FR-P17**: Eine eingefügte Zeile zu einem vorhandenen Planspiel (gleiche Mannschaft, gleiches Datum, gleicher Gegner ohne Groß- und Kleinschreibung) MUSS dieses aktualisieren.
+- **FR-P17**: Eine eingefügte Zeile zu einem vorhandenen Planspiel (gleiche Mannschaft, gleiches Datum, gleicher Gegner ohne Groß- und Kleinschreibung) MUSS dieses aktualisieren. Gibt es keines, aber genau einen Platzhalter "Gegner offen" dieser Mannschaft an diesem Tag, bekommt dieser den Gegner aus der Zeile.
 - **FR-P18**: Nennt eine Zeile eine Mannschaft aus "Meine Mannschaften", die nicht zum Live-Spieltag gehört, MUSS die Vorschau "<Mannschaft> zum Live-Spieltag hinzufügen" anbieten.
 - **FR-P19**: "Spielplan teilen" MUSS alle Spiele ab heute (ohne abgesagte) im Einfügeformat über das Teilen-Menü ausgeben; die Ausgabe ist ohne Änderung wieder einfügbar.
 

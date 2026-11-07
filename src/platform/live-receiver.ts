@@ -38,8 +38,7 @@ export interface ReceiverDeps {
   timeZone?: string;
   /** Spec 006 US5: jüngere signierte Konfiguration (Trainer-Handy übernimmt Titel und Mannschaften). */
   onConfig?(signed: SignedData): void;
-  /** Spec 015: geprüfte Nutzlast einer Plan-Meldung (Trainer-Handys übernehmen die Planspiele). */
-  /** Spec 015: Plan-Meldung mit ihrer Sendezeit (Serverzeit, FR-P07), nur auf Trainer-Handys gesetzt. */
+  /** Spec 015: geprüfte Nutzlast einer Plan-Meldung mit ihrer Sendezeit (Serverzeit, FR-P07), nur Trainer-Handys. */
   onPlan?(payload: string, sentAt: number): void;
 }
 

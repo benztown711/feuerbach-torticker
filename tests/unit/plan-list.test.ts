@@ -214,6 +214,21 @@ describe('015 US4-S4 vorhandenes Spiel aktualisieren statt doppelt', () => {
     expect(twiceNew.statuses).toEqual(['neu', 'unverändert']);
   });
 
+  it('Platzhalter "Gegner offen" bekommt den Gegner, wenn es genau einen für Mannschaft und Tag gibt', () => {
+    const store = plan(input({ team: 'E2', date: '2026-11-15', opponent: '' }));
+    const r = importPlan(store, [input({ team: 'E2', date: '2026-11-15', opponent: 'SV X' })], TODAY, T0 + 1, ids);
+    expect(r.statuses).toEqual(['aktualisiert']);
+    expect(r.store.entries).toHaveLength(1);
+    expect(r.store.entries[0]).toMatchObject({ opponent: 'SV X' });
+    // zwei Platzhalter am selben Tag: unklar welcher, also neu
+    const two = plan(input({ opponent: '' }), input({ opponent: '', time: '15:00' }));
+    expect(importPlan(two, [input({ opponent: 'SV X' })], TODAY, T0, ids).statuses).toEqual(['neu']);
+    // eine Zeile ohne Gegner ersetzt keinen Platzhalter, sie ist selbst einer
+    expect(importPlan(emptyPlan('t', 'o'), [input({ opponent: '' })], TODAY, T0, ids).statuses).toEqual(['neu']);
+    // ein Platzhalter für eine andere Mannschaft zählt nicht
+    expect(importPlan(plan(input({ team: 'E3', opponent: '' })), [input()], TODAY, T0, ids).statuses).toEqual(['neu']);
+  });
+
   it('FR-P03: ist der Plan voll, kommen keine neuen Spiele mehr dazu, Aktualisieren geht weiter', () => {
     const full = plan(
       ...Array.from({ length: MAX_PLAN }, (_, i) => input({ opponent: `Gegner ${i}`, date: '2026-11-14' })),
