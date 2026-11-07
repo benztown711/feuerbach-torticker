@@ -93,6 +93,15 @@ US4 (Liste einfügen und teilen):
 - **Nur Trainer mit Organisator-Schlüssel**: Ältere Lead-Handys (Lead-Link aus der ersten Version) haben keinen Spielplan; die Seite bittet um den Trainer-Link.
 - **Anzeige**: kommende Planspiele nach Datum gruppiert (heute bzw. das nächste Datum aufgeklappt), darin nach Anstoß (ohne Anstoß zuletzt); darunter eingeklappt "Vergangene Spiele", neueste zuerst. Zeile: Anstoß, "E1 – Gegner" (Heim) bzw. "E1 bei Gegner" (Auswärts), darunter "Heim · Wettbewerb · 2×25", rechts "frei" bzw. "abgesagt".
 
+## Design (US3, US7)
+
+- **Domain** `plan.ts`: Endstand (`score`, Feld `s`), `setScore`; Zusammenführen und Kürzen als reine Listenfunktionen (`mergeList`, `pruneEntries`), die Trainer-Handys und Dashboard teilen.
+- **Domain** `live-board.ts`: `Board.plan`; `applyPlan` führt empfangene Planspiele zusammen; `boardView` baut Karten mit Planspielen (R-P9), `planSection` den Abschnitt "Spielplan" (ab morgen nach Datum, "Vergangene Spiele" mit Endstand, ohne Planspiele ohne Gegner).
+- **Platform** `live-receiver.ts`: jede geprüfte Plan-Meldung geht in `Board.plan` (auch ohne Trainer-Link) und weiter an `onPlan` wie bisher. `plan-sync.ts`: `notePlanScore(gameId, score)`.
+- **App** `main.tsx`: `onGameWrite` merkt sich den Endstand je Spiel und lädt `live-setup` nur bei einer Änderung nach (R-P8).
+- **UI** `live-dashboard.tsx`: geplante Karte (ohne Stand, "heute 12:00"), Zeilen "Danach" und "Nächstes Spiel" unter der Karte, Abschnitt "Spielplan" unter den Karten mit auf- und zuklappbaren Datumsköpfen.
+- **Hilfe**: `eltern-dashboard` geändert (nächstes Spiel mit Anstoß, Spielplan, vergangene Spiele).
+
 ## Risiken
 
 - **Verlorene Änderung ohne Netz**: Wer offline ändert und die App dann nie wieder öffnet, sendet nicht. Abhilfe: `pending` wird bei jedem Öffnen und jeder Rückkehr nachgeholt.

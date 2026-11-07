@@ -16,7 +16,7 @@
 | `deleted` | boolean | Grabstein (FR-P04) | US1 |
 | `updatedAt` | number | ms, je Planspiel streng steigend | US1 |
 | `gameId` | string \| undefined | angelegtes Spiel | US2 |
-| `score` | `{ home, away }` \| undefined | Endstand | US3 (FR-P30) |
+| `score` | `{ own, opp }` \| undefined | Endstand aus Sicht der eigenen Mannschaft; angezeigt Heim zuerst (nach `venue`) | US3 (FR-P30) |
 | `claim` | `{ by, name }` \| undefined | Vormerkung | US6 |
 
 Zustände: frei → (abgesagt ⇄ frei) → gelöscht (Grabstein). Vergangen ist ein Planspiel, wenn `date` vor heute liegt (Ortszeit des Handys).
