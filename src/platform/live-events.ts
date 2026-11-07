@@ -34,3 +34,31 @@ export function onPlanChanged(cb: PlanListener): () => void {
 export function planChanged(plan: PlanStore): void {
   for (const l of planListeners) l(plan);
 }
+
+/** Spec 016: geteilte Kader von einem anderen Trainer-Handy übernommen (Kader-Seite liest neu). */
+const squadListeners = new Set<() => void>();
+
+export function onSquadsChanged(cb: () => void): () => void {
+  squadListeners.add(cb);
+  return () => {
+    squadListeners.delete(cb);
+  };
+}
+
+export function squadsChanged(): void {
+  for (const l of squadListeners) l();
+}
+
+/** Spec 016 FR-B09: kurzer Hinweis für die ganze App ("Kader übernommen: …"). */
+const noticeListeners = new Set<(text: string) => void>();
+
+export function onSquadNotice(cb: (text: string) => void): () => void {
+  noticeListeners.add(cb);
+  return () => {
+    noticeListeners.delete(cb);
+  };
+}
+
+export function squadNotice(text: string): void {
+  for (const l of noticeListeners) l(text);
+}

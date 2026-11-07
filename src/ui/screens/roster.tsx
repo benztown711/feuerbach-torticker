@@ -32,7 +32,8 @@ import {
 import { shortTeamName } from '../../domain/team-name';
 import type { Player, Settings, Squad } from '../../domain/types';
 import { validatePlayerNumber } from '../../domain/validation';
-import { getSettings, putPlayers, putSettings } from '../../platform/db';
+import { getSettings } from '../../platform/db';
+import { onSquadsChanged } from '../../platform/live-events';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { usePlayers } from '../hooks';
@@ -334,12 +335,19 @@ type Mode =
   | { kind: 'paste' }
   | { kind: 'squad'; squad: Squad | null };
 
+/** Spec 016: Kader-Abgleich, nachgeladen. */
+const sync = () => import('../../platform/squad-sync');
+
 /** Kader (US5, US7): Spieler pflegen, Liste einfügen, Kader teilen; Spec 015 US5: mehrere benannte Kader. */
 export function RosterScreen() {
   const [players, reload] = usePlayers();
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
   const [toDelete, setToDelete] = useState<Player | null>(null);
   const [squadToDelete, setSquadToDelete] = useState<Squad | null>(null);
+  /** Spec 016 FR-B01: Rückfrage vor "nicht mehr teilen". */
+  const [toUnshare, setToUnshare] = useState<Squad | null>(null);
+  /** Spec 016 FR-B01: Trainer-Handy mit gültigem Live-Spieltag (geprüft im nachgeladenen Abgleich). */
+  const [trainer, setTrainer] = useState(false);
   const [notice, setNotice] = useState('');
   /** Spec 013 FR-K05: Reihenfolge aus den Einstellungen; bis sie geladen ist, nichts zeigen (kein Umsortieren). */
   const [settings, setSettings] = useState<Settings | undefined>(undefined);
@@ -347,18 +355,30 @@ export function RosterScreen() {
   const [shown, setShown] = useState('');
   useEffect(() => {
     void getSettings().then(setSettings);
+    // Spec 016: geteilte Kader von anderen Trainer-Handys sofort zeigen.
+    return onSquadsChanged(() => {
+      reload();
+      void getSettings().then(setSettings);
+    });
   }, []);
+  useEffect(() => {
+    if (!settings?.live?.orgKey) return setTrainer(false);
+    let alive = true;
+    void sync().then((m) => alive && setTrainer(m.isTrainer(settings)));
+    return () => {
+      alive = false;
+    };
+  }, [settings]);
 
+  /** Spec 016 R-B5: über den Kader-Abgleich speichern (Änderungen geteilter Kader gehen hinaus). */
   const save = async (next: Player[]): Promise<void> => {
-    await putPlayers(next);
+    await (await sync()).savePlayers(next);
     reload();
     setMode({ kind: 'list' });
   };
   /** Frisch gelesen, damit eine Änderung an anderer Stelle nicht verloren geht. */
   const saveSquads = async (squads: Squad[]): Promise<void> => {
-    const next = { ...(await getSettings()), squads };
-    await putSettings(next);
-    setSettings(next);
+    setSettings(await (await sync()).saveSettings({ ...(await getSettings()), squads }));
   };
 
   if (players === undefined || settings === undefined) return <main class="page" aria-busy="true" />;
@@ -369,6 +389,8 @@ export function RosterScreen() {
   const shownName = squadName(squads, shownId);
   const visible = multi ? sortPlayers(inSquad(squads, players, shownId), sort) : visiblePlayers(players, sort);
   const playing = teamsWith(squads, settings.teams, shownId).map((t) => shortTeamName(t.name));
+  const shownSquad = squads.find((q) => q.id === shownId)!;
+  const full = trainer && settings.squadSync?.topic === settings.live?.topic ? (settings.squadSync?.full ?? []) : [];
 
   return (
     <main class="page">
@@ -468,6 +490,38 @@ export function RosterScreen() {
               Liste einfügen
             </button>
           </div>
+          {trainer && (
+            <div class="switch-row roster__share card" data-testid="roster-share">
+              <div class="switch-row__text">
+                <span class="switch-row__title" id="roster-share-title">
+                  Mit Trainern geteilt
+                </span>
+                <p class="switch-row__help">
+                  {shownSquad.shared
+                    ? 'Alle Trainer-Handys haben diesen Kader und seine Änderungen.'
+                    : 'Nur auf diesem Handy.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="switch"
+                role="switch"
+                aria-checked={shownSquad.shared === true}
+                aria-labelledby="roster-share-title"
+                data-testid="roster-share-switch"
+                onClick={() =>
+                  shownSquad.shared
+                    ? setToUnshare(shownSquad)
+                    : void saveSquads(squads.map((q) => (q.id === shownId ? { ...q, shared: true } : q)))
+                }
+              />
+            </div>
+          )}
+          {full.map((name) => (
+            <p key={name} class="hint" data-testid="roster-full">
+              „{name}“ ist geteilt, hat aber keinen Platz (höchstens {MAX_SQUADS} Kader).
+            </p>
+          ))}
           <section class="card card--list" aria-labelledby="roster-title" data-testid="card-roster">
             <h2 id="roster-title" class="t-label card__title">
               {visible.length} SPIELER
@@ -584,6 +638,19 @@ export function RosterScreen() {
             const p = toDelete;
             setToDelete(null);
             void save(softDeletePlayer(players, p.id, Date.now()));
+          }}
+        />
+      )}
+      {toUnshare && (
+        <Confirm
+          title="Kader nicht mehr teilen?"
+          text={`Auf den anderen Handys bleibt „${toUnshare.name}“ als eigener Kader, wird aber nicht mehr abgeglichen.`}
+          yesLabel="Nicht mehr teilen"
+          onNo={() => setToUnshare(null)}
+          onYes={() => {
+            const id = toUnshare.id;
+            setToUnshare(null);
+            void saveSquads(squads.map((q) => (q.id === id ? { ...q, shared: false } : q)));
           }}
         />
       )}

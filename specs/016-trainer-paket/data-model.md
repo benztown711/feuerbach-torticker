@@ -29,7 +29,7 @@
 
 | Feld | Typ | Bedeutung |
 |---|---|---|
-| `squadSync?` | `{ topic, orgPub, pending: string[], full: string[], welcomed: boolean }` | Abgleich für den gekoppelten Live-Spieltag: noch zu sendende Kader (`sid`), geteilte Kader ohne Platz (Namen, US2-S4), Hinweis "Kader übernommen" schon gezeigt (FR-B09) |
+| `squadSync?` | `{ topic, orgPub, full: string[], welcomed: boolean }` | Abgleich für den gekoppelten Live-Spieltag: geteilte Kader ohne Platz (Namen, US2-S4), Hinweis "Kader übernommen" schon gezeigt (FR-B09). Was noch hinaus muss, ergibt sich nach jedem Verbinden aus dem Vergleich mit dem Stand beim Dienst (R-B6) |
 
 ## Kader-Meldung (verschlüsselt, contracts/squad-message.md)
 

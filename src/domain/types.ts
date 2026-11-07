@@ -230,11 +230,10 @@ export interface Settings {
   squadSync?: SquadSync;
 }
 
-/** Spec 016: noch zu sendende Kader (`sid`), geteilte ohne Platz (Namen), Hinweis "Kader übernommen" gezeigt. */
+/** Spec 016: geteilte Kader ohne Platz (Namen, US2-S4), Hinweis "Kader übernommen" schon gezeigt (FR-B09). */
 export interface SquadSync {
   topic: string;
   orgPub: string;
-  pending: string[];
   full: string[];
   welcomed: boolean;
 }

@@ -35,6 +35,11 @@ export function CoupleDialog({ trainer, teams, title, replace, adds, losesOrgani
             Wie alle Trainer-Handys darf es den Live-Spieltag auch verwalten und die Links weitergeben.
           </p>
         )}
+        {trainer && (
+          <p class="sheet__text" data-testid="couple-squads">
+            Geteilte Kader kommen automatisch mit.
+          </p>
+        )}
         {adds.length > 0 && (
           <p class="sheet__text sheet__text--muted">
             {joinList(adds)} {adds.length > 1 ? 'werden' : 'wird'} zu „Meine Mannschaften“ hinzugefügt.

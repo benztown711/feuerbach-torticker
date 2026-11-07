@@ -19,7 +19,7 @@ import { entryTitle, formatPlanDate, planView, todayKey } from '../../domain/pla
 import { shortTeamName } from '../../domain/team-name';
 import type { LiveSpieltag, PlanStore, Settings } from '../../domain/types';
 import { getSettings } from '../../platform/db';
-import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
+import { onLiveSettings, onPlanChanged, onSquadsChanged } from '../../platform/live-events';
 import {
   addTeamToLive,
   coupleLink,
@@ -141,6 +141,7 @@ export function LiveScreen() {
   }, []);
   // US5-S1: von einem anderen Trainer-Handy übernommene Änderungen sofort zeigen.
   useEffect(() => onLiveSettings(setSettings), []);
+  const offer = useSquadOffer(settings?.live?.orgKey ? settings.live.topic : undefined);
 
   const show = (text: string): void => {
     setMsg(text);
@@ -237,6 +238,7 @@ export function LiveScreen() {
           live={live}
           canAdd={addable.length > 0}
           reissued={reissued}
+          offer={offer}
           onShare={share}
           onPaste={() => setView('paste')}
           onDialog={setDialog}
@@ -244,6 +246,19 @@ export function LiveScreen() {
       )}
       {view === 'main' && live && !isRetired(live) && !isOrganizer(live) && (
         <LeadInfo live={live} onPaste={() => setView('paste')} onDialog={setDialog} />
+      )}
+      {live && dialog?.kind === 'squads' && (
+        <SquadShareSheet
+          offer={offer}
+          onClose={() => setDialog(null)}
+          onShare={(shared) => {
+            setDialog(null);
+            // Teilen sofort (der Tipp erlaubt das Teilen-Menü), die Schalter danach.
+            void share(shareTrainerLink(live));
+            if (shared)
+              void import('../../platform/squad-sync').then((m) => m.setSquadShares(shared)).catch(() => undefined);
+          }}
+        />
       )}
       {live && dialog?.kind === 'title' && (
         <TitleSheet
@@ -428,7 +443,79 @@ type Dialog =
   | { kind: 'add' }
   | { kind: 'remove'; key: string; name: string }
   | { kind: 'reissue' }
-  | { kind: 'end' };
+  | { kind: 'end' }
+  /** Spec 016 FR-B02: "Kader mit den Trainern teilen?" vor "Trainer-Link teilen". */
+  | { kind: 'squads' };
+
+/** Spec 016: Kader mit Anzahl Kinder und Schalter, vorab geladen (Teilen braucht den Tipp unmittelbar). */
+type SquadOffer = { id: string; name: string; count: number; shared: boolean };
+
+function useSquadOffer(topic: string | undefined): SquadOffer[] {
+  const [offer, setOffer] = useState<SquadOffer[]>([]);
+  useEffect(() => {
+    if (!topic) return;
+    let alive = true;
+    const load = (): void =>
+      void import('../../platform/squad-sync')
+        .then((m) => m.unsharedSquads())
+        .then((r) => alive && setOffer(r.squads.filter((q) => q.count > 0)))
+        .catch(() => undefined);
+    load();
+    const off = onSquadsChanged(load);
+    return () => {
+      alive = false;
+      off();
+    };
+  }, [topic]);
+  return offer;
+}
+
+/** Spec 016 FR-B02: beim ersten Mal alle angekreuzt, danach wie die Schalter unter "Kader". */
+function SquadShareSheet({
+  offer,
+  onShare,
+  onClose,
+}: {
+  offer: SquadOffer[];
+  onShare: (shared: Record<string, boolean> | null) => void;
+  onClose: () => void;
+}) {
+  const first = !offer.some((q) => q.shared);
+  const [checked, setChecked] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(offer.map((q) => [q.id, first || q.shared])),
+  );
+  return (
+    <Sheet title="Kader mit den Trainern teilen?" testId="squad-share-sheet" onClose={onClose}>
+      <p class="sheet__text sheet__text--muted">
+        Geteilte Kader kommen auf jedes Trainer-Handy, auch auf die schon gekoppelten, und bleiben abgeglichen.
+      </p>
+      <ul class="squad-share">
+        {offer.map((q) => (
+          <li key={q.id}>
+            <label class="squad-share__row">
+              <input
+                type="checkbox"
+                class="squad-share__box"
+                checked={checked[q.id]}
+                data-testid={`squad-share-${q.id}`}
+                onChange={(e) => setChecked({ ...checked, [q.id]: e.currentTarget.checked })}
+              />
+              <span class="squad-share__name">{q.name}</span>
+              <span class="squad-share__count">{q.count === 1 ? '1 Kind' : `${q.count} Kinder`}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <p class="hint">Alle mit dem Trainer-Link sehen diese Vornamen und Rückennummern.</p>
+      <button type="button" class="btn btn--primary" data-testid="squad-share-yes" onClick={() => onShare(checked)}>
+        Teilen
+      </button>
+      <button type="button" class="btn btn--secondary" data-testid="squad-share-no" onClick={() => onShare(null)}>
+        Ohne Kader teilen
+      </button>
+    </Sheet>
+  );
+}
 
 /** US5: "zuletzt gesendet" je Mannschaft, solange die Übersicht offen ist (nachgeladen). */
 function useSent(live: LiveSpieltag): ((team: string) => string) | null {
@@ -458,6 +545,7 @@ function Overview({
   live,
   canAdd,
   reissued,
+  offer,
   onShare,
   onPaste,
   onDialog,
@@ -465,6 +553,7 @@ function Overview({
   live: LiveSpieltag;
   canAdd: boolean;
   reissued: boolean;
+  offer: SquadOffer[];
   onShare: (p: Promise<ShareResult>) => Promise<void>;
   onPaste: () => void;
   onDialog: (d: Dialog) => void;
@@ -506,7 +595,9 @@ function Overview({
           type="button"
           class="btn btn--primary"
           data-testid="btn-share-trainer"
-          onClick={() => void onShare(shareTrainerLink(live))}
+          onClick={() =>
+            offer.some((q) => !q.shared) ? onDialog({ kind: 'squads' }) : void onShare(shareTrainerLink(live))
+          }
         >
           Trainer-Link teilen
         </button>
