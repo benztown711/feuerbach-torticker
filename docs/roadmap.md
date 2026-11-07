@@ -58,7 +58,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N6) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
-| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | nächste Spec nach N6 |
+| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | nächste Spec nach N7 |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
 | C5 | Turniermodus (Spec 002) für das Hallenturnier am 04.01.2027 | 6 | Opus (Spec), Sonnet | bis Mitte Dezember | Zwei fremde Mannschaften, „Nächstes Spiel“ mit einem Tap | offen |
 | C6 | Saison-Torschützenliste in der Historie | 3 | Sonnet | niedrig | Nett, kein Muss | offen |
@@ -68,7 +68,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N6) | offen |
+| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N7) | offen |
 | D2 | Hilfe-Eintrag „Dashboard zeigt nichts“ mit „Zwischenstand teilen“ als Ausweg | 1 | Haiku | mittel | Vor dem ersten Spieltag machbar | offen |
 
 ## E. Apple- und Android-Lizenz
@@ -103,6 +103,6 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
 | N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 fertig (#63), Review C erledigt, Merge nach dem 07.11. |
 
-| N6 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
+| N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
 
 (weitere hier anfügen)
