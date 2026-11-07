@@ -408,7 +408,17 @@ const goal = (side: 'own' | 'opp', minute: number): Json => ({
 /** Manifest hinter einem Verweis: blob:-Adresse im Browser gelesen, sonst der Verweis selbst. */
 export type Manifest = { start_url?: string; scope?: string; id?: string } | string;
 export const unpack = (p: Page, href: string): Promise<Manifest> =>
-  href.startsWith('blob:') ? p.evaluate(async (h) => (await fetch(h)).json(), href) : Promise.resolve(href);
+  href.startsWith('blob:')
+    ? // Beim Seitenwechsel gibt die App die blob:-Adresse frei, auch zwischen Lesen des Verweises und fetch:
+      // dann "freigegeben" statt eines Fehlers, damit expect.poll erneut liest.
+      p.evaluate(async (h) => {
+        try {
+          return (await (await fetch(h)).json()) as Manifest;
+        } catch {
+          return 'freigegeben';
+        }
+      }, href)
+    : Promise.resolve(href);
 export const manifestOf = async (p: Page) =>
   unpack(p, (await p.locator('link[rel="manifest"]').getAttribute('href')) ?? '');
 

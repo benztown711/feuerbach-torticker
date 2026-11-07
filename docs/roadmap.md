@@ -56,7 +56,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N5) |
+| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N6) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
 | C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | mittel | Eigener Gratis-Dienst (z. B. Cloudflare Worker); Teil 1 von Spec 007 | offen |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
@@ -99,7 +99,8 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 | N2 | Historie: mehrere Spiele auswählen und löschen, 10 Sekunden „Rückgängig“ | 014 | erledigt (#48, #49) |
 | N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
 
-| N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt: kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 offen |
-| N5 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 fertig (#63), Review C erledigt, Merge nach dem 07.11. |
+| N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
+| N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
+| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 fertig (#63), Review C erledigt, Merge nach dem 07.11. |
 
 (weitere hier anfügen)
