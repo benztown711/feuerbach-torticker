@@ -1,5 +1,6 @@
 import { parseLiveSpieltag } from './live-spieltag';
-import type { Game, LiveSpieltag, Player } from './types';
+import { MAX_SQUAD_NAME, MAX_SQUADS, mergeSquads } from './squads';
+import type { Game, LiveSpieltag, Player, Squad } from './types';
 
 /** Sicherung aller Spiele und des Kaders (FR-024, contracts/export.schema.json). */
 export const BACKUP_FORMAT = 'feuerbach-torticker-backup';
@@ -13,6 +14,20 @@ export interface Backup {
   players: Player[];
   /** Spec 006 FR-L21: Live-Spieltag mit Schlüsseln, damit ein Handywechsel ohne neue Links geht. */
   live?: LiveSpieltag;
+  /** Spec 015 FR-P24: benannte Kader (fehlt = ein Kader "Kader"). */
+  squads?: Squad[];
+  /** Spec 015 FR-P24: Spielplan des Live-Spieltags. */
+  plan?: BackupPlan;
+}
+
+/**
+ * Spielplan in der Sicherung: `p` wie die Nutzlast der Plan-Meldung. Hier nur grob geprüft; genau prüft erst das
+ * Wiederherstellen (nachgeladen), damit der Spielplan-Code nicht ins Hauptbundle wandert.
+ */
+export interface BackupPlan {
+  topic: string;
+  orgPub: string;
+  p: unknown;
 }
 
 export function buildBackup(
@@ -21,6 +36,7 @@ export function buildBackup(
   now: number,
   appVersion?: string,
   live?: LiveSpieltag | null,
+  extra: { squads?: Squad[]; plan?: BackupPlan } = {},
 ): Backup {
   return {
     format: BACKUP_FORMAT,
@@ -30,6 +46,8 @@ export function buildBackup(
     games,
     players,
     ...(live ? { live } : {}),
+    ...(extra.squads ? { squads: extra.squads } : {}),
+    ...(extra.plan ? { plan: extra.plan } : {}),
   };
 }
 
@@ -124,7 +142,28 @@ const isPlayer = (v: unknown): boolean =>
   isStr(v.id, 1, 200) &&
   isStr(v.name, 1, 24) &&
   nullOr(v.number, (x) => isInt(x, 1, 99)) &&
-  nullOr(v.deletedAt, isTime);
+  nullOr(v.deletedAt, isTime) &&
+  (v.squadId === undefined || isStr(v.squadId, 1, 200));
+
+/** Spec 015 FR-P24. */
+const isSquads = (v: unknown): boolean =>
+  Array.isArray(v) &&
+  v.length >= 1 &&
+  v.length <= MAX_SQUADS &&
+  v.every((q) => isObj(q) && isStr(q.id, 1, 200) && isStr(q.name, 1, MAX_SQUAD_NAME) && /\S/.test(q.name as string)) &&
+  new Set(v.map((q: Obj) => q.id)).size === v.length &&
+  new Set(v.map((q: Obj) => (q.name as string).trim().toLocaleLowerCase('de'))).size === v.length;
+
+const isPlan = (v: unknown): boolean =>
+  isObj(v) &&
+  typeof v.topic === 'string' &&
+  /^[A-Za-z0-9_-]{22}$/.test(v.topic) &&
+  typeof v.orgPub === 'string' &&
+  /^[A-Za-z0-9_-]{87}$/.test(v.orgPub) &&
+  isObj(v.p) &&
+  v.p.v === 1 &&
+  Array.isArray(v.p.e) &&
+  v.p.e.length > 0;
 
 const isGame = (v: unknown): boolean =>
   isObj(v) &&
@@ -171,6 +210,10 @@ export function parseBackup(text: string): ParseResult {
   if (!arrayOf(data.players, isPlayer)) return { ok: false, error: 'Der Kader in der Sicherung ist beschädigt.' };
   if (!arrayOf(data.games, isGame))
     return { ok: false, error: 'Mindestens ein Spiel in der Sicherung ist beschädigt.' };
+  if (data.squads !== undefined && !isSquads(data.squads))
+    return { ok: false, error: 'Die Kader in der Sicherung sind beschädigt.' };
+  if (data.plan !== undefined && !isPlan(data.plan))
+    return { ok: false, error: 'Der Spielplan in der Sicherung ist beschädigt.' };
   if (data.live === undefined) return { ok: true, backup: data as unknown as Backup };
   const live = parseLiveSpieltag(data.live);
   if (!live) return { ok: false, error: 'Der Live-Spieltag in der Sicherung ist beschädigt.' };
@@ -181,16 +224,28 @@ export interface MergeResult {
   newGames: Game[];
   newPlayers: Player[];
   skippedGames: number;
+  /** Spec 015 FR-P24: neue Kader-Liste zum Speichern, null = unverändert. */
+  squads: Squad[] | null;
 }
 
-/** Vorhandene Spiele (gleiche ID) werden übersprungen; Spieler per ID ergänzt, lokale Daten gewinnen. */
-export function mergeBackup(existing: { games: Game[]; players: Player[] }, backup: Backup): MergeResult {
+/**
+ * Vorhandene Spiele (gleiche ID) werden übersprungen; Spieler per ID ergänzt, lokale Daten gewinnen.
+ * Spec 015 FR-P24: fehlende Kader kommen dazu; neue Kinder eines gleichnamigen Kaders gehören zum eigenen.
+ */
+export function mergeBackup(
+  existing: { games: Game[]; players: Player[]; squads?: Squad[] },
+  backup: Backup,
+): MergeResult {
   const gameIds = new Set(existing.games.map((g) => g.id));
   const playerIds = new Set(existing.players.map((p) => p.id));
   const newGames = backup.games.filter((g) => !gameIds.has(g.id));
+  const squads = mergeSquads(existing.squads, backup.squads);
   return {
     newGames,
-    newPlayers: backup.players.filter((p) => !playerIds.has(p.id)),
+    newPlayers: backup.players
+      .filter((p) => !playerIds.has(p.id))
+      .map((p) => (p.squadId && squads.ids[p.squadId] ? { ...p, squadId: squads.ids[p.squadId] } : p)),
     skippedGames: backup.games.length - newGames.length,
+    squads: squads.squads,
   };
 }

@@ -48,8 +48,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich. Ein PR je Phase bzw
 
 ## Phase 8: US5 Kader (P3)
 
-- [ ] T022 E2E 015 US5-S1 bis S5; Domain Kader (FR-P20 bis P23), Sicherung (FR-P24, `export.schema.json`)
-- [ ] T023 Kader-Seite, Mannschaft, Aufgebot "Weitere Kinder"; Hilfe `kader-mehrere`, `kader`, `kader-liste`, `mannschaft`, `aufgebot`
+- [x] T022 E2E 015 US5-S1 bis S5; Domain Kader (FR-P20 bis P23), Sicherung (FR-P24, `export.schema.json`)
+- [x] T023 Kader-Seite, Mannschaft, Aufgebot "Weitere Kinder"; Hilfe `kader-mehrere`, `kader`, `kader-liste`, `mannschaft`, `aufgebot`
 
 ## Abschluss je PR
 

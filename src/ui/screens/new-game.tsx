@@ -7,6 +7,7 @@ import { isRetired, liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
 import { signalSoundName } from '../../domain/signal-sound';
+import { hasSquads, squadName, squadOfTeam, squadSplit, squadsOf } from '../../domain/squads';
 import { currentTeam, findTeam, ownColorFor, recordTeamUse, schemaFor, squadFor } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
@@ -224,12 +225,19 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
 
   // Spec 013 FR-K05: Aufgebot in der Reihenfolge aus den Einstellungen.
   const visible = visiblePlayers(players ?? [], settings?.rosterSort ?? 'name');
+  // Spec 015 FR-P22: Kinder des Kaders der Mannschaft, die übrigen eingeklappt unter "Weitere Kinder".
+  const squads = squadsOf(settings ?? {});
+  const split = team ? squadSplit(squads, visible, team) : { own: visible, more: [] };
+  const [moreOpen, setMoreOpen] = useState(false);
   const lastSquad = (team && settings ? squadFor(team, settings) : []).filter((id) => visible.some((p) => p.id === id));
   // FR-030, FR-M06: Aufgebot des letzten Spiels dieser Mannschaft ist vorausgewählt.
   const lastKey = lastSquad.join(',');
   useEffect(() => {
-    setSquad(lastKey === '' ? [] : lastKey.split(','));
-  }, [lastKey]);
+    const ids = lastKey === '' ? [] : lastKey.split(',');
+    setSquad(ids);
+    // Aushilfen aus dem letzten Spiel bleiben sichtbar.
+    setMoreOpen(split.more.some((p) => ids.includes(p.id)));
+  }, [lastKey, team?.id]);
   const toggle = (id: string): void => setSquad(squad.includes(id) ? squad.filter((x) => x !== id) : [...squad, id]);
 
   // FR-031, FR-M04: Gegnerfarbe folgt dem Gegnernamen, solange sie nicht von Hand gewählt wurde.
@@ -240,7 +248,28 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
   // Formular erst nach dem Laden der Einstellungen zeigen, sonst überschreiben die Vorgaben bereits Getipptes.
   if (!settings || !team) return <main class="page" aria-busy="true" />;
 
-  const chosen = visible.filter((p) => squad.includes(p.id)).map((p) => p.id);
+  const picked = visible.filter((p) => squad.includes(p.id)).map((p) => p.id);
+  const multi = hasSquads(squads);
+  const teamSquadName = squadName(squads, squadOfTeam(squads, team));
+  // Spec 015: ohne Auswahl ist bei mehreren Kadern der Kader der Mannschaft das Aufgebot (Torschützen zuerst).
+  const chosen = picked.length === 0 && multi ? split.own.map((p) => p.id) : picked;
+  const ownPicked = split.own.filter((p) => squad.includes(p.id)).length;
+  const extra = split.more.filter((p) => squad.includes(p.id)).length;
+  const squadCount = multi
+    ? `AUFGEBOT · ${ownPicked} VON ${split.own.length}${extra > 0 ? ` · ${extra} ${extra === 1 ? 'AUSHILFE' : 'AUSHILFEN'}` : ''}`
+    : `AUFGEBOT · ${picked.length} VON ${visible.length}`;
+  const option = (p: (typeof visible)[number]) => (
+    <button
+      type="button"
+      key={p.id}
+      class="squad__option"
+      aria-pressed={squad.includes(p.id)}
+      data-testid={`squad-option-${p.id}`}
+      onClick={() => toggle(p.id)}
+    >
+      {p.number === null ? p.name : `${p.number} ${p.name}`}
+    </button>
+  );
   const input = {
     ownTeam: team.name,
     opponent,
@@ -306,7 +335,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
       void import('../../platform/live-setup').then((m) => m.linkPlanGame(planId, game.id)).catch(() => undefined);
     }
     await putSettings(
-      rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: chosen, now }), check.value),
+      rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: picked, now }), check.value),
     );
     navigate(`/spiel/${game.id}`, true);
   };
@@ -619,7 +648,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
         <section class="field card" aria-label="Aufgebot" data-testid="card-squad">
           <div class="squad__head">
             <span class="t-label card__title squad__count" data-testid="squad-count">
-              AUFGEBOT · {chosen.length} VON {visible.length}
+              {squadCount}
             </span>
             {lastSquad.length > 0 && (
               <button
@@ -641,22 +670,37 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
             </p>
           ) : (
             <>
-              <div class="squad" data-testid="squad-picker" role="group" aria-label="Aufgebot">
-                {visible.map((p) => (
+              {split.own.length > 0 ? (
+                <div class="squad" data-testid="squad-picker" role="group" aria-label="Aufgebot">
+                  {split.own.map(option)}
+                </div>
+              ) : (
+                <p class="hint">Im Kader „{teamSquadName}“ steht noch niemand.</p>
+              )}
+              {split.more.length > 0 && (
+                <>
                   <button
                     type="button"
-                    key={p.id}
-                    class="squad__option"
-                    aria-pressed={squad.includes(p.id)}
-                    data-testid={`squad-option-${p.id}`}
-                    onClick={() => toggle(p.id)}
+                    class="btn btn--quiet btn--small squad__more"
+                    aria-expanded={moreOpen}
+                    data-testid="squad-more-toggle"
+                    onClick={() => setMoreOpen(!moreOpen)}
                   >
-                    {p.number === null ? p.name : `${p.number} ${p.name}`}
+                    Weitere Kinder · {split.more.length}
                   </button>
-                ))}
-              </div>
-              {chosen.length === 0 && (
-                <p class="field__help">Ohne Auswahl steht in der Torschützen-Auswahl der ganze Kader.</p>
+                  {moreOpen && (
+                    <div class="squad" data-testid="squad-more" role="group" aria-label="Weitere Kinder">
+                      {split.more.map(option)}
+                    </div>
+                  )}
+                </>
+              )}
+              {picked.length === 0 && (
+                <p class="field__help">
+                  {multi
+                    ? `Ohne Auswahl steht in der Torschützen-Auswahl der Kader „${teamSquadName}“.`
+                    : 'Ohne Auswahl steht in der Torschützen-Auswahl der ganze Kader.'}
+                </p>
               )}
             </>
           )}

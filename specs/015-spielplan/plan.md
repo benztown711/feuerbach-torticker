@@ -109,6 +109,13 @@ US4 (Liste einfügen und teilen):
 - **UI**: im Blatt des Planspiels Block "Ich tickere" bzw. "Nicht mehr tickern" mit Rückfragen (beim ersten Mal mit Vorname); "Neues Spiel" zeigt die Vormerkung je Zeile, fragt vor "Weiter zum Anpfiff" bei fremder Vormerkung und wählt über `#/neu/plan/<id>` ein Planspiel vor; Startbildschirm "Heute tickerst du" (nachgeladen); Einstellungen "Dein Name für die Trainer".
 - **Hilfe**: `spiel-vormerken` neu.
 
+## Design (US5)
+
+- **Domain** `squads.ts` (neu): Kader `{ id, name }` in `Settings.squads` (fehlt = ein Kader "Kader"), Zuordnung `Player.squadId` und `Team.squadId` (fehlt oder unbekannt = erster Kader); hinzufügen (höchstens 6, Name 1 bis 20 Zeichen, eindeutig), umbenennen, löschen (nur leer), verschieben; Kopfzeile "Kader <Name>:" beim Teilen und Erkennen beim Einfügen. `roster-merge.ts`: `applyImport` mit Zielkader. `export.ts`: Sicherung mit `squads`, `squadId` und `plan` (Nutzlast wie die Plan-Meldung, geprüft erst beim Wiederherstellen, damit `plan.ts` nicht ins Hauptbundle wandert).
+- **Platform** `plan-sync.ts`: `planBackup` und `restorePlan` (nachgeladen über `live-setup`).
+- **UI** `roster.tsx`: Umschalter je Kader ("E1/E2 · 5"), "Kader hinzufügen", "Kader umbenennen", "Kader löschen", im Spieler die Auswahl "Kader", Hinweis "Spielt mit diesem Kader: …"; Vorschau beim Einfügen mit Zielkader. Einstellungen: im Blatt der Mannschaft die Auswahl "Kader". "Neues Spiel": Aufgebot mit den Kindern des Kaders, darunter eingeklappt "Weitere Kinder". Der Kader-Bildschirm wird nachgeladen (Bundle-Budget).
+- **Hilfe**: `kader-mehrere` neu; `kader`, `kader-liste`, `mannschaft`, `aufgebot` geändert.
+
 ## Risiken
 
 - **Verlorene Änderung ohne Netz**: Wer offline ändert und die App dann nie wieder öffnet, sendet nicht. Abhilfe: `pending` wird bei jedem Öffnen und jeder Rückkehr nachgeholt.

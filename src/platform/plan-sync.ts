@@ -14,6 +14,7 @@ import {
   needsRefresh,
   noteSeen,
   parsePayload,
+  parsePayloadValue,
   myClaims,
   pickable,
   planFor,
@@ -30,6 +31,7 @@ import {
 } from '../domain/plan';
 import { importPlan } from '../domain/plan-list';
 import { MAX_PLAN_SIGNED } from '../domain/live-validate';
+import type { BackupPlan } from '../domain/export';
 import type { LiveSpieltag, PlanEntry, PlanStore, Score } from '../domain/types';
 import { getPlan, getSettings, putPlan, putSettings } from './db';
 import { sealMessage, signData } from './live-crypto';
@@ -224,6 +226,35 @@ export async function notePlanScore(gameId: string, score: Score | null): Promis
   } catch {
     // Speicher nicht erreichbar: beim nächsten Schlusspfiff bzw. Öffnen erneut.
   }
+}
+
+/** FR-P24: höchstens so viele Planspiele (mit Grabsteinen) aus einer Sicherung. */
+const MAX_BACKUP_ENTRIES = 1000;
+
+/** FR-P24: Spielplan dieses Live-Spieltags für die Sicherung (Nutzlast wie die Plan-Meldung). */
+export async function planBackup(): Promise<BackupPlan | undefined> {
+  const live = (await getSettings()).live;
+  if (!live) return undefined;
+  const store = planFor(await getPlan(), live.topic, live.orgPub);
+  return store.entries.length === 0
+    ? undefined
+    : { topic: live.topic, orgPub: live.orgPub, p: encodePayload(store.entries) };
+}
+
+/**
+ * FR-P24: Spielplan aus der Sicherung übernehmen, nur beim selben Live-Spieltag; je Planspiel die jüngere Änderung.
+ * Gesendet wird nicht sofort: veraltete Planspiele schickt das Handy beim nächsten Öffnen (FR-P07).
+ */
+export function restorePlan(plan: BackupPlan): Promise<'merged' | 'other' | 'invalid'> {
+  return serial(async () => {
+    const live = (await getSettings()).live;
+    if (live?.topic !== plan.topic || live.orgPub !== plan.orgPub) return 'other' as const;
+    const entries = parsePayloadValue(plan.p, MAX_BACKUP_ENTRIES);
+    if (!entries) return 'invalid' as const;
+    const r = mergeEntries(await loadPlan(live), entries);
+    if (r.changed.length > 0) await save(prunePlan(r.store, todayKey(Date.now())));
+    return 'merged' as const;
+  });
 }
 
 /** FR-P07: beim Öffnen Unversandtes und veraltete Planspiele ab heute senden. */

@@ -161,6 +161,14 @@ export interface Player {
   name: string;
   number: number | null;
   deletedAt: number | null;
+  /** Spec 015 US5: Kader des Kindes; fehlt oder unbekannt = erster Kader. */
+  squadId?: string;
+}
+
+/** Spec 015 US5: benannter Kader, z. B. "E1/E2" oder "E3". */
+export interface Squad {
+  id: string;
+  name: string;
 }
 
 /** Spec 004: eigene Mannschaft mit Heim- und Auswärtstrikot. */
@@ -173,6 +181,8 @@ export interface Team {
   lastSquad: string[];
   /** 0 = noch nie genutzt. */
   lastUsedAt: number;
+  /** Spec 015 FR-P21: Kader der Mannschaft; fehlt oder unbekannt = erster Kader. */
+  squadId?: string;
 }
 
 export interface Settings {
@@ -202,6 +212,8 @@ export interface Settings {
   deviceId?: string;
   /** Spec 015 FR-P26: Vorname für die Trainer; fehlt = noch nie gefragt, leer = ohne Namen. */
   trainerName?: string;
+  /** Spec 015 FR-P20: benannte Kader; fehlt = ein Kader "Kader". */
+  squads?: Squad[];
 }
 
 /** Spec 006: signierter JSON-Text (`d`) mit ECDSA-Signatur (`s`, base64url). */

@@ -313,6 +313,86 @@ describe('T072 FR-024 Sicherung', () => {
   });
 });
 
+describe('015 FR-P24 Sicherung mit Kadern und Spielplan', () => {
+  const squads = [
+    { id: 'kader', name: 'E1/E2' },
+    { id: 'e3', name: 'E3' },
+  ];
+  const withSquad: Player[] = [players[0]!, { ...players[1]!, squadId: 'e3' }];
+  const plan = { topic: 'T'.repeat(21) + 'A', orgPub: 'C'.repeat(86) + 'A', p: { v: 1, e: [{ i: 'p1' }] } };
+
+  it('Kader, Zuordnung und Spielplan stehen in der Sicherung (Schema) und kommen beim Einlesen zurück', () => {
+    const backup = buildBackup([game(G1)], withSquad, T0, '1.0.0', null, { squads, plan });
+    const ok = validate(JSON.parse(JSON.stringify(backup)));
+    expect(validate.errors ?? []).toEqual([]);
+    expect(ok).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.squads).toEqual(squads);
+    expect(parsed.ok && parsed.backup.players[1]?.squadId).toBe('e3');
+    expect(parsed.ok && parsed.backup.plan).toEqual(plan);
+  });
+
+  it('ohne Kader und Spielplan fehlen die Felder', () => {
+    const backup = buildBackup([], players, T0, undefined, null, {});
+    expect('squads' in backup || 'plan' in backup).toBe(false);
+  });
+
+  it('beschädigte Kader, Zuordnung oder Spielplan werden abgelehnt', () => {
+    const base = JSON.parse(
+      JSON.stringify(buildBackup([], withSquad, T0, undefined, null, { squads, plan })),
+    ) as Record<string, unknown>;
+    const bad = (patch: Record<string, unknown>) => parseBackup(JSON.stringify({ ...base, ...patch }));
+    const squadError = { ok: false, error: 'Die Kader in der Sicherung sind beschädigt.' };
+    expect(bad({ squads: [] })).toEqual(squadError);
+    expect(bad({ squads: [{ id: 'a', name: ' ' }] })).toEqual(squadError);
+    expect(bad({ squads: [{ id: '', name: 'A' }] })).toEqual(squadError);
+    expect(bad({ squads: 'E3' })).toEqual(squadError);
+    expect(
+      bad({
+        squads: [
+          { id: 'a', name: 'A' },
+          { id: 'a', name: 'B' },
+        ],
+      }),
+    ).toEqual(squadError);
+    expect(
+      bad({
+        squads: [
+          { id: 'a', name: 'E3' },
+          { id: 'b', name: 'e3 ' },
+        ],
+      }),
+    ).toEqual(squadError);
+    expect(bad({ squads: 'ABCDEFG'.split('').map((c) => ({ id: c, name: c })) })).toEqual(squadError);
+    expect(bad({ players: [{ ...withSquad[1], squadId: '' }] }).ok).toBe(false);
+    const planError = { ok: false, error: 'Der Spielplan in der Sicherung ist beschädigt.' };
+    expect(bad({ plan: { ...plan, topic: 'kurz' } })).toEqual(planError);
+    expect(bad({ plan: { ...plan, orgPub: 'kurz' } })).toEqual(planError);
+    expect(bad({ plan: { ...plan, p: { v: 2, e: [{}] } } })).toEqual(planError);
+    expect(bad({ plan: { ...plan, p: { v: 1, e: [] } } })).toEqual(planError);
+    expect(bad({ plan: { ...plan, p: null } })).toEqual(planError);
+    expect(bad({ plan: 'x' })).toEqual(planError);
+    for (const patch of [{ squads: [] }, { plan: { ...plan, topic: 'kurz' } }]) {
+      expect(validate({ ...base, ...patch })).toBe(false);
+    }
+  });
+
+  it('mergeBackup übernimmt Kader und ordnet neue Kinder gleichnamigen Kadern zu', () => {
+    const backup = buildBackup([], [withSquad[0]!, { ...withSquad[1]!, squadId: 'x3' }], T0, undefined, null, {
+      squads: [
+        { id: 'kader', name: 'E1/E2' },
+        { id: 'x3', name: 'e3' },
+      ],
+    });
+    const r = mergeBackup({ games: [], players: [], squads }, backup);
+    expect(r.squads).toBeNull();
+    expect(r.newPlayers.map((x) => x.squadId)).toEqual([undefined, 'e3']);
+    const fresh = mergeBackup({ games: [], players: [] }, buildBackup([], withSquad, T0, undefined, null, { squads }));
+    expect(fresh.squads).toEqual(squads);
+    expect(fresh.newPlayers[1]?.squadId).toBe('e3');
+  });
+});
+
 describe('006 FR-L21 Sicherung mit Live-Spieltag', () => {
   const B43 = 'A'.repeat(42) + 'Q';
   const B87 = 'C'.repeat(86) + 'A';
