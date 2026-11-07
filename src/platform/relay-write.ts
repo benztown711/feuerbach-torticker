@@ -13,9 +13,13 @@ import { publish } from './relay';
 type Target = Pick<LiveSpieltag, 'topic' | 'orgPub'>;
 const nameOf = (t: Target): string => `${t.topic}.${t.orgPub}`;
 
-/** Live-Stand eines Spiels, signiert mit dem Lead-Schlüssel der Mannschaft, mit ihrem Zertifikat. */
+/**
+ * Live-Stand eines Spiels. Trainer-Handys signieren mit dem Organisator-Schlüssel und schicken kein Zertifikat, denn
+ * es nennt Mannschaft und Trikotfarben im Klartext (FR-N05). Ein Handy mit Lead-Link (ohne Organisator-Schlüssel)
+ * signiert mit dem Lead-Schlüssel und legt das Zertifikat bei.
+ */
 export async function gameWrite(
-  live: Target & Pick<LiveSpieltag, 'viewKey'>,
+  live: Target & Pick<LiveSpieltag, 'viewKey' | 'orgKey'>,
   team: Pick<LiveTeamCred, 'leadKey' | 'cert'>,
   snap: LiveSnapshot,
   body: string,
@@ -29,12 +33,13 @@ export async function gameWrite(
     gone: snap.state !== 'live',
     body,
   };
+  if (live.orgKey) return { ...draft, sig: await signWrite(live.orgKey, nameOf(live), draft) };
   return { ...draft, sig: await signWrite(team.leadKey, nameOf(live), draft), cert: team.cert };
 }
 
 /** Sendet einen Live-Stand; true, wenn nichts mehr zu tun ist (relay.ts `publish`). */
 export async function sendGame(
-  live: Target & Pick<LiveSpieltag, 'viewKey'>,
+  live: Target & Pick<LiveSpieltag, 'viewKey' | 'orgKey'>,
   team: Pick<LiveTeamCred, 'leadKey' | 'cert'>,
   snap: LiveSnapshot,
   body: string,

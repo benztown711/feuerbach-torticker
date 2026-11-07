@@ -118,7 +118,8 @@ describe('007 FR-N01 publish: POST an den eigenen Dienst', () => {
 
   it('200 und 204 gelten als gesendet, endgültige Ablehnungen auch; 429, 408, 5xx und kein Netz nicht', async () => {
     const reply = (status: number) => async () => new Response(status === 204 ? null : '{}', { status });
-    for (const s of [200, 204, 400, 403, 409, 413]) expect(await publish(TARGET, write, reply(s)), String(s)).toBe(true);
+    for (const s of [200, 204, 400, 403, 409, 413])
+      expect(await publish(TARGET, write, reply(s)), String(s)).toBe(true);
     for (const s of [429, 408, 500, 503]) expect(await publish(TARGET, write, reply(s)), String(s)).toBe(false);
     expect(
       await publish(TARGET, write, async () => {

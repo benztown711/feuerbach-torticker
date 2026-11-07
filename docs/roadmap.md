@@ -12,6 +12,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - **PR #68** (Spec 015 US3 und US7: Dashboard mit nächstem Spiel und Anstoß, Spielplan für Eltern, vergangene Spiele mit Endstand) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #70** (Spec 015 US6, "Ich tickere": Spiel vormerken, "Heute tickerst du" auf dem Startbildschirm; dazu Blätter scrollen auf kleinen iPhones) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #72** (Spec 015 US5, Kader "E1/E2" und "E3": mehrere Kader, Auswahl je Mannschaft, Aushilfen unter "Weitere Kinder", Sicherung mit Kadern und Spielplan) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026). Spec 015 ist damit vollständig.
+- **Spec 007 PR B** (App spricht nur noch mit dem eigenen Dienst bei Cloudflare, US1 und US2; ntfy.sh entfällt) ist umgesetzt im Arbeitsbranch `claude/sharp-brahmagupta-kxgyie` (Draft-PR); offen ist Review C von Atti. An einem Werktag mergen, danach Hinweis in die Gruppen: "Torticker einmal öffnen und aktualisieren".
 
 ## Kurzfassung des Reviews
 

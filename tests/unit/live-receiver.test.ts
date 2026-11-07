@@ -220,7 +220,11 @@ describe('006 US3 Empfänger', () => {
       },
     });
     const send = (n: number) =>
-      s.relay().onMessage({ seq: n, time: T0 / 1000, message: JSON.stringify({ n, content: null, cert: null, config: null }) });
+      s.relay().onMessage({
+        seq: n,
+        time: T0 / 1000,
+        message: JSON.stringify({ n, content: null, cert: null, config: null }),
+      });
     send(1);
     send(2);
     await flush();
@@ -430,7 +434,11 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     });
     let done = false;
     s.relay().onState?.('live');
-    s.relay().onMessage({ seq: 109, time: T0 / 1000, message: JSON.stringify({ content: snap(), cert: null, config }) });
+    s.relay().onMessage({
+      seq: 109,
+      time: T0 / 1000,
+      message: JSON.stringify({ content: snap(), cert: null, config }),
+    });
     void s.r.whenSettled(3_000).then(() => (done = true));
     await vi.advanceTimersByTimeAsync(SETTLE_QUIET_MS * 2);
     expect(done).toBe(false);

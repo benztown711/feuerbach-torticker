@@ -82,6 +82,10 @@ export class FakeRelay {
   /** Alles je Angenommene in Reihenfolge (für Tests, die prüfen, was gesendet wurde). */
   private readonly history: StoredMessage[] = [];
   private readonly sockets = new Set<Socket>();
+  /** Rohtext jeder Schreibanfrage, wie sie beim Dienst ankommt (007 SC-N05: nichts im Klartext). */
+  readonly posts: string[] = [];
+  /** Antwortcodes der Schreibanfragen in Reihenfolge. */
+  readonly statuses: number[] = [];
   private failing = false;
   /** Verschiebung der Serveruhr (ms), z. B. um eine falsch gehende Uhr zu prüfen. */
   offsetMs = 0;
@@ -199,7 +203,10 @@ export class FakeRelay {
     const m = PATH.exec(new URL(req.url()).pathname);
     const name = m && !m[3] ? objectName(m[1], m[2]) : null;
     if (req.method() !== 'POST' || !m || !name) return route.fulfill({ status: 404, headers: CORS });
-    const status = await this.write(m[1] as string, name, req.postData() ?? '');
+    const text = req.postData() ?? '';
+    this.posts.push(text);
+    const status = await this.write(m[1] as string, name, text);
+    this.statuses.push(typeof status === 'number' ? status : 200);
     return route.fulfill(
       typeof status === 'number'
         ? { status, headers: CORS }
@@ -264,6 +271,8 @@ export class FakeRelay {
       row = { seq: ++this.seq, kind: 'retire', first: now, time: now, body: w.body };
       store.rows = [row];
       store.retired = true;
+      // Wie beim Dienst ist danach alles weg, auch direkt abgelegte Meldungen dieses Topics.
+      this.loose.delete(topic);
     }
     this.history.push({ id: String(row.seq), time: Math.floor(now / 1000), message: w.body, topic });
     for (const s of this.sockets) if (s.name === name) this.push(s, row);
@@ -273,12 +282,12 @@ export class FakeRelay {
   private async verified(name: string, w: RelayWrite): Promise<boolean> {
     const orgPub = name.slice(name.indexOf('.') + 1);
     const text = signedText(name, w, await sha256(w.body));
-    if (w.kind !== 'game') return verify(orgPub, text, w.sig);
-    const pub = await this.leadKey(orgPub, w);
+    if (w.kind !== 'game' || !w.cert) return verify(orgPub, text, w.sig);
+    const pub = await this.leadKey(orgPub, w as GameWrite & { cert: { d: string; s: string } });
     return pub !== null && verify(pub, text, w.sig);
   }
 
-  private async leadKey(orgPub: string, w: GameWrite): Promise<string | null> {
+  private async leadKey(orgPub: string, w: GameWrite & { cert: { d: string; s: string } }): Promise<string | null> {
     let cert: { pub?: unknown };
     try {
       cert = JSON.parse(w.cert.d) as { pub?: unknown };

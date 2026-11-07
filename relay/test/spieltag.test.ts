@@ -101,6 +101,26 @@ describe('007 FR-N06 R-N4 Schreiben nur mit gültigem Nachweis', () => {
     expect(((await r2.json()) as { seq: number }).seq).toBeGreaterThan(seq);
   });
 
+  it('FR-N05: Spiel ohne Zertifikat nur mit Signatur des Organisator-Schlüssels (Trainer-Handy)', async () => {
+    const s = await spieltag();
+    const draft = {
+      kind: 'game' as const,
+      slot: randomId(16),
+      group: GROUP,
+      h: 0,
+      at: 1_000,
+      gone: false,
+      body: body(),
+    };
+    const signedBy = async (k: Key) => ({
+      ...draft,
+      sig: await sign(k, signedText(s.name, { ...draft, sig: '' }, await hash(draft.body))),
+    });
+    expect((await s.post(await signedBy(s.org))).status).toBe(200);
+    // Lead-Schlüssel ohne Zertifikat: der Dienst kann ihn nicht dem Organisator zuordnen.
+    expect((await s.post(await signedBy(s.lead))).status).toBe(403);
+  });
+
   it('ungültige Anfrage 400, falsche Signatur oder fremdes Zertifikat 403', async () => {
     const s = await spieltag();
     expect((await s.post('kein json')).status).toBe(400);

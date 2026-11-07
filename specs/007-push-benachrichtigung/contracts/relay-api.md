@@ -17,8 +17,8 @@ Basis: `VITE_RELAY_ORIGIN`, z. B. `https://torticker-relay.<Konto>.workers.dev`.
 | `h` (0–100), `at` (ms) | Pflicht | – | – | – |
 | `gone` | Pflicht | – | – | – |
 | `iat` (ms) | – | Pflicht | – | – |
-| `cert` | Pflicht (Lead-Zertifikat, vom Organisator signiert) | – | – | – |
-| `sig` | Lead-Schlüssel aus `cert` | Organisator-Schlüssel | Organisator-Schlüssel | Organisator-Schlüssel |
+| `cert` | nur ohne Organisator-Schlüssel (Lead-Zertifikat, vom Organisator signiert) | – | – | – |
+| `sig` | Organisator-Schlüssel, sonst Lead-Schlüssel aus `cert` | Organisator-Schlüssel | Organisator-Schlüssel | Organisator-Schlüssel |
 | `body` | Pflicht, ≤ 4.000 Zeichen | Pflicht | Pflicht | Pflicht |
 
 Signierter Text (UTF-8, ECDSA P-256, SHA-256, P1363, base64url):
@@ -27,7 +27,7 @@ Signierter Text (UTF-8, ECDSA P-256, SHA-256, P1363, base64url):
 torticker-relay-v1|<topic>.<orgPub>|<kind>|<slot>|<group>|<h>|<at>|<iat>|<gone 0/1>|<base64url(SHA-256(body))>
 ```
 
-Fehlende Felder als leere Zeichenkette. Antworten: `200 {"seq":n}`, `204` (älter, nichts geändert), `400`, `403`, `409` (neu ausgestellt), `413`, sonst wie ohne Netz.
+Fehlende Felder als leere Zeichenkette. Die App sendet den JSON-Text ohne `content-type` (Text), damit der Browser keine CORS-Vorabfrage braucht. Antworten: `200 {"seq":n}`, `204` (älter, nichts geändert), `400`, `403`, `409` (neu ausgestellt), `413`, sonst wie ohne Netz.
 
 ## Empfangen: WebSocket `GET P/ws?since=<seq>`
 

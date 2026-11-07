@@ -100,11 +100,17 @@ describe('007 contracts/relay-api.md Schreibanfrage prüfen', () => {
       { at: 1.5 },
       { at: Number.MAX_SAFE_INTEGER + 2 },
       { gone: 'nein' },
-      { cert: undefined },
+      { cert: null },
       { cert: { d: '', s: SIG } },
       { iat: 1 },
     ];
     for (const p of bad) expect(parseWrite(game(p)), JSON.stringify(p)).toBeNull();
+  });
+
+  it('Spiel ohne Zertifikat (Trainer-Handy mit Organisator-Schlüssel, FR-N05)', () => {
+    const w = parseWrite(game({ cert: undefined }));
+    expect(w).not.toBeNull();
+    expect(w && 'cert' in w).toBe(false);
   });
 
   it('Konfiguration: iat ganze Zahl > 0, ohne Spiel-Felder', () => {

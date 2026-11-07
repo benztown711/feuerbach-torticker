@@ -134,7 +134,9 @@ async function sendEntries(live: LiveSpieltag, entries: readonly PlanEntry[]): P
   if (!live.orgKey) return false;
   for (const chunk of chunkEntries(entries, MAX_PLAN_SIGNED)) {
     const plan = await signData(live.orgKey, encodePayload(chunk));
-    const ok = await sendOrg(live, { kind: 'plan', body: await sealMessage(live.viewKey, { plan }) }).catch(() => false);
+    const ok = await sendOrg(live, { kind: 'plan', body: await sealMessage(live.viewKey, { plan }) }).catch(
+      () => false,
+    );
     if (!ok) return false;
   }
   return true;

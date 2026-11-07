@@ -31,7 +31,7 @@ Atti wird nur in den Schritten 3, 5 und 9 gebraucht. Kleine Änderungen (Fehlerb
 - Lighthouse CI (Accessibility, Best Practices ≥ 0,9); PWA-Installierbarkeit prüft der Smoke-Test (Lighthouse 12 hat keine PWA-Kategorie mehr, R-14)
 - Bundle-Budget (Hauptbundle < 60 KB gzip)
 - Hilfe-Abdeckung (Constitution IX, Spec 010 FR-H21): jede umgesetzte User Story hat einen Hilfe-Eintrag, jede Quelle eines Eintrags existiert
-- Netzwerk-Wächter: keine Requests an Drittanbieter; einzige Ausnahme ist der Vermittlungsdienst bei aktiver Live-Kopplung (Spec 006, Constitution II)
+- Netzwerk-Wächter: keine Requests an Drittanbieter (auch keine WebSockets); einzige Ausnahme ist der eigene Vermittlungsdienst bei aktiver Live-Kopplung bzw. geöffnetem Zuschauer-Link (Spec 007, Constitution II)
 - CodeQL und Dependency Review
 - PR-Titel nach Conventional Commits
 
