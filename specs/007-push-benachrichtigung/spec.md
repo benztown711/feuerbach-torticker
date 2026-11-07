@@ -106,7 +106,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 ### Edge Cases
 
 - **Harter Wechsel (Q3 B)**: Ab der neuen Version spricht die App nur noch mit dem eigenen Dienst. Geräte mit der alten Version (Update-Hinweis noch nicht bestätigt) senden bzw. lesen weiter bei ntfy.sh und sehen die anderen nicht, bis sie aktualisieren. Darum wird an einem Werktag ausgeliefert, nicht vor einem Spieltag, und der Hinweis an Trainer und Eltern lautet "Torticker einmal öffnen und aktualisieren". Nach dem Update senden Trainer-Handys Konfiguration, Spielplan und offene Spiele beim Start (Spec 006 US2-S10, Spec 015 FR-P07), sodass der Dienst sofort gefüllt ist. Ältere Endstände, die nur bei ntfy.sh lagen, kommen nicht mit.
-- **Gratis-Grenze erreicht**: Der Dienst lehnt weitere Anfragen bis 1 Uhr nachts (Mitternacht UTC) ab; die App verhält sich wie ohne Netz (US1-S5). Das Mengengerüst liegt weit darunter (research.md R-N1).
+- **Gratis-Grenze erreicht**: Der Dienst lehnt weitere Anfragen bis Mitternacht UTC ab (1 Uhr, im Sommer 2 Uhr); die App verhält sich wie ohne Netz (US1-S5). Das Mengengerüst liegt weit darunter (research.md R-N1).
 - **Dienst ganz weg** (Konto gelöscht, Anbieter stellt den Gratis-Plan ein): Nur die Live-Anzeige fehlt; "Zwischenstand teilen" und "Ergebnis teilen" funktionieren weiter. Ein Wechsel des Anbieters ist eine neue Version der App, kein neuer Link.
 - **Alle Links neu ausstellen** (Spec 006 US5-S3): Für das alte Topic behält der Dienst nur den Hinweis "neu ausgestellt"; die gespeicherten Stände des alten Topics werden gelöscht.
 - **Kopplung beenden**: ändert beim Dienst nichts; die Stände bleiben für die anderen Trainer und die Zuschauer.
@@ -122,7 +122,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 **Dienst (Teil 1)**
 
 - **FR-N01**: Live-Stände, Konfiguration und Spielplan MÜSSEN über genau einen eigenen Vermittlungsdienst laufen, der im Gratis-Plan von Cloudflare betrieben wird. ntfy.sh wird nicht mehr verwendet; der Netzwerk-Wächter lässt nur noch den eigenen Dienst zu, und auch ihn nur bei aktiver Kopplung bzw. geöffnetem Zuschauer-Link (Spec 006 FR-L05).
-- **FR-N02**: Der Dienst MUSS je Live-Spieltag speichern: die jüngste Konfiguration, den jüngsten Spielplan und je Spiel den jüngsten Live-Stand, je Mannschaft höchstens die 10 jüngsten Spiele (ältere fallen weg). Gelöschte und auf "Nicht live senden" gestellte Spiele MUSS er entfernen.
+- **FR-N02**: Der Dienst MUSS je Live-Spieltag speichern: die jüngste Konfiguration, die jüngsten Plan-Meldungen (Änderungen einzelner Planspiele, mindestens 50; Empfänger führen wie bisher zusammen) und je Spiel den jüngsten Live-Stand, je Mannschaft höchstens die 10 jüngsten Spiele (ältere fallen weg). Gelöschte und auf "Nicht live senden" gestellte Spiele MUSS er entfernen.
 - **FR-N03**: Wer den Zuschauer-Link öffnet oder ein Trainer-Handy startet, MUSS alles Gespeicherte erhalten. Die Zeitgrenze von rund 12 Stunden aus Spec 006 FR-L16 und Spec 015 FR-P07 entfällt.
 - **FR-N04**: Neue Stände MÜSSEN offene Dashboards und Trainer-Handys ohne Neuladen erreichen (SC-L01: 95 % innerhalb von 10 Sekunden), auch bei vielen Zuschauern am selben Anschluss; der Rückfall auf Abfragen alle 30 Sekunden entfällt.
 - **FR-N05**: Der Dienst DARF nur verschlüsselte Inhalte sehen (Spec 006 FR-L11 bleibt Ende-zu-Ende). Was er zum Ordnen braucht (welches Spiel, welche Mannschaft, Reihenfolge), darf er nur als Kennungen erhalten, aus denen sich ohne Zuschauer-Link weder Mannschaft noch Gegner noch Namen ableiten lassen.
@@ -148,7 +148,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 
 - **Vermittlungsdienst**: ein kleiner Dienst je Konto bei Cloudflare; je Live-Spieltag (Topic) ein abgeschlossener Speicher.
 - **Gespeicherter Stand**: verschlüsselte Meldung mit undurchsichtiger Spiel- und Mannschaftskennung, Serverzeit, Übergabezähler bzw. Reihenfolge.
-- **Schreibberechtigung**: Nachweis, dass eine Meldung von einem Trainer- oder Lead-Handy stammt (Verfahren in research.md, Plan).
+- **Schreibberechtigung**: Nachweis, dass eine Meldung von einem Trainer- oder Lead-Handy stammt (Signatur mit Organisator- bzw. Lead-Schlüssel, research.md R-N4).
 
 ## Success Criteria *(mandatory)*
 
