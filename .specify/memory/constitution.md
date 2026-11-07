@@ -16,9 +16,9 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 ### II. Offline-first und lokal
 
 - Die App funktioniert vollständig ohne Netzverbindung, sobald sie einmal geladen ist. Die Erfassung hängt nie vom Netz ab.
-- Spieldaten bleiben auf dem Gerät. Es gibt keinen eigenen Server und kein Benutzerkonto.
+- Spieldaten bleiben auf dem Gerät. Außer dem Vermittlungsdienst der Live-Kopplung gibt es keinen eigenen Server, und Nutzer brauchen kein Benutzerkonto.
 - Daten verlassen das Gerät nur durch eine bewusste Aktion des Nutzers: einmalig (z. B. "Ergebnis teilen", Export) oder dauerhaft über eine vom Nutzer aktivierte Live-Kopplung (Spec 006).
-- Eine Live-Kopplung überträgt nur die für die Anzeige nötigen Daten, Ende-zu-Ende verschlüsselt, über genau einen kostenlosen Vermittlungsdienst ohne Konto. Ohne Kopplung baut die App keine Verbindung zu einem solchen Dienst auf.
+- Eine Live-Kopplung überträgt nur die für die Anzeige nötigen Daten, Ende-zu-Ende verschlüsselt, über genau einen eigenen Vermittlungsdienst im Gratis-Plan eines Anbieters (Cloudflare, Spec 007). Das Konto beim Anbieter hat der Betreiber; Eltern und Trainer brauchen keins. Der Dienst sieht nur verschlüsselte Inhalte und hält nur vor, was für die Anzeige nötig ist (je Mannschaft die letzten Spiele). Ohne Kopplung bzw. geöffneten Zuschauer-Link baut die App keine Verbindung zu ihm auf.
 
 ### III. Datensparsamkeit (Kinder- und Jugendfußball)
 
@@ -50,7 +50,7 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 
 ### VIII. Kostenfrei
 
-- Entwicklung, Betrieb und Nutzung bleiben dauerhaft kostenlos: öffentliches Repository, GitHub Actions und Pages im Gratis-Kontingent, freie Schriften, keine Bezahl-Accounts (z. B. Apple Developer), keine kostenpflichtigen Dienste oder APIs.
+- Entwicklung, Betrieb und Nutzung bleiben dauerhaft kostenlos: öffentliches Repository, GitHub Actions und Pages im Gratis-Kontingent, der Vermittlungsdienst im Gratis-Plan von Cloudflare (ohne Bezahl-Plan; bei Überschreiten der Grenzen lehnt er ab statt abzurechnen), freie Schriften, keine Bezahl-Accounts (z. B. Apple Developer), keine kostenpflichtigen Dienste oder APIs.
 - Eine Lösung, die Kosten verursacht, ist ausgeschlossen, auch wenn sie technisch besser wäre.
 
 ### IX. Hilfe ist Teil jeder Funktion
@@ -64,7 +64,7 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 ## Technische Rahmenbedingungen
 
 - Auslieferung als Progressive Web App (PWA), installierbar über "Zum Home-Bildschirm" auf iOS (Safari) und Android (Chrome).
-- Hosting als statische Seite (GitHub Pages), keine Server-Komponente.
+- Hosting als statische Seite (GitHub Pages); einzige Server-Komponente ist der Vermittlungsdienst der Live-Kopplung (Cloudflare Worker, im Repository versioniert und automatisch ausgeliefert).
 - Zielgeräte: iPhone ab iOS 17, aktuelle Android-Geräte. Maßstab für das Layout ist das kleinste unterstützte iPhone (iPhone SE, 375 × 667 pt). Hochformat ist Pflicht, Querformat optional.
 - Bekannte iOS-PWA-Grenzen müssen im Plan explizit adressiert werden (keine Vibration-API, eingeschränkte Hintergrundausführung, Wake Lock erst ab iOS 16.4/18.4 zuverlässig).
 
@@ -81,6 +81,6 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 2.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-04
+**Version**: 3.0.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-07
 
-Änderungshistorie: 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 010). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
+Änderungshistorie: 3.0.0 (07.11.2026) Prinzip II: eigener Vermittlungsdienst im Gratis-Plan von Cloudflare statt öffentlichem Dienst ohne Konto (Spec 007, Atti nach dem ersten Spieltag); Prinzip VIII und Technische Rahmenbedingungen entsprechend. 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 010). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
