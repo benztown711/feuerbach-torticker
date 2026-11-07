@@ -45,6 +45,7 @@ export {
   changePlan,
   linkPlanGame,
   loadPlan,
+  notePlanScore,
   planChoices,
   refreshPlan,
   type PlanChoice,

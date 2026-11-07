@@ -651,9 +651,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Du siehst alle Spiele des Spieltags mit Stand und Minute; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel, um Tore und Details zu sehen. Steht bei einer Mannschaft „heute noch kein Spiel“, hat ihr Trainer das Spiel noch nicht angelegt oder heute noch nicht gesendet; spätestens mit dem Anpfiff erscheint es.',
-    keywords: 'eltern zuschauen verfolgen dashboard link spieltag live kein spiel',
-    sources: ['006 US3', '012 US5'],
+      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Auf- und Zuklappen, und „Vergangene Spiele“ mit Endstand. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
+    keywords:
+      'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse',
+    sources: ['006 US3', '012 US5', '015 US3', '015 US7'],
     parents: true,
     related: ['eltern-home', 'keine-verbindung'],
   },

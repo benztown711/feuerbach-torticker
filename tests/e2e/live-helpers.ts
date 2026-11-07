@@ -231,6 +231,23 @@ export async function sendAs(
   relay.inject(linkData(trainerUrl).t as string, await leadMessage(trainerUrl, content, o));
 }
 
+/**
+ * Spec 015: Plan-Meldung (Feld `p`, mit dem Organisator-Schlüssel signiert) im Relay ablegen, als käme sie von einem
+ * Trainer-Handy mit diesem Trainer-Link. `entries` in der Form von contracts/plan-message.md.
+ */
+export async function sendPlan(relay: FakeRelay, trainerUrl: string, entries: Json[]): Promise<void> {
+  const link = linkData(trainerUrl);
+  const q = link.q as { d: string; x: string; y: string };
+  const org: JsonWebKey = { kty: 'EC', crv: 'P-256', d: q.d, x: q.x, y: q.y };
+  const d = JSON.stringify({ v: 1, e: entries });
+  const env = { p: { d, s: await signWith(org, d) } };
+  const packed = deflateRawSync(Buffer.from(JSON.stringify(env), 'utf8'));
+  const key = await subtle.importKey('raw', b64(link.k as string), 'AES-GCM', false, ['encrypt']);
+  const iv = webcrypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv }, key, packed));
+  relay.inject(link.t as string, `t1.${Buffer.concat([iv, ct]).toString('base64url')}`);
+}
+
 export type ClockSpec = [type: string, minutesAgo: number, section: number];
 export interface GoalSpec {
   side: 'own' | 'opp';

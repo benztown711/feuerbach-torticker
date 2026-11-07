@@ -17,6 +17,7 @@ import {
   prunePlan,
   setCancelled,
   setGame,
+  setScore,
   staleEntries,
   todayKey,
   updateEntry,
@@ -24,7 +25,7 @@ import {
 } from '../domain/plan';
 import { importPlan } from '../domain/plan-list';
 import { MAX_PLAN_SIGNED } from '../domain/live-validate';
-import type { LiveSpieltag, PlanEntry, PlanStore } from '../domain/types';
+import type { LiveSpieltag, PlanEntry, PlanStore, Score } from '../domain/types';
 import { getPlan, getSettings, putPlan } from './db';
 import { sealMessage, signData } from './live-crypto';
 import { planChanged } from './live-events';
@@ -162,6 +163,25 @@ export async function linkPlanGame(id: string, gameId: string): Promise<void> {
     await changePlan({ kind: 'link', id, gameId });
   } catch {
     // Planspiel inzwischen gelöscht oder Handy ohne Trainer-Link: das Spiel läuft trotzdem.
+  }
+}
+
+/**
+ * US3 FR-P30 (R-P8): Endstand des aus dem Plan angelegten Spiels ins Planspiel übernehmen und senden; null nimmt
+ * ihn zurück (zurückgenommener Schlusspfiff). Ohne passendes Planspiel oder ohne Trainer-Link passiert nichts.
+ */
+export async function notePlanScore(gameId: string, score: Score | null): Promise<void> {
+  try {
+    const changed = await serial(async () => {
+      const live = (await getSettings()).live;
+      if (!live?.orgKey) return false;
+      const r = setScore(await loadPlan(live), gameId, score, Date.now());
+      if (r) await save(r.store);
+      return r !== null;
+    });
+    if (changed) void flush().catch(() => false);
+  } catch {
+    // Speicher nicht erreichbar: beim nächsten Schlusspfiff bzw. Öffnen erneut.
   }
 }
 

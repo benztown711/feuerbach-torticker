@@ -2,10 +2,21 @@ import { deriveClock, type ClockState } from './clock';
 import { homeAway } from './goals';
 import { parseSnapshot, type LiveGameSnapshot, type LiveGoal, type LiveSnapshot } from './live-snapshot';
 import { newerConfig, parseConfig } from './live-spieltag';
-import { isObj, isText, isTime } from './live-validate';
+import { isObj, isText, isTime, type Obj } from './live-validate';
 import { formatMinute } from './minute';
+import {
+  compareEntries,
+  encodePayload,
+  entryWhen,
+  formatPlanDate,
+  formatPlanDateShort,
+  MAX_PLAN,
+  mergeList,
+  parsePayloadValue,
+  pruneEntries,
+} from './plan';
 import { shortTeamName } from './team-name';
-import type { LiveConfig, Schema, Side } from './types';
+import type { LiveConfig, PlanEntry, Schema, Score, Side, TeamDetail } from './types';
 
 /**
  * Spec 006 FR-L12 bis FR-L16: Stand des Dashboards aus geprüften Meldungen und die Karten daraus.
@@ -18,6 +29,8 @@ export const STALE_MS = 5 * 60_000;
 /** Obergrenzen, damit der gemerkte Stand klein bleibt. */
 export const MAX_GAMES = 60;
 export const MAX_REMOVED = 100;
+/** Spec 015 R-P7: gemerkt höchstens so viele Planspiele (mit Grabsteinen). */
+export const MAX_STORED_PLAN = 3 * MAX_PLAN;
 
 export interface BoardEntry {
   snap: LiveGameSnapshot;
@@ -30,9 +43,11 @@ export interface Board {
   games: BoardEntry[];
   /** Entfernte Spiele (Schlüssel, sentAt, Übergabezähler), damit ältere Stände sie nicht zurückbringen. */
   removed: [string, number, number][];
+  /** Spec 015 R-P7: empfangene Planspiele, je Planspiel die jüngste Änderung. */
+  plan: PlanEntry[];
 }
 
-export const emptyBoard = (): Board => ({ config: null, games: [], removed: [] });
+export const emptyBoard = (): Board => ({ config: null, games: [], removed: [], plan: [] });
 
 /** Spiel-IDs gelten je Mannschaft: ein Lead-Handy kann kein Spiel einer anderen Mannschaft ändern. */
 const idOf = (s: { team: string; gameId: string }): string => `${s.team}/${s.gameId}`;
@@ -167,6 +182,18 @@ export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, time
   return { ...board, games: prune([...others, { snap, at }], timeZone) };
 }
 
+/** Spec 015 R-P7: geprüfte Planspiele übernehmen (jüngste Änderung je Planspiel, Grabsteine, Grenzen). */
+export function applyPlan(board: Board, incoming: readonly PlanEntry[], today: string): Board {
+  const r = mergeList(board.plan, incoming);
+  return r.changed.length === 0 ? board : { ...board, plan: pruneEntries(r.entries, today) };
+}
+
+/** Stand zum Merken: Planspiele kompakt wie in der Meldung (streng prüfbar beim Laden). */
+export const boardJson = (board: Board): Obj => ({
+  ...board,
+  plan: board.plan.length > 0 ? encodePayload(board.plan) : null,
+});
+
 /** Gemerkter Stand aus `localStorage`; Ungültiges fällt weg. */
 export function parseBoard(v: unknown): Board {
   if (!isObj(v) || !Array.isArray(v.games) || !Array.isArray(v.removed)) return emptyBoard();
@@ -180,12 +207,18 @@ export function parseBoard(v: unknown): Board {
       ? [[r[0], r[1], (r[2] as number | undefined) ?? 0]]
       : [],
   );
-  return { config: parseConfig(v.config), games: games.slice(-MAX_GAMES), removed: removed.slice(-MAX_REMOVED) };
+  return {
+    config: parseConfig(v.config),
+    games: games.slice(-MAX_GAMES),
+    removed: removed.slice(-MAX_REMOVED),
+    plan: parsePayloadValue(v.plan, MAX_STORED_PLAN) ?? [],
+  };
 }
 
 /* ---------- Karten (FR-L12, FR-L14) ---------- */
 
-export type CardGroup = 'running' | 'created' | 'finished';
+/** `planned`: Planspiel ohne angelegtes Spiel (Spec 015 US3). */
+export type CardGroup = 'running' | 'created' | 'finished' | 'planned';
 
 export interface GoalLine {
   side: Side;
@@ -197,14 +230,18 @@ export interface GoalLine {
 
 export interface BoardCard {
   key: string;
+  /** Leer bei einem Planspiel ohne angelegtes Spiel. */
   gameId: string;
+  /** Spec 015: Planspiel, das die Karte zeigt (nur `planned`). */
+  planId: string | null;
   group: CardGroup;
   /** Spiel läuft (Minute, Pause, Elfmeterschießen): rote Kante. */
   live: boolean;
   /** Spiel von heute. */
   today: boolean;
-  home: { name: string; color: string };
-  away: { name: string; color: string };
+  /** Farbe null: unbekannt (Gegner eines Planspiels). */
+  home: { name: string; color: string | null };
+  away: { name: string; color: string | null };
   score: string;
   phase: string;
   /** Aufgeklappt: Kürzel, Datum, Anpfiff, Schlusspfiff, Halbzeit. */
@@ -216,6 +253,8 @@ export interface BoardCard {
   earlier: string | null;
   /** Serverzeit der letzten Meldung (ms): nur frische Tore werden hervorgehoben. */
   updatedAt: number;
+  /** Spec 015 FR-P14: sichtbar unter der Karte, "Danach: …" bzw. "Nächstes Spiel: …". */
+  lines: string[];
 }
 
 export interface BoardView {
@@ -341,9 +380,24 @@ function earlierEntry(st: GameState): string {
   return st.group === 'finished' ? text : `${text} (${st.phase})`;
 }
 
-const RANK: Record<CardGroup, number> = { running: 0, created: 1, finished: 2 };
+/** Laufend vor heute (angelegt oder geplant) vor beendet vor kommenden Planspielen. */
+const rank = (c: BoardCard): number =>
+  c.group === 'running'
+    ? 0
+    : c.group === 'created' || (c.group === 'planned' && c.today)
+      ? 1
+      : c.group === 'finished'
+        ? 2
+        : 3;
 
-function cardOf(key: string, main: GameState, rest: GameState[], serverNow: number, timeZone?: string): BoardCard {
+function cardOf(
+  key: string,
+  main: GameState,
+  rest: GameState[],
+  serverNow: number,
+  lines: string[],
+  timeZone?: string,
+): BoardCard {
   const s = main.entry.snap;
   const own = { name: s.own, color: s.ownColor };
   const opp = { name: s.opp, color: s.oppColor };
@@ -352,6 +406,7 @@ function cardOf(key: string, main: GameState, rest: GameState[], serverNow: numb
   return {
     key,
     gameId: s.gameId,
+    planId: null,
     group: main.group,
     live: main.live,
     today: main.today,
@@ -365,7 +420,125 @@ function cardOf(key: string, main: GameState, rest: GameState[], serverNow: numb
     staleMinutes: main.live && silent > STALE_MS ? Math.floor(silent / 60_000) : null,
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: main.entry.at,
+    lines,
   };
+}
+
+/* ---------- Planspiele (Spec 015 US3, US7) ---------- */
+
+/** US3-S5, US7-S4: Planspiele ohne Gegner erscheinen nicht. */
+const onDashboard = (e: PlanEntry): boolean => !e.deleted && e.opponent !== '';
+
+const versus = (e: PlanEntry): string => `${e.venue === 'home' ? 'gegen' : 'bei'} ${e.opponent}`;
+
+/**
+ * FR-P13, FR-P29: "heute 12:00", "Sa 14.11., 12:00", ohne Anstoß nur der Tag; abgesagt statt Anstoß (als Karte
+ * nur heute, kommende abgesagte Planspiele werden keine Karte).
+ */
+function plannedWhen(e: PlanEntry, today: string): string {
+  if (e.cancelled) return 'abgesagt';
+  if (e.date === today) return e.time ? `heute ${e.time}` : 'heute';
+  return entryWhen(e);
+}
+
+/** FR-P14: weitere Planspiele von heute. */
+const afterLine = (entries: PlanEntry[]): string[] =>
+  entries.length === 0
+    ? []
+    : [
+        `Danach: ${entries
+          .map((e) => `${e.time ? `${e.time} ` : ''}${versus(e)}${e.cancelled ? ' (abgesagt)' : ''}`)
+          .join('; ')}`,
+      ];
+
+/** FR-P13: Karte eines Planspiels: Mannschaft mit Trikotfarbe, Gegner (Heim zuerst), Anstoß, ohne Stand. */
+function plannedCard(
+  key: string,
+  e: PlanEntry,
+  rest: GameState[],
+  lines: string[],
+  detail: TeamDetail | undefined,
+  today: string,
+): BoardCard {
+  const own = {
+    name: detail ? shortTeamName(detail[1]) : key,
+    color: detail ? detail[e.venue === 'home' ? 2 : 3] : null,
+  };
+  const opp = { name: e.opponent, color: null };
+  return {
+    key,
+    gameId: '',
+    planId: e.id,
+    group: 'planned',
+    live: false,
+    today: e.date === today,
+    home: e.venue === 'home' ? own : opp,
+    away: e.venue === 'home' ? opp : own,
+    score: '',
+    phase: [plannedWhen(e, today), e.competition].filter(Boolean).join(' · '),
+    info: [key, e.competition, e.schema ? `${e.schema.sections}×${e.schema.sectionMinutes}` : '']
+      .filter(Boolean)
+      .join(' · '),
+    shootout: null,
+    goals: [],
+    staleMinutes: null,
+    earlier: rest.length > 0 ? `Heute außerdem: ${rest.map(earlierEntry).join('; ')}` : null,
+    updatedAt: 0,
+    lines,
+  };
+}
+
+/**
+ * FR-P12 (R-P9): Hauptinhalt einer Mannschaft: laufendes Spiel; sonst heute angelegtes, dann ein noch
+ * bevorstehendes Planspiel von heute; sonst das neueste Spiel; sonst das nächste Planspiel. Ein Planspiel steht
+ * bevor, wenn sein Anstoß nach dem letzten beendeten Spiel von heute liegt (ohne beendetes Spiel jedes);
+ * abgesagte nur, wenn die Mannschaft heute kein Spiel hat. Übrige Planspiele von heute stehen als "Danach"
+ * (Spec, Edge Cases: Spiel ohne Plan angelegt).
+ */
+function teamCard(
+  key: string,
+  states: GameState[],
+  plan: PlanEntry[],
+  gone: string[],
+  detail: TeamDetail | undefined,
+  serverNow: number,
+  today: string,
+  timeZone?: string,
+): BoardCard | null {
+  // FR-P15: ein angelegtes Planspiel erscheint als sein Spiel, auch nicht mehr, wenn das Spiel gelöscht wurde.
+  const known = new Set([...states.map((s) => s.entry.snap.gameId), ...gone]);
+  const entries = plan.filter((e) => e.team === key && !(e.gameId && known.has(e.gameId))).sort(compareEntries);
+  const todays = entries.filter((e) => e.date === today);
+  const todayOpen = [...todays.filter((e) => !e.cancelled), ...todays.filter((e) => e.cancelled)];
+  const future = entries.filter((e) => e.date > today && !e.cancelled);
+  const finished = states.filter((s) => s.today && s.group === 'finished').map((s) => startOf(s.entry));
+  const lastKick = finished.length > 0 ? formatClockTime(Math.max(...finished), timeZone) : null;
+  const hasToday = states.some((s) => s.today);
+  const ahead = (e: PlanEntry): boolean =>
+    e.cancelled ? !hasToday : lastKick === null || (e.time !== null && e.time > lastKick);
+  const planMain = todayOpen.find(ahead);
+  const created = states
+    .filter((s) => s.group === 'created' && s.today)
+    .sort((a, b) => startOf(a.entry) - startOf(b.entry));
+  const main = states.find((s) => s.live) ?? created[0] ?? (planMain ? undefined : states[0]);
+  if (main) {
+    const after = afterLine(todayOpen);
+    const next = after.length === 0 && (main.group === 'finished' || !main.today) ? future[0] : undefined;
+    const lines = next ? [`Nächstes Spiel: ${entryWhen(next)} ${versus(next)}`] : after;
+    return cardOf(
+      key,
+      main,
+      states.filter((s) => s !== main),
+      serverNow,
+      lines,
+      timeZone,
+    );
+  }
+  if (planMain) {
+    const rest = states.filter((s) => s.today);
+    return plannedCard(key, planMain, rest, afterLine(todayOpen.filter((e) => e !== planMain)), detail, today);
+  }
+  return future[0] ? plannedCard(key, future[0], [], [], detail, today) : null;
 }
 
 /**
@@ -373,19 +546,25 @@ function cardOf(key: string, main: GameState, rest: GameState[], serverNow: numb
  * vor angelegten vor beendeten. Ohne Konfiguration gelten die Mannschaften der Meldungen.
  */
 export function boardView(board: Board, serverNow: number, timeZone?: string): BoardView {
-  const teams = board.config?.teams ?? [...new Set(board.games.map((e) => e.snap.team))].sort();
+  const plan = board.plan.filter(onDashboard);
+  const teams =
+    board.config?.teams ?? [...new Set([...board.games.map((e) => e.snap.team), ...plan.map((e) => e.team)])].sort();
   const today = dayKey(serverNow, timeZone);
+  const details = board.config?.m ?? [];
   const cards = teams
     .flatMap((key) => {
       // Laufendes Spiel vor neuestem (zwei Lead-Handys derselben Mannschaft), sonst das neueste.
-      const [main, ...rest] = board.games
+      const states = board.games
         .filter((e) => e.snap.team === key)
         .map((e) => stateOf(e, serverNow, today, timeZone))
         .sort((a, b) => Number(b.live) - Number(a.live) || startOf(b.entry) - startOf(a.entry));
-      return main ? [cardOf(key, main, rest, serverNow, timeZone)] : [];
+      const detail = details.find(([k]) => k === key);
+      // Entfernte Spiele dieser Mannschaft ("Nicht live senden", gelöscht): ihre Planspiele bleiben verbraucht.
+      const gone = board.removed.filter(([id]) => id.startsWith(`${key}/`)).map(([id]) => id.slice(key.length + 1));
+      const card = teamCard(key, states, plan, gone, detail, serverNow, today, timeZone);
+      return card ? [card] : [];
     })
-    .sort((a, b) => RANK[a.group] - RANK[b.group]);
-  const details = board.config?.m ?? [];
+    .sort((a, b) => rank(a) - rank(b));
   const waiting =
     cards.length === 0
       ? []
@@ -417,7 +596,79 @@ export function otherGames(
   serverNow: number,
   timeZone?: string,
 ): BoardCard[] {
-  return boardView(board, serverNow, timeZone).cards.filter((c) => c.today && c.gameId !== gameId && c.key !== team);
+  return boardView(board, serverNow, timeZone).cards.filter(
+    (c) => c.today && c.group !== 'planned' && c.gameId !== gameId && c.key !== team,
+  );
+}
+
+/* ---------- Abschnitt "Spielplan" (Spec 015 US7) ---------- */
+
+export interface PlanRow {
+  id: string;
+  /** Anstoß ("12:00", offen "–") bzw. bei vergangenen Spielen der Tag ("Sa 07."). */
+  lead: string;
+  /** "E1 gegen TSV Musterstadt", "E1 bei …"; vergangene Heim zuerst: "FC Kirchberg – E1". */
+  title: string;
+  /** Wettbewerb. */
+  detail: string;
+  /** "abgesagt", Endstand "1:3" (Heim zuerst) oder leer. */
+  state: string;
+  cancelled: boolean;
+}
+
+export interface PlanSection {
+  /** Ab morgen, je Datum ("Sa 21.11."). */
+  days: { date: string; head: string; rows: PlanRow[] }[];
+  /** Neueste zuerst. */
+  past: PlanRow[];
+}
+
+/** FR-P30: Endstand aus dem Planspiel, sonst aus dem verknüpften, beendeten Spiel, solange es bekannt ist. */
+function finalOf(board: Board, e: PlanEntry, serverNow: number): Score | null {
+  if (e.score) return e.score;
+  const game = board.games.find((g) => g.snap.team === e.team && g.snap.gameId === e.gameId);
+  if (!game || clockOfEntry(game, serverNow).status !== 'finished') return null;
+  return { own: count(game.snap.goals, 'own'), opp: count(game.snap.goals, 'opp') };
+}
+
+/**
+ * US7-S1 bis S4: kommende Planspiele ab morgen nach Datum (heute stehen sie als Karten darüber), vergangene neueste
+ * zuerst mit Endstand (Heim zuerst); ohne Planspiele ohne Gegner.
+ */
+export function planSection(board: Board, serverNow: number, timeZone?: string): PlanSection {
+  const today = dayKey(serverNow, timeZone);
+  const shown = board.plan.filter(onDashboard).sort(compareEntries);
+  const days = new Map<string, PlanRow[]>();
+  for (const e of shown.filter((x) => x.date > today)) {
+    const row: PlanRow = {
+      id: e.id,
+      lead: e.time ?? '–',
+      title: `${e.team} ${versus(e)}`,
+      detail: e.competition,
+      state: e.cancelled ? 'abgesagt' : '',
+      cancelled: e.cancelled,
+    };
+    days.set(e.date, [...(days.get(e.date) ?? []), row]);
+  }
+  const past = shown
+    .filter((x) => x.date < today)
+    .sort((a, b) => (a.date === b.date ? compareEntries(a, b) : b.date.localeCompare(a.date)))
+    .map((e): PlanRow => {
+      const final = e.cancelled ? null : finalOf(board, e, serverNow);
+      const ha = final ? homeAway(e.venue, final) : null;
+      return {
+        id: e.id,
+        lead: formatPlanDateShort(e.date),
+        title: e.venue === 'home' ? `${e.team} – ${e.opponent}` : `${e.opponent} – ${e.team}`,
+        detail: e.competition,
+        state: e.cancelled ? 'abgesagt' : ha ? `${ha.home}:${ha.away}` : '',
+        cancelled: e.cancelled,
+      };
+    });
+  return {
+    days: [...days].map(([date, rows]) => ({ date, head: formatPlanDate(date), rows })),
+    past,
+  };
 }
 
 /** Spec 006 US5: Serverzeit der jüngsten Meldung einer Mannschaft (von irgendeinem Handy), sonst null. */

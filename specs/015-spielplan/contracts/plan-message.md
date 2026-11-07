@@ -29,11 +29,13 @@ Erweitert `specs/006-live-spieltag/contracts/live-message.md`. Transport, Versch
 | `w` | competition | nein | bis 40 Zeichen |
 | `z` | schema | nein | `[Abschnitte 1..4, Minuten 1..60]` |
 | `c` | cancelled | nein | 1 = abgesagt |
+| `g` | gameId | nein | Spiel, das aus dem Planspiel angelegt wurde (US2), bis 64 Zeichen base64url |
+| `s` | score | nein | Endstand `[eigene Tore, Tore Gegner]`, je 0 bis 99 (US3, FR-P30) |
 | `x` | deleted | nein | 1 = gelöscht; dann zählen nur `i`, `k`, `d`, `u` |
 | `u` | updatedAt | ja | ganze Zahl > 0 |
 
 - `e` enthält 1 bis 100 Einträge; ein ungültiger Eintrag verwirft die ganze Meldung.
-- Spätere Stories ergänzen `g` (gameId, US2), `s` (Endstand, US3) und `b` (Vormerkung, US6); bis dahin werden unbekannte Schlüssel ignoriert.
+- `b` (Vormerkung, US6) folgt; unbekannte Schlüssel werden ignoriert. Ein älterer Client, der `s` nicht kennt, sendet ein geändertes Planspiel ohne Endstand (jüngste Änderung gilt).
 
 ## Senden
 

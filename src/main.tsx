@@ -3,7 +3,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import { App } from './ui/app';
-import { getSettings } from './platform/db';
+import { getSettings, onGameWrite } from './platform/db';
 import { startLiveSender } from './platform/live-sender';
 import { setSignalSound } from './platform/signal';
 import { applyTheme, requestPersistentStorage } from './platform/storage';
@@ -32,6 +32,22 @@ document.addEventListener('visibilitychange', () => {
 function refreshPlan(): void {
   void import('./platform/live-setup').then((m) => m.refreshPlan()).catch(() => undefined);
 }
+// Spec 015 FR-P30 (R-P8): Endstand eines aus dem Plan angelegten Spiels ins Planspiel; nachgeladen nur, wenn
+// sich der Endstand eines Spiels ändert (Schlusspfiff, Tor-Korrektur, zurückgenommener Schlusspfiff) und beim
+// ersten Speichern eines Spiels nach dem Start (ein vorher zurückgenommener Schlusspfiff). Trainer-Handys haben
+// `live-setup` zu dem Zeitpunkt ohnehin geladen (refreshPlan).
+const finals = new Map<string, string>();
+onGameWrite((c) => {
+  if (c.kind !== 'put') return;
+  const { id, finalScore } = c.game;
+  const key = finalScore ? `${finalScore.own}:${finalScore.opp}` : '';
+  const known = finals.get(id);
+  finals.set(id, key);
+  if (known === key) return;
+  void getSettings()
+    .then((s) => s.live?.orgKey && import('./platform/live-setup').then((m) => m.notePlanScore(id, finalScore)))
+    .catch(() => undefined);
+});
 void requestPersistentStorage();
 
 const root = document.getElementById('app');

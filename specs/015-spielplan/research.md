@@ -34,3 +34,21 @@
 - **Decision**: `plan-sync` wird ausschließlich über `live-setup` erreicht (Re-Export von `adoptPlan`, `changePlan`, `loadPlan`, `refreshPlan`); Bildschirme, `live-watch`, das Dashboard und `main.tsx` importieren nie direkt `plan-sync`.
 - **Rationale**: Wird `plan-sync` aus mehreren nachgeladenen Teilen direkt geladen, legt der Bundler (Vite 8) gemeinsame Module des Hauptbundles in eigene Teile aus, die vorab geladen werden; gemessen 59,4 statt 57,0 KB gzip. Über `live-setup` bleibt alles in einem Hauptteil: 57,3 KB.
 - **Alternatives considered**: eigene Chunk-Regeln in `vite.config.ts` (zusätzliche Konfiguration, schwer nachzuvollziehen).
+
+## R-P7 Spielplan auf dem Eltern-Dashboard (US3, US7)
+
+- **Decision**: Der Empfänger des Dashboards führt die geprüften Planspiele aus `p` im gemerkten Stand (`Board.plan`, `localStorage` wie die Spiele) mit derselben Regel wie die Trainer-Handys zusammen (jüngste Änderung je Planspiel, Grabsteine, höchstens 100, Grabsteine 30 Tage).
+- **Rationale**: Eltern brauchen den Plan ohne Trainer-Link; `p` ist mit dem Zuschauer-Schlüssel lesbar und mit `orgPub` geprüft (R-P5). Wer das Dashboard schon einmal geöffnet hatte, sieht den Plan ohne Zeitgrenze.
+- **Alternatives**: eigener Speicher je Plan (zweiter Schlüssel, doppelte Pflege).
+
+## R-P8 Endstand im Planspiel (FR-P30)
+
+- **Decision**: Das Trainer-Handy mit dem verknüpften Spiel trägt bei jeder Änderung von `finalScore` (Schlusspfiff, Tor-Korrektur, zurückgenommener Schlusspfiff) den Endstand als `s` ins Planspiel ein und sendet den Plan. Erkannt wird das über `onGameWrite`; geprüft wird bei jeder Änderung des Endstands und beim ersten Speichern eines Spiels nach dem Start (ein vorher zurückgenommener Schlusspfiff); Trainer-Handys haben `live-setup` dann ohnehin geladen. Das Dashboard nimmt `s`, sonst den Endstand des verknüpften Spiels, solange es bekannt ist.
+- **Rationale**: Das Dashboard hält Spiele nur vom letzten Spieltag je Mannschaft (Spec 006 FR-L16); der Plan wird alle 6 Stunden erneut gesendet (FR-P07) und trägt die Ergebnisse der Saison.
+- **Alternatives**: Endstand nur aus den Spielmeldungen (verschwindet nach 12 Stunden für neue Zuschauer).
+
+## R-P9 Karten mit Planspielen (US3)
+
+- **Decision**: `boardView` bekommt je Mannschaft die Planspiele dazu. Hauptinhalt: laufendes Spiel; sonst heute angelegte, dann geplante (nach Anstoß, abgesagte zuletzt); sonst das zuletzt beendete Spiel; sonst das nächste Planspiel. Ein Planspiel mit `gameId`, dessen Spiel bekannt ist, erscheint nur als dieses Spiel. "Danach" und "Nächstes Spiel" stehen sichtbar unter der Karte, "Heute außerdem" bleibt wie bisher in den Details.
+- **Rationale**: Eine Karte je Mannschaft (Spec 006 FR-L14), kein doppeltes Spiel (FR-P15); "wie bisher" für "Heute außerdem" laut FR-P14.
+

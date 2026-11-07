@@ -211,6 +211,23 @@ describe('006 US3 Empfänger', () => {
     expect(new LiveReceiver(view, { ...setup().deps, storage: garbage }).get().board.games).toEqual([]);
   });
 
+  it('015 US3 R-P7: geprüfte Planspiele gehen auch auf dem Eltern-Dashboard in den Stand und überstehen das Neuladen', async () => {
+    const { r, msg, storage, deps } = setup();
+    const payload = JSON.stringify({
+      v: 1,
+      e: [{ i: 'p1', k: 'E1', d: '2026-11-14', t: '12:00', h: 1, o: 'TSV Musterstadt', u: 5 }],
+    });
+    await msg({ content: null, cert: null, config: null, plan: payload });
+    await flush();
+    expect(r.get().board.plan.map((e) => [e.id, e.opponent])).toEqual([['p1', 'TSV Musterstadt']]);
+    expect(JSON.parse(storage.getItem(KEY) as string).plan).toEqual(JSON.parse(payload));
+    expect(new LiveReceiver(view, deps).get().board.plan).toEqual(r.get().board.plan);
+    // ungültige Nutzlast ändert nichts
+    await msg({ content: null, cert: null, config: null, plan: '{kaputt' }, T0 / 1000, 'm2');
+    await flush();
+    expect(r.get().board.plan).toHaveLength(1);
+  });
+
   it('015 US1-S4 FR-P07: reicht geprüfte Plan-Meldungen mit Sendezeit an Trainer-Handys weiter, Zuschauer ignorieren sie', async () => {
     const onPlan = vi.fn();
     const { msg } = setup({ onPlan });
