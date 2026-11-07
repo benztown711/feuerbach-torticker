@@ -19,6 +19,7 @@ import {
   markSent,
   MAX_PLAN,
   mergeEntries,
+  mergeList,
   needsRefresh,
   nextSaturday,
   noteSeen,
@@ -26,10 +27,12 @@ import {
   pickable,
   planFor,
   planView,
+  pruneEntries,
   prunePlan,
   REFRESH_MS,
   setCancelled,
   setGame,
+  setScore,
   staleEntries,
   todayKey,
   updateEntry,
@@ -465,5 +468,50 @@ describe('015 US2 Spiel aus dem Spielplan', () => {
     expect(entryState(entry({ date: '2026-11-01' }), TODAY)).toBe('');
     expect(entryWhen(entry())).toBe('Sa 14.11., 12:00');
     expect(entryWhen(entry({ time: null }))).toBe('Sa 14.11.');
+  });
+});
+
+describe('015 US3 FR-P30 Endstand im Planspiel', () => {
+  it('setScore trägt den Endstand beim verknüpften Planspiel ein und entfernt ihn wieder', () => {
+    const s = storeWith([entry({ id: 'a1', gameId: 'g1', updatedAt: T0 }), entry({ id: 'b2' })]);
+    const r = setScore(s, 'g1', { own: 2, opp: 1 }, T0 + 5)!;
+    expect(r.entry).toMatchObject({ id: 'a1', score: { own: 2, opp: 1 }, updatedAt: T0 + 5 });
+    expect(r.store.pending).toEqual(['a1']);
+    // gleicher Stand: nichts zu tun; anderer Stand: neu
+    expect(setScore(r.store, 'g1', { own: 2, opp: 1 }, T0 + 6)).toBeNull();
+    expect(setScore(r.store, 'g1', { own: 3, opp: 1 }, T0 + 6)?.entry.score).toEqual({ own: 3, opp: 1 });
+    // zurückgenommener Schlusspfiff
+    const back = setScore(r.store, 'g1', null, T0 + 7)!;
+    expect(back.entry.score).toBeUndefined();
+    expect(Object.hasOwn(back.entry, 'score')).toBe(false);
+    expect(setScore(back.store, 'g1', null, T0 + 8)).toBeNull();
+    // unbekanntes Spiel oder gelöschtes Planspiel
+    expect(setScore(s, 'g9', { own: 1, opp: 0 }, T0)).toBeNull();
+    const gone = storeWith([entry({ id: 'a1', gameId: 'g1', deleted: true })]);
+    expect(setScore(gone, 'g1', { own: 1, opp: 0 }, T0)).toBeNull();
+  });
+
+  it('Meldung: Endstand als s hin und zurück, ungültige Stände verwerfen die Meldung', () => {
+    const e = entry({ id: 'a1', gameId: 'g1', score: { own: 0, opp: 3 } });
+    expect(encodePayload([e]).e).toEqual([expect.objectContaining({ s: [0, 3], g: 'g1' })]);
+    expect(parsePayload(JSON.stringify(encodePayload([e])))).toEqual([e]);
+    const raw = encodePayload([entry({ id: 'a1' })]) as { e: Record<string, unknown>[] };
+    for (const bad of [[1], [1, 2, 3], [-1, 0], [0, 100], [1.5, 0], 'x']) {
+      expect(parsePayload(JSON.stringify({ ...raw, e: [{ ...raw.e[0], s: bad }] }))).toBeNull();
+    }
+  });
+
+  it('mergeList und pruneEntries arbeiten auch ohne Plan-Speicher (Dashboard)', () => {
+    const a = entry({ id: 'a1', updatedAt: T0 });
+    const r = mergeList([a], [entry({ id: 'a1', updatedAt: T0 + 1, opponent: 'Neu' }), entry({ id: 'b2' })]);
+    expect(r.entries.map((e) => [e.id, e.opponent])).toEqual([
+      ['a1', 'Neu'],
+      ['b2', 'TSV Musterstadt'],
+    ]);
+    expect(r.changed).toHaveLength(2);
+    expect(mergeList([a], [a])).toEqual({ entries: [a], changed: [] });
+    const old = entry({ id: 'x', date: '2026-09-01', deleted: true });
+    expect(pruneEntries([old, a], TODAY)).toEqual([a]);
+    expect(pruneEntries([a], TODAY)).toEqual([a]);
   });
 });

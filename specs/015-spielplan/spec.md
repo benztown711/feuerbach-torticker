@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). US3 und US7 umgesetzt (Draft-PR), Review C offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -76,6 +76,14 @@
 - Befund im Code-Review (FR-P17): Der Platzhalter "So 15.11. E2 heim ?" wäre beim Einfügen der Liste mit bekanntem Gegner doppelt entstanden. Entscheidung: Genau ein Platzhalter derselben Mannschaft am selben Tag wird aktualisiert; bei mehreren bleibt es bei einem neuen Spiel.
 - Befund beim Prüfen (FR-P07): Ein Handy, das beim Öffnen ältere Plan-Meldungen vom Vermittlungsdienst nachlas, hielt sie für gerade gesendet und sendete den Plan deshalb nicht erneut. Korrektur: Maßgeblich ist die Sendezeit der empfangenen Meldung; eine ältere Meldung macht den Zeitpunkt nie früher.
 - Erlaubte Schreibweisen zusätzlich zum Format: Wochentag ausgeschrieben ("Samstag,"), Datum mit Jahr ("14.11.2026" oder "14.11.26"), Anstoß "9.30 Uhr", "auswaerts", Spielzeit "2 x 20 min", Aufzählungszeichen am Zeilenanfang, Mannschaft in Klein- oder Großbuchstaben.
+
+### Session 2026-11-07 (Umsetzung US3, US7)
+
+- Entscheidung (Agent, im Rahmen der Freigabe): "Heute außerdem" bleibt wie bisher in den aufgeklappten Details (FR-P14 "wie bisher"); "Danach" und "Nächstes Spiel" stehen ohne Aufklappen unter der Karte (Mockup).
+- Entscheidung: "Nächstes Spiel" steht unter einer Karte mit beendetem Spiel; unter einem laufenden, angelegten oder heute geplanten Spiel folgt noch etwas heute ("Danach" oder nichts).
+- Entscheidung: Ein heute abgesagtes Planspiel kann Karte sein ("abgesagt" statt Anstoß), wenn heute kein anderes Spiel dieser Mannschaft folgt; abgesagte kommende Planspiele werden weder Karte noch "Nächstes Spiel".
+- Entscheidung: Die Trikotfarbe des Gegners eines Planspiels ist unbekannt; die Karte zeigt dort einen leeren Platzhalter. Ohne Spiel heute heißt die Überschrift über den Karten "Als Nächstes" (nur Planspiele) bzw. "Zuletzt und als Nächstes".
+- Entscheidung: Vergangene Spiele im Spielplan der Eltern zeigen Heim zuerst ("FC Kirchberg – E1", Mockup), kommende "E1 gegen …" bzw. "E1 bei …" (US7-S2).
 
 ## User Scenarios & Testing *(mandatory)*
 

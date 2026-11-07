@@ -1,7 +1,17 @@
-import { applyConfig, applySnapshot, emptyBoard, parseBoard, type Board } from '../domain/live-board';
+import {
+  applyConfig,
+  applyPlan,
+  applySnapshot,
+  boardJson,
+  dayKey,
+  emptyBoard,
+  parseBoard,
+  type Board,
+} from '../domain/live-board';
 import { parseSnapshot } from '../domain/live-snapshot';
 import { parseConfig } from '../domain/live-spieltag';
 import { isTime } from '../domain/live-validate';
+import { parsePayload } from '../domain/plan';
 import type { LiveConfig, SignedData, ViewerLink } from '../domain/types';
 import { openMessage, type OpenedMessage } from './live-crypto';
 import { subscribe, type RelayMessage, type RelayState, type SubscribeOptions } from './relay';
@@ -83,7 +93,10 @@ export class LiveReceiver {
 
   private save(): void {
     try {
-      this.deps.storage?.setItem(this.key, JSON.stringify({ ...this.state.board, liveAt: this.state.liveAt }));
+      this.deps.storage?.setItem(
+        this.key,
+        JSON.stringify({ ...boardJson(this.state.board), liveAt: this.state.liveAt }),
+      );
     } catch {
       // Speicher voll oder gesperrt (privates Surfen): Anzeige läuft trotzdem.
     }
@@ -195,7 +208,12 @@ export class LiveReceiver {
       this.knownIat = config.iat;
       this.deps.onConfig?.(opened.signedConfig);
     }
-    if (opened.plan) this.deps.onPlan?.(opened.plan, at);
+    if (opened.plan) {
+      // Spec 015 R-P7: auch Eltern-Dashboards führen den Spielplan (US3, US7).
+      const entries = parsePayload(opened.plan);
+      if (entries) board = applyPlan(board, entries, dayKey(this.serverNow(), this.deps.timeZone));
+      this.deps.onPlan?.(opened.plan, at);
+    }
     const snap = parseSnapshot(opened.content);
     if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone);
     const liveAt = this.deps.now();

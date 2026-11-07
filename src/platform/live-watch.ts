@@ -80,7 +80,7 @@ export function watchSpieltag(live: LiveSpieltag, deps: Partial<ReceiverDeps> = 
       const serverNow = r.serverNow();
       const entry = runningElsewhere(r.get().board, team, localIds, serverNow);
       if (!entry) return null;
-      const card = boardView({ config: null, games: [entry], removed: [] }, serverNow).cards[0];
+      const card = boardView({ config: null, games: [entry], removed: [], plan: [] }, serverNow).cards[0];
       return card
         ? { entry, summary: `${card.home.name} ${card.score} ${card.away.name} · ${card.phase}` }
         : { entry, summary: entry.snap.opp };

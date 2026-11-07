@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
-import { boardView, formatClockTime, formatDay, type BoardCard } from '../../domain/live-board';
+import {
+  boardView,
+  formatClockTime,
+  formatDay,
+  planSection,
+  type BoardCard,
+  type PlanRow,
+  type PlanSection,
+} from '../../domain/live-board';
 import { linkUrl, parseLinkPath, viewerShareText } from '../../domain/live-link';
 import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
 import type { LiveConfig, ViewerLink } from '../../domain/types';
@@ -21,8 +29,15 @@ const base = import.meta.env.BASE_URL;
 
 type View = Pick<ViewerLink, 'topic' | 'viewKey' | 'orgPub' | 'title'>;
 
-function Mark({ color }: { color: string }) {
-  return <span class="team__mark" style={{ background: getColor(color)?.value }} aria-hidden="true" />;
+/** Trikotfarbe; unbekannt (Gegner eines Planspiels): leerer Platzhalter, damit die Namen bündig bleiben. */
+function Mark({ color }: { color: string | null }) {
+  return (
+    <span
+      class={color ? 'team__mark' : 'team__mark team__mark--none'}
+      style={color ? { background: getColor(color)?.value } : undefined}
+      aria-hidden="true"
+    />
+  );
 }
 
 function NoSignal({ label }: { label?: string }) {
@@ -76,12 +91,13 @@ function Card({
   onToggle: () => void;
 }) {
   const k = card.key;
-  // Tabellenzeilen (Nachtrag 07.11.2026): Heim oben, Gast darunter, Tore rechts.
-  const [homeGoals, awayGoals] = card.score.split(':');
+  // Tabellenzeilen (Nachtrag 07.11.2026): Heim oben, Gast darunter, Tore rechts; ein Planspiel hat keinen Stand.
+  const planned = card.group === 'planned';
+  const [homeGoals, awayGoals] = planned ? ['', ''] : card.score.split(':');
   const cls = ['dash-card', card.live ? 'dash-card--live' : '', flash ? 'card--flash' : ''].filter(Boolean).join(' ');
   const stale = card.staleMinutes;
   return (
-    <article class={cls} data-testid={`dash-card-${k}`} data-game={card.gameId}>
+    <article class={cls} data-testid={`dash-card-${k}`} data-game={card.gameId} data-plan={card.planId ?? undefined}>
       <button
         type="button"
         class="dash-card__btn"
@@ -105,9 +121,11 @@ function Card({
               {awayGoals}
             </span>
           </span>
-          <span class="visually-hidden" data-testid={`dash-score-${k}`}>
-            {card.score}
-          </span>
+          {!planned && (
+            <span class="visually-hidden" data-testid={`dash-score-${k}`}>
+              {card.score}
+            </span>
+          )}
           <span class={card.live ? 'dash-card__phase dash-card__phase--live' : 'dash-card__phase'}>
             {card.live && <span class="live-pill__dot" aria-hidden="true" />}
             <span data-testid={`dash-phase-${k}`}>{card.phase}</span>
@@ -116,11 +134,19 @@ function Card({
         </span>
         <Chevron />
       </button>
+      {/* Spec 015 FR-P14: "Danach" bzw. "Nächstes Spiel" ohne Aufklappen. */}
+      {card.lines.map((line) => (
+        <p key={line} class="dash-card__line" data-testid={`dash-line-${k}`}>
+          {line}
+        </p>
+      ))}
       {open && (
         <div class="dash-card__details" id={`dash-details-${k}`} data-testid={`dash-details-${k}`}>
           <p class="dash-card__info">{card.info}</p>
           {card.shootout && <p class="dash-card__info">{card.shootout}</p>}
-          {card.goals.length > 0 ? (
+          {planned ? (
+            <p class="dash-card__info">Noch nicht angelegt</p>
+          ) : card.goals.length > 0 ? (
             <ol class="dash-goals" aria-label="Tore, neuestes zuerst">
               {card.goals.map((g, i) => (
                 <li
@@ -151,6 +177,99 @@ function Card({
         </div>
       )}
     </article>
+  );
+}
+
+function PlanDay({
+  id,
+  head,
+  count,
+  open,
+  onToggle,
+  rows,
+}: {
+  id: string;
+  head: string;
+  count: string;
+  open: boolean;
+  onToggle: () => void;
+  rows: PlanRow[];
+}) {
+  return (
+    <section class="plan__group" data-testid={`dash-plan-${id}`}>
+      <button type="button" class="plan__head" aria-expanded={open} onClick={onToggle}>
+        <span class="plan__date">{head}</span>
+        <span class="plan__count">{count}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon plan__chev">
+          <path d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      {open && (
+        <div class="plan__rows">
+          {rows.map((r) => (
+            <div
+              key={r.id}
+              class={`plan__row${r.cancelled ? ' plan__row--off' : ''}`}
+              data-testid={`dash-plan-row-${r.id}`}
+            >
+              <span class="plan__time">{r.lead}</span>
+              <span class="plan__text">
+                <strong class="plan__title">{r.title}</strong>
+                {r.detail && <span class="plan__detail">{r.detail}</span>}
+              </span>
+              {r.state ? (
+                <span class={`plan__state${r.cancelled ? ' plan__state--off' : ' dash-plan__score'}`}>{r.state}</span>
+              ) : (
+                <span />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+const games = (n: number): string => (n === 1 ? '1 Spiel' : `${n} Spiele`);
+
+/** Spec 015 US7: "Spielplan" unter den Karten, nächstes Datum offen, "Vergangene Spiele" zugeklappt. */
+function DashPlan({ section }: { section: PlanSection }) {
+  const [open, setOpen] = useState<Set<string> | null>(null);
+  if (section.days.length === 0 && section.past.length === 0) return null;
+  const expanded = open ?? new Set(section.days[0] ? [section.days[0].date] : []);
+  const toggle = (id: string): void => {
+    const next = new Set(expanded);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setOpen(next);
+  };
+  return (
+    <section class="dash-plan" data-testid="dash-plan" aria-labelledby="dash-plan-title">
+      <h2 id="dash-plan-title" class="dash-plan__title t-label">
+        SPIELPLAN
+      </h2>
+      {section.days.map((d) => (
+        <PlanDay
+          key={d.date}
+          id={d.date}
+          head={d.head}
+          count={games(d.rows.length)}
+          open={expanded.has(d.date)}
+          onToggle={() => toggle(d.date)}
+          rows={d.rows}
+        />
+      ))}
+      {section.past.length > 0 && (
+        <PlanDay
+          id="past"
+          head="Vergangene Spiele"
+          count={games(section.past.length)}
+          open={expanded.has('past')}
+          onToggle={() => toggle('past')}
+          rows={section.past}
+        />
+      )}
+    </section>
   );
 }
 
@@ -206,6 +325,11 @@ export function Dashboard({
   const now = Date.now();
   const serverNow = now + state.skew;
   const v = boardView(state.board, serverNow);
+  const plan = planSection(state.board, serverNow);
+  // Ohne Spiel heute: "Zuletzt" bzw. bei Planspielen "Als Nächstes" (Spec 015 US3).
+  const planned = v.cards.filter((c) => c.group === 'planned').length;
+  const lastLabel =
+    planned === 0 ? 'ZULETZT' : planned === v.cards.length ? 'ALS NÄCHSTES' : 'ZULETZT UND ALS NÄCHSTES';
   const flash = useGoalFlash(v.cards, now, serverNow);
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const teamsKey = v.teams.join('|');
@@ -260,7 +384,11 @@ export function Dashboard({
             Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${joinList(v.teams, 'oder')}` : ''} anlegt,
             erscheint es hier.
           </p>
-          {v.cards.length > 0 && <p class="dash-empty__label t-label">ZULETZT</p>}
+          {v.cards.length > 0 && (
+            <p class="dash-empty__label t-label" data-testid="dash-last-label">
+              {lastLabel}
+            </p>
+          )}
         </section>
       )}
       {v.cards.length > 0 && (
@@ -285,6 +413,7 @@ export function Dashboard({
           ))}
         </div>
       )}
+      <DashPlan section={plan} />
       <footer class="dash__foot">
         {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
         {!inApp && (

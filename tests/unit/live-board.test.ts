@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_GAMES,
   MAX_REMOVED,
+  MAX_STORED_PLAN,
   applyConfig,
+  applyPlan,
   applySnapshot,
+  boardJson,
   boardView,
   dayKey,
   emptyBoard,
@@ -11,13 +14,14 @@ import {
   formatDay,
   lastSentAt,
   otherGames,
+  planSection,
   sentLabel,
   parseBoard,
   runningElsewhere,
   type Board,
 } from '../../src/domain/live-board';
 import type { LiveGameSnapshot, LiveGoal, LiveSnapshot } from '../../src/domain/live-snapshot';
-import type { ClockEventType, LiveConfig } from '../../src/domain/types';
+import type { ClockEventType, LiveConfig, PlanEntry } from '../../src/domain/types';
 
 /** Sa, 07.11.2026, 10:00 Uhr in Stuttgart. */
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
@@ -622,5 +626,330 @@ describe('006 US5 Text "zuletzt gesendet"', () => {
     expect(sentLabel(T0 + min(40), T0 + min(90), TZ)).toBe('zuletzt gesendet heute 10:40 Uhr');
     expect(sentLabel(T0 - DAY * 7, T0, TZ)).toBe('zuletzt gesendet am 31.10.');
     expect(sentLabel(null, T0, TZ)).toBe('noch nichts gesendet');
+  });
+});
+
+/* ---------- Spec 015 US3, US7: Planspiele auf dem Dashboard ---------- */
+
+const TODAY = '2026-11-07';
+const pe = (p: Partial<PlanEntry> = {}): PlanEntry => ({
+  id: 'p1',
+  team: 'E1',
+  date: TODAY,
+  time: '12:00',
+  venue: 'home',
+  opponent: 'TSV Musterstadt',
+  competition: 'Kreisstaffel',
+  schema: null,
+  cancelled: false,
+  deleted: false,
+  updatedAt: 1,
+  ...p,
+});
+const named: LiveConfig = {
+  ...config(['E1', 'E2']),
+  m: [
+    ['E1', 'Sportvg Feuerbach E1', 'rot', 'schwarz'],
+    ['E2', 'Sportvg Feuerbach E2', 'weiss', 'rot'],
+  ],
+};
+const planned = (...entries: PlanEntry[]): Board => applyPlan(applyConfig(emptyBoard(), named), entries, TODAY);
+const card = (b: Board, key = 'E1', now = T0) => view(b, now).cards.find((c) => c.key === key);
+/** Beendetes Spiel vom Sa 31.10. (2:3 auswärts). */
+const lastWeek = snap({
+  gameId: 'w',
+  venue: 'away',
+  opp: 'TV Neustadt',
+  createdAt: T0 - 7 * DAY - min(10),
+  clock: [
+    ['kickoff', T0 - 7 * DAY, 1],
+    ['fullTime', T0 - 7 * DAY + min(25), 1],
+  ],
+  schema: { sections: 1, sectionMinutes: 25 },
+  goals: [goal('own', 1), goal('opp', 2), goal('own', 3), goal('opp', 4), goal('opp', 5)],
+  sentAt: T0 - 7 * DAY + min(26),
+});
+
+describe('015 R-P7 Planspiele im gemerkten Stand', () => {
+  it('jüngste Änderung je Planspiel, Grabsteine, gleiche Meldung ändert nichts', () => {
+    const b = planned(pe());
+    expect(b.plan).toEqual([pe()]);
+    expect(applyPlan(b, [pe()], TODAY)).toBe(b);
+    const moved = applyPlan(b, [pe({ date: '2026-11-14', updatedAt: 2 })], TODAY);
+    expect(moved.plan[0]?.date).toBe('2026-11-14');
+    const gone = applyPlan(moved, [pe({ deleted: true, updatedAt: 3 })], TODAY);
+    expect(gone.plan[0]?.deleted).toBe(true);
+    // alte Grabsteine fallen beim nächsten Übernehmen weg
+    expect(applyPlan(gone, [pe({ id: 'p2' })], '2026-12-31').plan.map((e) => e.id)).toEqual(['p2']);
+  });
+
+  it('übersteht das Merken kompakt; Ungültiges oder zu viel fällt weg', () => {
+    const b = planned(
+      pe({ score: { own: 1, opp: 0 }, gameId: 'g1' }),
+      pe({ id: 'p2', deleted: true, time: null, opponent: '', competition: '' }),
+    );
+    expect(parseBoard(JSON.parse(JSON.stringify(boardJson(b))))).toEqual(b);
+    expect(boardJson(emptyBoard()).plan).toBeNull();
+    expect(parseBoard({ games: [], removed: [], plan: { v: 1, e: [{ i: 'x' }] } }).plan).toEqual([]);
+    const many = Array.from({ length: MAX_STORED_PLAN + 1 }, (_, i) => pe({ id: `p${i}` }));
+    expect(parseBoard({ games: [], removed: [], plan: boardJson({ ...emptyBoard(), plan: many }).plan }).plan).toEqual(
+      [],
+    );
+  });
+});
+
+describe('015 US3 Eltern sehen die nächsten Spiele', () => {
+  it('015 US3-S1: letztes Ergebnis bleibt Karte, darunter "Nächstes Spiel"; ohne Ergebnis ist das Planspiel die Karte', () => {
+    const next = pe({ date: '2026-11-14' });
+    const b = put(planned(next), lastWeek);
+    const c = card(b)!;
+    expect([c.gameId, c.group, c.lines]).toEqual([
+      'w',
+      'finished',
+      ['Nächstes Spiel: Sa 14.11., 12:00 gegen TSV Musterstadt'],
+    ]);
+    const away = card(put(planned(pe({ date: '2026-11-14', venue: 'away', time: null })), lastWeek))!;
+    expect(away.lines).toEqual(['Nächstes Spiel: Sa 14.11. bei TSV Musterstadt']);
+
+    const p = card(planned(next))!;
+    expect(p).toMatchObject({
+      gameId: '',
+      planId: 'p1',
+      group: 'planned',
+      live: false,
+      today: false,
+      home: { name: 'Feuerbach E1', color: 'rot' },
+      away: { name: 'TSV Musterstadt', color: null },
+      score: '',
+      phase: 'Sa 14.11., 12:00 · Kreisstaffel',
+      goals: [],
+      earlier: null,
+      lines: [],
+    });
+    expect(view(planned(next), T0).today).toBe(false);
+  });
+
+  it('015 US3-S2: heute geplant, nicht angelegt: "Feuerbach E1 – TSV Musterstadt" mit "heute 12:00", ohne Stand', () => {
+    const c = card(planned(pe({ schema: { sections: 2, sectionMinutes: 25 } })))!;
+    expect([c.home.name, c.away.name, c.phase, c.score, c.today, c.info]).toEqual([
+      'Feuerbach E1',
+      'TSV Musterstadt',
+      'heute 12:00 · Kreisstaffel',
+      '',
+      true,
+      'E1 · Kreisstaffel · 2×25',
+    ]);
+    expect(view(planned(pe()), T0).today).toBe(true);
+    // auswärts: Gegner zuerst, eigenes Auswärtstrikot; ohne Anstoß und Wettbewerb nur "heute"
+    const away = card(planned(pe({ venue: 'away', time: null, competition: '' })))!;
+    expect([away.home, away.away, away.phase, away.info]).toEqual([
+      { name: 'TSV Musterstadt', color: null },
+      { name: 'Feuerbach E1', color: 'schwarz' },
+      'heute',
+      'E1',
+    ]);
+    // ohne Angaben zur Mannschaft in der Konfiguration: Kürzel, Farbe unbekannt
+    const bare = applyPlan(applyConfig(emptyBoard(), config(['E1'])), [pe()], TODAY);
+    expect(card(bare)!.home).toEqual({ name: 'E1', color: null });
+  });
+
+  it('015 US3-S3: aus dem Plan angelegt und angepfiffen: dieselbe Karte zeigt das Spiel, keine zweite', () => {
+    const b = put(planned(pe({ gameId: 'g1' })), snap({ gameId: 'g1', clock: kicked() }));
+    const v = view(b, T0 + min(5));
+    expect(v.cards.map((c) => [c.key, c.gameId, c.group])).toEqual([['E1', 'g1', 'running']]);
+    expect(v.cards[0]!.lines).toEqual([]);
+    // Spiel noch nicht empfangen: das Planspiel bleibt Karte
+    expect(card(planned(pe({ gameId: 'g9' })))!.group).toBe('planned');
+  });
+
+  it('015 US3-S4: Turnier: nach dem ersten Spiel das nächste Planspiel, "Heute außerdem" und "Danach"', () => {
+    const first = snap({
+      gameId: 'm',
+      createdAt: T0 - min(80),
+      clock: [
+        ['kickoff', T0 - min(70), 1],
+        ['fullTime', T0 - min(60), 1],
+      ],
+      schema: { sections: 1, sectionMinutes: 10 },
+      goals: [goal('own', 3)],
+      opp: 'TSV Eichberg',
+      sentAt: T0 - min(59),
+    });
+    const plan = [
+      pe({ id: 'a', time: '08:50', opponent: 'TSV Eichberg', gameId: 'm' }),
+      pe({ id: 'b', time: '14:54', opponent: 'MTV Lindenau 4', venue: 'away' }),
+      pe({ id: 'c', time: '15:42', opponent: 'SC Birkenau' }),
+      pe({ id: 'd', time: '16:10', opponent: 'FC Ausfall', cancelled: true }),
+    ];
+    const b = put(planned(...plan), first);
+    const c = card(b)!;
+    expect([c.group, c.planId, c.phase, c.earlier, c.lines]).toEqual([
+      'planned',
+      'b',
+      'heute 14:54 · Kreisstaffel',
+      'Heute außerdem: 1:0 gegen TSV Eichberg',
+      ['Danach: 15:42 gegen SC Birkenau; 16:10 gegen FC Ausfall (abgesagt)'],
+    ]);
+    // ein laufendes Spiel trägt die übrigen Planspiele von heute als "Danach"
+    const running = put(b, snap({ gameId: 'b2', clock: kicked(T0 + min(1)), sentAt: T0 + min(2) }));
+    expect(card(running, 'E1', T0 + min(5))!.lines).toEqual([
+      'Danach: 14:54 bei MTV Lindenau 4; 15:42 gegen SC Birkenau; 16:10 gegen FC Ausfall (abgesagt)',
+    ]);
+    // nur noch abgesagte heute, ein Spiel morgen: das abgesagte bleibt Karte
+    const onlyOff = planned(pe({ cancelled: true }), pe({ id: 'z', date: '2026-11-08' }));
+    expect(card(onlyOff)!.phase).toBe('abgesagt · Kreisstaffel');
+  });
+
+  it('015 US3-S4: nach dem letzten Spiel des Tages: Ergebnis mit "Nächstes Spiel"', () => {
+    const done = snap({ gameId: 'm', clock: fullTime, goals: [goal('own', 3)], sentAt: T0 + min(56) });
+    const b = put(
+      planned(
+        pe({ id: 'a', gameId: 'm', time: '10:00' }),
+        pe({ id: 'n', date: '2026-11-29', opponent: 'SV Lindenau E2' }),
+        pe({ id: 'x', date: '2026-11-15', cancelled: true }),
+      ),
+      done,
+    );
+    expect(card(b, 'E1', T0 + min(60))!.lines).toEqual(['Nächstes Spiel: So 29.11., 12:00 gegen SV Lindenau E2']);
+  });
+
+  it('heute angelegtes Spiel vor geplantem; das Planspiel steht als "Danach"', () => {
+    const b = put(planned(pe({ time: '14:00' })), snap({ gameId: 'c1', createdAt: T0 + min(1), sentAt: T0 + min(1) }));
+    const c = card(b, 'E1', T0 + min(2))!;
+    expect([c.gameId, c.group, c.lines]).toEqual(['c1', 'created', ['Danach: 14:00 gegen TSV Musterstadt']]);
+    // zwei angelegte: das früher angelegte zuerst
+    const two = put(b, snap({ gameId: 'c2', createdAt: T0 + min(3), sentAt: T0 + min(3) }));
+    expect(card(two, 'E1', T0 + min(4))!.gameId).toBe('c1');
+    // ohne Anstoß: "Danach: gegen …"
+    const noTime = put(planned(pe({ time: null })), snap({ gameId: 'c1', clock: kicked() }));
+    expect(card(noTime, 'E1', T0 + min(1))!.lines).toEqual(['Danach: gegen TSV Musterstadt']);
+  });
+
+  it('vor zwei Tagen angelegtes, nie angepfiffenes Spiel: "Nächstes Spiel" darunter', () => {
+    const stale = snap({ createdAt: T0 - 2 * DAY, sentAt: T0 - min(60) });
+    const c = card(put(planned(pe({ date: '2026-11-14' })), stale))!;
+    expect([c.group, c.today, c.lines]).toEqual([
+      'created',
+      false,
+      ['Nächstes Spiel: Sa 14.11., 12:00 gegen TSV Musterstadt'],
+    ]);
+  });
+
+  it('015 US3-S5: Planspiel ohne Gegner erscheint nicht', () => {
+    const b = put(
+      planned(pe({ opponent: '' }), pe({ id: 'e2', team: 'E2', opponent: '' })),
+      snap({ team: 'E2', gameId: 'x' }),
+    );
+    const v = view(b, T0);
+    expect(v.cards.map((c) => c.key)).toEqual(['E2']);
+    expect(v.waiting.map((w) => w.key)).toEqual(['E1']);
+  });
+
+  it('015 US3-S6: gelöscht oder verschoben: das Dashboard übernimmt die Änderung', () => {
+    const b = planned(pe());
+    const moved = applyPlan(b, [pe({ date: '2026-11-14', updatedAt: 5 })], TODAY);
+    expect(card(moved)!.phase).toBe('Sa 14.11., 12:00 · Kreisstaffel');
+    const gone = applyPlan(moved, [pe({ deleted: true, updatedAt: 6 })], TODAY);
+    expect(card(gone)).toBeUndefined();
+    // abgesagt in der Zukunft: kein "Nächstes Spiel", keine Karte
+    expect(card(applyPlan(b, [pe({ date: '2026-11-14', cancelled: true, updatedAt: 7 })], TODAY))).toBeUndefined();
+  });
+
+  it('Reihenfolge: laufend, heute (angelegt oder geplant), beendet, kommende Planspiele', () => {
+    const b = applyPlan(
+      put(
+        put(applyConfig(emptyBoard(), config(['A', 'B', 'C', 'D'])), snap({ team: 'C', gameId: 'c', clock: kicked() })),
+        snap({ team: 'D', gameId: 'd', clock: fullTime }),
+      ),
+      [pe({ id: 'a', team: 'A', date: '2026-11-14' }), pe({ id: 'b', team: 'B' })],
+      TODAY,
+    );
+    expect(view(b, T0 + min(60)).cards.map((c) => [c.key, c.group])).toEqual([
+      ['C', 'running'],
+      ['B', 'planned'],
+      ['D', 'finished'],
+      ['A', 'planned'],
+    ]);
+  });
+
+  it('ohne Konfiguration zählen auch Mannschaften aus dem Plan; andere Spiele im Spielbildschirm ohne Planspiele', () => {
+    const b = applyPlan(put(emptyBoard(), snap({ team: 'E2', gameId: 'x', clock: kicked() })), [pe()], TODAY);
+    expect(view(b, T0).teams).toEqual(['E1', 'E2']);
+    expect(otherGames(b, 'own', 'E3', T0 + min(1), TZ).map((c) => c.key)).toEqual(['E2']);
+  });
+});
+
+describe('015 US7 Ganzer Spielplan für Eltern', () => {
+  it('015 US7-S1 US7-S2: ab morgen nach Datum, je Spiel Anstoß, "gegen"/"bei", Wettbewerb, abgesagt', () => {
+    const b = planned(
+      pe({ id: 'heute' }),
+      pe({ id: 'a', date: '2026-11-14', time: '12:00', team: 'E2', opponent: 'SV Beispielhausen', venue: 'away' }),
+      pe({ id: 'b', date: '2026-11-14', time: '11:00' }),
+      pe({ id: 'c', date: '2026-11-21', time: null, cancelled: true, competition: '' }),
+    );
+    expect(planSection(b, T0, TZ).days).toEqual([
+      {
+        date: '2026-11-14',
+        head: 'Sa 14.11.',
+        rows: [
+          {
+            id: 'b',
+            lead: '11:00',
+            title: 'E1 gegen TSV Musterstadt',
+            detail: 'Kreisstaffel',
+            state: '',
+            cancelled: false,
+          },
+          {
+            id: 'a',
+            lead: '12:00',
+            title: 'E2 bei SV Beispielhausen',
+            detail: 'Kreisstaffel',
+            state: '',
+            cancelled: false,
+          },
+        ],
+      },
+      {
+        date: '2026-11-21',
+        head: 'Sa 21.11.',
+        rows: [
+          { id: 'c', lead: '–', title: 'E1 gegen TSV Musterstadt', detail: '', state: 'abgesagt', cancelled: true },
+        ],
+      },
+    ]);
+  });
+
+  it('015 US7-S3: vergangene neueste zuerst, Endstand Heim zuerst aus dem Plan oder dem Spiel', () => {
+    const done = snap({
+      gameId: 'gw',
+      clock: fullTime,
+      goals: [goal('own', 1), goal('opp', 2), goal('opp', 3)],
+      venue: 'away',
+      sentAt: T0 + min(56),
+    });
+    let b = planned(
+      pe({ id: 'old', date: '2026-10-31', venue: 'away', opponent: 'FC Kirchberg', score: { own: 3, opp: 1 } }),
+      pe({ id: 'off', date: '2026-11-01', cancelled: true, score: { own: 9, opp: 9 } }),
+      pe({ id: 'run', date: '2026-11-06', gameId: 'gr' }),
+      pe({ id: 'w', date: '2026-11-06', time: '10:00', venue: 'away', opponent: 'SV Eichhof', gameId: 'gw' }),
+      pe({ id: 'none', date: '2026-11-05', gameId: 'unbekannt' }),
+    );
+    b = put(put(b, done), snap({ gameId: 'gr', team: 'E1', clock: kicked(), sentAt: T0 + min(57) }));
+    expect(planSection(b, T0 + DAY, TZ).past.map((r) => [r.id, r.lead, r.title, r.state])).toEqual([
+      ['w', 'Fr 06.', 'SV Eichhof – E1', '2:1'],
+      ['run', 'Fr 06.', 'E1 – TSV Musterstadt', ''],
+      ['none', 'Do 05.', 'E1 – TSV Musterstadt', ''],
+      ['off', 'So 01.', 'E1 – TSV Musterstadt', 'abgesagt'],
+      ['old', 'Sa 31.', 'FC Kirchberg – E1', '1:3'],
+    ]);
+  });
+
+  it('015 US7-S4: Planspiele ohne Gegner und Grabsteine erscheinen nicht', () => {
+    const b = planned(
+      pe({ id: 'a', date: '2026-11-14', opponent: '' }),
+      pe({ id: 'b', date: '2026-11-01', deleted: true }),
+    );
+    expect(planSection(b, T0, TZ)).toEqual({ days: [], past: [] });
   });
 });

@@ -467,6 +467,12 @@ body:has(.page:not(.dash, .lead-link)) {
   border: 1px solid var(--color-ink);
 }
 
+/* Spec 015 US3: Trikotfarbe unbekannt (Gegner eines Planspiels). */
+.team__mark--none {
+  border-style: dashed;
+  border-color: var(--color-line);
+}
+
 .score {
   flex-shrink: 0;
   font-family: var(--font-sans);
@@ -2749,6 +2755,25 @@ body:has(.page:not(.dash, .lead-link)) {
   padding: 12px;
 }
 
+/* Spec 015 US7: Spielplan für Eltern unter den Karten (Datumsköpfe wie im Spielplan der Trainer). */
+.dash-plan {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0 12px 12px;
+}
+
+.dash-plan__title {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+}
+
+.dash-plan__score {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Spec 012 FR-S30: Mannschaft ohne Spiel heute. */
 .dash-waiting {
   display: flex;
@@ -2870,6 +2895,14 @@ body:has(.page:not(.dash, .lead-link)) {
 .dash-card__info,
 .dash-card__more {
   margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+/* Spec 015 FR-P14: "Danach" / "Nächstes Spiel" unter der Karte, ohne Aufklappen. */
+.dash-card__line {
+  margin: 0;
+  padding: 0 12px 10px;
   color: var(--color-ink-muted);
   font-size: 14px;
 }

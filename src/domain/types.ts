@@ -308,6 +308,8 @@ export interface PlanEntry {
   cancelled: boolean;
   /** Grabstein (FR-P04). */
   deleted: boolean;
+  /** US3 FR-P30: Endstand des verknüpften Spiels aus Sicht der eigenen Mannschaft. */
+  score?: Score;
   /** Zeitpunkt der letzten Änderung, je Planspiel streng steigend. */
   updatedAt: number;
   /** US2 FR-P11: aus dem Planspiel angelegtes Spiel. */

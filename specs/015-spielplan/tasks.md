@@ -38,8 +38,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich. Ein PR je Phase bzw
 
 ## Phase 6: US3 und US7 Dashboard (P2)
 
-- [ ] T018 E2E 015 US3-S1 bis S6, US7-S1 bis S4; Domain `live-board.ts`: Planspiele, Ordnung, "Danach", "Nächstes Spiel", Endstand (FR-P12 bis P15, FR-P30)
-- [ ] T019 `live-dashboard.tsx`: Karten, Zeilen, Abschnitt "Spielplan"; Eltern-Empfänger übernimmt `p`; Hilfe `eltern-dashboard`
+- [x] T018 E2E 015 US3-S1 bis S6, US7-S1 bis S4; Domain `live-board.ts`: Planspiele, Ordnung, "Danach", "Nächstes Spiel", Endstand (FR-P12 bis P15, FR-P30)
+- [x] T019 `live-dashboard.tsx`: Karten, Zeilen, Abschnitt "Spielplan"; Eltern-Empfänger übernimmt `p`; Hilfe `eltern-dashboard`
 
 ## Phase 7: US4 Liste einfügen und teilen (P2)
 

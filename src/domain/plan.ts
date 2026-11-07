@@ -1,5 +1,5 @@
 import { isObj, isText, MAX_KEY, type Obj } from './live-validate';
-import type { PlanEntry, PlanStore, Schema, Venue } from './types';
+import type { PlanEntry, PlanStore, Schema, Score, Venue } from './types';
 
 /** Spec 015: Spielplan im Live-Spieltag (data-model.md, contracts/plan-message.md). */
 
@@ -161,18 +161,34 @@ export function setGame(store: PlanStore, id: string, gameId: string, now: numbe
   return replace(store, { ...old, gameId, updatedAt: stamp(old.updatedAt, now) });
 }
 
+/**
+ * US3 FR-P30: Endstand des aus dem Planspiel angelegten Spiels eintragen bzw. entfernen (zurückgenommener
+ * Schlusspfiff); null, wenn es kein solches Planspiel gibt oder sich nichts ändert.
+ */
+export function setScore(store: PlanStore, gameId: string, score: Score | null, now: number): PlanChange | null {
+  const old = store.entries.find((e) => e.gameId === gameId && !e.deleted);
+  if (!old || sameScore(old.score, score)) return null;
+  const next: PlanEntry = { ...old, updatedAt: stamp(old.updatedAt, now) };
+  if (score) next.score = { ...score };
+  else delete next.score;
+  return replace(store, next);
+}
+
+const sameScore = (a: Score | undefined, b: Score | null): boolean =>
+  (a === undefined && b === null) || (!!a && !!b && a.own === b.own && a.opp === b.opp);
+
 /** US1-S3: löschen als Grabstein, damit andere Handys es nicht zurückbringen (FR-P04). */
 export function deleteEntry(store: PlanStore, id: string, now: number): PlanChange | null {
   const old = live(store, id);
   return old ? replace(store, { ...old, deleted: true, updatedAt: stamp(old.updatedAt, now) }) : null;
 }
 
-/** FR-P04: je Planspiel gewinnt die jüngere Änderung. */
-export function mergeEntries(
-  store: PlanStore,
+/** FR-P04: je Planspiel gewinnt die jüngere Änderung (Liste, auch für das Dashboard, R-P7). */
+export function mergeList(
+  entries: readonly PlanEntry[],
   incoming: readonly PlanEntry[],
-): { store: PlanStore; changed: PlanEntry[] } {
-  const byId = new Map(store.entries.map((e) => [e.id, e]));
+): { entries: PlanEntry[]; changed: PlanEntry[] } {
+  const byId = new Map(entries.map((e) => [e.id, e]));
   const changed: PlanEntry[] = [];
   for (const e of incoming) {
     const old = byId.get(e.id);
@@ -182,7 +198,18 @@ export function mergeEntries(
     byId.set(e.id, next);
     changed.push(next);
   }
-  return changed.length === 0 ? { store, changed } : { store: { ...store, entries: [...byId.values()] }, changed };
+  return { entries: changed.length === 0 ? [...entries] : [...byId.values()], changed };
+}
+
+/** FR-P04: je Planspiel gewinnt die jüngere Änderung. */
+export function mergeEntries(
+  store: PlanStore,
+  incoming: readonly PlanEntry[],
+): { store: PlanStore; changed: PlanEntry[] } {
+  const r = mergeList(store.entries, incoming);
+  return r.changed.length === 0
+    ? { store, changed: [] }
+    : { store: { ...store, entries: r.entries }, changed: r.changed };
 }
 
 const byTime = (a: PlanEntry, b: PlanEntry): number => {
@@ -193,6 +220,9 @@ const byTime = (a: PlanEntry, b: PlanEntry): number => {
   }
   return a.team.localeCompare(b.team, 'de');
 };
+
+/** Nach Datum, dann Anstoß (offen zuletzt), dann Mannschaft. */
+export const compareEntries = (a: PlanEntry, b: PlanEntry): number => a.date.localeCompare(b.date) || byTime(a, b);
 
 /** US1-S6: kommende Planspiele nach Datum gruppiert, vergangene neueste zuerst. */
 export function planView(store: PlanStore, today: string): PlanView {
@@ -208,10 +238,10 @@ export function planView(store: PlanStore, today: string): PlanView {
   return { upcoming, past };
 }
 
-/** Grenzen einhalten: alte Grabsteine weg, über 100 die ältesten vergangenen Spiele weg. */
-export function prunePlan(store: PlanStore, today: string): PlanStore {
+/** Grenzen einhalten: alte Grabsteine weg, über 100 die ältesten vergangenen Spiele weg (auch Dashboard). */
+export function pruneEntries(list: readonly PlanEntry[], today: string): PlanEntry[] {
   const limit = addDays(today, -TOMBSTONE_DAYS);
-  let entries = store.entries.filter((e) => !e.deleted || e.date >= limit);
+  let entries = list.filter((e) => !e.deleted || e.date >= limit);
   const shown = entries.filter((e) => !e.deleted);
   const excess = shown.length - MAX_PLAN;
   if (excess > 0) {
@@ -224,6 +254,12 @@ export function prunePlan(store: PlanStore, today: string): PlanStore {
     );
     entries = entries.filter((e) => !drop.has(e.id));
   }
+  return entries;
+}
+
+/** Plan-Speicher kürzen; Zeitpunkte gekürzter Planspiele fallen mit weg. */
+export function prunePlan(store: PlanStore, today: string): PlanStore {
+  const entries = pruneEntries(store.entries, today);
   if (entries.length === store.entries.length) return store;
   const kept = new Set(entries.map((e) => e.id));
   return { ...store, entries, seen: Object.fromEntries(Object.entries(store.seen).filter(([id]) => kept.has(id))) };
@@ -254,6 +290,7 @@ function encodeEntry(e: PlanEntry): Obj {
   if (e.schema) out.z = [e.schema.sections, e.schema.sectionMinutes];
   if (e.cancelled) out.c = 1;
   if (e.gameId) out.g = e.gameId;
+  if (e.score) out.s = [e.score.own, e.score.opp];
   return out;
 }
 
@@ -286,6 +323,13 @@ function parseSchema(v: unknown): Schema | null | undefined {
   return isSchema(s) ? s : undefined;
 }
 
+/** US3 FR-P30: `[eigene Tore, Tore Gegner]`; fehlt = null, ungültig = undefined. */
+function parseScore(v: unknown): Score | null | undefined {
+  if (v === undefined) return null;
+  if (!Array.isArray(v) || v.length !== 2 || !isIntIn(v[0], 0, 99) || !isIntIn(v[1], 0, 99)) return undefined;
+  return { own: v[0], opp: v[1] };
+}
+
 function parseEntry(v: unknown): PlanEntry | null {
   if (!isObj(v)) return null;
   if (typeof v.i !== 'string' || !ID_RE.test(v.i) || !isText(v.k, MAX_KEY) || !isPlanDate(v.d)) return null;
@@ -310,6 +354,8 @@ function parseEntry(v: unknown): PlanEntry | null {
   if (!optText(v.o) || !optText(v.w) || schema === undefined) return null;
   if (v.c !== undefined && v.c !== 1) return null;
   if (v.g !== undefined && !(typeof v.g === 'string' && GAME_ID_RE.test(v.g))) return null;
+  const score = parseScore(v.s);
+  if (score === undefined) return null;
   return {
     ...base,
     venue: v.h === 1 ? 'home' : 'away',
@@ -319,22 +365,24 @@ function parseEntry(v: unknown): PlanEntry | null {
     schema,
     cancelled: v.c === 1,
     ...(v.g === undefined ? {} : { gameId: v.g }),
+    ...(score ? { score } : {}),
   };
+}
+
+/** Nutzlast (schon als Wert) streng prüfen; ein ungültiger Eintrag verwirft alles. `max`: höchstens so viele. */
+export function parsePayloadValue(raw: unknown, max: number = MAX_PLAN): PlanEntry[] | null {
+  if (!isObj(raw) || raw.v !== 1 || !Array.isArray(raw.e) || raw.e.length === 0 || raw.e.length > max) return null;
+  const entries = raw.e.map(parseEntry);
+  return entries.every((e): e is PlanEntry => e !== null) ? entries : null;
 }
 
 /** Nutzlast einer Plan-Meldung streng prüfen; ein ungültiger Eintrag verwirft alles. */
 export function parsePayload(text: string): PlanEntry[] | null {
-  let raw: unknown;
   try {
-    raw = JSON.parse(text);
+    return parsePayloadValue(JSON.parse(text));
   } catch {
     return null;
   }
-  if (!isObj(raw) || raw.v !== 1 || !Array.isArray(raw.e) || raw.e.length === 0 || raw.e.length > MAX_PLAN) {
-    return null;
-  }
-  const entries = raw.e.map(parseEntry);
-  return entries.every((e): e is PlanEntry => e !== null) ? entries : null;
 }
 
 /** US2 FR-P09: Planspiele, aus denen sich ein Spiel anlegen lässt: heute und die nächsten 14 Tage. */
