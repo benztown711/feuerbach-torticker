@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes, forward, MIN, newGame, startGame } from './helpers';
-import { createLive, latestState, liveStates, pasteLink } from './live-helpers';
+import { asPath, createLive, latestState, liveStates, pasteLink } from './live-helpers';
 
 /** Spec 006 US2: Das erfassende Trainer-Handy sendet automatisch, je Spiel für dessen Mannschaft. */
 
@@ -13,6 +13,15 @@ type State = Record<string, unknown> & { goals?: unknown[]; clock?: [string, num
 
 /** Lässt den Sender seine Bündelung (5 s) abarbeiten. */
 const settle = (page: Page) => page.clock.runFor(6_000);
+
+/** App kurz in den Hintergrund und zurück (wie Sperren und Entsperren am Spielfeldrand). */
+const backAndForth = (page: Page) =>
+  page.evaluate(() => {
+    for (const state of ['hidden', 'visible']) {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }
+  });
 
 test('006 US2-S1 Anpfiff kommt mit Gegner, Trikots und 0:0 beim Dienst an', async ({ page, relay, recorded }) => {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
@@ -269,4 +278,39 @@ test('006 US2-S9 FR-L04 ein zweites Trainer-Handy sendet E2 und am nächsten Woc
   await startGame(b, { ownTeam: E1, opponent: 'TSV Musterstadt' });
   await b.clock.runFor(6_000);
   await expect.poll(async () => (await latestState(relay, links.viewer))?.team).toBe('E1');
+});
+
+test('006 US2-S10 am Vorabend angelegtes Spiel geht am Spieltag beim Öffnen erneut hinaus', async ({
+  page,
+  relay,
+  recorded,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  await newGame(page, { ownTeam: E1, opponent: 'TSV Musterstadt' });
+  await settle(page);
+  const opps = async () => (await liveStates(relay, links.viewer)).map((s) => s.opp);
+  await expect.poll(opps).toEqual(['TSV Musterstadt']);
+  // Über Nacht: Der Dienst hält die Meldung nicht mehr vor (rund 12 Stunden).
+  relay.topics.clear();
+  // Innerhalb einer Stunde nach der letzten Sendung zurück in den Vordergrund: nichts Neues.
+  await backAndForth(page);
+  await settle(page);
+  expect(await opps()).toEqual([]);
+  // Am Spieltag zurück in den Vordergrund: Das angelegte Spiel geht erneut hinaus.
+  await page.clock.fastForward(61 * MIN);
+  await backAndForth(page);
+  await settle(page);
+  await expect.poll(opps).toEqual(['TSV Musterstadt']);
+  // Ebenso beim Neustart des Torticker.
+  relay.topics.clear();
+  await page.reload();
+  await expect(page.getByTestId('btn-kickoff')).toBeVisible();
+  await settle(page);
+  await expect.poll(opps).toEqual(['TSV Musterstadt']);
+  // Ein erst jetzt geöffnetes Dashboard zeigt das Spiel als heutiges.
+  const v = await newDevice();
+  await v.goto(asPath(links.viewer));
+  await expect(v.getByTestId('dash-phase-E1')).toHaveText('noch nicht angepfiffen');
+  await expect(v.getByTestId('dash-empty')).toHaveCount(0);
 });

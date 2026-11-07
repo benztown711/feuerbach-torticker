@@ -427,9 +427,48 @@ describe('006 FR-L14 FR-L16 Tageslogik', () => {
     expect(c.earlier).toBe('Außerdem am 06.11.: 0:1 gegen TSV Musterstadt');
   });
 
-  it('nicht angepfiffenes Spiel vom Vortag bleibt "noch nicht angepfiffen" mit Datum', () => {
-    const c = one(snap({ createdAt: T0 - DAY, sentAt: T0 - DAY }), T0);
-    expect([c.group, c.phase]).toEqual(['created', 'noch nicht angepfiffen · 06.11.']);
+  it('US3-S12: am Vortag angelegtes, noch nicht angepfiffenes Spiel zählt heute (ohne Datum, kein "Zuletzt")', () => {
+    // Fr, 06.11., 19:30 Uhr angelegt; am Spieltag erneut gesendet (US2-S10) oder am Vorabend gemerkt.
+    const evening = T0 - min(14 * 60 + 30);
+    for (const sentAt of [evening, T0 - min(60)]) {
+      const v = view(put(emptyBoard(), snap({ createdAt: evening, sentAt })), T0);
+      const c = v.cards[0]!;
+      expect([v.today, c.group, c.today, c.phase, c.info]).toEqual([
+        true,
+        'created',
+        true,
+        'noch nicht angepfiffen',
+        'E1',
+      ]);
+    }
+    // Auch kurz nach Mitternacht des Vortags angelegt.
+    expect(one(snap({ createdAt: Date.UTC(2026, 10, 5, 23, 30), sentAt: T0 }), T0).today).toBe(true);
+  });
+
+  it('US3-S12: Vortag auch über Monats- und Jahresgrenze', () => {
+    const newYear = Date.UTC(2027, 0, 1, 9, 0);
+    const c = one(snap({ createdAt: Date.UTC(2026, 11, 31, 18, 0), sentAt: newYear }), newYear);
+    expect([c.today, c.phase]).toEqual([true, 'noch nicht angepfiffen']);
+  });
+
+  it('vor zwei Tagen angelegtes, nicht angepfiffenes Spiel bleibt "noch nicht angepfiffen" mit Datum', () => {
+    const v = view(put(emptyBoard(), snap({ createdAt: T0 - 2 * DAY, sentAt: T0 - min(60) })), T0);
+    const c = v.cards[0]!;
+    expect([v.today, c.group, c.phase]).toEqual([false, 'created', 'noch nicht angepfiffen · 05.11.']);
+  });
+
+  it('US3-S12: zweites am Vorabend angelegtes Spiel bleibt neben dem angepfiffenen als "Heute außerdem"', () => {
+    const evening = T0 - min(14 * 60 + 30);
+    const second = snap({ gameId: 'zwei', createdAt: evening + min(5), opp: 'SV Beispielhausen', sentAt: evening });
+    const first = snap({ gameId: 'eins', createdAt: evening, clock: kicked(), sentAt: T0 + min(1) });
+    for (const b of [put(put(emptyBoard(), second), first), put(put(emptyBoard(), first), second)]) {
+      expect(b.games.map((e) => e.snap.gameId).sort()).toEqual(['eins', 'zwei']);
+      const c = view(b, T0 + min(5)).cards[0]!;
+      expect([c.gameId, c.earlier]).toEqual([
+        'eins',
+        'Heute außerdem: 0:0 gegen SV Beispielhausen (noch nicht angepfiffen)',
+      ]);
+    }
   });
 
   it('Datumsformate', () => {

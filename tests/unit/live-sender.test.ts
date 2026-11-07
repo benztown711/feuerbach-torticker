@@ -6,7 +6,7 @@ import { setLive, startPrivate } from '../../src/domain/live-snapshot';
 import { handOver } from '../../src/domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../../src/domain/types';
 import type { MessageParts } from '../../src/platform/live-crypto';
-import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
+import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, RESEND_CREATED_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 const E1_NAME = 'Sportvg Feuerbach E1';
@@ -259,6 +259,52 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     t.setHidden(false);
     await vi.advanceTimersByTimeAsync(0);
     expect(t.sent).toHaveLength(2);
+    t.sender.stop();
+  });
+
+  it('US2-S10 Rückkehr in den Vordergrund sendet angelegte Spiele erneut, höchstens einmal je Stunde', async () => {
+    const t = setup();
+    const g = newGame();
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.sent).toHaveLength(1);
+    // Kein Lebenszeichen für angelegte Spiele, und innerhalb einer Stunde nach der Sendung nichts.
+    await vi.advanceTimersByTimeAsync(RESEND_CREATED_MS - 1000);
+    t.setHidden(true);
+    t.setHidden(false);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(1);
+    t.setHidden(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    t.setHidden(false);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(t.snaps().map((s) => [s.state, (s as LiveGameSnapshot).clock.length])).toEqual([
+      ['live', 0],
+      ['live', 0],
+    ]);
+    // Die neue Sendung zählt: in der nächsten Stunde wieder nichts.
+    t.setHidden(true);
+    t.setHidden(false);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(2);
+    t.sender.stop();
+  });
+
+  it('US2-S10 private, nicht live gesendete und übernommene Spiele kommen beim Zurückkehren nicht erneut', async () => {
+    const t = setup();
+    const quiet = [
+      startPrivate(newGame(E1_NAME, 'privat')),
+      setLive(newGame(E1_NAME, 'aus'), false),
+      handOver(newGame(E1_NAME, 'abgegeben')),
+    ];
+    for (const game of quiet) t.sender.handle({ kind: 'put', game });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    const before = t.sent.length;
+    await vi.advanceTimersByTimeAsync(RESEND_CREATED_MS + 1000);
+    t.setHidden(true);
+    t.setHidden(false);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(before);
     t.sender.stop();
   });
 

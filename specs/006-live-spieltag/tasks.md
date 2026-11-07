@@ -122,6 +122,13 @@
 - [x] L066 [US3] (FR-L12, FR-L18) E2E `tests/e2e/live-us3.spec.ts` 006 FR-L18 bei 320 pt: Namen in einer Zeile, Heim oben, Tore je Zeile; Karte in `src/ui/screens/live-dashboard.tsx` als Tabellenzeilen (Stand für Screenreader und Tests weiter als "2:1"), Stile in `src/styles/app.css`; neue Referenzbilder `dashboard-*` aus dem CI-Lauf (R-22)
 - [x] L065 Gerätetest kurzer Trainer-Link: am 06.11.2026 bestanden (Atti, Trainer der E3 per WhatsApp gekoppelt, sein Spiel auf dem Dashboard)
 
+## Phase 13: Fehlerbehebung am Vorabend angelegte Spiele (Clarifications 07.11.2026, research.md R-L21)
+
+- [x] L067 [P] [US2] (FR-L06, US2-S10) Unit `tests/unit/live-sender.test.ts`: Rückkehr in den Vordergrund sendet angelegte Spiele erneut, höchstens einmal je Stunde; private und übernommene Spiele nicht; E2E `tests/e2e/live-us2.spec.ts` 006 US2-S10 (Meldungen beim Dienst abgelaufen, Vordergrund nach über einer Stunde und Neustart senden das Spiel erneut, ein frisches Dashboard zeigt es)
+- [x] L068 [US2] `src/platform/live-sender.ts`: letzte Sendung je Spiel, `RESEND_CREATED_MS`, beim Start alle angelegten Spiele (macht L067 grün)
+- [x] L069 [P] [US3] (FR-L16, US3-S12) Unit `tests/unit/live-board.test.ts`: am Vortag angelegtes Spiel zählt heute (ohne Datum, kein "Zuletzt"), vor zwei Tagen angelegtes weiter mit Datum, `prune` behält das zweite angelegte Spiel neben dem angepfiffenen; E2E `tests/e2e/live-us3.spec.ts` 006 US3-S12
+- [x] L070 [US3] `src/domain/live-board.ts` (`dayOf` mit Vortag-Regel, `prune` mit Serverzeit der jüngsten Meldung, 100 % Branch-Coverage; macht L069 grün); Hilfe `spiel-vorabend` neu, `eltern-dashboard` geändert
+
 ## Zuordnung Anforderungen → Aufgaben
 
 | Anforderung | Aufgaben |
@@ -129,11 +136,11 @@
 | FR-L01, FR-L02 | L001, L008, L012, L014, L017, L043 bis L048 (Trainer-Link), L064, L065 (kurzer Trainer-Link) |
 | FR-L03, FR-L04 | L008, L012, L014, L018, L043 bis L048 (Senden je Spiel) |
 | FR-L05 | L004, L014 |
-| FR-L06, FR-L07 | L003, L020, L022, L024 |
+| FR-L06, FR-L07 | L003, L020, L022, L024, L067, L068 |
 | FR-L08, FR-L09 | L022, L024, L025, L026, L046, L047 ("Live aufs Dashboard") |
 | FR-L10 | L020, L024 |
 | FR-L11 | L006, L029, L031 |
-| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057, L061, L066 |
+| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057, L061, L066, L069, L070 |
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |

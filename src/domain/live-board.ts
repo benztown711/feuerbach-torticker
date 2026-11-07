@@ -111,12 +111,37 @@ export function applyConfig(board: Board, config: LiveConfig): Board {
   return next === board.config ? board : { ...board, config: next };
 }
 
-/** FR-L16: Je Mannschaft bleiben nur Spiele vom Tag ihres neuesten Spiels (Anpfiff, sonst Anlegen). */
+/** Vortag eines Kalendertags: "2026-11-07" → "2026-11-06" (reine Kalenderrechnung, ohne Sommerzeit). */
+function dayBefore(day: string): string {
+  const [y, m, d] = day.split('-').map(Number) as [number, number, number];
+  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
+}
+
+/**
+ * Spieltag eines Spiels (FR-L16): Tag des ersten Anpfiffs; vor dem Anpfiff der Tag des Anlegens, außer das Spiel
+ * wurde am Vortag von `now` angelegt (am Vorabend vorbereitet, research.md R-L21): dann zählt es zum Tag von `now`.
+ */
+function dayOf(e: BoardEntry, now: number, timeZone?: string): string {
+  const kickoff = kickoffOf(e.snap);
+  if (kickoff !== null) return dayKey(real(e, kickoff), timeZone);
+  const created = dayKey(real(e, e.snap.createdAt), timeZone);
+  const today = dayKey(now, timeZone);
+  return created === dayBefore(today) ? today : created;
+}
+
+/**
+ * FR-L16: Je Mannschaft bleiben nur Spiele vom Spieltag ihres neuesten Spiels. "Heute" ist dabei die Serverzeit
+ * der jüngsten bekannten Meldung, damit ein spät abgerufener alter Stand nichts verdrängt.
+ */
 function prune(games: BoardEntry[], timeZone?: string): BoardEntry[] {
-  const newest = new Map<string, number>();
-  for (const e of games) newest.set(e.snap.team, Math.max(newest.get(e.snap.team) ?? -Infinity, startOf(e)));
+  const now = Math.max(...games.map((e) => e.at));
+  const newest = new Map<string, string>();
+  for (const e of games) {
+    const day = dayOf(e, now, timeZone);
+    if (day > (newest.get(e.snap.team) ?? '')) newest.set(e.snap.team, day);
+  }
   return games
-    .filter((e) => dayKey(startOf(e), timeZone) === dayKey(newest.get(e.snap.team) as number, timeZone))
+    .filter((e) => dayOf(e, now, timeZone) === newest.get(e.snap.team))
     .sort((a, b) => a.at - b.at)
     .slice(-MAX_GAMES);
 }
@@ -237,7 +262,7 @@ function runningPhase(c: ClockState, schema: Schema): string {
 function stateOf(e: BoardEntry, serverNow: number, today: string, timeZone?: string): GameState {
   const c = clockOfEntry(e, serverNow);
   const s = e.snap;
-  const isToday = dayKey(startOf(e), timeZone) === today;
+  const isToday = dayOf(e, serverNow, timeZone) === today;
   const base = { entry: e, today: isToday };
   if (c.status === 'created') return { ...base, group: 'created', live: false, phase: 'noch nicht angepfiffen' };
   const inShootout = c.status === 'finished' && s.shootout !== null && !s.shootout.done;

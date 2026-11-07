@@ -1,20 +1,26 @@
 import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
 import { isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
-import { findOpenGame, getPlayers, getSettings, onGameWrite, type GameChange } from './db';
+import { getPlayers, getSettings, listGames, onGameWrite, type GameChange } from './db';
 import { MAX_MESSAGE, sealMessage, type MessageParts } from './live-crypto';
 import { publish } from './relay';
 
 /**
  * Spec 006 R-L3: sendet den jeweils letzten Stand jedes Spiels einer gekoppelten Mannschaft.
  * Höchstens eine Sendung je 5 s, Wiederholung nach 5, 10, 20, 30 s, Lebenszeichen alle 3 Minuten,
- * sofort beim Zurückkehren in den Vordergrund. Senden blockiert nie die Erfassung (FR-L07).
+ * sofort beim Zurückkehren in den Vordergrund. Angelegte, noch nicht angepfiffene Spiele gehen beim Start
+ * und beim Zurückkehren erneut hinaus, höchstens einmal je Stunde (R-L21). Senden blockiert nie die Erfassung (FR-L07).
  */
 
 export const MIN_GAP_MS = 5_000;
 export const WAIT_AFTER_MS = 30_000;
 export const HEARTBEAT_MS = 180_000;
 export const RETRY_MS = [5_000, 10_000, 20_000, 30_000];
+/**
+ * US2-S10: Angelegte Spiele beim Zurückkehren in den Vordergrund erneut senden, wenn die letzte Sendung so lange
+ * zurückliegt; der Dienst hält Meldungen nur rund 12 Stunden vor (research.md R-L21).
+ */
+export const RESEND_CREATED_MS = 60 * 60_000;
 /** Kader höchstens so oft neu lesen (er ändert sich im Spiel kaum). */
 export const PLAYERS_TTL_MS = 60_000;
 
@@ -46,6 +52,8 @@ export class LiveSender {
   private readonly pending = new Map<string, Pending>();
   private readonly teamOfPending = new Map<string, LiveTeamCred>();
   private readonly games = new Map<string, { game: Game; team: LiveTeamCred }>();
+  /** Zeitpunkt der letzten erfolgreichen Sendung je Spiel (US2-S10). */
+  private readonly sentAt = new Map<string, number>();
   private readonly listeners = new Set<() => void>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly heartbeat: ReturnType<typeof setInterval>;
@@ -65,7 +73,7 @@ export class LiveSender {
     this.heartbeat = setInterval(() => this.resendActive(), HEARTBEAT_MS);
     this.offVisibility =
       deps.visibility?.onChange(() => {
-        if (!deps.visibility?.hidden()) this.resendActive();
+        if (!deps.visibility?.hidden()) this.resendActive(true);
       }) ?? (() => undefined);
   }
 
@@ -84,6 +92,7 @@ export class LiveSender {
 
   private forget(id: string): void {
     this.games.delete(id);
+    this.sentAt.delete(id);
     this.pending.delete(id);
     this.teamOfPending.delete(id);
   }
@@ -136,9 +145,17 @@ export class LiveSender {
     this.notify();
   }
 
-  private resendActive(): void {
+  /**
+   * Lebenszeichen (FR-L15) und Rückkehr in den Vordergrund: laufende, angehaltene und pausierte Spiele erneut.
+   * Beim Zurückkehren (`foreground`) zusätzlich angelegte Spiele, deren letzte Sendung mindestens eine Stunde
+   * zurückliegt (US2-S10).
+   */
+  private resendActive(foreground = false): void {
+    const now = this.deps.now();
     for (const { game, team } of this.games.values()) {
-      if (ACTIVE.has(game.status) && game.live !== false && !this.pending.has(game.id)) this.enqueueGame(game, team);
+      if (game.live === false || this.pending.has(game.id)) continue;
+      const stale = now - (this.sentAt.get(game.id) ?? Number.NEGATIVE_INFINITY) >= RESEND_CREATED_MS;
+      if (ACTIVE.has(game.status) || (foreground && game.status === 'created' && stale)) this.enqueueGame(game, team);
     }
   }
 
@@ -189,6 +206,7 @@ export class LiveSender {
           failed = true;
           continue;
         }
+        this.sentAt.set(id, this.deps.now());
         // Nur entfernen, wenn während des Sendens keine neuere Änderung kam.
         if (this.pending.get(id) === entry) {
           this.pending.delete(id);
@@ -289,7 +307,8 @@ export function stopLiveSender(): void {
 
 /**
  * Startet den Sender, wenn dieses Gerät für mindestens eine Mannschaft sendet (sonst keine Verbindung,
- * FR-L05), und schickt den Stand eines offenen Spiels gleich nach dem Start (z. B. nach Neuladen).
+ * FR-L05), und schickt gleich nach dem Start (z. B. nach Neuladen) den Stand des jüngsten offenen Spiels und
+ * aller angelegten, noch nicht angepfiffenen Spiele (US2-S10, am Vorabend vorbereitet).
  */
 export async function startLiveSender(settings?: Settings): Promise<void> {
   const s = settings ?? (await getSettings());
@@ -315,6 +334,7 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
   const sender = current;
   offDb = onGameWrite((c) => sender.handle(c));
   for (const l of startListeners) l();
-  const open = await findOpenGame();
-  if (open) sender.handle({ kind: 'put', game: open });
+  const games = await listGames();
+  const open = games.find((g) => g.status !== 'finished');
+  for (const game of games) if (game === open || game.status === 'created') sender.handle({ kind: 'put', game });
 }
