@@ -19,6 +19,8 @@ export const MAX_ROWS = 200;
 export const KEEP_PER_GROUP = 10;
 /** R-N5: die jüngsten Plan-Meldungen. */
 export const KEEP_PLANS = 50;
+/** Spec 016 FR-B17: höchstens so viele geteilte Kader je Live-Spieltag. */
+export const MAX_SQUADS = 6;
 const DAY_MS = 24 * 60 * 60_000;
 /** R-N5: Grabsteine ("Nicht live senden", gelöscht) bleiben so lange. */
 export const TOMBSTONE_MS = 30 * DAY_MS;
@@ -52,7 +54,15 @@ export interface PlanWrite extends Base {
 export interface RetireWrite extends Base {
   kind: 'retire';
 }
-export type RelayWrite = GameWrite | CfgWrite | PlanWrite | RetireWrite;
+/** Spec 016 contracts/squad-message.md: ein geteilter Kader, eine ersetzbare Zeile je `slot`. */
+export interface SquadWrite extends Base {
+  kind: 'squad';
+  slot: string;
+  at: number;
+  /** Kader wird nicht mehr geteilt (FR-B11). */
+  gone: boolean;
+}
+export type RelayWrite = GameWrite | CfgWrite | PlanWrite | RetireWrite | SquadWrite;
 /** Schreibanfrage vor dem Signieren (ohne `sig` und `cert`), je Art. */
 export type RelayDraft = RelayWrite extends infer W ? (W extends RelayWrite ? Omit<W, 'sig' | 'cert'> : never) : never;
 
@@ -73,6 +83,7 @@ const FIELDS: Record<RelayWrite['kind'], string[]> = {
   cfg: ['kind', 'iat', 'body', 'sig'],
   plan: ['kind', 'body', 'sig'],
   retire: ['kind', 'body', 'sig'],
+  squad: ['kind', 'slot', 'at', 'gone', 'body', 'sig'],
 };
 
 const onlyFields = (v: Obj, kind: RelayWrite['kind']): boolean => Object.keys(v).every((k) => FIELDS[kind].includes(k));
@@ -105,22 +116,28 @@ export function parseWrite(v: unknown): RelayWrite | null {
       : null;
   }
   if (kind === 'cfg') return isMs(v.iat) ? { kind, iat: v.iat, ...base } : null;
+  if (kind === 'squad')
+    return isId(v.slot) && isMs(v.at) && typeof v.gone === 'boolean'
+      ? { kind, slot: v.slot, at: v.at, gone: v.gone, ...base }
+      : null;
   return { kind, ...base };
 }
 
 /** R-N4: Text, den der Schreibnachweis signiert; fehlende Felder als leere Zeichenkette. */
 export function signedText(name: string, w: RelayWrite, bodyHash: string): string {
   const g = w.kind === 'game' ? w : null;
+  // Spec 016: Kader wie ein Spiel ohne Mannschaft und Übergabezähler.
+  const o = g ?? (w.kind === 'squad' ? w : null);
   const parts = [
     RELAY_PREFIX,
     name,
     w.kind,
-    g?.slot ?? '',
+    o?.slot ?? '',
     g?.group ?? '',
     g ? String(g.h) : '',
-    g ? String(g.at) : '',
+    o ? String(o.at) : '',
     w.kind === 'cfg' ? String(w.iat) : '',
-    g ? (g.gone ? '1' : '0') : '',
+    o ? (o.gone ? '1' : '0') : '',
     bodyHash,
   ];
   return parts.join('|');
@@ -158,6 +175,20 @@ export function gameRowsToDrop(rows: GameRow[], now: number): string[] {
     );
   return drop;
 }
+
+/**
+ * Spec 016 FR-B17: Platz für einen Kader? `active` geteilte Kader, `rows` Zeilen, `old` die gespeicherte Zeile dieses
+ * `slot`. Ersetzen eines geteilten Kaders und Grabsteine ("nicht mehr geteilt") brauchen keinen Kader-Platz.
+ */
+export function squadHasRoom(active: number, rows: number, w: SquadWrite, old: { gone: boolean } | null): boolean {
+  if (old === null && rows >= MAX_ROWS) return false;
+  if (w.gone || (old !== null && !old.gone)) return true;
+  return active < MAX_SQUADS;
+}
+
+/** Spec 016: Grabsteine nicht mehr geteilter Kader nach 30 Tagen. */
+export const squadRowsToDrop = (rows: { slot: string; gone: boolean; time: number }[], now: number): string[] =>
+  rows.filter((r) => r.gone && now - r.time > TOMBSTONE_MS).map((r) => r.slot);
 
 /** R-N5: Plan-Meldungen über die 50 jüngsten hinaus. */
 export const plansToDrop = (seqs: number[]): number[] => [...seqs].sort((a, b) => b - a).slice(KEEP_PLANS);

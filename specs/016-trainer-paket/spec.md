@@ -135,7 +135,7 @@ Auf dem Startbildschirm heißt der Knopf "Link einfügen". Er liest die Zwischen
 - **FR-B14**: "Link einfügen" (Startbildschirm und "Mehr" → "Live-Spieltag") MUSS in der Zwischenablage erkennen: Trainer- und Lead-Link, Zuschauer-Link, Kader-Liste aus "Kader teilen" (erste Zeile "Kader <Name>:"). Reihenfolge: zuerst ein Link, sonst eine Kader-Liste, sonst das Einfügefeld.
 - **FR-B15**: Eine erkannte Kader-Liste MUSS die Vorschau aus "Liste einfügen" (Spec 001 FR-026) für den Kader aus der ersten Zeile zeigen; "Übernehmen" führt zusammen und öffnet "Mehr" → "Kader" mit diesem Kader. Ist er geteilt, gehen die Änderungen wie in FR-B06 hinaus.
 - **FR-B16**: Das Einfügefeld von "Link einfügen" MUSS auch eine eingefügte Kader-Liste annehmen (wie FR-B15) und bei unbrauchbarem Inhalt "Link oder Kader-Liste aus der Trainergruppe einfügen." zeigen.
-- **FR-B17**: Der Dienst MUSS je Live-Spieltag höchstens 6 Kader mit zusammen höchstens 300 Kindern vorhalten; mehr weist er ab.
+- **FR-B17**: Der Dienst MUSS je Live-Spieltag höchstens 6 geteilte Kader vorhalten, je Kader höchstens 100 Kinder (mit gelöschten der letzten 30 Tage); mehr weist er bzw. die App ab.
 
 ### Key Entities
 

@@ -5,6 +5,7 @@ import {
   MAX_BODY,
   MAX_GROUPS,
   MAX_ROWS,
+  MAX_SQUADS,
   TOMBSTONE_MS,
   acceptsCfg,
   acceptsGame,
@@ -15,6 +16,8 @@ import {
   parseWrite,
   plansToDrop,
   signedText,
+  squadHasRoom,
+  squadRowsToDrop,
   type GameRow,
 } from '../../src/domain/relay-protocol';
 
@@ -44,6 +47,15 @@ const game = (p: Record<string, unknown> = {}) => ({
 const cfg = (p: Record<string, unknown> = {}) => ({ kind: 'cfg', iat: 1_794_038_000_000, body: BODY, sig: SIG, ...p });
 const plan = (p: Record<string, unknown> = {}) => ({ kind: 'plan', body: BODY, sig: SIG, ...p });
 const retire = (p: Record<string, unknown> = {}) => ({ kind: 'retire', body: BODY, sig: SIG, ...p });
+const squad = (p: Record<string, unknown> = {}) => ({
+  kind: 'squad',
+  slot: SLOT,
+  at: 1_794_040_000_000,
+  gone: false,
+  body: BODY,
+  sig: SIG,
+  ...p,
+});
 
 describe('007 R-N4 Objektname aus Topic und Organisator-Schlüssel', () => {
   it('nur gültiges Topic (22 Zeichen) und öffentlicher Schlüssel (65 Byte, 87 Zeichen)', () => {
@@ -238,5 +250,61 @@ describe('007 R-N6 Nachrichten des Dienstes an den Client', () => {
       JSON.stringify({ t: 'bye' }),
     ])
       expect(parseServerFrame(text), text).toBeNull();
+  });
+});
+
+describe('016 contracts/squad-message.md Kader-Meldung beim Dienst', () => {
+  const name = objectName(TOPIC, ORG) as string;
+  const hash = b64(43, 'h');
+
+  it('gültig mit slot, at, gone; ohne group, h, iat, cert', () => {
+    expect(parseWrite(squad())).toEqual(squad());
+    expect(parseWrite(squad({ gone: true }))).toEqual(squad({ gone: true }));
+    for (const bad of [
+      squad({ slot: 'kurz' }),
+      squad({ at: 0 }),
+      squad({ at: 1.5 }),
+      squad({ gone: 'nein' }),
+      squad({ group: GROUP }),
+      squad({ h: 0 }),
+      squad({ iat: 1 }),
+      squad({ cert: CERT }),
+      squad({ body: 'klartext' }),
+    ])
+      expect(parseWrite(bad), JSON.stringify(bad)).toBeNull();
+  });
+
+  it('zu signierender Text: slot, at und gone wie beim Spiel, ohne group, h und iat', () => {
+    expect(signedText(name, parseWrite(squad())!, hash)).toBe(
+      `torticker-relay-v1|${name}|squad|${SLOT}|||1794040000000||0|${hash}`,
+    );
+    expect(signedText(name, parseWrite(squad({ gone: true }))!, hash)).toBe(
+      `torticker-relay-v1|${name}|squad|${SLOT}|||1794040000000||1|${hash}`,
+    );
+  });
+
+  it('Platz: höchstens 6 geteilte Kader; Ersetzen und Nicht-mehr-teilen brauchen keinen neuen Platz', () => {
+    const w = parseWrite(squad()) as Parameters<typeof squadHasRoom>[2];
+    const off = parseWrite(squad({ gone: true })) as Parameters<typeof squadHasRoom>[2];
+    expect(MAX_SQUADS).toBe(6);
+    expect(squadHasRoom(MAX_SQUADS - 1, 10, w, null)).toBe(true);
+    expect(squadHasRoom(MAX_SQUADS, 10, w, null)).toBe(false);
+    expect(squadHasRoom(MAX_SQUADS, 10, w, { gone: false })).toBe(true);
+    expect(squadHasRoom(MAX_SQUADS, 10, w, { gone: true })).toBe(false);
+    expect(squadHasRoom(MAX_SQUADS - 1, 10, w, { gone: true })).toBe(true);
+    expect(squadHasRoom(0, MAX_ROWS, w, null)).toBe(false);
+    expect(squadHasRoom(MAX_SQUADS, MAX_ROWS, off, null)).toBe(false);
+    expect(squadHasRoom(MAX_SQUADS, MAX_ROWS - 1, off, null)).toBe(true);
+    expect(squadHasRoom(MAX_SQUADS, MAX_ROWS, off, { gone: false })).toBe(true);
+  });
+
+  it('nicht mehr geteilte Kader (Grabsteine) fallen nach 30 Tagen weg', () => {
+    const NOW = 1_800_000_000_000;
+    const rows = [
+      { slot: 'a', gone: false, time: NOW - TOMBSTONE_MS - 1 },
+      { slot: 'b', gone: true, time: NOW - 1000 },
+      { slot: 'c', gone: true, time: NOW - TOMBSTONE_MS - 1 },
+    ];
+    expect(squadRowsToDrop(rows, NOW)).toEqual(['c']);
   });
 });

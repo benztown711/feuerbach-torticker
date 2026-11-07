@@ -241,6 +241,46 @@ describe('007 FR-N02 R-N5 Ordnung und Auswahl', () => {
   });
 });
 
+describe('016 FR-B04 FR-B11 FR-B17 geteilte Kader', () => {
+  const squad = (p: Partial<{ slot: string; at: number; gone: boolean; body: string }> = {}) =>
+    ({ kind: 'squad', slot: randomId(16), at: 1_000, gone: false, body: body(), ...p }) as const;
+
+  it('je slot eine Zeile, ersetzt bei at ≥, älter 204; nur mit Signatur des Organisators', async () => {
+    const s = await spieltag();
+    const slot = randomId(16);
+    expect((await s.post(await s.write(squad({ slot, at: 10 })))).status).toBe(200);
+    expect((await s.post(await s.write(squad({ slot, at: 9 })))).status).toBe(204);
+    expect((await s.post(await s.write(squad({ slot, at: 10 })))).status).toBe(200);
+    expect((await s.post(await s.write(squad({ slot, at: 12, gone: true })))).status).toBe(200);
+    expect((await s.post(await s.write(squad({ slot, at: 13 }), s.lead))).status).toBe(403);
+    const rows = await runInDurableObject(s.stub, (_o, state) =>
+      state.storage.sql.exec("SELECT at, gone FROM msg WHERE kind = 'squad'").toArray(),
+    );
+    expect(rows).toEqual([{ at: 12, gone: 1 }]);
+  });
+
+  it('höchstens 6 geteilte Kader 413; ein nicht mehr geteilter macht Platz', async () => {
+    const s = await spieltag();
+    const slots = Array.from({ length: 6 }, () => randomId(16));
+    for (const slot of slots) expect((await s.post(await s.write(squad({ slot })))).status).toBe(200);
+    expect((await s.post(await s.write(squad()))).status).toBe(413);
+    expect((await s.post(await s.write(squad({ slot: slots[0], at: 2_000 })))).status).toBe(200);
+    expect((await s.post(await s.write(squad({ slot: slots[1], at: 2_000, gone: true })))).status).toBe(200);
+    expect((await s.post(await s.write(squad()))).status).toBe(200);
+  });
+
+  it('neu ausgestellt löscht auch die Kader', async () => {
+    const s = await spieltag();
+    await s.post(await s.write(squad()));
+    await s.post(await s.write({ kind: 'retire', body: body() }));
+    expect((await s.post(await s.write(squad()))).status).toBe(409);
+    const kinds = await runInDurableObject(s.stub, (_o, state) =>
+      state.storage.sql.exec('SELECT kind FROM msg').toArray(),
+    );
+    expect(kinds).toEqual([{ kind: 'retire' }]);
+  });
+});
+
 describe('007 FR-N03 FR-N04 R-N6 Empfang per WebSocket', () => {
   it('hello mit allem, danach jede angenommene Meldung an alle Verbindungen; ping → pong', async () => {
     const s = await spieltag();

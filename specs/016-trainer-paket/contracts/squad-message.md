@@ -9,7 +9,7 @@
 - `slot` = HMAC-SHA-256 mit dem `slot`-Schlüssel (R-N3) über `["squad", sid]`, 128 Bit, base64url.
 - `at` = größter Zeitstempel im Inhalt (ms), ganze Zahl > 0.
 - `gone` = true: Kader wird nicht mehr geteilt (FR-B11).
-- Zu signierender Text: `torticker-relay-v1|<name>|squad|<slot>||<at>|||<gone 1/0>|<sha256(body)>` (Felder wie bei `game`, ohne `group`, `h` und `iat`), signiert mit dem Organisator-Schlüssel.
+- Zu signierender Text: `torticker-relay-v1|<name>|squad|<slot>|||<at>||<gone 1/0>|<sha256(body)>` (Felder wie bei `game`, ohne `group`, `h` und `iat`), signiert mit dem Organisator-Schlüssel.
 - Antworten wie bei `game`: `200 {seq}`, `204` älter, `400`, `403`, `409` nach `retire`, `413` mehr als 6 geteilte Kader.
 
 ## Inhalt (`body`)
