@@ -168,6 +168,8 @@ export async function coupleTrainer(trainer: TrainerLinkData): Promise<Settings>
   const next = await applyTrainerLink(await getSettings(), trainer, deps());
   await putSettings(next);
   void startLiveSender(next);
+  // Spec 016 R-B6: geteilte Kader kommen über die Verbindung des Trainer-Handys (main.tsx).
+  liveSettingsChanged(next);
   return next;
 }
 

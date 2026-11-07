@@ -22,7 +22,7 @@
   "k": [["k7f3a9c1", "Paul", 4, 0, 1762500000000], ["k2d8e0f4", "Maxi", 8, 0, 1762490000000]] }
 ```
 
-- `s`, Kinder-`sid`: 1 bis 32 Zeichen `[A-Za-z0-9_-]`.
+- `s`, Kinder-`sid`: 1 bis 64 Zeichen `[A-Za-z0-9_-]` (lokale Kennungen sind UUIDs).
 - `n`: 1 bis 20 Zeichen (Spec 015 `MAX_SQUAD_NAME`); Kindername wie im Kader (Spec 001 `MAX_NAME`); Nummer 0 bis 99 oder null.
 - `t`: Mannschaften des Live-Spieltags mit diesem Kader (Kurzlabel wie in der Konfiguration), höchstens 6.
 - `k`: höchstens 100 Kinder.

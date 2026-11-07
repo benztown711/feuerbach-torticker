@@ -42,7 +42,7 @@ export interface LiveTeamRef {
 
 // ---------- Meldung ----------
 
-const isSid = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{1,32}$/.test(v);
+const isSid = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v);
 const isTime = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0;
 const isName = (v: unknown, max: number): v is string => typeof v === 'string' && v.trim() !== '' && v.length <= max;
 const isFlag = (v: unknown): v is 0 | 1 => v === 0 || v === 1;

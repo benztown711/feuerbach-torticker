@@ -78,6 +78,9 @@ describe('016 contracts/squad-message.md Meldung bauen und prüfen', () => {
       sh: false,
       k: [['paul', 'Paul', null, true, T0]],
     });
+    // Lokale Kennungen sind UUIDs (36 Zeichen).
+    const uuid = '1314bde9-fc21-4933-9ebf-5d33b85465ec';
+    expect(parseRecord(encodeRecord({ ...r, s: uuid, k: [[uuid, 'Paul', 4, false, T0]] }))?.s).toBe(uuid);
     const raw = JSON.parse(text) as Record<string, unknown>;
     for (const bad of [
       'kein json',
@@ -85,6 +88,7 @@ describe('016 contracts/squad-message.md Meldung bauen und prüfen', () => {
       { ...raw, v: 2 },
       { ...raw, s: '' },
       { ...raw, s: 'ä' },
+      { ...raw, s: 'x'.repeat(65) },
       { ...raw, n: '' },
       { ...raw, n: 'x'.repeat(21) },
       { ...raw, na: -1 },
