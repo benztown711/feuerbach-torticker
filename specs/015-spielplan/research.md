@@ -43,7 +43,7 @@
 
 ## R-P8 Endstand im Planspiel (FR-P30)
 
-- **Decision**: Das Trainer-Handy mit dem verknüpften Spiel trägt bei jeder Änderung von `finalScore` (Schlusspfiff, Tor-Korrektur, zurückgenommener Schlusspfiff) den Endstand als `s` ins Planspiel ein und sendet den Plan. Erkannt wird das über `onGameWrite`; nachgeladen wird `live-setup` nur, wenn sich der Endstand eines Spiels ändert. Das Dashboard nimmt `s`, sonst den Endstand des verknüpften Spiels, solange es bekannt ist.
+- **Decision**: Das Trainer-Handy mit dem verknüpften Spiel trägt bei jeder Änderung von `finalScore` (Schlusspfiff, Tor-Korrektur, zurückgenommener Schlusspfiff) den Endstand als `s` ins Planspiel ein und sendet den Plan. Erkannt wird das über `onGameWrite`; geprüft wird bei jeder Änderung des Endstands und beim ersten Speichern eines Spiels nach dem Start (ein vorher zurückgenommener Schlusspfiff); Trainer-Handys haben `live-setup` dann ohnehin geladen. Das Dashboard nimmt `s`, sonst den Endstand des verknüpften Spiels, solange es bekannt ist.
 - **Rationale**: Das Dashboard hält Spiele nur vom letzten Spieltag je Mannschaft (Spec 006 FR-L16); der Plan wird alle 6 Stunden erneut gesendet (FR-P07) und trägt die Ergebnisse der Saison.
 - **Alternatives**: Endstand nur aus den Spielmeldungen (verschwindet nach 12 Stunden für neue Zuschauer).
 

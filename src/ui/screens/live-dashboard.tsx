@@ -3,6 +3,7 @@ import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
 import {
   boardView,
+  dayKey,
   formatClockTime,
   formatDay,
   planSection,
@@ -325,7 +326,9 @@ export function Dashboard({
   const now = Date.now();
   const serverNow = now + state.skew;
   const v = boardView(state.board, serverNow);
-  const plan = planSection(state.board, serverNow);
+  // Spec 015 US7: nur neu berechnen, wenn eine Meldung kam oder der Tag wechselt (nicht jede Sekunde).
+  const day = dayKey(serverNow);
+  const plan = useMemo(() => planSection(state.board, serverNow), [state.board, day]);
   // Ohne Spiel heute: "Zuletzt" bzw. bei Planspielen "Als Nächstes" (Spec 015 US3).
   const planned = v.cards.filter((c) => c.group === 'planned').length;
   const lastLabel =

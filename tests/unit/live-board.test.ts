@@ -953,3 +953,39 @@ describe('015 US7 Ganzer Spielplan für Eltern', () => {
     expect(planSection(b, T0, TZ)).toEqual({ days: [], past: [] });
   });
 });
+
+describe('015 US3 Review: welches Planspiel die Karte wird', () => {
+  const morningDone = snap({
+    gameId: 'manuell',
+    createdAt: T0 - min(80),
+    clock: [
+      ['kickoff', T0 - min(70), 1],
+      ['fullTime', T0 - min(45), 1],
+    ],
+    schema: { sections: 1, sectionMinutes: 25 },
+    goals: [goal('own', 3), goal('own', 9), goal('opp', 20)],
+    sentAt: T0 - min(44),
+  });
+
+  it('Spiel ohne Plan angelegt und beendet: Ergebnis bleibt Karte, das Planspiel steht als "Danach"', () => {
+    // Anpfiff 08:50 Uhr, Planspiel 08:30 Uhr: schon vorbei
+    const b = put(planned(pe({ time: '08:30' })), morningDone);
+    const c = card(b)!;
+    expect([c.gameId, c.group, c.lines]).toEqual(['manuell', 'finished', ['Danach: 08:30 gegen TSV Musterstadt']]);
+    // ohne Anstoß zählt ein beendetes Spiel von heute ebenso
+    expect(card(put(planned(pe({ time: null })), morningDone))!.gameId).toBe('manuell');
+  });
+
+  it('heute abgesagt: Karte nur, wenn die Mannschaft heute kein Spiel hat', () => {
+    const b = put(planned(pe({ time: '14:00', cancelled: true })), morningDone);
+    const c = card(b)!;
+    expect([c.gameId, c.lines]).toEqual(['manuell', ['Danach: 14:00 gegen TSV Musterstadt (abgesagt)']]);
+  });
+
+  it('gelöschtes oder nicht mehr gesendetes verknüpftes Spiel bringt das Planspiel nicht zurück', () => {
+    const b = put(planned(pe({ gameId: 'g1' })), snap({ gameId: 'g1' }));
+    const off = put(b, { v: 1, kind: 'game', state: 'deleted', h: 0, gameId: 'g1', team: 'E1', sentAt: T0 + 1 });
+    expect(off.games).toHaveLength(0);
+    expect(card(off)).toBeUndefined();
+  });
+});

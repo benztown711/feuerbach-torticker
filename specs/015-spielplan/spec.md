@@ -81,6 +81,7 @@
 
 - Entscheidung (Agent, im Rahmen der Freigabe): "Heute außerdem" bleibt wie bisher in den aufgeklappten Details (FR-P14 "wie bisher"); "Danach" und "Nächstes Spiel" stehen ohne Aufklappen unter der Karte (Mockup).
 - Entscheidung: "Nächstes Spiel" steht unter einer Karte mit beendetem Spiel; unter einem laufenden, angelegten oder heute geplanten Spiel folgt noch etwas heute ("Danach" oder nichts).
+- Befund im Code-Review: Ein Planspiel von heute wird nur Karte, solange es bevorsteht (Anstoß nach dem letzten beendeten Spiel von heute); sonst bleibt das Ergebnis Karte und das Planspiel steht als "Danach" (Edge Case "Spiel ohne Plan angelegt"). Ein Planspiel, dessen Spiel gelöscht wurde, erscheint nicht wieder.
 - Entscheidung: Ein heute abgesagtes Planspiel kann Karte sein ("abgesagt" statt Anstoß), wenn heute kein anderes Spiel dieser Mannschaft folgt; abgesagte kommende Planspiele werden weder Karte noch "Nächstes Spiel".
 - Entscheidung: Die Trikotfarbe des Gegners eines Planspiels ist unbekannt; die Karte zeigt dort einen leeren Platzhalter. Ohne Spiel heute heißt die Überschrift über den Karten "Als Nächstes" (nur Planspiele) bzw. "Zuletzt und als Nächstes".
 - Entscheidung: Vergangene Spiele im Spielplan der Eltern zeigen Heim zuerst ("FC Kirchberg – E1", Mockup), kommende "E1 gegen …" bzw. "E1 bei …" (US7-S2).

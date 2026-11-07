@@ -489,28 +489,38 @@ function plannedCard(
 }
 
 /**
- * FR-P12 (R-P9): Hauptinhalt einer Mannschaft: laufendes Spiel; sonst heute angelegtes, dann geplantes
- * (abgesagte zuletzt); sonst das neueste Spiel; sonst das nächste Planspiel.
+ * FR-P12 (R-P9): Hauptinhalt einer Mannschaft: laufendes Spiel; sonst heute angelegtes, dann ein noch
+ * bevorstehendes Planspiel von heute; sonst das neueste Spiel; sonst das nächste Planspiel. Ein Planspiel steht
+ * bevor, wenn sein Anstoß nach dem letzten beendeten Spiel von heute liegt (ohne beendetes Spiel jedes);
+ * abgesagte nur, wenn die Mannschaft heute kein Spiel hat. Übrige Planspiele von heute stehen als "Danach"
+ * (Spec, Edge Cases: Spiel ohne Plan angelegt).
  */
 function teamCard(
   key: string,
   states: GameState[],
   plan: PlanEntry[],
+  gone: string[],
   detail: TeamDetail | undefined,
   serverNow: number,
   today: string,
   timeZone?: string,
 ): BoardCard | null {
-  const known = new Set(states.map((s) => s.entry.snap.gameId));
-  // FR-P15: ein angelegtes Planspiel erscheint als sein Spiel, sobald es bekannt ist.
+  // FR-P15: ein angelegtes Planspiel erscheint als sein Spiel, auch nicht mehr, wenn das Spiel gelöscht wurde.
+  const known = new Set([...states.map((s) => s.entry.snap.gameId), ...gone]);
   const entries = plan.filter((e) => e.team === key && !(e.gameId && known.has(e.gameId))).sort(compareEntries);
   const todays = entries.filter((e) => e.date === today);
   const todayOpen = [...todays.filter((e) => !e.cancelled), ...todays.filter((e) => e.cancelled)];
   const future = entries.filter((e) => e.date > today && !e.cancelled);
+  const finished = states.filter((s) => s.today && s.group === 'finished').map((s) => startOf(s.entry));
+  const lastKick = finished.length > 0 ? formatClockTime(Math.max(...finished), timeZone) : null;
+  const hasToday = states.some((s) => s.today);
+  const ahead = (e: PlanEntry): boolean =>
+    e.cancelled ? !hasToday : lastKick === null || (e.time !== null && e.time > lastKick);
+  const planMain = todayOpen.find(ahead);
   const created = states
     .filter((s) => s.group === 'created' && s.today)
     .sort((a, b) => startOf(a.entry) - startOf(b.entry));
-  const main = states.find((s) => s.live) ?? created[0] ?? (todayOpen.length === 0 ? states[0] : undefined);
+  const main = states.find((s) => s.live) ?? created[0] ?? (planMain ? undefined : states[0]);
   if (main) {
     const after = afterLine(todayOpen);
     const next = after.length === 0 && (main.group === 'finished' || !main.today) ? future[0] : undefined;
@@ -524,16 +534,10 @@ function teamCard(
       timeZone,
     );
   }
-  const [first, ...more] = todayOpen;
-  if (first)
-    return plannedCard(
-      key,
-      first,
-      states.filter((s) => s.today),
-      afterLine(more),
-      detail,
-      today,
-    );
+  if (planMain) {
+    const rest = states.filter((s) => s.today);
+    return plannedCard(key, planMain, rest, afterLine(todayOpen.filter((e) => e !== planMain)), detail, today);
+  }
   return future[0] ? plannedCard(key, future[0], [], [], detail, today) : null;
 }
 
@@ -555,7 +559,9 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
         .map((e) => stateOf(e, serverNow, today, timeZone))
         .sort((a, b) => Number(b.live) - Number(a.live) || startOf(b.entry) - startOf(a.entry));
       const detail = details.find(([k]) => k === key);
-      const card = teamCard(key, states, plan, detail, serverNow, today, timeZone);
+      // Entfernte Spiele dieser Mannschaft ("Nicht live senden", gelöscht): ihre Planspiele bleiben verbraucht.
+      const gone = board.removed.filter(([id]) => id.startsWith(`${key}/`)).map(([id]) => id.slice(key.length + 1));
+      const card = teamCard(key, states, plan, gone, detail, serverNow, today, timeZone);
       return card ? [card] : [];
     })
     .sort((a, b) => rank(a) - rank(b));
