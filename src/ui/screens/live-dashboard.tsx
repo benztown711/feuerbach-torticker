@@ -10,6 +10,7 @@ import {
   type BoardCard,
   type PlanRow,
   type PlanSection,
+  type RecentTeam,
 } from '../../domain/live-board';
 import { linkUrl, parseLinkPath, viewerShareText } from '../../domain/live-link';
 import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
@@ -232,6 +233,90 @@ function PlanDay({
 
 const games = (n: number): string => (n === 1 ? '1 Spiel' : `${n} Spiele`);
 
+/** Spec 007 FR-N13: zuletzt gewählter Filter "Letzte Spiele" auf diesem Gerät; Fehler (privates Surfen) egal. */
+const RECENT_FILTER = 'torticker-recent-filter';
+const ALL = 'all';
+
+function savedFilter(): string {
+  try {
+    return window.localStorage.getItem(RECENT_FILTER) ?? ALL;
+  } catch {
+    return ALL;
+  }
+}
+
+/** Spec 007 US3: "Letzte Spiele" ganz unten, beim Öffnen zugeklappt; Filter Alle und je Mannschaft. */
+function DashRecent({ recent }: { recent: RecentTeam[] }) {
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState(savedFilter);
+  if (!recent.some((t) => t.rows.length > 0)) return null;
+  const current = recent.some((t) => t.key === filter) ? filter : ALL;
+  const all = current === ALL;
+  const rows = all
+    ? recent.flatMap((t) => t.rows).sort((a, b) => b.at - a.at)
+    : (recent.find((t) => t.key === current)?.rows ?? []);
+  const pick = (key: string): void => {
+    setFilter(key);
+    try {
+      window.localStorage.setItem(RECENT_FILTER, key);
+    } catch {
+      // Speicher gesperrt: der Filter gilt nur bis zum Neuladen.
+    }
+  };
+  return (
+    <section class="dash-recent" data-testid="dash-recent" aria-labelledby="dash-recent-title">
+      <h2 id="dash-recent-title" class="dash-recent__title">
+        <button
+          type="button"
+          class="dash-recent__toggle t-label"
+          aria-expanded={open}
+          aria-controls="dash-recent-body"
+          onClick={() => setOpen(!open)}
+        >
+          <span>LETZTE SPIELE</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon dash-recent__chev">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </h2>
+      {open && (
+        <div id="dash-recent-body" class="dash-recent__body">
+          <div class="dash-recent__filters" role="group" aria-label="Mannschaft wählen">
+            {[ALL, ...recent.map((t) => t.key)].map((key) => (
+              <button
+                key={key}
+                type="button"
+                class="dash-recent__filter"
+                aria-pressed={key === current}
+                onClick={() => pick(key)}
+              >
+                {key === ALL ? 'Alle' : key}
+              </button>
+            ))}
+          </div>
+          {rows.length === 0 ? (
+            <p class="dash-recent__note" data-testid="dash-recent-empty">
+              Noch keine früheren Spiele
+            </p>
+          ) : (
+            <ol class={`dash-recent__list${all ? ' dash-recent__list--team' : ''}`}>
+              {rows.map((r) => (
+                <li key={`${r.team}-${r.at}-${r.text}`} class="dash-recent__row" data-testid="dash-recent-row">
+                  <span>{r.date}</span>
+                  {all && <span class="dash-recent__team">{r.team}</span>}
+                  <strong class="dash-recent__score">{r.score}</strong>
+                  <span class="dash-recent__text">{r.text}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <p class="dash-recent__note">Bis zu 10 Spiele je Mannschaft, neuestes zuerst.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** Spec 015 US7: "Spielplan" unter den Karten, nächstes Datum offen, "Vergangene Spiele" zugeklappt. */
 function DashPlan({ section }: { section: PlanSection }) {
   const [open, setOpen] = useState<Set<string> | null>(null);
@@ -416,6 +501,7 @@ export function Dashboard({
         </div>
       )}
       <DashPlan section={plan} />
+      <DashRecent recent={v.recent} />
       <footer class="dash__foot">
         {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
         {!inApp && (

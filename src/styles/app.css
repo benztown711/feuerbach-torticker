@@ -2829,6 +2829,110 @@ body:has(.page:not(.dash, .lead-link)) {
   color: var(--color-ink-muted);
 }
 
+/* Spec 007 US3: "Letzte Spiele", ruhig und ganz unten (Mockup Review B). */
+.dash-recent {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 12px 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.dash-recent__title {
+  margin: 0;
+}
+
+.dash-recent__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-recent__toggle[aria-expanded='true'] .dash-recent__chev {
+  transform: rotate(180deg);
+}
+
+.dash-recent__body {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.dash-recent__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dash-recent__filter {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dash-recent__filter[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.dash-recent__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-ink-muted);
+}
+
+.dash-recent__row {
+  display: grid;
+  grid-template-columns: 52px 36px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 15px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.dash-recent__list--team .dash-recent__row {
+  grid-template-columns: 52px 28px 36px minmax(0, 1fr);
+}
+
+.dash-recent__team {
+  font-weight: 700;
+}
+
+.dash-recent__score {
+  color: var(--color-ink);
+}
+
+.dash-recent__text {
+  overflow-wrap: anywhere;
+}
+
+.dash-recent__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
 .dash-plan__score {
   border-color: var(--color-ink);
   color: var(--color-ink);
