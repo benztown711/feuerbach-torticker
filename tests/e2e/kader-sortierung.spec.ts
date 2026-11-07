@@ -88,6 +88,8 @@ test.describe('Spec 013 Kader sortieren', () => {
 
   test('013 US1-S4 FR-K05 Kaderliste und Aufgebot folgen der Sortierung', async ({ page }) => {
     await seedRoster(page, ROSTER);
+    // Erst lesen, wenn die Liste dasteht (unter Last sonst noch leer).
+    await expect(page.locator('[data-testid^="roster-row-"]')).toHaveCount(4);
     expect(await rosterLabels(page)).toEqual(BY_NAME);
     await chooseSort(page, 'number');
     await page.goto('./#/kader');
