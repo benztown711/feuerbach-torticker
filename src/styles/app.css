@@ -3546,6 +3546,9 @@ button.plan__row {
 
 /* Spec 016 FR-B01: Schalter "Mit Trainern geteilt" über der Kinderliste. */
 .roster__share {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   min-height: 0;
   padding: var(--space-2) var(--space-4);
 }
