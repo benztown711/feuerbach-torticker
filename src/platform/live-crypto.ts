@@ -1,6 +1,7 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
 import { parseLeadCert } from '../domain/live-spieltag';
 import { isObj, isSignedData, MAX_PLAN_SIGNED } from '../domain/live-validate';
+import { signedText, type RelayDraft, type RelayWrite } from '../domain/relay-protocol';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
 
 /**
@@ -103,6 +104,45 @@ export async function unseal(viewKey: string, text: string): Promise<string | nu
   } catch {
     return null;
   }
+}
+
+/* ---------- Spec 007 R-N3, R-N4: Kennungen und Schreibnachweis für den eigenen Dienst ---------- */
+
+const SLOT_INFO = 'torticker-relay-slot-v1';
+
+/** HMAC-Schlüssel für `slot` und `group`, per HKDF aus dem Zuschauer-Schlüssel abgeleitet (nie der AES-Schlüssel selbst). */
+async function slotKey(viewKey: string): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey('raw', fromBase64Url(viewKey), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: new TextEncoder().encode(SLOT_INFO) },
+    base,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    false,
+    ['sign'],
+  );
+}
+
+/** 128 Bit des HMAC über die eindeutige Kodierung der Teile, 22 Zeichen base64url. */
+async function idOf(viewKey: string, parts: string[]): Promise<string> {
+  const mac = await crypto.subtle.sign('HMAC', await slotKey(viewKey), new TextEncoder().encode(JSON.stringify(parts)));
+  return toBase64Url(new Uint8Array(mac).slice(0, 16));
+}
+
+/** R-N3: Kennung eines Spiels; gleich auf allen Handys mit demselben Zuschauer-Schlüssel. */
+export const slotOf = (viewKey: string, team: string, gameId: string): Promise<string> =>
+  idOf(viewKey, ['game', team, gameId]);
+
+/** R-N3: Kennung einer Mannschaft (für "die letzten 10 je Mannschaft"). */
+export const groupOf = (viewKey: string, team: string): Promise<string> => idOf(viewKey, ['group', team]);
+
+/** SHA-256 der Meldung, base64url (43 Zeichen). */
+export async function bodyHash(body: string): Promise<string> {
+  return toBase64Url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body))));
+}
+
+/** R-N4: Schreibnachweis über den Vertragstext (contracts/relay-api.md). */
+export async function signWrite(priv: PrivateKeyParts, name: string, write: RelayDraft): Promise<string> {
+  return sign(priv, signedText(name, { ...write, sig: '' } as RelayWrite, await bodyHash(write.body)));
 }
 
 export interface MessageParts {

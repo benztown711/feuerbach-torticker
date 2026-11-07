@@ -10,11 +10,11 @@ Ein eigener Vermittlungsdienst im Gratis-Plan von Cloudflare ersetzt ntfy.sh: ei
 
 **Language/Version**: TypeScript (strict) für App und Worker
 
-**Primary Dependencies**: App unverändert (Preact, `idb`, Web Crypto). Dienst: Cloudflare Workers mit Durable Objects (SQLite); Entwicklungs-Abhängigkeiten `wrangler`, `@cloudflare/vitest-pool-workers`, `@cloudflare/workers-types` in `relay/package.json` (R-N7)
+**Primary Dependencies**: App unverändert (Preact, `idb`, Web Crypto). Dienst: Cloudflare Workers mit Durable Objects (SQLite); Entwicklungs-Abhängigkeiten `wrangler`, `@cloudflare/vitest-plugin`, `@cloudflare/workers-types` in `relay/package.json` (R-N7)
 
 **Storage**: App wie bisher (IndexedDB, `localStorage` für den Dashboard-Stand und den Filter); Dienst: SQLite je Durable Object (R-N5)
 
-**Testing**: Vitest (Domäne 100 % Branch-Coverage, darunter `src/domain/relay-protocol.ts`), `@cloudflare/vitest-pool-workers` für `relay/`, Playwright mit Nachbau des Dienstes (`routeWebSocket`)
+**Testing**: Vitest (Domäne 100 % Branch-Coverage, darunter `src/domain/relay-protocol.ts`), `@cloudflare/vitest-plugin` für `relay/`, Playwright mit Nachbau des Dienstes (`routeWebSocket`)
 
 **Target Platform**: PWA (iPhone ab iOS 17, Android); Dienst auf Cloudflare (`workers.dev`)
 
@@ -59,7 +59,7 @@ specs/007-push-benachrichtigung/
 
 | Datei | Änderung |
 |---|---|
-| `relay/` (neu) | `package.json`, `wrangler.toml`, `tsconfig.json`, `src/index.ts` (Worker: Routen, CORS, Weiterleitung), `src/spieltag.ts` (Durable Object: prüfen, speichern, auswählen, senden, Alarm), `test/*.test.ts` (vitest-pool-workers) |
+| `relay/` (neu) | `package.json`, `wrangler.toml`, `tsconfig.json`, `src/index.ts` (Worker: Routen, CORS, Weiterleitung), `src/spieltag.ts` (Durable Object: prüfen, speichern, auswählen, senden, Alarm), `test/*.test.ts` (`@cloudflare/vitest-plugin`) |
 | `src/domain/relay-protocol.ts` (neu) | Anfrage prüfen, zu signierender Text, "neuer als", Auswahl 10 je Mannschaft, Grabstein-Ablauf, Antwort `hello`/`msg` prüfen; von App und Worker genutzt |
 | `src/platform/relay.ts` | `publish` → `POST` mit Ordnungsangaben und Signatur; `subscribe` → WebSocket mit `hello`, `msg`, `ping`, `since`, Neuverbindung; ohne 429-Rückfall |
 | `src/platform/live-crypto.ts` | `slotKey` (HKDF aus dem Zuschauer-Schlüssel), `slot`/`group` (HMAC), Signatur des Schreibnachweises |

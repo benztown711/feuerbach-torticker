@@ -12,3 +12,7 @@ src/styles/tokens.css
 specs/
 design/
 *.md
+relay/node_modules/
+relay/.wrangler/
+relay/package-lock.json
+relay/worker-configuration.d.ts

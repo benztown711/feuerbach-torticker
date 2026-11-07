@@ -1,0 +1,18 @@
+# Spec 007: eigener Vermittlungsdienst des Live-Spieltags (research.md R-N2 bis R-N8).
+name = "torticker-relay"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# R-N6: nur die App darf den Dienst aus dem Browser ansprechen (Komma-getrennt).
+ALLOWED_ORIGINS = "https://benztown711.github.io,http://localhost:4173"
+
+[[durable_objects.bindings]]
+name = "SPIELTAG"
+class_name = "Spieltag"
+
+# Gratis-Plan: nur Durable Objects mit SQLite-Speicher (research.md R-N1).
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Spieltag"]
