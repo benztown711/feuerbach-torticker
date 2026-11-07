@@ -57,4 +57,5 @@
 - **Decision**: Die Vormerkung ist Teil des Planspiels (`claim`, Feld `b`) mit eigenem Zeitpunkt; beim Zusammenführen gilt je Planspiel die jüngere Vormerkung, auch wenn das Planspiel selbst älter ist. Freigeben ist eine Vormerkung ohne Handy. Die Kennung des Handys (`deviceId`) und der Vorname (`trainerName`) stehen in den Einstellungen; die Kennung entsteht beim ersten Vormerken.
 - **Rationale**: Vormerken und Ändern passieren auf verschiedenen Handys; eine Änderung des Anstoßes darf eine gleichzeitige Vormerkung nicht verwerfen und umgekehrt. Eine eigene Meldungsart wäre mehr Code ohne Nutzen.
 - **Alternatives**: Vormerkung nur nach `u` (geht bei gleichzeitigem Ändern verloren); eigene Meldung je Vormerkung.
+- **Datenschutz**: Der Vorname des Trainers (Erwachsener, freiwillig) reist mit dem Plan und ist für Inhaber des Zuschauer-Links lesbar, auch wenn das Dashboard ihn nicht zeigt (US6-S7); Kindernamen bleiben außen vor (Constitution II).
 

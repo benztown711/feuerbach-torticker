@@ -119,6 +119,7 @@ function apply(store: PlanStore, edit: PlanEdit, now: number, me: { me: string; 
       return importPlan(store, edit.inputs, todayKey(now), now, newId).store;
     case 'claim': {
       // Schon so vorgemerkt bzw. frei: nichts zu senden, aber auch kein Fehler.
+      // Schon so vorgemerkt bzw. frei: derselbe Stand (nichts zu speichern oder zu senden).
       const r = setClaim(store, edit.id, edit.claim ? me.me : '', me.name, now);
       const entry = store.entries.find((e) => e.id === edit.id && !e.deleted && !e.cancelled);
       return r ? r.store : entry ? store : null;
@@ -159,15 +160,16 @@ function flush(): Promise<boolean> {
 
 /** US1-S1 bis S3, S7, US4: ändern, speichern und an die anderen Trainer-Handys senden. */
 export async function changePlan(edit: PlanEdit): Promise<PlanStore> {
-  const store = await serial(async () => {
+  const { store, changed } = await serial(async () => {
     const live = (await getSettings()).live;
     if (!live?.orgKey) throw new Error('Nur Trainer-Handys mit Trainer-Link können den Spielplan ändern.');
     const me = edit.kind === 'claim' ? await identity(edit.name) : { me: '', name: '' };
-    const next = apply(await loadPlan(live), edit, Date.now(), me);
+    const before = await loadPlan(live);
+    const next = apply(before, edit, Date.now(), me);
     if (!next) throw new Error('Dieses Spiel gibt es nicht mehr im Spielplan.');
-    return save(next);
+    return next === before ? { store: before, changed: false } : { store: await save(next), changed: true };
   });
-  void flush().catch(() => false);
+  if (changed) void flush().catch(() => false);
   return store;
 }
 

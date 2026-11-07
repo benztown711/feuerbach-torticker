@@ -621,6 +621,11 @@ export function PlanScreen() {
   // US6: Vormerken nach Rückfrage; Kennung und Name kommen danach aus den Einstellungen.
   const claim = async (name: string) => {
     if (!editing?.id) return;
+    // Inzwischen hat ein anderes Handy vorgemerkt: erst die Rückfrage zum Übernehmen (US6-S3).
+    if (claimAsk === 'claim' && holder && holder.by !== me.id) {
+      setClaimAsk('take');
+      return;
+    }
     const ask = me.name === undefined;
     await run(
       { kind: 'claim', id: editing.id, claim: true, ...(ask ? { name } : {}) },

@@ -196,8 +196,9 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
         .then((c) => {
           if (!alive) return;
           setChoices(c);
-          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben.
-          setFromPlan((f) => (f && [...c.today, ...c.later].some((x) => x.entry.id === f.entry.id) ? f : null));
+          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben; sonst den
+          // neuen Stand nehmen (US6-S6: eine inzwischen eingegangene Vormerkung zählt).
+          setFromPlan((f) => (f ? ([...c.today, ...c.later].find((x) => x.entry.id === f.entry.id) ?? null) : null));
         })
         .catch(() => undefined);
     load();
