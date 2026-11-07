@@ -141,7 +141,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     keywords: 'spielplan plan vorbelegt auswählen picken heute weitere spiele angelegt lead',
     sources: ['015 US2'],
     open: { label: 'Neues Spiel', path: '/neu' },
-    related: ['neues-spiel', 'spielplan'],
+    related: ['neues-spiel', 'spielplan', 'spielplan-fehlt'],
   },
   {
     id: 'tor',
@@ -583,7 +583,35 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'spielplan spiele saison termine plan gegner datum anstoß uhrzeit heim auswärts wettbewerb abgesagt absage leistungsliga kreisstaffel',
     sources: ['015 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
-    related: ['live-verwalten', 'live-anlegen'],
+    related: ['spielplan-liste', 'live-verwalten', 'live-anlegen'],
+  },
+  {
+    id: 'spielplan-liste',
+    topic: 'live',
+    title: 'Wie füge ich den ganzen Spielplan auf einmal ein?',
+    answer:
+      'Unter „Spielplan“ tippst du auf „Liste einfügen“ und setzt eine Liste ein, eine Zeile je Spiel, z. B. „So 15.11. 10:00 E1 auswärts SV Beispielhausen (Leistungsliga, 3×25)“. Anstoß, Wettbewerb und Spielzeit dürfen fehlen; „?“ heißt Gegner offen. Die Vorschau zeigt, was erkannt wurde; fehlerhafte Zeilen bleiben draußen. Steht ein Spiel schon im Plan (gleiche Mannschaft, gleicher Tag, gleicher Gegner), wird es aktualisiert. „Spielplan teilen“ gibt dieselbe Liste aus, z. B. für die Elterngruppe.',
+    steps: [
+      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Liste einfügen“ tippen, die Liste einsetzen und „Weiter“ tippen.',
+      'Vorschau prüfen, dann „Spiele übernehmen“ tippen.',
+    ],
+    keywords:
+      'liste einfügen kopieren einsetzen whatsapp text fussball.de import mehrere spiele saison hinrunde teilen elterngruppe',
+    sources: ['015 US4'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['spielplan', 'spielplan-fehlt'],
+  },
+  {
+    id: 'spielplan-fehlt',
+    topic: 'live',
+    title: 'Warum fehlt ein Spiel im Spielplan?',
+    answer:
+      'Der Spielplan kommt über den Vermittlungsdienst, und der hält Meldungen nur rund 12 Stunden. Ein Handy, das den Torticker länger nicht geöffnet hat, verpasst Änderungen. Jedes Trainer-Handy sendet den Plan beim Öffnen erneut, wenn die letzte Meldung älter als 6 Stunden ist; oft hilft es also, den Torticker auf einem anderen Trainer-Handy zu öffnen. Schneller geht es mit „Spielplan teilen“ auf einem Handy mit vollständigem Plan und „Liste einfügen“ auf deinem. Zur Not legst du das Spiel unter „Neues Spiel“ von Hand an.',
+    keywords: 'fehlt nicht da verschwunden leer abgleich synchron 12 stunden aktualisieren anderes handy',
+    sources: ['015 FR-P07'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['spielplan-liste', 'spielplan', 'spiel-aus-plan'],
   },
   {
     id: 'links-neu',

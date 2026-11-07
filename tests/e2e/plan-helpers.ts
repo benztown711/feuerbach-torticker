@@ -24,9 +24,10 @@ export async function setupPlan(
   recorded: () => Promise<Recorded>,
   relay: FakeRelay,
   teams = ['E1', 'E2'],
+  without: string[] = [],
 ): Promise<LiveLinks> {
   await page.clock.setSystemTime(MATCHDAY);
-  const links = await createLive(page, recorded, { teams });
+  const links = await createLive(page, recorded, { teams, without });
   onMatchday(relay);
   return links;
 }

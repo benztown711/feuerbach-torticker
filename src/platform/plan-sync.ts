@@ -20,9 +20,9 @@ import {
   staleEntries,
   todayKey,
   updateEntry,
-  type PlanChange,
   type PlanInput,
 } from '../domain/plan';
+import { importPlan } from '../domain/plan-list';
 import { MAX_PLAN_SIGNED } from '../domain/live-validate';
 import type { LiveSpieltag, PlanEntry, PlanStore } from '../domain/types';
 import { getPlan, getSettings, putPlan } from './db';
@@ -40,7 +40,9 @@ export type PlanEdit =
   | { kind: 'update'; id: string; input: PlanInput }
   | { kind: 'cancel'; id: string; cancelled: boolean }
   | { kind: 'delete'; id: string }
-  | { kind: 'link'; id: string; gameId: string };
+  | { kind: 'link'; id: string; gameId: string }
+  /** US4: Zeilen aus "Liste einfügen"; vorhandene Spiele werden aktualisiert (FR-P17). */
+  | { kind: 'import'; inputs: PlanInput[] };
 
 /** US2: Planspiel zur Auswahl unter "Neues Spiel", mit fertigen Beschriftungen. */
 export interface PlanChoice {
@@ -77,18 +79,20 @@ async function save(store: PlanStore): Promise<PlanStore> {
   return store;
 }
 
-function apply(store: PlanStore, edit: PlanEdit, now: number): PlanChange | null {
+function apply(store: PlanStore, edit: PlanEdit, now: number): PlanStore | null {
   switch (edit.kind) {
     case 'add':
-      return addEntry(store, edit.input, newId(), now);
+      return addEntry(store, edit.input, newId(), now).store;
     case 'update':
-      return updateEntry(store, edit.id, edit.input, now);
+      return updateEntry(store, edit.id, edit.input, now)?.store ?? null;
     case 'cancel':
-      return setCancelled(store, edit.id, edit.cancelled, now);
+      return setCancelled(store, edit.id, edit.cancelled, now)?.store ?? null;
     case 'delete':
-      return deleteEntry(store, edit.id, now);
+      return deleteEntry(store, edit.id, now)?.store ?? null;
     case 'link':
-      return setGame(store, edit.id, edit.gameId, now);
+      return setGame(store, edit.id, edit.gameId, now)?.store ?? null;
+    case 'import':
+      return importPlan(store, edit.inputs, todayKey(now), now, newId).store;
   }
 }
 
@@ -123,14 +127,14 @@ function flush(): Promise<boolean> {
   });
 }
 
-/** US1-S1 bis S3, S7: ändern, speichern und an die anderen Trainer-Handys senden. */
+/** US1-S1 bis S3, S7, US4: ändern, speichern und an die anderen Trainer-Handys senden. */
 export async function changePlan(edit: PlanEdit): Promise<PlanStore> {
   const store = await serial(async () => {
     const live = (await getSettings()).live;
     if (!live?.orgKey) throw new Error('Nur Trainer-Handys mit Trainer-Link können den Spielplan ändern.');
-    const r = apply(await loadPlan(live), edit, Date.now());
-    if (!r) throw new Error('Dieses Spiel gibt es nicht mehr im Spielplan.');
-    return save(r.store);
+    const next = apply(await loadPlan(live), edit, Date.now());
+    if (!next) throw new Error('Dieses Spiel gibt es nicht mehr im Spielplan.');
+    return save(next);
   });
   void flush().catch(() => false);
   return store;
@@ -173,8 +177,15 @@ export async function refreshPlan(): Promise<void> {
   }
 }
 
-/** US1-S4: geprüfte Planspiele eines anderen Trainer-Handys übernehmen (je Planspiel die jüngere Änderung). */
-export function adoptPlan(payload: string, view: { topic: string; orgPub: string }): Promise<void> {
+/**
+ * US1-S4: geprüfte Planspiele eines anderen Trainer-Handys übernehmen (je Planspiel die jüngere Änderung).
+ * `sentAt`: Sendezeit der Meldung; eine beim Öffnen nachgelesene alte Meldung gilt nicht als frisch (FR-P07).
+ */
+export function adoptPlan(
+  payload: string,
+  view: { topic: string; orgPub: string },
+  sentAt: number = Date.now(),
+): Promise<void> {
   return serial(async () => {
     const entries = parsePayload(payload);
     if (!entries) return;
@@ -182,8 +193,8 @@ export function adoptPlan(payload: string, view: { topic: string; orgPub: string
     if (live?.topic !== view.topic || live.orgPub !== view.orgPub) return;
     const now = Date.now();
     const r = mergeEntries(await loadPlan(live), entries);
-    // Was so auf dem Dienst steht wie bei uns, muss dieses Handy nicht erneut senden (FR-P07).
-    const next = noteSeen(r.store, entries, now);
+    // Was so auf dem Dienst steht wie bei uns, muss dieses Handy erst 6 Stunden nach dem Senden erneut senden (FR-P07).
+    const next = noteSeen(r.store, entries, Math.min(sentAt, now));
     if (r.changed.length > 0) await save(prunePlan(next, todayKey(now)));
     else await putPlan(next);
   }).catch(() => undefined);

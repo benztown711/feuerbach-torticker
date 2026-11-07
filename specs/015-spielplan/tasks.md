@@ -43,8 +43,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich. Ein PR je Phase bzw
 
 ## Phase 7: US4 Liste einfügen und teilen (P2)
 
-- [ ] T020 E2E 015 US4-S1 bis S5; Domain: Einfügeformat lesen und schreiben (FR-P16 bis P19)
-- [ ] T021 Spielplan "Liste einfügen" mit Vorschau, "Spielplan teilen"; Hilfe `spielplan-liste`, `spielplan-fehlt`
+- [x] T020 E2E 015 US4-S1 bis S5; Domain: Einfügeformat lesen und schreiben (FR-P16 bis P19)
+- [x] T021 Spielplan "Liste einfügen" mit Vorschau, "Spielplan teilen"; Hilfe `spielplan-liste`, `spielplan-fehlt`
 
 ## Phase 8: US5 Kader (P3)
 

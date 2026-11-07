@@ -3267,6 +3267,29 @@ button.plan__row {
   font-size: 14px;
 }
 
+/* Spec 015 US4: "Liste einfügen", Vorschau */
+.plan-paste__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-paste__row {
+  grid-template-columns: 20px 1fr auto;
+}
+
+.plan-paste__ok {
+  font-weight: 700;
+}
+
+.plan-paste__raw {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 /* Spec 015: Pflichtfeld-Stern und deutsch angezeigte Datums- und Zeitfelder */
 .plan__req {
   color: var(--color-rot-text);
