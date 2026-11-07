@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04 (Backlog), überarbeitet 2026-11-07
 
-**Status**: Review A erledigt (07.11.2026, "passt"), Review B ausstehend. Mockup "Letzte Spiele": https://claude.ai/artifact/GjfjzQUmiJYW8wBZByjxRx Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
+**Status**: Review A und Review B erledigt (07.11.2026, "passt"), Plan in Arbeit. Mockup "Letzte Spiele": https://claude.ai/artifact/GjfjzQUmiJYW8wBZByjxRx Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
 
 **Input**: Review B zu Spec 006 (04.11.2026): "Ich würde für den Moment C wählen und danach B angehen." Atti nach dem ersten Spieltag (07.11.2026): "Diese Daten werden doch eigentlich zentral gehostet oder?", "würde ein kostenloser zentraler Server helfen?", "cloudflare habe ich schon. solange alles kostenlos bleibt bin ich entspannt!"
 
@@ -31,6 +31,7 @@
 ### Session 2026-11-07 (Review B, Fassung 1)
 
 - Atti zum Mockup: "Letzte Spiele" nicht in der Karte, sondern als eigener Block getrennt von den laufenden Partien, filterbar nach E1/E2/E3; ganz unten, nicht so sehr im Fokus. → Fassung 2: Block "Letzte Spiele" unter den Karten, Filter je Mannschaft (eine auf einmal, Vorgabe die erste Mannschaft des Live-Spieltags), ruhige Darstellung (US3, FR-N13).
+- Review B (Atti): "Review B passt, Alle/E1/E2/E3". → Filter "Alle", "E1", "E2", "E3", Vorgabe "Alle"; unter "Alle" nennt jede Zeile die Mannschaft (US3, FR-N13).
 - Atti: Die Sektion soll zusammenklappbar sein, Vorgabe zusammengeklappt. → Überschrift "Letzte Spiele" ist ein Knopf; zugeklappt nur die Überschrift, aufgeklappt Filter und Liste (US3-S1, FR-N13).
 
 ### Session 2026-11-07 (Review A)
@@ -80,15 +81,15 @@ Eltern sehen ganz unten auf dem Dashboard, getrennt von den laufenden Partien, d
 
 **Why this priority**: Atti wünscht die letzten 10 Spiele je Mannschaft (Q4). Nützlich, aber der Spieltag selbst funktioniert ohne.
 
-**Independent Test**: E1 hat 12 Spiele gesendet. Ein neues Gerät öffnet den Zuschauer-Link und zeigt unten im Block "Letzte Spiele" mit gewähltem E1 die 10 jüngsten.
+**Independent Test**: E1 hat 12 Spiele gesendet. Ein neues Gerät öffnet den Zuschauer-Link und zeigt unten im Block "Letzte Spiele" mit dem Filter "E1" die 10 jüngsten.
 
 **Acceptance Scenarios**:
 
-1. **Given** E1 hat in den letzten Wochen 12 Spiele übertragen, **When** ein Elternteil das Dashboard öffnet, **Then** steht unter den Karten die zugeklappte Überschrift "Letzte Spiele"; **When** es darauf tippt, **Then** klappt der Block auf mit den Filtern "E1", "E2", "E3", "E1" ist gewählt, und darunter stehen die 10 jüngsten E1-Spiele, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus Sicht von E1 (z. B. "31.10. · 2:1 gegen TSV Musterstadt", auswärts "bei").
-2. **Given** der Block "Letzte Spiele", **When** das Elternteil auf "E2" tippt, **Then** zeigt er die Spiele von E2; die Karten darüber ändern sich nicht, und beim nächsten Öffnen ist wieder die zuletzt gewählte Mannschaft gewählt.
+1. **Given** E1 hat in den letzten Wochen 12 Spiele übertragen, **When** ein Elternteil das Dashboard öffnet, **Then** steht unter den Karten die zugeklappte Überschrift "Letzte Spiele"; **When** es darauf tippt, **Then** klappt der Block auf mit den Filtern "Alle", "E1", "E2", "E3", "Alle" ist gewählt, und darunter stehen die früheren Spiele aller Mannschaften, je Mannschaft höchstens 10, neuestes zuerst, je Zeile Datum, Mannschaft, Ergebnis und Gegner aus Sicht der Mannschaft (z. B. "31.10. · E1 · 2:1 gegen TSV Musterstadt", auswärts "bei"); mit dem Filter "E1" die 10 jüngsten E1-Spiele ohne Mannschaftsangabe.
+2. **Given** der Block "Letzte Spiele", **When** das Elternteil auf "E2" tippt, **Then** zeigt er nur die Spiele von E2; die Karten darüber ändern sich nicht, und beim nächsten Aufklappen ist wieder der zuletzt gewählte Filter gewählt.
 3. **Given** E3 hat heute schon gespielt und die Karte zeigt dieses Spiel, **Then** steht es nicht noch einmal unter "Letzte Spiele".
 4. **Given** ein Spiel wird auf dem Lead-Handy gelöscht oder auf "Nicht live senden" gestellt, **Then** verschwindet es auch aus "Letzte Spiele".
-5. **Given** keine Mannschaft hat ein früheres Spiel übertragen, **Then** fehlt der Block; hat nur eine Mannschaft keins, zeigt ihr Filter "Noch keine früheren Spiele".
+5. **Given** keine Mannschaft hat ein früheres Spiel übertragen, **Then** fehlt der Block; hat nur eine Mannschaft keins, zeigt ihr Filter "Noch keine früheren Spiele", und unter "Alle" fehlt sie.
 
 ---
 
@@ -135,7 +136,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 
 **Dashboard (Teil 1)**
 
-- **FR-N13**: Das Dashboard MUSS unter den Karten (und den Zeilen "heute noch kein Spiel") einen eigenen, ruhig gestalteten Block "Letzte Spiele" zeigen, zusammenklappbar über seine Überschrift und beim Öffnen des Dashboards immer zugeklappt; aufgeklappt: Filter je Mannschaft des Live-Spieltags (eine auf einmal; Vorgabe die erste Mannschaft, danach die zuletzt gewählte, gemerkt auf dem Gerät), darunter bis zu 10 Spiele der gewählten Mannschaft, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus eigener Sicht wie "31.10. · 2:1 gegen TSV Musterstadt" bzw. "bei" für Auswärtsspiele (Wortlaut wie "Heute außerdem", Spec 006 FR-L14). Spiele, die heute als Karte oder unter "Heute außerdem" stehen, erscheinen dort nicht. Die Karten bleiben unverändert.
+- **FR-N13**: Das Dashboard MUSS unter den Karten (und den Zeilen "heute noch kein Spiel") einen eigenen, ruhig gestalteten Block "Letzte Spiele" zeigen, zusammenklappbar über seine Überschrift und beim Öffnen des Dashboards immer zugeklappt; aufgeklappt: Filter "Alle" und je Mannschaft des Live-Spieltags (einer auf einmal; Vorgabe "Alle", danach der zuletzt gewählte, gemerkt auf dem Gerät), darunter je Mannschaft bis zu 10 Spiele, neuestes zuerst, unter "Alle" alle Mannschaften gemischt mit Mannschaftskürzel je Zeile, je Zeile Datum, Ergebnis und Gegner aus Sicht der Mannschaft wie "31.10. · 2:1 gegen TSV Musterstadt" bzw. "bei" für Auswärtsspiele (Wortlaut wie "Heute außerdem", Spec 006 FR-L14). Spiele, die heute als Karte oder unter "Heute außerdem" stehen, erscheinen dort nicht. Die Karten bleiben unverändert.
 
 **Push (Teil 2, Entwurf, nicht in diesem Schritt)**
 
@@ -166,7 +167,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 |---|---|---|
 | `spiel-vorabend` "Kann ich das Spiel schon am Vorabend anlegen?" | geändert: "Ja", der Torticker muss am Spieltag nicht mehr geöffnet werden | 007 US1 |
 | `spielplan-fehlt` "Warum fehlt ein Spiel im Spielplan?" (noch offen, Spec 015 T021) | wird ohne den Hinweis auf 12 Stunden angelegt | 007 US2 |
-| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: Block "Letzte Spiele" ganz unten, aufklappbar, Filter E1/E2/E3 | 007 US3 |
+| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: Block "Letzte Spiele" ganz unten, aufklappbar, Filter Alle/E1/E2/E3 | 007 US3 |
 | `letzte-spiele` "Wo sehe ich frühere Ergebnisse?" | neu (Eltern-Hilfe) | 007 US3 |
 | `datenschutz` | geändert: eigener Dienst bei Cloudflare, nur verschlüsselt, letzte 10 Spiele, Löschung nach einem Jahr | 007 FR-N05, FR-N12 |
 
