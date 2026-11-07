@@ -23,7 +23,7 @@ export const textToBase64Url = (text: string): string => toBase64Url(new TextEnc
 
 /** Wirft bei ungültigem base64url oder ungültigem UTF-8. */
 export const textFromBase64Url = (s: string): string =>
-  new TextDecoder('utf-8', { fatal: true }).decode(fromBase64Url(s));
+  new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(fromBase64Url(s));
 
 /** Anzahl Bytes, die ein base64url-Text dieser Länge kodiert. */
 export const decodedLength = (s: string): number => Math.floor((s.length * 3) / 4);

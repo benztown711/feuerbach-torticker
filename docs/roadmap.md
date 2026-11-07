@@ -59,7 +59,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N6) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
-| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | nächste Spec nach N7 |
+| C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | in Arbeit: Spec 007 Teil 1 (Review A am 07.11.2026; Antworten: Push später, Dienst blind, harter Wechsel, letzte 10 Spiele je Mannschaft, Links bleiben) |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
 | C5 | Turniermodus (Spec 002) für das Hallenturnier am 04.01.2027 | 6 | Opus (Spec), Sonnet | bis Mitte Dezember | Zwei fremde Mannschaften, „Nächstes Spiel“ mit einem Tap | offen |
 | C6 | Saison-Torschützenliste in der Historie | 3 | Sonnet | niedrig | Nett, kein Muss | offen |
@@ -69,7 +69,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N7) | offen |
+| D1 | ntfy.sh durch eigenen Worker ersetzen, sobald C3 kommt (ein Dienst, keine fremden IP-Limits) | in C3 | Opus | hoch | Entschieden am 07.11.2026: kommt mit C3 (Befund N7), harter Wechsel | in Arbeit (Spec 007) |
 | D2 | Hilfe-Eintrag „Dashboard zeigt nichts“ mit „Zwischenstand teilen“ als Ausweg | 1 | Haiku | mittel | Vor dem ersten Spieltag machbar | offen |
 
 ## E. Apple- und Android-Lizenz

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { fromBase64Url, toBase64Url } from '../../src/domain/base64url';
+import { signedText } from '../../src/domain/relay-protocol';
 import {
   MAX_MESSAGE,
+  bodyHash,
+  groupOf,
   newSigningKey,
   newTopic,
   newViewKey,
@@ -9,6 +12,8 @@ import {
   sealMessage,
   sign,
   signData,
+  signWrite,
+  slotOf,
   unseal,
   verify,
   verifySigned,
@@ -198,5 +203,38 @@ describe('015 Plan-Meldung (contracts/plan-message.md)', () => {
 
     const long = await signData(org.priv, { v: 1, e: [], pad: 'x'.repeat(3000) });
     expect((await openMessage(view, await sealMessage(view.viewKey, { plan: long })))?.plan).toBeUndefined();
+  });
+});
+
+describe('007 R-N3 R-N4 Kennungen und Schreibnachweis für den eigenen Dienst', () => {
+  it('slot und group: 22 Zeichen, gleich für dieselbe Mannschaft und Spiel-ID, verschieden sonst', async () => {
+    const viewKey = newViewKey();
+    const a = await slotOf(viewKey, 'E1', 'spiel-1');
+    expect(a).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    // Zweites Handy (Ersatzhandy, Spiel übernehmen): gleicher Schlüssel, gleiche Kennung.
+    expect(await slotOf(viewKey, 'E1', 'spiel-1')).toBe(a);
+    expect(await slotOf(viewKey, 'E2', 'spiel-1')).not.toBe(a);
+    expect(await slotOf(viewKey, 'E1', 'spiel-2')).not.toBe(a);
+    expect(await slotOf(newViewKey(), 'E1', 'spiel-1')).not.toBe(a);
+    const g = await groupOf(viewKey, 'E1');
+    expect(g).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(await groupOf(viewKey, 'E1')).toBe(g);
+    expect(await groupOf(viewKey, 'E2')).not.toBe(g);
+    // Mannschaft und Spiel-ID lassen sich nicht trennen ("E1|x" ≠ "E1|" + "x" anders zerlegt).
+    expect(await slotOf(viewKey, 'E1|a', 'b')).not.toBe(await slotOf(viewKey, 'E1', 'a|b'));
+  });
+
+  it('Schreibnachweis: signiert den Vertragstext mit dem Hash der Meldung, prüfbar mit dem öffentlichen Schlüssel', async () => {
+    const org = await newSigningKey();
+    const name = `${newTopic()}.${org.pub}`;
+    const body = await seal(newViewKey(), 'Inhalt');
+    const write = { kind: 'cfg' as const, iat: 1_794_038_000_000, body };
+    const sig = await signWrite(org.priv, name, write);
+    const hash = await bodyHash(body);
+    expect(hash).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const text = signedText(name, { ...write, sig }, hash);
+    expect(await verify(org.pub, text, sig)).toBe(true);
+    expect(await verify(org.pub, signedText(name, { ...write, iat: write.iat + 1, sig }, hash), sig)).toBe(false);
+    expect(await verify(org.pub, signedText(`${name}x`, { ...write, sig }, hash), sig)).toBe(false);
   });
 });
