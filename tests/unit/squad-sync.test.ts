@@ -224,6 +224,30 @@ describe('016 R-B5 Stempeln beim Speichern', () => {
   });
 });
 
+describe('016 R-B5 Speichern mit älterem Stand der Seite', () => {
+  it('Kennungen und Zeitstempel bleiben, auch wenn die Seite sie nicht kannte', () => {
+    const shared = shareAll(base());
+    // Seite hat Kinder, Kader und Mannschaften vor dem Teilen geladen und ändert nur Max.
+    const stale: SquadState = {
+      players: base().players.map((x) => (x.id === 'max' ? { ...x, number: 17 } : x)),
+      squads: shared.squads.map(({ id, name, shared: on }) => ({ id, name, shared: on })),
+      teams: base().teams,
+    };
+    const r = stamp(shared, stale, T0 + 5);
+    expect(r.state.players.map((x) => [x.id, x.sid, x.at])).toEqual([
+      ['max', 'max', T0 + 5],
+      ['ben', 'ben', T0],
+      ['paul', 'paul', T0],
+    ]);
+    expect(r.state.squads.map((q) => [q.sid, q.at])).toEqual([
+      ['e12', T0],
+      ['e3', T0],
+    ]);
+    expect(r.state.teams.map((t) => t.squadAt)).toEqual([T0, T0, T0]);
+    expect(r.changed).toEqual(['e12']);
+  });
+});
+
 describe('016 R-B3 FR-B07 FR-B08 Zusammenführen beim Empfang', () => {
   const sender = shareAll(base());
   const rec = (id: string, s: SquadState = sender) => buildRecord(s, id, LIVE, T0)!;

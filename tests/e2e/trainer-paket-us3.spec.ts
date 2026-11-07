@@ -161,3 +161,20 @@ test('016 US3-S8 SC-B03 mit dem Zuschauer-Link lassen sich keine Kader lesen; be
   await v.clock.runFor(3_000);
   await expect(v.locator('body')).not.toContainText('Paul');
 });
+
+test('016 US3 FR-B06 offline gemachte Änderung geht nach dem Wiederverbinden hinaus', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const { b } = await pair(page, recorded, newDevice);
+  await page.goto('./#/kader');
+  relay.fail = true;
+  await editPlayer(page, 'Leo', { number: '5' });
+  await page.clock.runFor(5_000);
+  relay.fail = false;
+  for (const p of [page, b]) await p.clock.runFor(35_000);
+  for (const p of [page, b]) await p.clock.runFor(35_000);
+  await expect(rows(b).filter({ hasText: 'Leo' })).toHaveText([/^5\s*Leo/], { timeout: 10_000 });
+});

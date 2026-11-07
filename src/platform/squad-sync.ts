@@ -243,6 +243,13 @@ export function syncTrainer(s: Settings, visible: boolean): void {
     configOf(live.config),
   );
   receiver = r;
+  // Nach jedem Wiederverbinden nachsenden, was ohne Netz nicht hinausging (der Dienst schickt dann nur Neues).
+  let relay = r.get().relay;
+  r.onChange(() => {
+    const next = r.get().relay;
+    if (next === 'live' && relay === 'offline' && receiver === r) void catchUp().catch(() => undefined);
+    relay = next;
+  });
   r.start();
   void r.whenSettled(15_000).then(() => {
     if (receiver === r) void catchUp().catch(() => undefined);

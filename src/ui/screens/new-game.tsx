@@ -334,8 +334,12 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
       const planId = fromPlan.entry.id;
       void import('../../platform/live-setup').then((m) => m.linkPlanGame(planId, game.id)).catch(() => undefined);
     }
+    // Frisch gelesen: inzwischen übernommene Kader (Spec 016) und Live-Einstellungen bleiben erhalten.
     await putSettings(
-      rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: picked, now }), check.value),
+      rememberColors(
+        recordTeamUse(await getSettings(), team.id, { schema: check.value.schema, squad: picked, now }),
+        check.value,
+      ),
     );
     navigate(`/spiel/${game.id}`, true);
   };

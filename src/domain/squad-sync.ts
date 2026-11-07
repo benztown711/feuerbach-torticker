@@ -139,8 +139,25 @@ export interface StampResult {
   gone: SquadRecord[];
 }
 
+/**
+ * Bildschirme speichern oft einen älteren Stand (vor dem Teilen oder Übernehmen geladen): fehlende Kennungen und
+ * Zeitstempel kommen aus dem gespeicherten Stand, sonst gingen sie verloren.
+ */
+function carry<T extends { id: string }>(list: T[], old: T[], keys: (keyof T)[]): T[] {
+  return list.map((x) => {
+    const b = old.find((y) => y.id === x.id);
+    const missing = b ? keys.filter((k) => x[k] === undefined && b[k] !== undefined) : [];
+    return missing.length === 0 ? x : { ...x, ...Object.fromEntries(missing.map((k) => [k, b![k]])) };
+  });
+}
+
 /** Vergleicht alten und neuen Stand und stempelt Änderungen an geteilten Kadern mit `now`. */
-export function stamp(prev: SquadState, next: SquadState, now: number): StampResult {
+export function stamp(prev: SquadState, raw: SquadState, now: number): StampResult {
+  const next: SquadState = {
+    players: carry(raw.players, prev.players, ['sid', 'at']),
+    squads: carry(raw.squads, prev.squads, ['sid', 'at']),
+    teams: carry(raw.teams, prev.teams, ['squadAt']),
+  };
   const changed = new Set<string>();
   const nowShared = new Set<string>();
   const squads = next.squads.map((q) => {
