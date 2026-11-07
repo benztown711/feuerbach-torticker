@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-04 (Backlog), überarbeitet 2026-11-07
 
-**Status**: Entwurf, Review A ausstehend. Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
+**Status**: Review A erledigt (07.11.2026, "passt"), Review B ausstehend. Mockup "Letzte Spiele": https://claude.ai/artifact/GjfjzQUmiJYW8wBZByjxRx Teil 1 (US1 bis US3) ist der eigene Dienst, Teil 2 (US4 Push) folgt danach mit eigener Review. Umfang entspricht Roadmap C3 und D1, später C4. Voraussetzung: Constitution 3.0.0 (Prinzip II, eigener Vermittlungsdienst).
 
 **Input**: Review B zu Spec 006 (04.11.2026): "Ich würde für den Moment C wählen und danach B angehen." Atti nach dem ersten Spieltag (07.11.2026): "Diese Daten werden doch eigentlich zentral gehostet oder?", "würde ein kostenloser zentraler Server helfen?", "cloudflare habe ich schon. solange alles kostenlos bleibt bin ich entspannt!"
 
@@ -27,6 +27,10 @@
 - Q3 Umstieg: zwei Wochen an beide Dienste senden oder harter Wechsel an einem Tag? → A: Harter Wechsel (B).
 - Q4 Wie lange speichert der Dienst? → A: Die letzten 10 Spiele einer Mannschaft.
 - Q5 Ändern sich die Links für Eltern und Trainer? → A (Erklärung): Nein. Die Links zeigen auf die App, die Adresse des Dienstes steckt nur in der App. Zuschauer-Link, Trainer-Link und Home-Bildschirm-Symbole bleiben gültig. Adresse des Dienstes: kostenlose Subdomain `…workers.dev`; Auslieferung automatisch über GitHub Actions mit einem Cloudflare-API-Token, das Atti einmal als Secret im Repo hinterlegt.
+
+### Session 2026-11-07 (Review A)
+
+- Kurzfassung mit US1 bis US3, den Antworten Q1 bis Q5 und drei neuen Punkten (Folge des harten Wechsels mit automatischem Update der Dashboard-Seite FR-N09, Löschen nach einem Jahr bzw. beim Neuausstellen FR-N12, Constitution 3.0.0) → A: "Review A passt".
 
 ## User Scenarios & Testing *(mandatory)*
 
