@@ -301,7 +301,7 @@ function DashRecent({ recent }: { recent: RecentTeam[] }) {
           ) : (
             <ol class={`dash-recent__list${all ? ' dash-recent__list--team' : ''}`}>
               {rows.map((r) => (
-                <li key={`${r.team}-${r.at}-${r.text}`} class="dash-recent__row" data-testid="dash-recent-row">
+                <li key={`${r.team}/${r.id}`} class="dash-recent__row" data-testid="dash-recent-row">
                   <span>{r.date}</span>
                   {all && <span class="dash-recent__team">{r.team}</span>}
                   <strong class="dash-recent__score">{r.score}</strong>

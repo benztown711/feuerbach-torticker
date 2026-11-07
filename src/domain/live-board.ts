@@ -153,12 +153,17 @@ function dayOf(e: BoardEntry, now: number, timeZone?: string): string {
  */
 function prune(games: BoardEntry[], timeZone?: string): BoardEntry[] {
   const now = Math.max(...games.map((e) => e.at));
-  const day = new Map(games.map((e) => [e, dayOf(e, now, timeZone)]));
+  const day = new Map(games.map((e) => [e, dayOf(e, now, timeZone)] as const));
   const newest = new Map<string, string>();
-  for (const e of games) if (day.get(e)! > (newest.get(e.snap.team) ?? '')) newest.set(e.snap.team, day.get(e)!);
+  for (const [e, d] of day) if (d > (newest.get(e.snap.team) ?? '')) newest.set(e.snap.team, d);
+  // Frühere Tage: nur angepfiffene Spiele, damit nie gespielte keine Ergebnisse verdrängen.
   const earlier = new Map<string, BoardEntry[]>();
-  for (const e of games)
-    if (day.get(e) !== newest.get(e.snap.team)) earlier.set(e.snap.team, [...(earlier.get(e.snap.team) ?? []), e]);
+  for (const [e, d] of day) {
+    if (d === newest.get(e.snap.team) || kickoffOf(e.snap) === null) continue;
+    const list = earlier.get(e.snap.team) ?? [];
+    list.push(e);
+    earlier.set(e.snap.team, list);
+  }
   const kept = new Set(
     [...earlier.values()].flatMap((l) => l.sort((a, b) => startOf(b) - startOf(a)).slice(0, RECENT_PER_TEAM)),
   );
@@ -283,8 +288,10 @@ export interface RecentRow {
   date: string;
   /** Eigene Tore zuerst. */
   score: string;
-  /** "gegen …" bzw. "bei …". */
+  /** "gegen …" bzw. "bei …", nach Elfmeterschießen mit ", i. E. 4:3" (eigene zuerst). */
   text: string;
+  /** Spiel-ID, als Schlüssel der Zeile. */
+  id: string;
   team: string;
   /** Anpfiff in Serverzeit (ms), zum Sortieren unter "Alle". */
   at: number;
@@ -631,11 +638,19 @@ function recentRows(key: string, states: GameState[], timeZone?: string): Recent
       return {
         date: shortDay(at, timeZone),
         score: `${count(snap.goals, 'own')}:${count(snap.goals, 'opp')}`,
-        text: `${snap.venue === 'home' ? 'gegen' : 'bei'} ${snap.opp}`,
+        text: `${snap.venue === 'home' ? 'gegen' : 'bei'} ${snap.opp}${penalties(snap)}`,
+        id: snap.gameId,
         team: key,
         at,
       };
     });
+}
+
+/** Ergebnis des Elfmeterschießens aus eigener Sicht für "Letzte Spiele". */
+function penalties(s: LiveGameSnapshot): string {
+  if (!s.shootout) return '';
+  const hits = (side: Side): number => s.shootout!.shots.filter(([sd, hit]) => sd === side && hit).length;
+  return `, i. E. ${hits('own')}:${hits('opp')}`;
 }
 
 /**

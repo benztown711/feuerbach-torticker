@@ -1033,6 +1033,7 @@ describe('007 US3 FR-N13 Letzte Spiele (T028)', () => {
       date: '06.11.',
       score: '0:1',
       text: 'gegen TSV Musterstadt',
+      id: 'p1',
       team: 'E1',
       at: T0 - DAY,
     });
@@ -1080,6 +1081,22 @@ describe('007 US3 FR-N13 Letzte Spiele (T028)', () => {
     const v = view(b, T0);
     expect(v.cards[0]?.group).toBe('planned');
     expect(v.recent[0]?.rows.map((r) => r.date)).toEqual(['03.11.']);
+  });
+
+  it('Elfmeterschießen mit Ergebnis aus eigener Sicht; nicht angepfiffene frühere Spiele verdrängen keine Ergebnisse', () => {
+    const shots: ['own' | 'opp', boolean, string | null][] = [
+      ['own', true, null],
+      ['opp', false, null],
+      ['own', true, null],
+    ];
+    const pens = past(2, { mine: 2, theirs: 2, venue: 'away', shootout: { first: 'own', done: true, shots } });
+    const finished = Array.from({ length: 10 }, (_, i) => past(i + 3));
+    const never = [1, 2].map((d) => snap({ gameId: `n${d}`, createdAt: T0 - d * DAY + min(60), clock: [] }));
+    const b = board(past(0), pens, ...finished, ...never);
+    const rows = view(b, T0).recent[0]!.rows;
+    expect(rows).toHaveLength(10);
+    expect(rows[0]).toMatchObject({ score: '2:2', text: 'bei TSV Musterstadt, i. E. 2:0', id: pens.gameId });
+    expect(rows.at(-1)?.date).toBe(view(board(past(11)), T0).recent[0]!.rows[0]!.date);
   });
 
   it('US3-S4 gelöschtes oder auf "Nicht live senden" gestelltes Spiel verschwindet auch aus "Letzte Spiele"', () => {
