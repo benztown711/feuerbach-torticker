@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). US3 und US7 umgesetzt und übernommen (PR #68, Review C und Merge 07.11.2026). Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). US3 und US7 umgesetzt und übernommen (PR #68, Review C und Merge 07.11.2026). US6 umgesetzt und übernommen (PR #70, Review C und Merge 07.11.2026). Offen: US5. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -85,6 +85,13 @@
 - Entscheidung: Ein heute abgesagtes Planspiel kann Karte sein ("abgesagt" statt Anstoß), wenn heute kein anderes Spiel dieser Mannschaft folgt; abgesagte kommende Planspiele werden weder Karte noch "Nächstes Spiel".
 - Entscheidung: Die Trikotfarbe des Gegners eines Planspiels ist unbekannt; die Karte zeigt dort einen leeren Platzhalter. Ohne Spiel heute heißt die Überschrift über den Karten "Als Nächstes" (nur Planspiele) bzw. "Zuletzt und als Nächstes".
 - Entscheidung: Vergangene Spiele im Spielplan der Eltern zeigen Heim zuerst ("FC Kirchberg – E1", Mockup), kommende "E1 gegen …" bzw. "E1 bei …" (US7-S2).
+
+### Session 2026-11-07 (Umsetzung US6)
+
+- Entscheidung (Agent, im Rahmen der Freigabe): "Ich tickere" steht oben im Blatt "Spiel bearbeiten" statt in einem eigenen Auswahlblatt (Mockup); so bleibt Bearbeiten bei einem Tipp, und Vormerken kostet keinen zusätzlichen Schritt.
+- Entscheidung: "Nicht mehr tickern" gibt ohne Rückfrage frei; vorgemerkt werden können nur kommende, nicht abgesagte, noch nicht angelegte Planspiele. Ein angelegtes Spiel zeigt "angelegt" statt "Tickert: …".
+- Entscheidung: Ohne Namen heißt die Rückfrage beim Übernehmen "Ein anderer Trainer tickert dieses Spiel. Trotzdem übernehmen?". Der Vorname steht in den Einstellungen unter "Spielplan" (nur auf Trainer-Handys).
+- Entscheidung: Vormerkungen werden je Planspiel nach ihrem Zeitpunkt zusammengeführt, unabhängig von Änderungen am Planspiel (research.md R-P10).
 
 ## User Scenarios & Testing *(mandatory)*
 

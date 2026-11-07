@@ -597,6 +597,23 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['spielplan-liste', 'live-verwalten', 'live-anlegen'],
   },
   {
+    id: 'spiel-vormerken',
+    topic: 'live',
+    title: 'Wie sage ich an, dass ich ein Spiel tickere?',
+    answer:
+      'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei.',
+    steps: [
+      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      'Das Spiel antippen und „Ich tickere“ wählen.',
+      '„Ja, ich tickere“ tippen.',
+    ],
+    keywords:
+      'vormerken tickern lead handy wer tickert übernehmen zuständig ankündigen reservieren startbildschirm heute tickerst du name vergeben',
+    sources: ['015 US6'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['spielplan', 'spiel-aus-plan'],
+  },
+  {
     id: 'spielplan-liste',
     topic: 'live',
     title: 'Wie füge ich den ganzen Spielplan auf einmal ein?',

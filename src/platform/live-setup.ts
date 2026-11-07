@@ -48,6 +48,7 @@ export {
   notePlanScore,
   planChoices,
   refreshPlan,
+  todayClaims,
   type PlanChoice,
   type PlanEdit,
 } from './plan-sync';

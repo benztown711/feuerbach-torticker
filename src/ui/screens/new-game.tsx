@@ -16,6 +16,7 @@ import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
 import type { PlanChoice } from '../../platform/live-setup';
 import type { LiveWatch, RunningGame } from '../../platform/live-watch';
 import { setSignalSound, testSignal } from '../../platform/signal';
+import { Confirm } from '../components/confirm';
 import { KitRow } from '../components/kit-row';
 import { useDarkTheme, usePlayers } from '../hooks';
 import { navigate } from '../router';
@@ -64,7 +65,8 @@ function PickRow({
         <strong class="plan__title">{c.title}</strong>
         <span class="plan__detail">{c.detail}</span>
       </span>
-      <span />
+      {/* Spec 015 US6: wer das Spiel vorgemerkt hat ("du", Name, "vergeben"). */}
+      <span class="plan__state">{c.claim || 'frei'}</span>
     </button>
   );
 }
@@ -74,7 +76,11 @@ function Mark({ colorId }: { colorId: string }) {
 }
 
 /** "Neues Spiel" (FR-001, Spec 004): Mannschaft, Trikots, Spielzeit und Aufgebot kommen aus "Meine Mannschaften". */
-export function NewGameScreen() {
+/** US6-S6: Name des anderen Trainers, der das Planspiel vorgemerkt hat; null ohne fremde Vormerkung. */
+const otherClaim = (c: PlanChoice | null): string | null =>
+  !c || c.claim === '' || c.claim === 'du' ? null : c.claim === 'vergeben' ? 'Ein anderer Trainer' : c.claim;
+
+export function NewGameScreen({ plan }: { plan?: string } = {}) {
   const dark = useDarkTheme();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [teamId, setTeamId] = useState('');
@@ -106,6 +112,10 @@ export function NewGameScreen() {
   const [choices, setChoices] = useState<Choices | null>(null);
   const [fromPlan, setFromPlan] = useState<PlanChoice | null>(null);
   const [showLater, setShowLater] = useState(false);
+  /** US6-S6: Rückfrage, bevor ein von einem anderen Trainer vorgemerktes Spiel hier angelegt wird. */
+  const [claimAsk, setClaimAsk] = useState(false);
+  /** US6-S5: vom Startbildschirm ("Heute tickerst du") vorgegebenes Planspiel, einmal auswählen. */
+  const autoPick = useRef(plan ?? null);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -115,6 +125,26 @@ export function NewGameScreen() {
     const schema = schemaFor(t, s);
     setSections(schema.sections);
     setMinutes(schema.sectionMinutes);
+  };
+
+  /** Nur Planspiele von Mannschaften, für die dieses Handy sendet. */
+  const teamOfChoice = (s: Settings, c: PlanChoice): Team | undefined =>
+    s.teams.find((t) => liveTeamFor(t.name, s.live)?.key === c.entry.team);
+
+  /** Spec 015 US2 FR-P10: Mannschaft, Gegner, Heim/Auswärts, Trikot und Spielzeit aus dem Planspiel. */
+  const pickWith = (s: Settings, c: PlanChoice): void => {
+    const t = teamOfChoice(s, c);
+    if (!t) return;
+    applyTeam(s, t);
+    setOpponent(c.entry.opponent);
+    setOppTouched(false);
+    setVenue(c.entry.venue);
+    setOwnTouched(false);
+    if (c.entry.schema) {
+      setSections(c.entry.schema.sections);
+      setMinutes(c.entry.schema.sectionMinutes);
+    }
+    setFromPlan(c);
   };
 
   useEffect(() => {
@@ -166,8 +196,9 @@ export function NewGameScreen() {
         .then((c) => {
           if (!alive) return;
           setChoices(c);
-          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben.
-          setFromPlan((f) => (f && [...c.today, ...c.later].some((x) => x.entry.id === f.entry.id) ? f : null));
+          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben; sonst den
+          // neuen Stand nehmen (US6-S6: eine inzwischen eingegangene Vormerkung zählt).
+          setFromPlan((f) => (f ? ([...c.today, ...c.later].find((x) => x.entry.id === f.entry.id) ?? null) : null));
         })
         .catch(() => undefined);
     load();
@@ -177,6 +208,14 @@ export function NewGameScreen() {
       off();
     };
   }, [settings?.live?.topic, settings?.live?.orgPub, !!settings?.live?.orgKey]);
+
+  // US6-S5: Planspiel aus "Heute tickerst du" auswählen, sobald die Auswahl geladen ist.
+  useEffect(() => {
+    if (!autoPick.current || !choices || !settings) return;
+    const c = [...choices.today, ...choices.later].find((x) => x.entry.id === autoPick.current);
+    autoPick.current = null;
+    if (c) pickWith(settings, c);
+  }, [choices, settings]);
 
   // FR-M03: eigenes Trikot folgt Heim/Auswärts, solange es nicht von Hand geändert wurde.
   useEffect(() => {
@@ -215,8 +254,7 @@ export function NewGameScreen() {
   const ownShort = shortTeamName(team.name);
   const liveTeam = liveTeamFor(team.name, settings.live);
   const keyOf = (t: Team): string | undefined => liveTeamFor(t.name, settings.live)?.key;
-  /** Nur Planspiele von Mannschaften, für die dieses Handy sendet. */
-  const teamOf = (c: PlanChoice): Team | undefined => settings.teams.find((t) => keyOf(t) === c.entry.team);
+  const teamOf = (c: PlanChoice): Team | undefined => teamOfChoice(settings, c);
   const own = choices && {
     today: choices.today.filter((c) => teamOf(c)),
     later: choices.later.filter((c) => teamOf(c)),
@@ -234,24 +272,15 @@ export function NewGameScreen() {
         ];
   const [home, away] = sides as [{ name: string; color: string }, { name: string; color: string }];
 
-  /** Spec 015 US2 FR-P10: Mannschaft, Gegner, Heim/Auswärts, Trikot und Spielzeit aus dem Planspiel. */
-  const pick = (c: PlanChoice): void => {
-    const t = teamOf(c);
-    if (!t) return;
-    applyTeam(settings, t);
-    setOpponent(c.entry.opponent);
-    setOppTouched(false);
-    setVenue(c.entry.venue);
-    setOwnTouched(false);
-    if (c.entry.schema) {
-      setSections(c.entry.schema.sections);
-      setMinutes(c.entry.schema.sectionMinutes);
-    }
-    setFromPlan(c);
-  };
+  const pick = (c: PlanChoice): void => pickWith(settings, c);
 
-  const create = async (asPrivate = false): Promise<void> => {
+  const create = async (asPrivate = false, claimOk = false): Promise<void> => {
     if (!check.ok || busy) return;
+    // US6-S6: ein anderer Trainer hat das Spiel vorgemerkt: erst nachfragen.
+    if (!claimOk && otherClaim(fromPlan)) {
+      setClaimAsk(true);
+      return;
+    }
     setBusy(true);
     // Spec 006 FR-L22: überträgt ein anderes Handy gerade ein Spiel dieser Mannschaft? Höchstens 3 s auf den
     // Live-Stand warten, falls das Handy ihn noch nicht geladen hat (US6-S6).
@@ -680,7 +709,7 @@ export function NewGameScreen() {
               disabled={busy}
               onClick={() => {
                 setRunning(null);
-                void create(true);
+                void create(true, true);
               }}
             >
               Nur hier erfassen (nicht live)
@@ -690,6 +719,18 @@ export function NewGameScreen() {
             </button>
           </div>
         </div>
+      )}
+      {claimAsk && (
+        <Confirm
+          title={`${otherClaim(fromPlan) ?? 'Ein anderer Trainer'} tickert dieses Spiel. Trotzdem hier erfassen?`}
+          text="Im Spielplan steht es danach als „angelegt“."
+          yesLabel="Hier erfassen"
+          onYes={() => {
+            setClaimAsk(false);
+            void create(false, true);
+          }}
+          onNo={() => setClaimAsk(false)}
+        />
       )}
     </main>
   );

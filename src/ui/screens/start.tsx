@@ -3,7 +3,8 @@ import { teamShortLabel } from '../../domain/history';
 import { isRetired, titleOf } from '../../domain/live-spieltag';
 import type { Game, Settings } from '../../domain/types';
 import { findOpenGame, getSettings, listGames } from '../../platform/db';
-import { onLiveSettings } from '../../platform/live-events';
+import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
+import type { PlanChoice } from '../../platform/live-setup';
 import { navigate, parseHash } from '../router';
 import { readClipboard } from '../clipboard';
 
@@ -100,6 +101,56 @@ function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: S
   );
 }
 
+/**
+ * Spec 015 US6-S5 FR-P28: "Heute tickerst du" mit den eigenen Vormerkungen von heute; ein Tipp öffnet "Neues Spiel"
+ * mit dem Planspiel. Nachgeladen über live-setup, nur auf Trainer-Handys.
+ */
+function TodayClaims({ settings }: { settings: Settings }) {
+  const [claims, setClaims] = useState<PlanChoice[]>([]);
+  const live = settings.live;
+  const active = !!live?.orgKey && !isRetired(live);
+  useEffect(() => {
+    if (!live || !active) return;
+    let alive = true;
+    const load = (): void =>
+      void import('../../platform/live-setup')
+        .then((m) => m.todayClaims(live))
+        .then((c) => alive && setClaims(c))
+        .catch(() => undefined);
+    load();
+    const off = onPlanChanged(load);
+    return () => {
+      alive = false;
+      off();
+    };
+  }, [live?.topic, live?.orgPub, active]);
+  if (!active || claims.length === 0) return null;
+  return (
+    <section class="start__mine" aria-labelledby="start-mine-title" data-testid="start-claims">
+      <h2 id="start-mine-title" class="t-label start__mine-title">
+        HEUTE TICKERST DU
+      </h2>
+      {claims.map((c) => (
+        <button
+          key={c.entry.id}
+          type="button"
+          class="start__mine-btn"
+          data-testid={`start-claim-${c.entry.id}`}
+          onClick={() => navigate(`/neu/plan/${c.entry.id}`)}
+        >
+          <span class="start__mine-text">
+            <strong>{c.entry.time ? `${c.entry.time} · ${c.match}` : c.match}</strong>
+            <span>{c.detail}</span>
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      ))}
+    </section>
+  );
+}
+
 export function StartScreen() {
   const [open, setOpen] = useState<Game | undefined>();
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -127,6 +178,7 @@ export function StartScreen() {
       />
       <p class="start__verein t-zwischentitel">Sportvg Feuerbach</p>
       <div class="start__actions">
+        {settings && <TodayClaims settings={settings} />}
         {open && (
           <button
             type="button"
