@@ -140,7 +140,10 @@ export class FakeRelay {
 
   async attach(context: BrowserContext): Promise<void> {
     await context.route(`${RELAY_ORIGIN}/**`, (route) => this.handle(route));
-    await context.routeWebSocket(new RegExp(`^${WS_ORIGIN.replace(/[.]/g, '\\.')}/`), (ws) => this.open(ws));
+    await context.routeWebSocket(
+      (url) => url.href.startsWith(`${WS_ORIGIN}/`),
+      (ws) => this.open(ws),
+    );
   }
 
   private store(name: string): Store {
