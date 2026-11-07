@@ -58,6 +58,39 @@
               "integer",
               "null"
             ]
+          },
+          "squadId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Spec 015 US5: Kader des Kindes; fehlt = erster Kader."
+          }
+        }
+      }
+    },
+    "squads": {
+      "type": "array",
+      "description": "Spec 015 FR-P24: benannte Kader; fehlt = ein Kader \"Kader\".",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "\\S"
           }
         }
       }
@@ -776,6 +809,42 @@
         "createdAt": {
           "type": "number",
           "description": "Epoch-ms"
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "description": "Spec 015 FR-P24: Spielplan des Live-Spieltags; p wie die Nutzlast der Plan-Meldung (contracts/plan-message.md, specs/015-spielplan). Fehlt ohne Spielplan.",
+      "required": [
+        "topic",
+        "orgPub",
+        "p"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "topic": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22}$"
+        },
+        "orgPub": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{87}$"
+        },
+        "p": {
+          "type": "object",
+          "required": [
+            "v",
+            "e"
+          ],
+          "properties": {
+            "v": {
+              "const": 1
+            },
+            "e": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
         }
       }
     }

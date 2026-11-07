@@ -6,7 +6,9 @@ import { shortTeamName } from '../../domain/team-name';
 import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
 import { joinList } from '../../domain/format';
 import { titleOf } from '../../domain/live-spieltag';
-import type { EventFeatures, LiveSpieltag, RosterSort, Settings, Team, Theme } from '../../domain/types';
+import { hasSquads, squadOfTeam, squadsOf } from '../../domain/squads';
+import type { BackupPlan } from '../../domain/export';
+import type { EventFeatures, LiveSpieltag, RosterSort, Settings, Squad, Team, Theme } from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
 import { previewSignal } from '../../platform/signal';
@@ -59,6 +61,7 @@ function KitMark({ id }: { id: string }) {
 function TeamSheet(props: {
   team: Team;
   isNew: boolean;
+  squads: Squad[];
   onSave: (t: Team) => void;
   onDelete: () => void;
   onClose: () => void;
@@ -103,6 +106,29 @@ function TeamSheet(props: {
           {kit('home', 'Heimtrikot')}
           {kit('away', 'Auswärtstrikot')}
         </div>
+        {hasSquads(props.squads) && (
+          <>
+            <label class="field__label t-label" for="team-squad">
+              KADER
+            </label>
+            <select
+              id="team-squad"
+              class="select"
+              data-testid="input-team-squad"
+              value={squadOfTeam(props.squads, team)}
+              onChange={(e) => setTeam({ ...team, squadId: e.currentTarget.value })}
+            >
+              {props.squads.map((q) => (
+                <option key={q.id} value={q.id}>
+                  {q.name}
+                </option>
+              ))}
+            </select>
+            <p class="field__help">
+              Im Aufgebot stehen die Kinder dieses Kaders. Kinder aus anderen Kadern stehen unter „Weitere Kinder“.
+            </p>
+          </>
+        )}
         <div class="button-row">
           {props.isNew ? (
             <button type="button" class="btn btn--secondary" onClick={props.onClose}>
@@ -151,7 +177,7 @@ export function SettingsScreen() {
   const [exportMsg, setExportMsg] = useState('');
   const [importMsg, setImportMsg] = useState('');
   /** FR-L21: Live-Spieltag aus der Sicherung wartet auf Bestätigung (wie beim Koppeln per Link). */
-  const [pendingLive, setPendingLive] = useState<{ live: LiveSpieltag; base: string } | null>(null);
+  const [pendingLive, setPendingLive] = useState<{ live: LiveSpieltag; base: string; plan?: BackupPlan } | null>(null);
   const [editTeam, setEditTeam] = useState<{ team: Team; isNew: boolean } | null>(null);
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -167,7 +193,15 @@ export function SettingsScreen() {
   const doExport = async (): Promise<void> => {
     const now = Date.now();
     // Spec 006 FR-L21: mit Live-Spieltag, damit ein Handywechsel ohne neue Links geht.
-    const backup = buildBackup(await listGames(), await getPlayers(), now, APP_VERSION, (await getSettings()).live);
+    const s = await getSettings();
+    // Spec 015 FR-P24: mit Kadern und dem Spielplan (nachgeladen, nur mit Live-Spieltag).
+    const plan = s.live
+      ? await import('../../platform/live-setup').then((m) => m.planBackup()).catch(() => undefined)
+      : undefined;
+    const backup = buildBackup(await listGames(), await getPlayers(), now, APP_VERSION, s.live, {
+      squads: s.squads,
+      plan,
+    });
     const r = await shareFile(JSON.stringify(backup, null, 1), backupFileName(now));
     setExportMsg(
       r === 'shared'
@@ -194,6 +228,18 @@ export function SettingsScreen() {
       : ' Live-Spieltag nicht übernommen: Er ist beschädigt.';
   };
 
+  /** Spec 015 FR-P24: Spielplan aus der Sicherung, nur beim selben Live-Spieltag (nachgeladen). */
+  const restorePlan = async (plan: BackupPlan | undefined): Promise<string> => {
+    if (!plan) return '';
+    const r = await import('../../platform/live-setup')
+      .then((m) => m.restorePlan(plan))
+      .catch(() => 'invalid' as const);
+    if (r === 'merged') return ' Spielplan übernommen.';
+    return r === 'other'
+      ? ' Spielplan nicht übernommen: Er gehört zu einem anderen Live-Spieltag.'
+      : ' Spielplan nicht übernommen: Er ist beschädigt.';
+  };
+
   const doImport = async (file: File | undefined): Promise<void> => {
     if (!file) return;
     const parsed = parseBackup(await file.text());
@@ -201,19 +247,35 @@ export function SettingsScreen() {
       setImportMsg(parsed.error);
       return;
     }
-    const merged = mergeBackup({ games: await listGames(), players: await getPlayers() }, parsed.backup);
+    const local = await getSettings();
+    const merged = mergeBackup(
+      { games: await listGames(), players: await getPlayers(), squads: local.squads },
+      parsed.backup,
+    );
     await putGames(merged.newGames);
     await putPlayers(merged.newPlayers);
+    if (merged.squads) {
+      const next = { ...local, squads: merged.squads };
+      await putSettings(next);
+      setSettings(next);
+    }
     const skipped =
       merged.skippedGames > 0 ? `, ${plural(merged.skippedGames, 'Spiel', 'Spiele')} schon vorhanden` : '';
-    const base = `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.`;
-    const live = parsed.backup.live;
-    if (live && (await getSettings()).live) {
-      setImportMsg(`${base} Live-Spieltag nicht übernommen: Auf diesem Handy ist schon einer eingerichtet.`);
+    const squadsMsg = merged.squads ? ' Kader übernommen.' : '';
+    const base = `Wiederhergestellt: ${plural(merged.newGames.length, 'Spiel', 'Spiele')}, ${plural(merged.newPlayers.length, 'Spieler', 'Spieler')}${skipped}.${squadsMsg}`;
+    const { live, plan } = parsed.backup;
+    if (live && local.live) {
+      setImportMsg(
+        `${base} Live-Spieltag nicht übernommen: Auf diesem Handy ist schon einer eingerichtet.${await restorePlan(plan)}`,
+      );
       return;
     }
-    setImportMsg(base);
-    if (live) setPendingLive({ live, base });
+    if (live) {
+      setImportMsg(base);
+      setPendingLive({ live, base, plan });
+      return;
+    }
+    setImportMsg(base + (await restorePlan(plan)));
   };
 
   return (
@@ -489,7 +551,7 @@ export function SettingsScreen() {
           onYes={() => {
             const p = pendingLive;
             setPendingLive(null);
-            void restoreLive(p.live).then((m) => setImportMsg(p.base + m));
+            void restoreLive(p.live).then(async (m) => setImportMsg(p.base + m + (await restorePlan(p.plan))));
           }}
         />
       )}
@@ -497,6 +559,7 @@ export function SettingsScreen() {
         <TeamSheet
           team={editTeam.team}
           isNew={editTeam.isNew}
+          squads={squadsOf(settings)}
           onClose={() => setEditTeam(null)}
           onSave={(t) => {
             save(upsertTeam(settings, t));

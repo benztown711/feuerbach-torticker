@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-06
 
-**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). US3 und US7 umgesetzt und übernommen (PR #68, Review C und Merge 07.11.2026). US6 umgesetzt und übernommen (PR #70, Review C und Merge 07.11.2026). Offen: US5. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
+**Status**: Review A und Review B erledigt (06.11.2026, "passt"). US1 und US2 umgesetzt und übernommen (PR #63, Review C "i. O.", Merge 07.11.2026). US4 umgesetzt und übernommen (PR #66, Review C und Merge 07.11.2026). US3 und US7 umgesetzt und übernommen (PR #68, Review C und Merge 07.11.2026). US6 umgesetzt und übernommen (PR #70, Review C und Merge 07.11.2026). US5 umgesetzt (Draft-PR), Review C offen. Mockup: https://claude.ai/artifact/QjwveR3KsTdwFGGp3NpBX4 Umfang entspricht Roadmap C1 (Spielplan) und B3 (Kader je Mannschaft).
 
 **Input**: Atti (06.11.2026): "Ist es möglich, dass ich zentral die Spiele anlege? Und dann an diejenigen, die tickern sollen, gezielt den Link verteile? […] sowas wie Spielzeit, Kader, Farbe und so weiter, oder gegebenenfalls Platzhalter." Ergänzt: "Die Spielpaarungen kann ich auf fußball.de nachgucken. […] ob ich diese Spiele schon mal zentral anlegen kann, zumindest von den Gegnernamen her, und ob wir auswärts spielen oder zu Hause. Die Trainer, die sich dieses Spiel dann picken aus dieser zentralen Liste, könnten noch alles ändern: Gegnername, Heim und Auswärts, Farbe, Spielzeit, Kader, alles. Dass ich schon mal ein größeres Set an Spielen anlege, woraus sich dann die Kollegen bedienen können."
 
@@ -92,6 +92,15 @@
 - Entscheidung: "Nicht mehr tickern" gibt ohne Rückfrage frei; vorgemerkt werden können nur kommende, nicht abgesagte, noch nicht angelegte Planspiele. Ein angelegtes Spiel zeigt "angelegt" statt "Tickert: …".
 - Entscheidung: Ohne Namen heißt die Rückfrage beim Übernehmen "Ein anderer Trainer tickert dieses Spiel. Trotzdem übernehmen?". Der Vorname steht in den Einstellungen unter "Spielplan" (nur auf Trainer-Handys).
 - Entscheidung: Vormerkungen werden je Planspiel nach ihrem Zeitpunkt zusammengeführt, unabhängig von Änderungen am Planspiel (research.md R-P10).
+
+### Session 2026-11-07 (Umsetzung US5)
+
+- Entscheidung (Agent, im Rahmen der Freigabe): "Kader teilen" schreibt bei mehreren Kadern "Kader E3:" in die erste Zeile. Der Doppelpunkt am Ende sorgt dafür, dass ältere App-Stände die Zeile wie eine Überschrift überspringen; das Wort "Kader" davor verhindert, dass eine WhatsApp-Überschrift wie "Aufstellung Samstag:" einen Kader anlegt. Mit nur einem Kader bleibt der Text wie bisher (ohne erste Zeile).
+- Entscheidung: "Liste einfügen" ordnet erkannte Kinder dem Zielkader zu (Kadername aus der ersten Zeile, sonst der angezeigte Kader), auch wenn sie bisher in einem anderen Kader standen; die Vorschau zeigt das als "aus „E1/E2“". So genügt je Kader einmal "Kader teilen" und "Liste einfügen", damit ein zweites Handy dieselbe Aufteilung hat.
+- Entscheidung: Ohne Auswahl im Aufgebot gilt bei mehreren Kadern der Kader der Mannschaft als Aufgebot (Torschützen-Auswahl zuerst mit diesen Kindern, die übrigen unter "Andere …"); mit nur einem Kader wie bisher der ganze Kader.
+- Entscheidung: Umbenennen und Löschen des angezeigten Kaders stehen unter der Liste, sobald es mehr als einen Kader gibt; Löschen geht nur bei leerem Kader. Mannschaften mit einem gelöschten Kader spielen danach mit dem ersten Kader.
+- Entscheidung: Die Bezeichnungen der App bleiben ("Spieler hinzufügen" statt "Kind hinzufügen" aus dem Mockup), damit Hilfe und Gewohnheit passen.
+- Entscheidung (FR-P24): Die Sicherung enthält die Kader, die Zuordnung der Kinder und den Spielplan des Live-Spieltags. Beim Wiederherstellen kommen fehlende Kader dazu (ohne eigene Kader alle aus der Sicherung); den Spielplan übernimmt nur ein Handy mit demselben Live-Spieltag, je Planspiel gilt die jüngere Änderung.
 
 ## User Scenarios & Testing *(mandatory)*
 

@@ -35,3 +35,13 @@ Zustände: frei → (abgesagt ⇄ frei) → gelöscht (Grabstein). Vergangen ist
 
 - `upcoming`: Gruppen `{ date, entries }` ab heute, aufsteigend; innerhalb nach Anstoß (ohne Anstoß zuletzt), dann Mannschaft.
 - `past`: Planspiele vor heute, ohne Grabsteine, neueste zuerst.
+
+## Kader (US5)
+
+| Feld | Typ | Regeln |
+|---|---|---|
+| `Settings.squads` | `{ id, name }[]` \| undefined | fehlt = ein Kader `{ id: "kader", name: "Kader" }`; höchstens 6; Name 1 bis 20 Zeichen, eindeutig ohne Groß- und Kleinschreibung |
+| `Player.squadId` | string \| undefined | Kader des Kindes; fehlt oder unbekannt = erster Kader |
+| `Team.squadId` | string \| undefined | Kader der Mannschaft; fehlt oder unbekannt = erster Kader |
+
+Mit einem Kader bleiben Kader-Bildschirm, Aufgebot, "Kader teilen" und "Liste einfügen" wie bisher. Sicherung (FR-P24): `squads`, `players[].squadId`, `plan: { topic, orgPub, p }` (`p` wie die Nutzlast der Plan-Meldung).

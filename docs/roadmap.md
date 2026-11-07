@@ -11,7 +11,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - Als Nächstes (Atti): unter "Mehr" → "Live-Spieltag" → "Spielplan" → "Liste einfügen" den Inhalt von `docs/spielplan-hinrunde-2026.txt` einsetzen. Vergangene Zeilen zeigt die Vorschau mit "Datum vorbei" und lässt sie weg; schon von Hand eingetragene Spiele (gleiche Mannschaft, Tag, Gegner) werden aktualisiert statt doppelt angelegt. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
 - **PR #68** (Spec 015 US3 und US7: Dashboard mit nächstem Spiel und Anstoß, Spielplan für Eltern, vergangene Spiele mit Endstand) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #70** (Spec 015 US6, "Ich tickere": Spiel vormerken, "Heute tickerst du" auf dem Startbildschirm; dazu Blätter scrollen auf kleinen iPhones) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
-- Nächster Schritt Spec 015 (siehe `specs/015-spielplan/tasks.md`): US5 (Kader "E1/E2" und "E3").
+- **Spec 015 US5** (Kader "E1/E2" und "E3": mehrere Kader, Auswahl je Mannschaft, Aushilfen unter "Weitere Kinder", Sicherung mit Kadern und Spielplan) ist umgesetzt im Arbeitsbranch `claude/sharp-brahmagupta-kxgyie` (Draft-PR); offen ist Review C von Atti. Danach ist Spec 015 vollständig.
 
 ## Kurzfassung des Reviews
 
@@ -103,7 +103,7 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 
 | N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
-| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026); US3 und US7 Dashboard übernommen (#68, 07.11.2026); US6 "Ich tickere" übernommen (#70, 07.11.2026); offen US5 Kader |
+| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026); US3 und US7 Dashboard übernommen (#68, 07.11.2026); US6 "Ich tickere" übernommen (#70, 07.11.2026); US5 Kader umgesetzt, Review C offen |
 
 | N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
 

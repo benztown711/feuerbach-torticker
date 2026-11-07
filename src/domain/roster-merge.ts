@@ -87,18 +87,22 @@ export function planImport(existing: Player[], lines: ParsedLine[]): ImportRow[]
   return annotateRows(existing, rows);
 }
 
-/** Übernehmen: bestehende aktualisieren bzw. wiederbeleben, neue anlegen, nichts löschen. */
-export function applyImport(existing: Player[], rows: ImportRow[], newId: () => string): Player[] {
+/**
+ * Übernehmen: bestehende aktualisieren bzw. wiederbeleben, neue anlegen, nichts löschen.
+ * Spec 015 FR-P23: mit `squadId` kommen alle Kinder der Liste in diesen Kader.
+ */
+export function applyImport(existing: Player[], rows: ImportRow[], newId: () => string, squadId?: string): Player[] {
   const result = [...existing];
+  const squad = squadId === undefined ? {} : { squadId };
   for (const r of rows) {
     const name = r.name.trim().replace(/\s+/g, ' ').slice(0, MAX_NAME);
     if (name === '') continue;
     const i = r.matchId === null ? -1 : result.findIndex((p) => p.id === r.matchId);
     if (i >= 0) {
       const old = result[i]!;
-      result[i] = { ...old, name, number: r.number ?? old.number, deletedAt: null };
+      result[i] = { ...old, name, number: r.number ?? old.number, deletedAt: null, ...squad };
     } else {
-      result.push({ id: newId(), name, number: r.number, deletedAt: null });
+      result.push({ id: newId(), name, number: r.number, deletedAt: null, ...squad });
     }
   }
   return result;

@@ -196,3 +196,27 @@ describe('001 US7-S7 US7-S8 FR-028 geteilten Kader wieder einfügen', () => {
     ]);
   });
 });
+
+describe('015 US5 FR-P23 Liste einfügen in einen Kader', () => {
+  it('erkannte und neue Kinder kommen in den Zielkader, auch aus einem anderen Kader', () => {
+    n = 0;
+    const existing = [p('a', 'Paul', 4), { ...p('b', 'Max', 7), squadId: 'kader' }];
+    const rows = plan(existing, 'Kader E3:\n4 Paul\n12 Leo');
+    expect(rows.map((r) => [r.line, r.name, r.matchId])).toEqual([
+      [2, 'Paul', 'a'],
+      [3, 'Leo', null],
+    ]);
+    expect(applyImport(existing, rows, ids, 'e3').map((x) => [x.id, x.name, x.squadId])).toEqual([
+      ['a', 'Paul', 'e3'],
+      ['b', 'Max', 'kader'],
+      ['new-1', 'Leo', 'e3'],
+    ]);
+  });
+
+  it('ohne Zielkader (nur ein Kader) bleibt die Zuordnung unverändert', () => {
+    n = 0;
+    const rows = plan([p('a', 'Paul', 4)], '4 Paul\nLeo');
+    const saved = applyImport([p('a', 'Paul', 4)], rows, ids);
+    expect(saved.map((x) => 'squadId' in x)).toEqual([false, false]);
+  });
+});
