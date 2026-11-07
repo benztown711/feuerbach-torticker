@@ -4,12 +4,12 @@ Ergebnis eines Reviews der App hinsichtlich Zweck, UI/UX und fehlender Funktione
 
 Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer Infrastruktur). Modell: Haiku für Text und Kleinkram, Sonnet für Features im bestehenden Muster, Opus für Spec, Sync und Sicherheit. Status: offen, in Arbeit, erledigt, verworfen.
 
-## Übergabe (Stand 06.11.2026, 23:45)
+## Übergabe (Stand 07.11.2026)
 
-- **PR #63** (Spec 015 Spielplan, US1 und US2) ist fertig: CI grün, Code- und Security-Review erledigt, Review C von Atti erteilt ("i. O."). Es fehlt nur der Squash-Merge. **Erst mergen, wenn Atti "Merge #63" schreibt**: Er will die Spiele am Sa 07.11. noch mit der bisherigen Version machen und nach den Spielen am Nachmittag mergen lassen.
-- Nach dem Merge (Atti): die zwei Sonntagsspiele vom 08.11. von Hand unter "Mehr" → "Live-Spieltag" → "Spielplan" eintragen (E1 heim gegen SF Wernau E1, E2 heim gegen Sportvg Feuerbach D3, beide 10:00, 3 × 25). Sonntag vor 9:30 Uhr den Torticker einmal öffnen, damit der Plan erneut hinausgeht; die Lead-Handys wählen das Spiel unter "Neues Spiel" → "Aus dem Spielplan".
-- Spielplan der Hinrunde aus fußball.de (Stand 06.11.2026) im Einfügeformat: `docs/spielplan-hinrunde-2026.txt`. Bis "Liste einfügen" (Spec 015 US4) fertig ist, werden Spiele von Hand eingetragen; vergangene Zeilen (07./08.11.) beim Einfügen weglassen. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
-- Nächste Schritte Spec 015 (siehe `specs/015-spielplan/tasks.md`): US3 und US7 (Dashboard: nächstes Spiel, Spielplan, vergangene Spiele mit Endstand), US4 (Liste einfügen und teilen), US6 ("Ich tickere"), US5 (Kader "E1/E2" und "E3").
+- **PR #63** (Spec 015 Spielplan, US1 und US2) ist übernommen (Squash-Merge 07.11.2026 nach den Samstagsspielen).
+- **PR #66** (Spec 015 US4, Liste einfügen und teilen) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
+- Als Nächstes (Atti): unter "Mehr" → "Live-Spieltag" → "Spielplan" → "Liste einfügen" den Inhalt von `docs/spielplan-hinrunde-2026.txt` einsetzen. Vergangene Zeilen zeigt die Vorschau mit "Datum vorbei" und lässt sie weg; schon von Hand eingetragene Spiele (gleiche Mannschaft, Tag, Gegner) werden aktualisiert statt doppelt angelegt. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
+- Nächste Schritte Spec 015 (siehe `specs/015-spielplan/tasks.md`): US3 und US7 (Dashboard: nächstes Spiel, Spielplan, vergangene Spiele mit Endstand), US6 ("Ich tickere"), US5 (Kader "E1/E2" und "E3").
 
 ## Kurzfassung des Reviews
 
@@ -101,7 +101,7 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 
 | N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
-| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 fertig (#63), Review C erledigt, Merge nach dem 07.11. |
+| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026) |
 
 | N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
 

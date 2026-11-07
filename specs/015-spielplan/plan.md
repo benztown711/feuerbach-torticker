@@ -74,6 +74,17 @@ specs/015-spielplan/
 | `tests/unit/plan.test.ts`, `live-crypto.test.ts`, `live-receiver.test.ts` | Unit-Tests |
 | `tests/e2e/spielplan-us1.spec.ts`, `live-helpers.ts` | E2E, Decoder kennt `p` |
 
+US4 (Liste einfügen und teilen):
+
+| Datei | Änderung |
+|---|---|
+| `src/domain/plan-list.ts` (neu) | Einfügeformat Zeile für Zeile lesen (Jahr ab 7 Tagen vor heute, Hinweise je Zeile), fehlende Mannschaften (FR-P18), übernehmen mit Aktualisieren (FR-P17), Liste zum Teilen schreiben (FR-P19) |
+| `src/platform/plan-sync.ts` | Änderung `import`: alle Zeilen in einem Schritt, eine gestückelte Meldung |
+| `src/ui/screens/plan-paste.tsx` (neu) | "Liste einfügen" mit "Einsetzen", Vorschau, "<Mannschaft> zum Live-Spieltag hinzufügen", "N Spiele übernehmen" |
+| `src/ui/screens/spielplan.tsx` | Knöpfe "Liste einfügen" und "Spielplan teilen" |
+| `src/domain/help-entries.ts` | `spielplan-liste`, `spielplan-fehlt` neu |
+| `tests/unit/plan-list.test.ts`, `tests/e2e/spielplan-us4.spec.ts` | Unit-Tests (u. a. Hinrunde aus `docs/`), E2E 015 US4-S1 bis S5 |
+
 ## Design (US1)
 
 - **Datenhaltung** (R-P3): `PlanStore` unter eigenem Schlüssel, nicht in `Settings`, damit Bildschirme mit altem `Settings`-Stand den Plan nie überschreiben. Der Plan gilt nur für Topic und Organisator-Schlüssel, unter denen er gespeichert wurde; passt die Kopplung nicht (beendet, anderer Live-Spieltag), zeigt die App keinen Plan und verwirft ihn beim nächsten Speichern. Neu ausstellen übernimmt den Plan auf das neue Topic.

@@ -113,11 +113,15 @@ export function markSent(store: PlanStore, ids: readonly string[], now: number):
   return { ...store, seen, pending: store.pending.filter((id) => !ids.includes(id)) };
 }
 
-/** FR-P07: empfangene Planspiele, die genau dem eigenen Stand entsprechen, sind frisch auf dem Dienst. */
-export function noteSeen(store: PlanStore, incoming: readonly PlanEntry[], now: number): PlanStore {
+/**
+ * FR-P07: empfangene Planspiele, die genau dem eigenen Stand entsprechen, liegen seit `sentAt` (Sendezeit der
+ * Meldung) auf dem Dienst. Eine ältere, beim Öffnen nachgelesene Meldung macht den Zeitpunkt nicht früher.
+ */
+export function noteSeen(store: PlanStore, incoming: readonly PlanEntry[], sentAt: number): PlanStore {
   const seen = { ...store.seen };
   for (const e of incoming) {
-    if (store.entries.some((x) => x.id === e.id && x.updatedAt === e.updatedAt)) seen[e.id] = now;
+    if (!store.entries.some((x) => x.id === e.id && x.updatedAt === e.updatedAt)) continue;
+    seen[e.id] = Object.hasOwn(seen, e.id) ? Math.max(seen[e.id] as number, sentAt) : sentAt;
   }
   return { ...store, seen };
 }

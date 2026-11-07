@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
+import { addableTeams } from '../../domain/live-manage';
+import type { LiveTeamOption } from '../../domain/live-spieltag';
 import {
   checkPlanInput,
   entryDetail,
@@ -15,15 +17,18 @@ import {
   type PlanErrors,
   type PlanInput,
 } from '../../domain/plan';
-import type { LiveSpieltag, PlanEntry, PlanStore, Schema } from '../../domain/types';
+import { planListText } from '../../domain/plan-list';
+import type { LiveSpieltag, PlanEntry, PlanStore, Schema, Team } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
-import { changePlan, loadPlan, refreshPlan, type PlanEdit } from '../../platform/live-setup';
+import { addTeamToLive, changePlan, loadPlan, refreshPlan, type PlanEdit } from '../../platform/live-setup';
+import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { Sheet } from '../components/sheet';
 import { navigate } from '../router';
+import { PlanPaste } from './plan-paste';
 
-/** Spec 015 US1: "Mehr" → "Live-Spieltag" → "Spielplan" (Mockup Reiter "Spielplan pflegen"). */
+/** Spec 015 US1, US4: "Mehr" → "Live-Spieltag" → "Spielplan" (Mockup Reiter "Spielplan pflegen", "Liste einfügen"). */
 
 const RETRY_MS = 30_000;
 
@@ -365,6 +370,8 @@ function EditSheet({
 
 export function PlanScreen() {
   const [live, setLive] = useState<LiveSpieltag | null | undefined>(undefined);
+  const [myTeams, setMyTeams] = useState<Team[]>([]);
+  const [pasting, setPasting] = useState(false);
   const [store, setStore] = useState<PlanStore | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [errors, setErrors] = useState<PlanErrors>({});
@@ -374,8 +381,14 @@ export function PlanScreen() {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    void getSettings().then((s) => setLive(s.live));
-    return onLiveSettings((s) => setLive(s.live));
+    void getSettings().then((s) => {
+      setLive(s.live);
+      setMyTeams(s.teams);
+    });
+    return onLiveSettings((s) => {
+      setLive(s.live);
+      setMyTeams(s.teams);
+    });
   }, []);
 
   const topic = live?.topic;
@@ -459,19 +472,68 @@ export function PlanScreen() {
     setEditing({ id: e.id, input: toInput(e), cancelled: e.cancelled });
   };
 
-  const run = async (edit: PlanEdit, done: string) => {
+  const attempt = async (task: () => Promise<unknown>, done: string): Promise<boolean> => {
     setBusy(true);
     try {
-      await changePlan(edit);
-      setEditing(null);
-      setConfirmDelete(false);
+      await task();
       setMsg(done);
+      return true;
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'Das hat nicht geklappt.');
+      return false;
     } finally {
       setBusy(false);
     }
   };
+
+  const run = async (edit: PlanEdit, done: string) => {
+    if (await attempt(() => changePlan(edit), done)) {
+      setEditing(null);
+      setConfirmDelete(false);
+    }
+  };
+
+  // US4-S5, FR-P19: alle Spiele ab heute im Einfügeformat teilen.
+  const listText = store ? planListText(store, today) : '';
+  const share = () =>
+    void shareText(listText, 'Spielplan').then((r) => {
+      if (r === 'copied') setMsg('Spielplan in die Zwischenablage kopiert.');
+      if (r === 'failed') setMsg('Teilen hat nicht geklappt.');
+    });
+
+  // US4: Liste übernehmen; FR-P18: fehlende Mannschaft aus "Meine Mannschaften" dazunehmen.
+  const applyList = (inputs: PlanInput[], count: number) =>
+    void attempt(
+      () => changePlan({ kind: 'import', inputs }),
+      count === 1
+        ? '1 Spiel übernommen. Alle Trainer-Handys bekommen es.'
+        : `${count} Spiele übernommen. Alle Trainer-Handys bekommen sie.`,
+    ).then((ok) => ok && setPasting(false));
+  const addTeam = (o: LiveTeamOption) =>
+    void attempt(() => addTeamToLive(o), `${o.key} gehört jetzt zum Live-Spieltag. Die Links bleiben gleich.`);
+
+  const toast = msg && (
+    <div class="toast plan__toast" role="status" data-testid="plan-msg">
+      {msg}
+    </div>
+  );
+
+  if (pasting && store) {
+    return (
+      <>
+        <PlanPaste
+          live={live}
+          store={store}
+          addable={addableTeams(live, myTeams)}
+          busy={busy}
+          onApply={applyList}
+          onAddTeam={addTeam}
+          onClose={() => setPasting(false)}
+        />
+        {toast}
+      </>
+    );
+  }
 
   const save = () => {
     if (!editing) return;
@@ -501,6 +563,26 @@ export function PlanScreen() {
         <button type="button" class="btn btn--primary" data-testid="plan-add" onClick={startAdd}>
           Spiel hinzufügen
         </button>
+        <div class="plan__pair">
+          <button
+            type="button"
+            class="btn btn--quiet btn--small"
+            data-testid="plan-paste"
+            disabled={!store}
+            onClick={() => setPasting(true)}
+          >
+            Liste einfügen
+          </button>
+          <button
+            type="button"
+            class="btn btn--quiet btn--small"
+            data-testid="plan-share"
+            disabled={!listText}
+            onClick={share}
+          >
+            Spielplan teilen
+          </button>
+        </div>
         {store && view.upcoming.length === 0 && view.past.length === 0 && (
           <section class="card" data-testid="plan-empty">
             <p class="live__text">
@@ -565,11 +647,7 @@ export function PlanScreen() {
           onNo={() => setConfirmDelete(false)}
         />
       )}
-      {msg && (
-        <div class="toast plan__toast" role="status" data-testid="plan-msg">
-          {msg}
-        </div>
-      )}
+      {toast}
     </main>
   );
 }

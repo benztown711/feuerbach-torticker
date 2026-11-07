@@ -32,7 +32,7 @@ const receiverFor = (live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveRecei
     {
       onConfig: (signed) => void adoptReceived(signed, live),
       // Spec 015 US1-S4: Planspiele anderer Trainer-Handys übernehmen.
-      onPlan: (payload) => void adoptPlan(payload, live),
+      onPlan: (payload, sentAt) => void adoptPlan(payload, live, sentAt),
       ...deps,
     },
     configOf(live.config),
