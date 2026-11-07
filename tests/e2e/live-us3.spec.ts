@@ -295,6 +295,39 @@ test('006 US3-S9 FR-L14 früheres Spiel desselben Tages als "Heute außerdem"', 
   await expect(v.getByTestId('dash-earlier-E2')).toHaveText('Heute außerdem: 2:1 gegen TSV Musterstadt');
 });
 
+test('006 US3-S12 am Vorabend angelegte Spiele zählen am Spieltag zu heute, auch neben dem angepfiffenen', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  onMatchday(relay);
+  // Am Vorabend gegen 19:40 Uhr angelegt (15 Stunden vor T), am Spieltag erneut gesendet (US2-S10).
+  const evening = 15 * 60;
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E2', now: T, createdAgo: evening, opp: 'SV Beispielhausen' }));
+  const e1 = { team: 'E1', now: T, createdAgo: evening };
+  await sendAs(relay, links.trainer, liveSnap({ ...e1, gameId: 'e1-1' }));
+  await sendAs(
+    relay,
+    links.trainer,
+    liveSnap({ ...e1, gameId: 'e1-2', createdAgo: evening - 5, opp: 'SG Beispieltal' }),
+  );
+  const v = await openViewer(newDevice, relay, links);
+  await expect(v.getByTestId('dash-phase-E2')).toHaveText('noch nicht angepfiffen');
+  await expect(v.getByTestId('dash-phase-E1')).toHaveText('noch nicht angepfiffen');
+  await expect(v.getByTestId('dash-empty')).toHaveCount(0);
+  // Das erste E1-Spiel wird angepfiffen; das zweite bleibt als "Heute außerdem".
+  await sendAs(relay, links.trainer, liveSnap({ ...e1, gameId: 'e1-1', now: T + MIN, clock: [['kickoff', 0.5, 1]] }));
+  await later(v, relay, 6_000);
+  await expect(v.getByTestId('dash-card-E1')).toHaveAttribute('data-game', 'e1-1');
+  await v.getByTestId('dash-toggle-E1').click();
+  await expect(v.getByTestId('dash-earlier-E1')).toHaveText(
+    'Heute außerdem: 0:0 gegen SG Beispieltal (noch nicht angepfiffen)',
+  );
+  await expect(v.getByTestId('dash-waiting-E2')).toHaveCount(0);
+});
+
 test('006 US3-S10 FR-L11 gefälschte Meldungen werden ignoriert', async ({ page, recorded, relay, newDevice }) => {
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   onMatchday(relay);

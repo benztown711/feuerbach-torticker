@@ -538,6 +538,17 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-anlegen', 'trainer-link'],
   },
   {
+    id: 'spiel-vorabend',
+    topic: 'live',
+    title: 'Kann ich das Spiel schon am Vorabend anlegen?',
+    answer:
+      'Ja. Öffne am Spieltag einmal kurz den Torticker, zum Beispiel morgens oder bei der Ankunft am Platz. Dann schickt dein Handy das angelegte Spiel erneut, und alle Eltern sehen es mit „noch nicht angepfiffen“. Der kostenlose Dienst hält Stände nur rund 12 Stunden vor; ohne das Öffnen erscheint das Spiel bei manchen Eltern erst mit dem Anpfiff.',
+    keywords:
+      'vorabend vorher anlegen vorbereiten abend früher fehlt nicht sichtbar eltern sehen nicht nur ein spiel 12 stunden',
+    sources: ['006 US2'],
+    related: ['live-senden', 'eltern-dashboard'],
+  },
+  {
     id: 'andere-spiele',
     topic: 'live',
     title: 'Wie sehe ich während des Spiels, wie es bei den anderen steht?',
@@ -612,7 +623,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Du siehst alle Spiele des Spieltags mit Stand und Minute; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel, um Tore und Details zu sehen. Steht bei einer Mannschaft „heute noch kein Spiel“, hat ihr Trainer das Spiel noch nicht angelegt.',
+      'Öffne den Link aus der Elterngruppe. Du siehst alle Spiele des Spieltags mit Stand und Minute; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel, um Tore und Details zu sehen. Steht bei einer Mannschaft „heute noch kein Spiel“, hat ihr Trainer das Spiel noch nicht angelegt oder heute noch nicht gesendet; spätestens mit dem Anpfiff erscheint es.',
     keywords: 'eltern zuschauen verfolgen dashboard link spieltag live kein spiel',
     sources: ['006 US3', '012 US5'],
     parents: true,
