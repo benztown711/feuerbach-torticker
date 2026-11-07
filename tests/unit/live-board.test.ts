@@ -162,6 +162,10 @@ describe('006 FR-L12 FR-L14 Karten', () => {
       today: false,
       retired: false,
       waiting: [],
+      recent: [
+        { key: 'E1', rows: [] },
+        { key: 'E2', rows: [] },
+      ],
     });
   });
 
@@ -390,13 +394,16 @@ describe('006 FR-L14 FR-L16 Tageslogik', () => {
     expect(c.earlier).toBe('Heute außerdem: 0:0 bei SV Beispielhausen (noch nicht angepfiffen)');
   });
 
-  it('FR-L16: neues Spiel an einem anderen Tag verdrängt die alten', () => {
+  it('FR-L16 007 R-N10: neues Spiel an einem anderen Tag: die Karte zeigt es, das alte steht nur unter "Letzte Spiele"', () => {
     const yesterday = snap({ gameId: 'y', createdAt: T0 - DAY, clock: [['kickoff', T0 - DAY, 1]], sentAt: T0 - DAY });
     const b = put(put(emptyBoard(), yesterday), snap({ gameId: 't', sentAt: T0 + 1 }));
-    expect(b.games.map((e) => e.snap.gameId)).toEqual(['t']);
+    expect(b.games.map((e) => e.snap.gameId).sort()).toEqual(['t', 'y']);
+    const v = view(b, T0 + min(1));
+    expect(v.cards.map((c) => [c.gameId, c.earlier])).toEqual([['t', null]]);
+    expect(v.recent[0]?.rows.map((r) => r.text)).toEqual(['gegen TSV Musterstadt']);
     // Ein später abgerufener alter Stand (Serverzeit von gestern) verdrängt das neue Spiel nicht.
     const late = put(b, { ...yesterday, sentAt: T0 - DAY + 5 });
-    expect(late.games.map((e) => e.snap.gameId)).toEqual(['t']);
+    expect(view(late, T0 + min(1)).cards[0]?.gameId).toBe('t');
   });
 
   it('FR-L16: angepfiffenes Spiel vom Vortag erscheint wie beendet, mit Datum, ohne Minute', () => {
@@ -987,5 +994,102 @@ describe('015 US3 Review: welches Planspiel die Karte wird', () => {
     const off = put(b, { v: 1, kind: 'game', state: 'deleted', h: 0, gameId: 'g1', team: 'E1', sentAt: T0 + 1 });
     expect(off.games).toHaveLength(0);
     expect(card(off)).toBeUndefined();
+  });
+});
+
+describe('007 US3 FR-N13 Letzte Spiele (T028)', () => {
+  /** Beendetes Spiel `days` Tage vor T0 (Anpfiff 10 Uhr Ortszeit), Tore aus eigener Sicht. */
+  const past = (days: number, p: Partial<LiveGameSnapshot> & { mine?: number; theirs?: number } = {}) => {
+    const start = T0 - days * DAY;
+    const { mine = 1, theirs = 0, ...rest } = p;
+    return snap({
+      gameId: `p${days}${rest.team ?? ''}`,
+      createdAt: start - min(30),
+      clock: [
+        ['kickoff', start, 1],
+        ['fullTime', start + min(50), 2],
+      ],
+      goals: [
+        ...Array.from({ length: mine }, () => goal('own', 3)),
+        ...Array.from({ length: theirs }, () => goal('opp', 5)),
+      ],
+      sentAt: start + min(51),
+      ...rest,
+    });
+  };
+  const board = (...snaps: LiveSnapshot[]) =>
+    snaps.reduce((b, s) => put(b, s), applyConfig(emptyBoard(), config(['E1', 'E2', 'E3'])));
+
+  it('US3-S1 je Mannschaft höchstens 10 frühere Spiele, neuestes zuerst, Wortlaut aus Sicht der Mannschaft', () => {
+    const games = Array.from({ length: 12 }, (_, i) =>
+      past(i + 1, { mine: i % 3, theirs: 1, venue: i % 2 ? 'away' : 'home' }),
+    );
+    const b = board(...games);
+    expect(b.games).toHaveLength(11); // neuester Tag (Karte) plus 10 frühere
+    const e1 = view(b, T0).recent.find((t) => t.key === 'E1')!;
+    // Kein Spiel heute: auch das jüngste (gestern, als Karte) zählt, also die 10 jüngsten.
+    expect(e1.rows).toHaveLength(10);
+    expect(e1.rows[0]).toEqual({
+      date: '06.11.',
+      score: '0:1',
+      text: 'gegen TSV Musterstadt',
+      team: 'E1',
+      at: T0 - DAY,
+    });
+    expect(e1.rows[1]).toMatchObject({ date: '05.11.', score: '1:1', text: 'bei TSV Musterstadt' });
+    expect(e1.rows.map((r) => r.at)).toEqual([...e1.rows.map((r) => r.at)].sort((a, c) => c - a));
+  });
+
+  it('US3-S3 Spiele der Karte und "Heute außerdem" stehen nicht noch einmal darunter', () => {
+    const morning = snap({
+      gameId: 'heute1',
+      createdAt: T0 - min(120),
+      clock: [
+        ['kickoff', T0 - min(110), 1],
+        ['fullTime', T0 - min(60), 2],
+      ],
+      sentAt: T0 - min(59),
+    });
+    const now = snap({ gameId: 'heute2', clock: kicked() });
+    const v = view(board(past(3), morning, now), T0 + min(5));
+    expect(v.cards[0]?.earlier).toBe('Heute außerdem: 0:0 gegen TSV Musterstadt');
+    expect(v.recent[0]?.rows.map((r) => r.date)).toEqual(['04.11.']);
+  });
+
+  it('ohne heutiges Spiel ist das jüngste Spiel die Karte ("Außerdem am" nur vom selben Tag) und steht auch darunter', () => {
+    const twoOnSaturday = [past(2), past(2, { gameId: 'zweites', createdAt: T0 - 2 * DAY + min(60) })];
+    const v = view(board(past(9), ...twoOnSaturday), T0);
+    const card = v.cards[0]!;
+    expect(card.phase).toBe('Ende · 05.11.');
+    expect(card.earlier).toMatch(/^Außerdem am 05\.11\.: /);
+    expect(v.recent[0]?.rows.map((r) => r.date)).toEqual(['05.11.', '05.11.', '29.10.']);
+  });
+
+  it('US3-S5 Mannschaft ohne frühere Spiele: leere Liste; nicht angepfiffene frühere Spiele zählen nicht', () => {
+    const never = snap({ gameId: 'nie', team: 'E2', createdAt: T0 - 5 * DAY, sentAt: T0 - 5 * DAY });
+    const v = view(board(past(1, { team: 'E2' }), never, past(2, { team: 'E3' }), past(3, { team: 'E3' })), T0);
+    expect(v.recent.map((t) => [t.key, t.rows.length])).toEqual([
+      ['E1', 0],
+      ['E2', 1],
+      ['E3', 2],
+    ]);
+  });
+
+  it('mit geplantem Spiel heute als Karte zählen nur heutige Spiele als gezeigt', () => {
+    const b = applyPlan(board(past(4)), [pe({ opponent: 'SV Plan' })], TODAY);
+    const v = view(b, T0);
+    expect(v.cards[0]?.group).toBe('planned');
+    expect(v.recent[0]?.rows.map((r) => r.date)).toEqual(['03.11.']);
+  });
+
+  it('US3-S4 gelöschtes oder auf "Nicht live senden" gestelltes Spiel verschwindet auch aus "Letzte Spiele"', () => {
+    const old = past(4);
+    const off = past(6);
+    const b = board(past(1), old, off);
+    expect(view(b, T0).recent[0]?.rows).toHaveLength(3);
+    const gone = put(b, { v: 1, kind: 'game', state: 'deleted', gameId: old.gameId, team: 'E1', sentAt: T0, h: 0 });
+    expect(view(gone, T0).recent[0]?.rows.map((r) => r.date)).toEqual(['06.11.', '01.11.']);
+    const notLive = put(gone, { v: 1, kind: 'game', state: 'off', gameId: off.gameId, team: 'E1', sentAt: T0, h: 0 });
+    expect(view(notLive, T0).recent[0]?.rows.map((r) => r.date)).toEqual(['06.11.']);
   });
 });
