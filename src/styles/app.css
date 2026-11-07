@@ -1001,7 +1001,12 @@ body:has(.page:not(.dash, .lead-link)) {
 .sheet {
   width: 100%;
   max-width: 600px;
+
+  /* Höher als der Bildschirm (kleine iPhones, große Schrift): im Blatt scrollen statt oben abschneiden. */
+  max-height: 100%;
   margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   gap: var(--space-2);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   padding: var(--space-4) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
