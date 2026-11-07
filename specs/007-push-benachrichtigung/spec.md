@@ -31,6 +31,7 @@
 ### Session 2026-11-07 (Review B, Fassung 1)
 
 - Atti zum Mockup: "Letzte Spiele" nicht in der Karte, sondern als eigener Block getrennt von den laufenden Partien, filterbar nach E1/E2/E3; ganz unten, nicht so sehr im Fokus. → Fassung 2: Block "Letzte Spiele" unter den Karten, Filter je Mannschaft (eine auf einmal, Vorgabe die erste Mannschaft des Live-Spieltags), ruhige Darstellung (US3, FR-N13).
+- Atti: Die Sektion soll zusammenklappbar sein, Vorgabe zusammengeklappt. → Überschrift "Letzte Spiele" ist ein Knopf; zugeklappt nur die Überschrift, aufgeklappt Filter und Liste (US3-S1, FR-N13).
 
 ### Session 2026-11-07 (Review A)
 
@@ -83,7 +84,7 @@ Eltern sehen ganz unten auf dem Dashboard, getrennt von den laufenden Partien, d
 
 **Acceptance Scenarios**:
 
-1. **Given** E1 hat in den letzten Wochen 12 Spiele übertragen, **When** ein Elternteil das Dashboard öffnet, **Then** steht unter den Karten der Block "Letzte Spiele" mit den Filtern "E1", "E2", "E3", "E1" ist gewählt, und darunter stehen die 10 jüngsten E1-Spiele, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus Sicht von E1 (z. B. "31.10. · 2:1 gegen TSV Musterstadt", auswärts "bei").
+1. **Given** E1 hat in den letzten Wochen 12 Spiele übertragen, **When** ein Elternteil das Dashboard öffnet, **Then** steht unter den Karten die zugeklappte Überschrift "Letzte Spiele"; **When** es darauf tippt, **Then** klappt der Block auf mit den Filtern "E1", "E2", "E3", "E1" ist gewählt, und darunter stehen die 10 jüngsten E1-Spiele, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus Sicht von E1 (z. B. "31.10. · 2:1 gegen TSV Musterstadt", auswärts "bei").
 2. **Given** der Block "Letzte Spiele", **When** das Elternteil auf "E2" tippt, **Then** zeigt er die Spiele von E2; die Karten darüber ändern sich nicht, und beim nächsten Öffnen ist wieder die zuletzt gewählte Mannschaft gewählt.
 3. **Given** E3 hat heute schon gespielt und die Karte zeigt dieses Spiel, **Then** steht es nicht noch einmal unter "Letzte Spiele".
 4. **Given** ein Spiel wird auf dem Lead-Handy gelöscht oder auf "Nicht live senden" gestellt, **Then** verschwindet es auch aus "Letzte Spiele".
@@ -134,7 +135,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 
 **Dashboard (Teil 1)**
 
-- **FR-N13**: Das Dashboard MUSS unter den Karten (und den Zeilen "heute noch kein Spiel") einen eigenen, ruhig gestalteten Block "Letzte Spiele" zeigen: Filter je Mannschaft des Live-Spieltags (eine auf einmal; Vorgabe die erste Mannschaft, danach die zuletzt gewählte, gemerkt auf dem Gerät), darunter bis zu 10 Spiele der gewählten Mannschaft, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus eigener Sicht wie "31.10. · 2:1 gegen TSV Musterstadt" bzw. "bei" für Auswärtsspiele (Wortlaut wie "Heute außerdem", Spec 006 FR-L14). Spiele, die heute als Karte oder unter "Heute außerdem" stehen, erscheinen dort nicht. Die Karten bleiben unverändert.
+- **FR-N13**: Das Dashboard MUSS unter den Karten (und den Zeilen "heute noch kein Spiel") einen eigenen, ruhig gestalteten Block "Letzte Spiele" zeigen, zusammenklappbar über seine Überschrift und beim Öffnen des Dashboards immer zugeklappt; aufgeklappt: Filter je Mannschaft des Live-Spieltags (eine auf einmal; Vorgabe die erste Mannschaft, danach die zuletzt gewählte, gemerkt auf dem Gerät), darunter bis zu 10 Spiele der gewählten Mannschaft, neuestes zuerst, je Zeile Datum, Ergebnis und Gegner aus eigener Sicht wie "31.10. · 2:1 gegen TSV Musterstadt" bzw. "bei" für Auswärtsspiele (Wortlaut wie "Heute außerdem", Spec 006 FR-L14). Spiele, die heute als Karte oder unter "Heute außerdem" stehen, erscheinen dort nicht. Die Karten bleiben unverändert.
 
 **Push (Teil 2, Entwurf, nicht in diesem Schritt)**
 
@@ -165,7 +166,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 |---|---|---|
 | `spiel-vorabend` "Kann ich das Spiel schon am Vorabend anlegen?" | geändert: "Ja", der Torticker muss am Spieltag nicht mehr geöffnet werden | 007 US1 |
 | `spielplan-fehlt` "Warum fehlt ein Spiel im Spielplan?" (noch offen, Spec 015 T021) | wird ohne den Hinweis auf 12 Stunden angelegt | 007 US2 |
-| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: Block "Letzte Spiele" ganz unten, Filter E1/E2/E3 | 007 US3 |
+| `eltern-dashboard` "Wie verfolge ich die Spiele als Elternteil?" | geändert: Block "Letzte Spiele" ganz unten, aufklappbar, Filter E1/E2/E3 | 007 US3 |
 | `letzte-spiele` "Wo sehe ich frühere Ergebnisse?" | neu (Eltern-Hilfe) | 007 US3 |
 | `datenschutz` | geändert: eigener Dienst bei Cloudflare, nur verschlüsselt, letzte 10 Spiele, Löschung nach einem Jahr | 007 FR-N05, FR-N12 |
 
