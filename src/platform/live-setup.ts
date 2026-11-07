@@ -83,6 +83,8 @@ export async function createLive(input: LiveInput): Promise<Settings> {
   await putSettings(next);
   void publishConfig(live);
   void startLiveSender(next);
+  // Spec 016 R-B6: das neue Trainer-Handy hält die Verbindung für geteilte Kader (main.tsx).
+  liveSettingsChanged(next);
   return next;
 }
 
@@ -168,6 +170,8 @@ export async function coupleTrainer(trainer: TrainerLinkData): Promise<Settings>
   const next = await applyTrainerLink(await getSettings(), trainer, deps());
   await putSettings(next);
   void startLiveSender(next);
+  // Spec 016 R-B6: geteilte Kader kommen über die Verbindung des Trainer-Handys (main.tsx).
+  liveSettingsChanged(next);
   return next;
 }
 

@@ -18,7 +18,7 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Die App funktioniert vollständig ohne Netzverbindung, sobald sie einmal geladen ist. Die Erfassung hängt nie vom Netz ab.
 - Spieldaten bleiben auf dem Gerät. Außer dem Vermittlungsdienst der Live-Kopplung gibt es keinen eigenen Server, und Nutzer brauchen kein Benutzerkonto.
 - Daten verlassen das Gerät nur durch eine bewusste Aktion des Nutzers: einmalig (z. B. "Ergebnis teilen", Export) oder dauerhaft über eine vom Nutzer aktivierte Live-Kopplung (Spec 006).
-- Eine Live-Kopplung überträgt nur die für die Anzeige nötigen Daten, Ende-zu-Ende verschlüsselt, über genau einen eigenen Vermittlungsdienst im Gratis-Plan eines Anbieters (Cloudflare, Spec 007). Das Konto beim Anbieter hat der Betreiber; Eltern und Trainer brauchen keins. Der Dienst sieht nur verschlüsselte Inhalte und hält nur vor, was für die Anzeige nötig ist (je Mannschaft die letzten Spiele). Ohne Kopplung bzw. geöffneten Zuschauer-Link baut die App keine Verbindung zu ihm auf.
+- Eine Live-Kopplung überträgt nur die für die Anzeige nötigen Daten, Ende-zu-Ende verschlüsselt, über genau einen eigenen Vermittlungsdienst im Gratis-Plan eines Anbieters (Cloudflare, Spec 007). Das Konto beim Anbieter hat der Betreiber; Eltern und Trainer brauchen keins. Der Dienst sieht nur verschlüsselte Inhalte und hält nur vor, was für die Anzeige nötig ist (je Mannschaft die letzten Spiele), dazu die vom Trainer geteilten Kader für die Trainer-Handys (Vornamen bzw. Kürzel und Rückennummern, Spec 016). Diese verschlüsselt ein Schlüssel, den nur Trainer-Handys haben; Zuschauer-Links können sie nicht lesen. Ohne Kopplung bzw. geöffneten Zuschauer-Link baut die App keine Verbindung zu ihm auf.
 
 ### III. Datensparsamkeit (Kinder- und Jugendfußball)
 
@@ -81,6 +81,6 @@ Die App wird stehend, im Freien, oft mit einer Hand und unter Zeitdruck bedient.
 - Änderungen erfolgen per Pull Request mit Begründung und Versionssprung (SemVer: MAJOR = Prinzip entfernt/umgedeutet, MINOR = Prinzip ergänzt, PATCH = Klarstellung).
 - `/speckit-analyze` prüft vor jeder Implementierung die Konsistenz zwischen Spec, Plan, Tasks und dieser Constitution.
 
-**Version**: 3.0.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-07
+**Version**: 3.1.0 | **Ratified**: 2026-11-02 | **Last Amended**: 2026-11-07
 
-Änderungshistorie: 3.0.0 (07.11.2026) Prinzip II: eigener Vermittlungsdienst im Gratis-Plan von Cloudflare statt öffentlichem Dienst ohne Konto (Spec 007, Atti nach dem ersten Spieltag); Prinzip VIII und Technische Rahmenbedingungen entsprechend. 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 010). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".
+Änderungshistorie: 3.1.0 (07.11.2026) Prinzip II: geteilte Kader für Trainer-Handys über den eigenen Dienst, nur für Trainer lesbar (Spec 016, Review A von Atti: "2B"). 3.0.0 (07.11.2026) Prinzip II: eigener Vermittlungsdienst im Gratis-Plan von Cloudflare statt öffentlichem Dienst ohne Konto (Spec 007, Atti nach dem ersten Spieltag); Prinzip VIII und Technische Rahmenbedingungen entsprechend. 2.1.0 (04.11.2026) Prinzip IX "Hilfe ist Teil jeder Funktion" ergänzt (Spec 010). 2.0.0 (04.11.2026) Prinzip II erlaubt eine vom Nutzer aktivierte, verschlüsselte Live-Kopplung über einen kostenlosen Vermittlungsdienst (Spec 006); "kein Server" heißt seitdem "kein eigener Server".

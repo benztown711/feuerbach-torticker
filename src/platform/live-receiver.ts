@@ -51,6 +51,8 @@ export interface ReceiverDeps {
   onConfig?(signed: SignedData): void;
   /** Spec 015: geprüfte Nutzlast einer Plan-Meldung mit ihrer Sendezeit (Serverzeit, FR-P07), nur Trainer-Handys. */
   onPlan?(payload: string, sentAt: number): void;
+  /** Spec 016: Meldung, die der Zuschauer-Schlüssel nicht öffnet (geteilter Kader), nur Trainer-Handys. */
+  onSealed?(message: string): void;
 }
 
 export class LiveReceiver {
@@ -134,7 +136,8 @@ export class LiveReceiver {
     if (this.stopRelay || this.stopped) return;
     // Trainer-Handys übernehmen Konfiguration und Spielplan aus jeder Meldung: Sie holen immer alles, denn den
     // gemerkten Stand kann auch ein Empfänger ohne Übernahme (Seite des Zuschauer-Links) geschrieben haben.
-    const adopts = this.deps.onConfig !== undefined || this.deps.onPlan !== undefined;
+    const adopts =
+      this.deps.onConfig !== undefined || this.deps.onPlan !== undefined || this.deps.onSealed !== undefined;
     this.stopRelay = this.deps.subscribe(this.view, {
       since: adopts ? undefined : this.seq,
       onMessage: (m) => {
@@ -215,7 +218,10 @@ export class LiveReceiver {
     const opened = await this.deps.open(this.view, m.message).catch((): null => null);
     if (this.stopped) return;
     this.seq = Math.max(this.seq ?? 0, m.seq);
-    if (!opened) return;
+    if (!opened) {
+      this.deps.onSealed?.(m.message);
+      return;
+    }
     const at = m.time > 0 ? m.time * 1000 : this.serverNow();
     let board = this.state.board;
     const config = parseConfig(opened.config);

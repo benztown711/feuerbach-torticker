@@ -10,9 +10,12 @@ import {
   parseWrite,
   plansToDrop,
   signedText,
+  squadHasRoom,
+  squadRowsToDrop,
   type GameRow,
   type GameWrite,
   type RelayWrite,
+  type SquadWrite,
 } from '../../src/domain/relay-protocol';
 
 /**
@@ -220,6 +223,7 @@ export class Spieltag extends DurableObject<Env> {
       );
       return { seq };
     }
+    if (w.kind === 'squad') return this.applySquad(w, rows, now);
     if (w.kind === 'plan') {
       if (!hasRoom(groups, rows, w, false)) return { status: 413 };
       const seq = this.nextSeq();
@@ -248,6 +252,36 @@ export class Spieltag extends DurableObject<Env> {
       w.body,
     );
     this.sql.exec("INSERT INTO meta (k, v) VALUES ('retired', 1) ON CONFLICT(k) DO NOTHING");
+    return { seq };
+  }
+
+  /** Spec 016: ein geteilter Kader je `slot`, ersetzt bei `at` ≥; höchstens 6 geteilte (FR-B17). */
+  private applySquad(w: SquadWrite, rows: number, now: number): { seq: number } | { status: 204 | 413 } {
+    const old = this.sql
+      .exec<{ at: number; gone: number; first: number }>('SELECT at, gone, first FROM msg WHERE slot = ?', w.slot)
+      .toArray()[0];
+    if (!acceptsCfg(old?.at ?? null, w.at)) return { status: 204 };
+    const active = this.sql
+      .exec<{ n: number }>("SELECT COUNT(*) AS n FROM msg WHERE kind = 'squad' AND gone = 0")
+      .one().n;
+    if (!squadHasRoom(active, rows, w, old ? { gone: old.gone === 1 } : null)) return { status: 413 };
+    const seq = this.nextSeq();
+    this.sql.exec('DELETE FROM msg WHERE slot = ?', w.slot);
+    this.sql.exec(
+      "INSERT INTO msg (seq, kind, slot, at, gone, first, time, body) VALUES (?, 'squad', ?, ?, ?, ?, ?, ?)",
+      seq,
+      w.slot,
+      w.at,
+      w.gone ? 1 : 0,
+      old?.first ?? now,
+      now,
+      w.body,
+    );
+    const squads = this.sql
+      .exec<{ slot: string; gone: number; time: number }>("SELECT slot, gone, time FROM msg WHERE kind = 'squad'")
+      .toArray()
+      .map((r) => ({ ...r, gone: r.gone === 1 }));
+    for (const slot of squadRowsToDrop(squads, now)) this.sql.exec('DELETE FROM msg WHERE slot = ?', slot);
     return { seq };
   }
 

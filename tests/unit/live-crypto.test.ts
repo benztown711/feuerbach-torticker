@@ -14,7 +14,10 @@ import {
   signData,
   signWrite,
   slotOf,
+  sealSquad,
+  squadSlot,
   unseal,
+  unsealSquad,
   verify,
   verifySigned,
   seal,
@@ -236,5 +239,31 @@ describe('007 R-N3 R-N4 Kennungen und Schreibnachweis für den eigenen Dienst', 
     expect(await verify(org.pub, text, sig)).toBe(true);
     expect(await verify(org.pub, signedText(name, { ...write, iat: write.iat + 1, sig }, hash), sig)).toBe(false);
     expect(await verify(org.pub, signedText(`${name}x`, { ...write, sig }, hash), sig)).toBe(false);
+  });
+});
+
+describe('016 R-B2 Kader-Schlüssel nur für Trainer-Handys', () => {
+  it('aus dem privaten Organisator-Schlüssel: zwei Trainer-Handys lesen, Zuschauer-Schlüssel und fremde nicht', async () => {
+    const org = await newSigningKey();
+    const copy = { ...org.priv };
+    const text = JSON.stringify({ n: 'E3', k: [['a', 'Paul', 4, 0, 1]] });
+    const sealed = await sealSquad(org.priv, text);
+    expect(sealed.startsWith('t1.')).toBe(true);
+    expect(sealed).not.toContain('Paul');
+    expect(await unsealSquad(copy, sealed)).toBe(text);
+    expect(await unsealSquad((await newSigningKey()).priv, sealed)).toBeNull();
+    // Mit dem Zuschauer-Schlüssel (oder dessen Format) lässt sich die Meldung nicht öffnen.
+    expect(await unseal(newViewKey(), sealed)).toBeNull();
+    expect(await unsealSquad(org.priv, await seal(newViewKey(), text))).toBeNull();
+    expect(await unsealSquad({ ...org.priv, d: 'kaputt*' }, sealed)).toBeNull();
+  });
+
+  it('slot eines Kaders: 22 Zeichen, gleich für dieselbe Kennung, verschieden von Spielen', async () => {
+    const view = newViewKey();
+    const a = await squadSlot(view, 'abc');
+    expect(a).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(await squadSlot(view, 'abc')).toBe(a);
+    expect(await squadSlot(view, 'abd')).not.toBe(a);
+    expect(await slotOf(view, 'squad', 'abc')).not.toBe(a);
   });
 });

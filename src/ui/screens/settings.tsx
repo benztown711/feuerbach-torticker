@@ -564,8 +564,15 @@ export function SettingsScreen() {
           squads={squadsOf(settings)}
           onClose={() => setEditTeam(null)}
           onSave={(t) => {
-            save(upsertTeam(settings, t));
+            const before = editTeam.team.squadId;
             setEditTeam(null);
+            if (t.squadId === before) return save(upsertTeam(settings, t));
+            // Spec 016 R-B5: der Kader einer Mannschaft gilt für alle Trainer-Handys (geteilte Kader); frisch gelesen,
+            // damit inzwischen übernommene Kader nicht verloren gehen.
+            setSettings(upsertTeam(settings, t));
+            void Promise.all([getSettings(), import('../../platform/squad-sync')])
+              .then(([fresh, m]) => m.saveSettings(upsertTeam(fresh, t)))
+              .then(setSettings);
           }}
           onDelete={() => {
             save(removeTeam(settings, editTeam.team.id));

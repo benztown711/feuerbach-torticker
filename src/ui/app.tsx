@@ -3,6 +3,7 @@ import type { FunctionComponent } from 'preact';
 import { NavBar } from './components/nav-bar';
 import { UpdatePrompt } from './components/update-prompt';
 import { useRoute } from './router';
+import { onSquadNotice } from '../platform/live-events';
 import { GameDetailsScreen } from './screens/game-details';
 import { GameScreen } from './screens/game';
 import { HistoryScreen } from './screens/history';
@@ -69,6 +70,30 @@ export function App() {
       {route.name === 'liveDash' && <Lazy load={loadAppDashboard} props={{}} />}
       {route.name !== 'leadLink' && route.name !== 'liveView' && <NavBar route={route} />}
       <UpdatePrompt route={route.name} />
+      <SquadNotice />
     </>
+  );
+}
+
+/** Spec 016 FR-B09: kurzer Hinweis, wenn geteilte Kader angekommen sind. */
+function SquadNotice() {
+  const [text, setText] = useState('');
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const off = onSquadNotice((t) => {
+      setText(t);
+      clearTimeout(timer);
+      timer = setTimeout(() => setText(''), 6000);
+    });
+    return () => {
+      off();
+      clearTimeout(timer);
+    };
+  }, []);
+  if (!text) return null;
+  return (
+    <p class="update-prompt squad-notice" role="status" data-testid="squad-notice">
+      {text}
+    </p>
   );
 }

@@ -5,10 +5,12 @@ import './styles/app.css';
 import { App } from './ui/app';
 import { getSettings, onGameWrite } from './platform/db';
 import { startLiveSender } from './platform/live-sender';
+import { onLiveSettings } from './platform/live-events';
 import { setSignalSound } from './platform/signal';
 import { applyTheme, requestPersistentStorage } from './platform/storage';
 import { APP_MANIFEST, setManifest } from './platform/manifest-link';
 import { parseHash } from './ui/router';
+import type { Settings } from './domain/types';
 
 // Spec 006 FR-L16: Safari liest nur den ersten Manifest-Verweis der Seite. Auf der Seite des Zuschauer-Links
 // setzt ihn das Dashboard (Startadresse ist der Zuschauer-Link), auf der Seite des Trainer-Links die Seite selbst
@@ -25,10 +27,23 @@ void getSettings().then((s) => {
   void startLiveSender(s);
   // Spec 015 FR-P07: gekoppelte Trainer-Handys senden den Spielplan beim Öffnen erneut, falls nötig.
   if (s.live?.orgKey) refreshPlan();
+  syncTrainer(s);
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void getSettings().then((s) => s.live?.orgKey && refreshPlan());
+  void getSettings().then(syncTrainer);
 });
+// Spec 016 R-B6: gekoppelt, neu ausgestellt oder entkoppelt: Verbindung neu aufbauen bzw. beenden.
+onLiveSettings(syncTrainer);
+let squadSync = false;
+/** Spec 016 R-B6: Trainer-Handys halten, solange die App sichtbar ist, die Verbindung für geteilte Kader. */
+function syncTrainer(s: Settings): void {
+  if (!s.live?.orgKey && !squadSync) return;
+  squadSync = true;
+  void import('./platform/squad-sync')
+    .then((m) => m.syncTrainer(s, document.visibilityState === 'visible'))
+    .catch(() => undefined);
+}
 function refreshPlan(): void {
   void import('./platform/live-setup').then((m) => m.refreshPlan()).catch(() => undefined);
 }

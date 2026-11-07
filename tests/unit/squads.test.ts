@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { isSquadList } from '../../src/domain/squad-list';
 import {
   DEFAULT_SQUAD,
   MAX_SQUADS,
@@ -228,5 +229,14 @@ describe('015 FR-P24 Kader aus der Sicherung', () => {
         { id: 'y', name: 'Y' },
       ]),
     ).toEqual({ squads: [...five, { id: 'x', name: 'X' }], ids: {} });
+  });
+});
+
+describe('016 FR-B14 R-B7 Kader-Liste erkennen', () => {
+  it('erste Zeile "Kader <Name>:" und mindestens ein Kind', () => {
+    expect(isSquadList('Kader E3:\n4 Paul\n8 Maxi')).toBe(true);
+    expect(isSquadList('Kader E3:\n')).toBe(false);
+    expect(isSquadList('4 Paul\n8 Maxi')).toBe(false);
+    expect(isSquadList('Hallo zusammen, hier der Link')).toBe(false);
   });
 });

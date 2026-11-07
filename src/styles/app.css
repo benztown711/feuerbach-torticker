@@ -3537,3 +3537,54 @@ button.plan__row {
   outline: 3px solid var(--color-rot-text);
   outline-offset: 2px;
 }
+
+/* Spec 016 FR-B09: "Kader übernommen: …" */
+.squad-notice {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* Spec 016 FR-B01: Schalter "Mit Trainern geteilt" über der Kinderliste. */
+.roster__share {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* Spec 016 FR-B02: "Kader mit den Trainern teilen?" */
+.squad-share {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.squad-share__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: var(--space-1) var(--space-2);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.squad-share__box {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--color-rot-tief);
+}
+
+.squad-share__name {
+  flex: 1 1 auto;
+  font-weight: 700;
+}
+
+.squad-share__count {
+  color: var(--color-ink-muted);
+}

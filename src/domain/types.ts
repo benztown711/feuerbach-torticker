@@ -163,12 +163,22 @@ export interface Player {
   deletedAt: number | null;
   /** Spec 015 US5: Kader des Kindes; fehlt oder unbekannt = erster Kader. */
   squadId?: string;
+  /** Spec 016 R-B4: gemeinsame Kennung in geteilten Kadern. */
+  sid?: string;
+  /** Spec 016 R-B5: letzte Änderung (ms), nur in geteilten Kadern. */
+  at?: number;
 }
 
 /** Spec 015 US5: benannter Kader, z. B. "E1/E2" oder "E3". */
 export interface Squad {
   id: string;
   name: string;
+  /** Spec 016 R-B4: gemeinsame Kennung, sobald einmal geteilt oder empfangen. */
+  sid?: string;
+  /** Spec 016 FR-B01: "Mit Trainern geteilt". */
+  shared?: boolean;
+  /** Spec 016 R-B5: letzte Änderung von Name oder Schalter (ms). */
+  at?: number;
 }
 
 /** Spec 004: eigene Mannschaft mit Heim- und Auswärtstrikot. */
@@ -183,6 +193,8 @@ export interface Team {
   lastUsedAt: number;
   /** Spec 015 FR-P21: Kader der Mannschaft; fehlt oder unbekannt = erster Kader. */
   squadId?: string;
+  /** Spec 016 R-B5: letzte Änderung der Zuordnung zum Kader (ms). */
+  squadAt?: number;
 }
 
 export interface Settings {
@@ -214,6 +226,16 @@ export interface Settings {
   trainerName?: string;
   /** Spec 015 FR-P20: benannte Kader; fehlt = ein Kader "Kader". */
   squads?: Squad[];
+  /** Spec 016 data-model.md: Abgleich geteilter Kader für den gekoppelten Live-Spieltag. */
+  squadSync?: SquadSync;
+}
+
+/** Spec 016: geteilte Kader ohne Platz (Namen, US2-S4), Hinweis "Kader übernommen" schon gezeigt (FR-B09). */
+export interface SquadSync {
+  topic: string;
+  orgPub: string;
+  full: string[];
+  welcomed: boolean;
 }
 
 /** Spec 006: signierter JSON-Text (`d`) mit ECDSA-Signatur (`s`, base64url). */

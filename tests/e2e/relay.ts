@@ -9,6 +9,8 @@ import {
   parseWrite,
   plansToDrop,
   signedText,
+  squadHasRoom,
+  squadRowsToDrop,
   type GameWrite,
   type RelayWrite,
 } from '../../src/domain/relay-protocol';
@@ -264,6 +266,30 @@ export class FakeRelay {
       if (!hasRoom(groups, store.rows.length, w, old !== undefined)) return 413;
       row = { seq: ++this.seq, kind: 'cfg', iat: w.iat, first: now, time: now, body: w.body };
       store.rows = [...store.rows.filter((r) => r.kind !== 'cfg'), row];
+    } else if (w.kind === 'squad') {
+      // Spec 016: ein geteilter Kader je slot, ersetzt bei at ≥, höchstens 6 geteilte.
+      const old = store.rows.find((r) => r.kind === 'squad' && r.slot === w.slot);
+      if (!acceptsCfg(old?.at ?? null, w.at)) return 204;
+      const active = store.rows.filter((r) => r.kind === 'squad' && !r.gone).length;
+      if (!squadHasRoom(active, store.rows.length, w, old ? { gone: !!old.gone } : null)) return 413;
+      row = {
+        seq: ++this.seq,
+        kind: 'squad',
+        slot: w.slot,
+        at: w.at,
+        gone: w.gone,
+        first: old?.first ?? now,
+        time: now,
+        body: w.body,
+      };
+      store.rows = [...store.rows.filter((r) => r.slot !== w.slot), row];
+      const drop = squadRowsToDrop(
+        store.rows
+          .filter((r) => r.kind === 'squad')
+          .map((r) => ({ slot: r.slot as string, gone: !!r.gone, time: r.time })),
+        now,
+      );
+      store.rows = store.rows.filter((r) => !drop.includes(r.slot as string));
     } else if (w.kind === 'plan') {
       if (!hasRoom(groups, store.rows.length, w, false)) return 413;
       row = { seq: ++this.seq, kind: 'plan', first: now, time: now, body: w.body };

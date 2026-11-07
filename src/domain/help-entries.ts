@@ -455,9 +455,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
     answer:
-      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. Mit „Kader teilen“ schickst du den Kader an Trainerkollegen. Sie setzen den Text genauso über „Liste einfügen“ ein; Kürzel wie „Max Mü.“ bleiben dabei erhalten. Bei mehreren Kadern steht der Kadername in der ersten Zeile, zum Beispiel „Kader E3:“. Beim Einsetzen kommen die Kinder in den gleichnamigen Kader; fehlt er, legt die App ihn an. Ohne diese Zeile gehen sie in den angezeigten Kader.',
-    keywords: 'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung kadername e3',
-    sources: ['001 US7', '015 FR-P23'],
+      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein; „Link einfügen“ auf dem Startbildschirm erkennt sie auch. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. „Kader teilen“ schickt den Kader an Kollegen; Kürzel wie „Max Mü.“ bleiben erhalten. Steht in der ersten Zeile ein Kadername wie „Kader E3:“, kommen die Kinder in diesen Kader; fehlt er, legt die App ihn an. Trainer mit Trainer-Link brauchen das nicht: Geteilte Kader kommen von selbst an.',
+    keywords:
+      'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung kadername e3 link einfügen',
+    sources: ['001 US7', '015 FR-P23', '016 US4'],
     open: { label: 'Kader', path: '/kader' },
     related: ['kader', 'kader-mehrere'],
   },
@@ -521,9 +522,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie richte ich einen Live-Spieltag ein?',
     answer:
-      'Das macht nur einer, einmal für alle Mannschaften. Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Live-Spieltag anlegen“ und wählst bis zu sechs Mannschaften. Den Zuschauer-Link teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer. Gibt es schon einen Live-Spieltag, tippst du stattdessen auf „Trainer-Link einfügen“.',
-    keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen',
-    sources: ['006 US1', '012 US1'],
+      'Das macht nur einer, einmal für alle Mannschaften. Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Live-Spieltag anlegen“ und wählst bis zu sechs Mannschaften. Den Zuschauer-Link teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer; beim ersten Teilen fragt die App „Kader mit den Trainern teilen?“. Gibt es schon einen Live-Spieltag, tippst du stattdessen auf „Trainer-Link einfügen“.',
+    keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen kader teilen',
+    sources: ['006 US1', '012 US1', '016 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['trainer-link', 'live-senden'],
   },
@@ -532,11 +533,23 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Trainer-Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst.',
-    keywords: 'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp',
-    sources: ['006 US1', '012 US1'],
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
+    keywords:
+      'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
+    sources: ['006 US1', '012 US1', '016 US2', '016 US4'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
-    related: ['live-anlegen', 'live-senden'],
+    related: ['live-anlegen', 'trainer-kader', 'live-senden'],
+  },
+  {
+    id: 'trainer-kader',
+    topic: 'live',
+    title: 'Wie bekommen Trainerkollegen die Kader?',
+    answer:
+      'Beim ersten Tippen auf „Trainer-Link teilen“ fragt die App „Kader mit den Trainern teilen?“; die Kader sind angekreuzt, „Teilen“ teilt sie. Unter „Kader“ zeigt der Schalter „Mit Trainern geteilt“, ob der angezeigte Kader geteilt ist. Wer den Trainer-Link einfügt, bekommt die geteilten Kader automatisch, auch wer schon gekoppelt ist. Ein neues Kind, eine neue Rückennummer oder ein gelöschtes Kind ist in wenigen Sekunden auf allen Trainer-Handys, ohne erneutes Einfügen. Auch der Kader einer Mannschaft gilt für alle. Eltern sehen die Kader nicht.',
+    keywords: 'kader teilen trainer kollegen geteilt abgleich automatisch mit trainern geteilt schalter neues kind',
+    sources: ['016 US1', '016 US2', '016 US3'],
+    open: { label: 'Kader', path: '/kader' },
+    related: ['trainer-link', 'kader-liste'],
   },
   {
     id: 'live-senden',
@@ -818,9 +831,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'datenschutz',
     title: 'Welche Daten verlassen mein Handy?',
     answer:
-      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Beim Live-Spieltag gehen Mannschaften, Spielplan und Spielstände verschlüsselt an einen eigenen Dienst des Vereins bei Cloudflare (Gratis-Plan, ohne Konto für Eltern und Trainer). Der Dienst kann nichts davon lesen; er hebt je Mannschaft die letzten 10 Spiele auf und löscht alles, wenn ein Jahr lang nichts kommt oder die Links neu ausgestellt werden. Kader, Karten und Lesezeichen bleiben auf dem Handy.',
-    keywords: 'datenschutz daten privat verschlüsselt server tracking cloudflare dienst speichern löschen',
-    sources: ['006 US2', '007 FR-N05', '007 FR-N12'],
+      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Dann gehen Mannschaften, Spielplan und Spielstände verschlüsselt an einen eigenen Dienst des Vereins bei Cloudflare (Gratis-Plan, ohne Konto). Er kann nichts davon lesen, hebt je Mannschaft die letzten 10 Spiele auf und löscht alles nach einem Jahr ohne Meldung oder beim Neu-Ausstellen der Links. Kader, Karten und Lesezeichen bleiben auf dem Handy, außer Trainer teilen Kader: Die lesen nur Handys mit Trainer-Link, Eltern nicht.',
+    keywords:
+      'datenschutz daten privat verschlüsselt server tracking cloudflare dienst speichern löschen kader trainer',
+    sources: ['006 US2', '007 FR-N05', '007 FR-N12', '016 FR-B05'],
     parents: true,
     related: ['eltern-teilen'],
   },

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'preact/hooks';
 import { findLink, viewerLinkPath } from '../../domain/live-link';
+import { isSquadList } from '../../domain/squad-list';
 import { couplingKind, isRetired } from '../../domain/live-spieltag';
 import type { Settings } from '../../domain/types';
 import { linkOf, verifyLink, type VerifiedLink } from '../../platform/live-setup';
 import { navigate } from '../router';
 import { CoupleFlow } from './couple-flow';
-import { PasteLink } from './paste-link';
+import { handOffList } from '../paste-handoff';
+import { NOTHING_USABLE, PasteLink } from './paste-link';
 import { Sheet } from './sheet';
 
 interface Props {
@@ -42,11 +44,18 @@ export function StartCouple({ text, settings, onDone, onClose, onError }: Props)
         navigate(viewerLinkPath(link.view));
         return;
       }
+      // Spec 016 FR-B15: Kader-Liste aus "Kader teilen": Vorschau unter "Kader".
+      if (link.kind === 'invalid' && text && isSquadList(text)) {
+        onClose();
+        handOffList(text);
+        navigate('/kader');
+        return;
+      }
       const verified = link.kind === 'invalid' ? null : await verifyLink(link);
       if (!alive) return;
       if (verified) take(verified);
       // Sieht der Text nach einem Torticker-Link aus, ist aber keiner (abgeschnitten, kaputt): mit Hinweis.
-      else setState({ paste: /#\/(?:live|lead|trainer)\//.test(text ?? '') ? BAD_LINK : '' });
+      else setState({ paste: /#\/(?:live|lead|trainer)\//.test(text ?? '') ? BAD_LINK : NOTHING_USABLE });
     })();
     return () => {
       alive = false;
@@ -56,7 +65,7 @@ export function StartCouple({ text, settings, onDone, onClose, onError }: Props)
   if (state === 'loading') return null;
   if ('paste' in state)
     return (
-      <Sheet title="Trainer-Link einfügen" testId="start-paste-sheet" onClose={onClose}>
+      <Sheet title="Link einfügen" testId="start-paste-sheet" onClose={onClose}>
         <PasteLink key={state.paste} onCancel={onClose} onLink={take} initialError={state.paste} />
       </Sheet>
     );
