@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { addableTeams } from '../../domain/live-manage';
 import type { LiveTeamOption } from '../../domain/live-spieltag';
 import {
+  activeClaim,
   checkPlanInput,
   entryDetail,
   entryState,
@@ -11,6 +12,9 @@ import {
   formatPlanDateShort,
   isFull,
   isPlanDate,
+  matchText,
+  MAX_TRAINER_NAME,
+  entryWhen,
   nextSaturday,
   planView,
   todayKey,
@@ -18,7 +22,7 @@ import {
   type PlanInput,
 } from '../../domain/plan';
 import { planListText } from '../../domain/plan-list';
-import type { LiveSpieltag, PlanEntry, PlanStore, Schema, Team } from '../../domain/types';
+import type { LiveSpieltag, PlanEntry, PlanStore, Schema, Settings, Team } from '../../domain/types';
 import { getSettings } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
 import { addTeamToLive, changePlan, loadPlan, refreshPlan, type PlanEdit } from '../../platform/live-setup';
@@ -126,9 +130,21 @@ function Topbar() {
   );
 }
 
-function Row({ entry, lead, today, onOpen }: { entry: PlanEntry; lead: string; today: string; onOpen: () => void }) {
-  // FR-P01: "frei", "abgesagt", "angelegt"; vergangene ohne "frei" (Endstand folgt mit US3).
-  const state = entryState(entry, today);
+function Row({
+  entry,
+  lead,
+  today,
+  me,
+  onOpen,
+}: {
+  entry: PlanEntry;
+  lead: string;
+  today: string;
+  me: string;
+  onOpen: () => void;
+}) {
+  // FR-P01: "frei", "abgesagt", "angelegt", US6 "Tickert: …"; vergangene ohne Zustand.
+  const state = entryState(entry, today, me);
   const body = (
     <>
       <span class="plan__time">{lead}</span>
@@ -183,6 +199,108 @@ function Group({
   );
 }
 
+/** US6: Rückfrage vor dem Vormerken bzw. Übernehmen, beim ersten Mal mit dem Vornamen (FR-P26). */
+function ClaimDialog({
+  title,
+  text,
+  yesLabel,
+  askName,
+  onYes,
+  onNo,
+}: {
+  title: string;
+  text: string;
+  yesLabel: string;
+  askName: boolean;
+  onYes: (name: string) => void;
+  onNo: () => void;
+}) {
+  const [name, setName] = useState('');
+  return (
+    <div class="overlay overlay--center">
+      <div class="overlay__backdrop" onClick={onNo} />
+      <div
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="claim-title"
+        data-testid="claim-dialog"
+        onKeyDown={(e) => e.key === 'Escape' && onNo()}
+      >
+        <h2 id="claim-title" class="dialog__title">
+          {title}
+        </h2>
+        <p class="dialog__text">{text}</p>
+        {askName && (
+          <div class="field">
+            <label class="field__label t-label" for="claim-name">
+              DEIN NAME FÜR DIE TRAINER (OPTIONAL)
+            </label>
+            <input
+              id="claim-name"
+              class="input"
+              maxLength={MAX_TRAINER_NAME}
+              placeholder="Vorname"
+              autocomplete="given-name"
+              value={name}
+              data-testid="claim-name"
+              onInput={(e) => setName(e.currentTarget.value)}
+            />
+            <p class="field__help">Fragt die App nur beim ersten Mal. Ändern in den Einstellungen.</p>
+          </div>
+        )}
+        <div class="button-row">
+          <button type="button" class="btn btn--secondary" data-testid="claim-no" onClick={onNo}>
+            Abbrechen
+          </button>
+          <button type="button" class="btn btn--primary" data-testid="claim-yes" onClick={() => onYes(name)}>
+            {yesLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** US6: wer tickert, mit "Ich tickere" bzw. "Nicht mehr tickern" (Mockup "Vormerken"). */
+function ClaimBox({
+  entry,
+  me,
+  busy,
+  onClaim,
+  onRelease,
+}: {
+  entry: PlanEntry;
+  me: string;
+  busy: boolean;
+  onClaim: () => void;
+  onRelease: () => void;
+}) {
+  const c = activeClaim(entry);
+  const mine = c?.by === me;
+  const text = !c
+    ? 'Noch niemand tickert dieses Spiel.'
+    : mine
+      ? 'Du tickerst dieses Spiel.'
+      : `Tickert: ${c.name || 'vergeben'}`;
+  return (
+    <section class="plan__claim" data-testid="plan-claim-box">
+      <p class="plan__claim-text" data-testid="plan-claim-state">
+        {text}
+      </p>
+      {mine ? (
+        <button type="button" class="btn btn--secondary" disabled={busy} data-testid="plan-unclaim" onClick={onRelease}>
+          Nicht mehr tickern
+        </button>
+      ) : (
+        <button type="button" class="btn btn--primary" disabled={busy} data-testid="plan-claim" onClick={onClaim}>
+          Ich tickere
+        </button>
+      )}
+    </section>
+  );
+}
+
 function EditSheet({
   live,
   editing,
@@ -193,9 +311,12 @@ function EditSheet({
   onCancelToggle,
   onDelete,
   onClose,
+  claim,
 }: {
   live: LiveSpieltag;
   editing: Editing;
+  /** US6: Block "Ich tickere" (nur kommende, nicht abgesagte, noch nicht angelegte Planspiele). */
+  claim?: preact.ComponentChildren;
   onChange: (input: PlanInput) => void;
   errors: PlanErrors;
   busy: boolean;
@@ -209,6 +330,7 @@ function EditSheet({
   const extra = v.schema && !SCHEMAS.some((s) => schemaKey(s) === schemaKey(v.schema)) ? [v.schema] : [];
   return (
     <Sheet title={editing.id ? 'Spiel bearbeiten' : 'Spiel hinzufügen'} testId="plan-sheet" onClose={onClose}>
+      {claim}
       <div class="field">
         <span class="field__label t-label" id="plan-team-label">
           MANNSCHAFT <Req />
@@ -371,6 +493,9 @@ function EditSheet({
 export function PlanScreen() {
   const [live, setLive] = useState<LiveSpieltag | null | undefined>(undefined);
   const [myTeams, setMyTeams] = useState<Team[]>([]);
+  /** US6: Kennung dieses Handys und Vorname (fehlt = noch nie gefragt). */
+  const [me, setMe] = useState<{ id: string; name: string | undefined }>({ id: '', name: undefined });
+  const [claimAsk, setClaimAsk] = useState<'claim' | 'take' | null>(null);
   const [pasting, setPasting] = useState(false);
   const [store, setStore] = useState<PlanStore | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -381,14 +506,13 @@ export function PlanScreen() {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    void getSettings().then((s) => {
+    const apply = (s: Settings): void => {
       setLive(s.live);
       setMyTeams(s.teams);
-    });
-    return onLiveSettings((s) => {
-      setLive(s.live);
-      setMyTeams(s.teams);
-    });
+      setMe({ id: s.deviceId ?? '', name: s.trainerName });
+    };
+    void getSettings().then(apply);
+    return onLiveSettings(apply);
   }, []);
 
   const topic = live?.topic;
@@ -490,7 +614,20 @@ export function PlanScreen() {
     if (await attempt(() => changePlan(edit), done)) {
       setEditing(null);
       setConfirmDelete(false);
+      setClaimAsk(null);
     }
+  };
+
+  // US6: Vormerken nach Rückfrage; Kennung und Name kommen danach aus den Einstellungen.
+  const claim = async (name: string) => {
+    if (!editing?.id) return;
+    const ask = me.name === undefined;
+    await run(
+      { kind: 'claim', id: editing.id, claim: true, ...(ask ? { name } : {}) },
+      'Vorgemerkt. Die anderen Trainer sehen es.',
+    );
+    const s = await getSettings();
+    setMe({ id: s.deviceId ?? '', name: s.trainerName });
   };
 
   // US4-S5, FR-P19: alle Spiele ab heute im Einfügeformat teilen.
@@ -511,6 +648,11 @@ export function PlanScreen() {
     ).then((ok) => ok && setPasting(false));
   const addTeam = (o: LiveTeamOption) =>
     void attempt(() => addTeamToLive(o), `${o.key} gehört jetzt zum Live-Spieltag. Die Links bleiben gleich.`);
+
+  const current = editing?.id ? store?.entries.find((e) => e.id === editing.id && !e.deleted) : undefined;
+  const claimable = current && !current.cancelled && !current.gameId && current.date >= today;
+  const holder = current ? activeClaim(current) : null;
+  const holderName = holder?.name || 'Ein anderer Trainer';
 
   const toast = msg && (
     <div class="toast plan__toast" role="status" data-testid="plan-msg">
@@ -601,7 +743,7 @@ export function PlanScreen() {
             onToggle={() => toggle(g.date)}
           >
             {g.entries.map((e) => (
-              <Row key={e.id} entry={e} lead={e.time ?? '–'} today={today} onOpen={() => openEntry(e)} />
+              <Row key={e.id} entry={e} lead={e.time ?? '–'} today={today} me={me.id} onOpen={() => openEntry(e)} />
             ))}
           </Group>
         ))}
@@ -614,7 +756,14 @@ export function PlanScreen() {
             onToggle={() => toggle('past')}
           >
             {view.past.map((e) => (
-              <Row key={e.id} entry={e} lead={formatPlanDateShort(e.date)} today={today} onOpen={() => openEntry(e)} />
+              <Row
+                key={e.id}
+                entry={e}
+                lead={formatPlanDateShort(e.date)}
+                today={today}
+                me={me.id}
+                onOpen={() => openEntry(e)}
+              />
             ))}
           </Group>
         )}
@@ -636,6 +785,35 @@ export function PlanScreen() {
           }
           onDelete={() => setConfirmDelete(true)}
           onClose={() => setEditing(null)}
+          claim={
+            claimable && (
+              <ClaimBox
+                entry={current}
+                me={me.id}
+                busy={busy}
+                onClaim={() => setClaimAsk(holder && holder.by !== me.id ? 'take' : 'claim')}
+                onRelease={() => void run({ kind: 'claim', id: current.id, claim: false }, 'Freigegeben.')}
+              />
+            )
+          }
+        />
+      )}
+      {claimAsk && current && (
+        <ClaimDialog
+          title={
+            claimAsk === 'take'
+              ? `${holderName} tickert dieses Spiel. Trotzdem übernehmen?`
+              : `Du tickerst ${entryWhen(current)} ${matchText(current)}.`
+          }
+          text={
+            claimAsk === 'take'
+              ? `${holder?.name || 'Das andere Handy'} sieht danach, dass du tickerst.`
+              : 'Die anderen Trainer sehen das im Spielplan. Am Spieltag steht das Spiel oben auf deinem Startbildschirm.'
+          }
+          yesLabel={claimAsk === 'take' ? 'Übernehmen' : 'Ja, ich tickere'}
+          askName={me.name === undefined}
+          onYes={(name) => void claim(name)}
+          onNo={() => setClaimAsk(null)}
         />
       )}
       {confirmDelete && editing?.id && (

@@ -51,7 +51,7 @@ export function App() {
   return (
     <>
       {route.name === 'start' && <StartScreen />}
-      {route.name === 'new' && <NewGameScreen />}
+      {route.name === 'new' && <NewGameScreen plan={route.plan} />}
       {route.name === 'roster' && <RosterScreen />}
       {route.name === 'history' && <HistoryScreen />}
       {route.name === 'more' && <MoreScreen />}

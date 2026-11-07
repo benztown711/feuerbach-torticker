@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activeClaim,
   addEntry,
   addDays,
   checkPlanInput,
+  claimLabel,
   chunkEntries,
   deleteEntry,
   emptyPlan,
@@ -17,7 +19,9 @@ import {
   isFull,
   markPending,
   markSent,
+  matchText,
   MAX_PLAN,
+  myClaims,
   mergeEntries,
   mergeList,
   needsRefresh,
@@ -31,10 +35,12 @@ import {
   prunePlan,
   REFRESH_MS,
   setCancelled,
+  setClaim,
   setGame,
   setScore,
   staleEntries,
   todayKey,
+  trainerName,
   updateEntry,
   type PlanInput,
 } from '../../src/domain/plan';
@@ -513,5 +519,111 @@ describe('015 US3 FR-P30 Endstand im Planspiel', () => {
     const old = entry({ id: 'x', date: '2026-09-01', deleted: true });
     expect(pruneEntries([old, a], TODAY)).toEqual([a]);
     expect(pruneEntries([a], TODAY)).toEqual([a]);
+  });
+});
+
+describe('015 US6 Spiel vormerken', () => {
+  const ME = 'handyA';
+  const OTHER = 'handyB';
+
+  it('015 US6-S1 S2: setClaim merkt vor, mit Name oder ohne ("vergeben"), eigenes Handy sieht "du"', () => {
+    const s = storeWith([entry({ id: 'a1', updatedAt: T0 })]);
+    expect(entryState(s.entries[0]!, TODAY, ME)).toBe('frei');
+    const r = setClaim(s, 'a1', ME, 'Jonas', T0 + 5)!;
+    expect(r.entry.claim).toEqual({ by: ME, name: 'Jonas', at: T0 + 5 });
+    expect(r.entry.updatedAt).toBe(T0 + 5);
+    expect(r.store.pending).toEqual(['a1']);
+    expect(entryState(r.entry, TODAY, ME)).toBe('Tickert: du');
+    expect(entryState(r.entry, TODAY, OTHER)).toBe('Tickert: Jonas');
+    expect(entryState(r.entry, TODAY)).toBe('Tickert: Jonas');
+    const anon = setClaim(s, 'a1', OTHER, '', T0 + 5)!.entry;
+    expect(entryState(anon, TODAY, ME)).toBe('Tickert: vergeben');
+    expect(claimLabel(anon, OTHER)).toBe('du');
+    expect(claimLabel(entry(), ME)).toBe('');
+    // gleiche Vormerkung noch einmal: nichts zu tun
+    expect(setClaim(r.store, 'a1', ME, 'Jonas', T0 + 6)).toBeNull();
+    // Name geändert: neu
+    expect(setClaim(r.store, 'a1', ME, 'Jo', T0 + 6)?.entry.claim?.name).toBe('Jo');
+  });
+
+  it('015 US6-S3 S4: übernehmen und freigeben; abgesagt, angelegt, vergangen und gelöscht', () => {
+    const s = storeWith([entry({ id: 'a1', updatedAt: T0 })]);
+    const mine = setClaim(s, 'a1', ME, 'Jonas', T0 + 1)!.store;
+    const taken = setClaim(mine, 'a1', OTHER, 'Ben', T0 + 2)!;
+    expect(taken.entry.claim).toEqual({ by: OTHER, name: 'Ben', at: T0 + 2 });
+    const free = setClaim(taken.store, 'a1', '', '', T0 + 3)!;
+    expect(free.entry.claim).toEqual({ by: '', name: '', at: T0 + 3 });
+    expect(activeClaim(free.entry)).toBeNull();
+    expect(entryState(free.entry, TODAY, OTHER)).toBe('frei');
+    expect(setClaim(free.store, 'a1', '', '', T0 + 4)).toBeNull();
+    expect(setClaim(s, 'a1', '', '', T0)).toBeNull();
+    // Zeitpunkt der Vormerkung steigt streng, auch bei gleicher Uhrzeit
+    expect(setClaim(free.store, 'a1', ME, '', T0)?.entry.claim?.at).toBe(T0 + 4);
+    expect(setClaim(storeWith([entry({ id: 'a1', cancelled: true })]), 'a1', ME, '', T0)).toBeNull();
+    expect(setClaim(storeWith([entry({ id: 'a1', deleted: true })]), 'a1', ME, '', T0)).toBeNull();
+    expect(setClaim(s, 'fehlt', ME, '', T0)).toBeNull();
+    const claimed = setClaim(s, 'a1', ME, 'Jonas', T0)!.entry;
+    expect(entryState({ ...claimed, gameId: 'g1' }, TODAY, ME)).toBe('angelegt');
+    expect(entryState({ ...claimed, cancelled: true }, TODAY, ME)).toBe('abgesagt');
+    expect(entryState({ ...claimed, date: '2026-11-01' }, TODAY, ME)).toBe('');
+  });
+
+  it('FR-P25: Vormerkungen werden je Planspiel nach ihrem Zeitpunkt zusammengeführt, unabhängig von Änderungen', () => {
+    const base = entry({ id: 'a1', updatedAt: T0 });
+    const claimed = { ...base, updatedAt: T0 + 5, claim: { by: ME, name: 'Jonas', at: T0 + 5 } };
+    // ein anderes Handy ändert später den Anstoß, ohne die Vormerkung schon zu kennen
+    const edited = { ...base, time: '11:00', updatedAt: T0 + 9 };
+    const a = mergeList([claimed], [edited]);
+    expect(a.entries[0]).toMatchObject({ time: '11:00', claim: { by: ME } });
+    // und umgekehrt: die ältere Meldung mit Vormerkung erreicht das Handy mit der neueren Änderung
+    const b = mergeList([edited], [claimed]);
+    expect(b.entries[0]).toMatchObject({ time: '11:00', claim: { by: ME } });
+    expect(b.changed).toHaveLength(1);
+    // Freigabe ist jünger als die Vormerkung und gewinnt
+    const freed = { ...claimed, updatedAt: T0 + 6, claim: { by: '', name: '', at: T0 + 6 } };
+    expect(mergeList([claimed], [freed]).entries[0]?.claim?.by).toBe('');
+    expect(mergeList([freed], [claimed]).changed).toEqual([]);
+    // ohne Vormerkung auf beiden Seiten bleibt alles wie bisher
+    expect(mergeList([base], [{ ...base, updatedAt: T0 + 1 }]).entries[0]?.claim).toBeUndefined();
+  });
+
+  it('Meldung: Vormerkung als b hin und zurück, ungültige verwerfen die Meldung', () => {
+    const e = entry({ id: 'a1', claim: { by: ME, name: 'Jonas', at: T0 } });
+    expect(encodePayload([e]).e).toEqual([expect.objectContaining({ b: [ME, T0, 'Jonas'] })]);
+    expect(parsePayload(JSON.stringify(encodePayload([e])))).toEqual([e]);
+    const freed = entry({ id: 'a1', claim: { by: '', name: '', at: T0 } });
+    expect(parsePayload(JSON.stringify(encodePayload([freed])))).toEqual([freed]);
+    const raw = encodePayload([entry({ id: 'a1' })]) as { e: Record<string, unknown>[] };
+    for (const bad of [[ME, T0], [ME, 0, ''], ['a b', T0, ''], [ME, T0, 'x'.repeat(21)], [ME, T0, 5], 'x']) {
+      expect(parsePayload(JSON.stringify({ ...raw, e: [{ ...raw.e[0], b: bad }] }))).toBeNull();
+    }
+  });
+
+  it('015 US6-S5 FR-P28: eigene Vormerkungen von heute, nicht angelegt, nicht abgesagt, nach Anstoß', () => {
+    const c = (id: string, over: Partial<PlanEntry> = {}, by = ME) =>
+      entry({ id, date: TODAY, ...over, claim: { by, name: '', at: T0 } });
+    const s = storeWith([
+      c('spaet', { time: '15:00' }),
+      c('frueh', { time: '11:00' }),
+      c('fremd', {}, OTHER),
+      c('morgen', { date: '2026-11-08' }),
+      c('angelegt', { gameId: 'g1' }),
+      c('abgesagt', { cancelled: true }),
+      c('weg', { deleted: true }),
+      entry({ id: 'frei', date: TODAY }),
+    ]);
+    expect(myClaims(s, TODAY, ME).map((e) => e.id)).toEqual(['frueh', 'spaet']);
+    expect(myClaims(s, TODAY, '')).toEqual([]);
+  });
+
+  it('Text der Begegnung für Rückfragen und Startbildschirm', () => {
+    expect(matchText(entry())).toBe('E1 gegen TSV Musterstadt');
+    expect(matchText(entry({ venue: 'away' }))).toBe('E1 bei TSV Musterstadt');
+    expect(matchText(entry({ opponent: '' }))).toBe('E1 (Gegner offen)');
+  });
+
+  it('FR-P26: Name für die Trainer höchstens 20 Zeichen, ohne Leerraum außen', () => {
+    expect(trainerName('  Jonas  ')).toBe('Jonas');
+    expect(trainerName('x'.repeat(30))).toHaveLength(20);
   });
 });

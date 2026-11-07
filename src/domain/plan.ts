@@ -1,5 +1,5 @@
 import { isObj, isText, MAX_KEY, type Obj } from './live-validate';
-import type { PlanEntry, PlanStore, Schema, Score, Venue } from './types';
+import type { PlanClaim, PlanEntry, PlanStore, Schema, Score, Venue } from './types';
 
 /** Spec 015: Spielplan im Live-Spieltag (data-model.md, contracts/plan-message.md). */
 
@@ -45,6 +45,10 @@ const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const ID_RE = /^[A-Za-z0-9_-]{1,12}$/;
 const GAME_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+/** US6: Kennung eines Handys in einer Vormerkung, leer = freigegeben. */
+const DEVICE_RE = /^[A-Za-z0-9_-]{0,24}$/;
+/** FR-P26: Vorname für die Trainer. */
+export const MAX_TRAINER_NAME = 20;
 /** US2 FR-P09: "Weitere Spiele" reichen so viele Tage voraus. */
 export const PICK_DAYS = 14;
 
@@ -177,11 +181,48 @@ export function setScore(store: PlanStore, gameId: string, score: Score | null, 
 const sameScore = (a: Score | undefined, b: Score | null): boolean =>
   (a === undefined && b === null) || (!!a && !!b && a.own === b.own && a.opp === b.opp);
 
+/** FR-P26: Vorname für die Trainer, ohne Leerraum außen, höchstens 20 Zeichen. */
+export const trainerName = (raw: string): string => raw.trim().slice(0, MAX_TRAINER_NAME);
+
+/** US6: Vormerkung, sofern nicht freigegeben. */
+export const activeClaim = (e: PlanEntry): PlanClaim | null => (e.claim?.by ? e.claim : null);
+
+/** FR-P25: "du" auf dem vormerkenden Handy, sonst der Name, ohne Namen "vergeben"; leer ohne Vormerkung. */
+export function claimLabel(e: PlanEntry, me: string): string {
+  const c = activeClaim(e);
+  if (!c) return '';
+  return c.by === me ? 'du' : c.name || 'vergeben';
+}
+
+/**
+ * US6-S1 bis S4: vormerken (`by` = Kennung dieses Handys), übernehmen oder freigeben (`by` leer). Null, wenn es
+ * das Planspiel nicht (mehr) gibt, es abgesagt ist oder sich nichts ändert.
+ */
+export function setClaim(store: PlanStore, id: string, by: string, name: string, now: number): PlanChange | null {
+  const old = live(store, id);
+  if (!old || old.cancelled) return null;
+  const current = activeClaim(old);
+  if (by === '' ? !current : current?.by === by && current.name === name) return null;
+  const claim = { by, name: by ? name : '', at: stamp(old.claim?.at ?? 0, now) };
+  return replace(store, { ...old, claim, updatedAt: stamp(old.updatedAt, now) });
+}
+
+/** FR-P28: eigene Vormerkungen von heute, die noch nicht angelegt und nicht abgesagt sind, nach Anstoß. */
+export const myClaims = (store: PlanStore, today: string, me: string): PlanEntry[] =>
+  me === ''
+    ? []
+    : store.entries
+        .filter((e) => !e.deleted && !e.cancelled && !e.gameId && e.date === today && activeClaim(e)?.by === me)
+        .sort(compareEntries);
+
 /** US1-S3: löschen als Grabstein, damit andere Handys es nicht zurückbringen (FR-P04). */
 export function deleteEntry(store: PlanStore, id: string, now: number): PlanChange | null {
   const old = live(store, id);
   return old ? replace(store, { ...old, deleted: true, updatedAt: stamp(old.updatedAt, now) }) : null;
 }
+
+const newerClaim = (a: PlanClaim | undefined, b: PlanClaim | undefined): PlanClaim | undefined =>
+  !a || (b && b.at > a.at) ? b : a;
 
 /** FR-P04: je Planspiel gewinnt die jüngere Änderung (Liste, auch für das Dashboard, R-P7). */
 export function mergeList(
@@ -192,9 +233,19 @@ export function mergeList(
   const changed: PlanEntry[] = [];
   for (const e of incoming) {
     const old = byId.get(e.id);
-    if (old && old.updatedAt >= e.updatedAt) continue;
+    // US6 FR-P25: die jüngere Vormerkung gilt, unabhängig von Änderungen am Planspiel.
+    const claim = newerClaim(old?.claim, e.claim);
+    if (old && old.updatedAt >= e.updatedAt) {
+      if (claim !== old.claim) {
+        const kept = { ...old, claim } as PlanEntry;
+        byId.set(e.id, kept);
+        changed.push(kept);
+      }
+      continue;
+    }
     // FR-P11: eine Verknüpfung mit dem angelegten Spiel geht durch gleichzeitiges Ändern nicht verloren.
-    const next = old?.gameId && !e.gameId ? { ...e, gameId: old.gameId } : e;
+    let next = old?.gameId && !e.gameId ? { ...e, gameId: old.gameId } : e;
+    if (claim !== e.claim) next = { ...next, claim } as PlanEntry;
     byId.set(e.id, next);
     changed.push(next);
   }
@@ -291,6 +342,7 @@ function encodeEntry(e: PlanEntry): Obj {
   if (e.cancelled) out.c = 1;
   if (e.gameId) out.g = e.gameId;
   if (e.score) out.s = [e.score.own, e.score.opp];
+  if (e.claim) out.b = [e.claim.by, e.claim.at, e.claim.name];
   return out;
 }
 
@@ -330,6 +382,16 @@ function parseScore(v: unknown): Score | null | undefined {
   return { own: v[0], opp: v[1] };
 }
 
+/** US6: `[Handy, Zeitpunkt, Name]`; fehlt = null, ungültig = undefined. */
+function parseClaim(v: unknown): PlanClaim | null | undefined {
+  if (v === undefined) return null;
+  if (!Array.isArray(v) || v.length !== 3) return undefined;
+  const [by, at, name] = v as unknown[];
+  if (typeof by !== 'string' || !DEVICE_RE.test(by) || !isIntIn(at, 1, Number.MAX_SAFE_INTEGER)) return undefined;
+  if (typeof name !== 'string' || name.length > MAX_TRAINER_NAME) return undefined;
+  return { by, at, name };
+}
+
 function parseEntry(v: unknown): PlanEntry | null {
   if (!isObj(v)) return null;
   if (typeof v.i !== 'string' || !ID_RE.test(v.i) || !isText(v.k, MAX_KEY) || !isPlanDate(v.d)) return null;
@@ -355,7 +417,8 @@ function parseEntry(v: unknown): PlanEntry | null {
   if (v.c !== undefined && v.c !== 1) return null;
   if (v.g !== undefined && !(typeof v.g === 'string' && GAME_ID_RE.test(v.g))) return null;
   const score = parseScore(v.s);
-  if (score === undefined) return null;
+  const claim = parseClaim(v.b);
+  if (score === undefined || claim === undefined) return null;
   return {
     ...base,
     venue: v.h === 1 ? 'home' : 'away',
@@ -366,6 +429,7 @@ function parseEntry(v: unknown): PlanEntry | null {
     cancelled: v.c === 1,
     ...(v.g === undefined ? {} : { gameId: v.g }),
     ...(score ? { score } : {}),
+    ...(claim ? { claim } : {}),
   };
 }
 
@@ -394,15 +458,24 @@ export function pickable(store: PlanStore, today: string): { today: PlanEntry[];
   return { today: open.filter((e) => e.date === today), later: open.filter((e) => e.date !== today) };
 }
 
-/** Zustand rechts in der Zeile (FR-P01): "abgesagt", "angelegt", "frei"; vergangene ohne "frei". */
-export function entryState(e: PlanEntry, today: string): string {
+/**
+ * Zustand rechts in der Zeile (FR-P01): "abgesagt", "angelegt", "Tickert: …" (US6, `me` = Kennung dieses Handys),
+ * "frei"; vergangene ohne Zustand.
+ */
+export function entryState(e: PlanEntry, today: string, me = ''): string {
   if (e.cancelled) return 'abgesagt';
   if (e.gameId) return 'angelegt';
-  return e.date < today ? '' : 'frei';
+  if (e.date < today) return '';
+  const who = claimLabel(e, me);
+  return who ? `Tickert: ${who}` : 'frei';
 }
 
 /** "Sa 14.11., 12:00" bzw. ohne Anstoß "Sa 14.11." */
 export const entryWhen = (e: PlanEntry): string => `${formatPlanDate(e.date)}${e.time ? `, ${e.time}` : ''}`;
+
+/** US6: "E1 gegen TSV Musterstadt", "E1 bei …", ohne Gegner "E1 (Gegner offen)" (Rückfragen, Startbildschirm). */
+export const matchText = (e: PlanEntry): string =>
+  e.opponent ? `${e.team} ${e.venue === 'home' ? 'gegen' : 'bei'} ${e.opponent}` : `${e.team} (Gegner offen)`;
 
 /** FR-P01: "E1 – Gegner" (Heim), "E1 bei Gegner" (Auswärts), "E1 – (Gegner offen)". */
 export function entryTitle(e: PlanEntry): string {
