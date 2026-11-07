@@ -53,7 +53,7 @@ Nummern R-N1 ff. Grundlagen des Live-Spieltags (Verschlüsselung, Meldungsformat
 - **Decision**: Basisadresse `https://torticker-relay.<Konto>.workers.dev` (Build-Variable `VITE_RELAY_ORIGIN`, für E2E die Adresse des Nachbaus). Objektpfad `/v1/<topic>/<orgPub>`.
   - `POST /v1/<topic>/<orgPub>`: JSON `{ kind, slot?, group?, h?, at?, iat?, gone?, body, sig, cert? }` → `200 {seq}` angenommen, `204` älter als der gespeicherte Stand (kein Fehler), `400` ungültig, `403` Signatur, `409` neu ausgestellt, `413` zu groß bzw. Obergrenze, `429`/`5xx` Dienst (wie ohne Netz).
   - `GET /v1/<topic>/<orgPub>/ws?since=<seq>` (WebSocket): Der Dienst schickt `{"t":"hello","time":<Sekunden>,"msgs":[{seq,time,body}…]}` mit allen Zeilen mit `seq` > `since` (ohne `since`: alles), danach je angenommenem Schreibvorgang `{"t":"msg","seq","time","body"}`. Der Client schickt alle 30 s `ping` (Antwort `pong` ohne Aufwachen) und baut die Verbindung bei Stille über 90 s, beim Zurückkehren in den Vordergrund und nach Abbruch mit `since` neu auf (Abstände 1, 2, 4 … 30 s wie bisher).
-  - CORS: nur die Herkunft der App (`https://benztown711.github.io`) und `http://localhost:4173` (Vorschau, E2E).
+  - CORS: nur die Herkunft der App (`https://benztown711.github.io`); lokal für `wrangler dev` über `.dev.vars` erweiterbar. E2E-Tests nutzen den Nachbau.
 - **Rationale**: Die Empfangsseite der App (`LiveReceiver`, `live-watch`) bleibt bei "Meldung mit Serverzeit kommt an"; nur `relay.ts` tauscht den Transport. `hello.time` ersetzt `open`/`keepalive` von ntfy für den Uhrenabgleich (R-L4). `since` hält Neuverbindungen klein.
 - **Alternatives**: Senden über die WebSocket-Verbindung (Sender hat sonst keine Verbindung offen; eingehende Nachrichten zählen ebenfalls als Anfragen); Abruf per `GET` statt WebSocket (keine Live-Anzeige).
 
@@ -61,15 +61,15 @@ Nummern R-N1 ff. Grundlagen des Live-Spieltags (Verschlüsselung, Meldungsformat
 
 - **Decision**:
   - Gemeinsame, reine Logik in `src/domain/relay-protocol.ts` (Anfrage prüfen, signierter Text, Ordnung "neuer als", Auswahl "10 je Mannschaft", Grabstein-Ablauf): Vitest mit 100 % Branch-Coverage wie alle Domänen-Dateien. Der Worker importiert sie.
-  - Worker und Durable Object in `relay/` mit `@cloudflare/vitest-pool-workers` (führt den Code in der echten Laufzeit `workerd` mit SQLite und WebSockets aus): Annehmen, Ablehnen, Ordnung, Broadcast, `since`, Alarm, `retire`, Obergrenzen. Eigener CI-Schritt.
+  - Worker und Durable Object in `relay/` mit `@cloudflare/vitest-plugin` (führt den Code in der echten Laufzeit `workerd` mit SQLite und WebSockets aus): Annehmen, Ablehnen, Ordnung, Broadcast, `since`, Alarm, `retire`, Obergrenzen. Eigener CI-Schritt.
   - E2E: `tests/e2e/relay.ts` wird zum Nachbau des neuen Dienstes (`context.route` für `POST`, `context.routeWebSocket` für die Verbindung, Playwright ≥ 1.48); die Testhelfer (`sendAs`, `liveStates`, `inject`) behalten ihre Schnittstelle. Der Netzwerk-Wächter lässt statt `ntfy.sh` die Adresse des Dienstes zu.
 - **Rationale**: Die Sicherheitslogik liegt testbar in der Domäne; die Laufzeit-Eigenheiten (Hibernation, SQLite) prüft die echte Umgebung, ohne Cloudflare-Konto.
-- **Neue Entwicklungs-Abhängigkeiten** (keine Laufzeit-Abhängigkeit der App): `wrangler` (bauen, lokal starten, ausliefern), `@cloudflare/vitest-pool-workers` (Tests in `workerd`), `@cloudflare/workers-types` (Typen). Alle quelloffen und kostenlos; sie liegen in `relay/package.json`, damit das Hauptprojekt schlank bleibt.
+- **Neue Entwicklungs-Abhängigkeiten** (keine Laufzeit-Abhängigkeit der App): `wrangler` (bauen, lokal starten, ausliefern), `@cloudflare/vitest-plugin` (Tests in `workerd`, R-N11), `@cloudflare/workers-types` (Typen). Alle quelloffen und kostenlos; sie liegen in `relay/package.json`, damit das Hauptprojekt schlank bleibt.
 
 ## R-N8 Auslieferung und Reihenfolge (FR-N08, FR-N11)
 
-- **Decision**: `deploy.yml` bekommt vor dem Pages-Job einen Job `relay`, der bei jedem Push auf `main` den Worker mit `cloudflare/wrangler-action` ausliefert (Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, Token nur mit dem Recht "Workers Scripts: Edit"); der Pages-Job wartet darauf. Die Adresse des Dienstes kommt als Repository-Variable `RELAY_ORIGIN` in den Build.
-- **Erstes Mal**: Atti legt Token und Konto-ID als Secrets an und nennt die `workers.dev`-Subdomain; ein vorbereitender PR liefert den Worker aus, bevor die App umstellt. Der harte Wechsel (App spricht nur noch mit dem Dienst) kommt in einem eigenen PR, an einem Werktag gemergt.
+- **Decision**: `deploy.yml` bekommt vor dem Pages-Job einen Job `relay`, der bei jedem Push auf `main` den Worker mit `cloudflare/wrangler-action` ausliefert (Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, Token nur mit dem Recht "Workers Scripts: Edit"); der Pages-Job wartet darauf. Die Adresse des Dienstes ist nicht geheim und steht fest im Build (`VITE_RELAY_ORIGIN` in `vite.config.ts`, für E2E überschreibbar).
+- **Erstes Mal** (Anleitung `docs/cloudflare-einrichten.md`): Atti legt Token und Konto-ID als Secrets an und nennt die `workers.dev`-Subdomain; ein vorbereitender PR liefert den Worker aus, bevor die App umstellt. Der harte Wechsel (App spricht nur noch mit dem Dienst) kommt in einem eigenen PR, an einem Werktag gemergt.
 - **Rationale**: So kann die neue App-Version nie vor dem Dienst live sein.
 
 ## R-N9 Dashboard der Eltern aktualisiert sich selbst (FR-N09)
@@ -81,3 +81,9 @@ Nummern R-N1 ff. Grundlagen des Live-Spieltags (Verschlüsselung, Meldungsformat
 
 - **Decision**: Das Board behält je Mannschaft neben den Spielen des Spieltags die früheren Spiele (höchstens 10, wie der Dienst); `boardView` liefert zusätzlich `recent` (je Mannschaft, beendet bzw. von früheren Tagen, ohne die Spiele der Karten und "Heute außerdem", neuestes zuerst). Der Block liegt im nachgeladenen Dashboard; Auf- und Zuklappen ist nicht gemerkt (immer zu), der Filter unter `torticker-recent-filter` im `localStorage` (Fehler ignoriert).
 - **Rationale**: Die Tageslogik der Karten (FR-L14, FR-L16, Spec 006 R-L21) bleibt unverändert; nur das Verwerfen älterer Tage in `prune` weicht "höchstens 10 je Mannschaft".
+
+## R-N11 Umsetzung PR A (07.11.2026)
+
+- **Testpaket umbenannt**: `@cloudflare/vitest-pool-workers` ist veraltet und heißt jetzt `@cloudflare/vitest-plugin` (Plugin `cloudflareTest`); es unterstützt Vitest 5 wie das Hauptprojekt. `relay/.npmrc` setzt `legacy-peer-deps`, weil npm 10.9 beim Auflösen der Peer-Abhängigkeiten von `wrangler`/`vitest` mit einem internen Fehler abbricht.
+- **Typen**: `wrangler types --include-runtime=false` erzeugt `relay/worker-configuration.d.ts` (Bindings, `Env`); die Laufzeit-Typen kommen aus `@cloudflare/workers-types`. Nach Änderungen an `wrangler.toml` neu erzeugen.
+- **Rechenzeit**: Die Worker-Tests messen in `workerd` nur Wanduhrzeit; eine ECDSA-Prüfung liegt deutlich unter einer Millisekunde, geprüfte Zertifikate werden gemerkt. Das CPU-Budget im Gratis-Plan bleibt im Gerätetest (D-8) zu beobachten.

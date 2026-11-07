@@ -18,8 +18,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  # Spec 007 research.md R-N8: zuerst den eigenen Vermittlungsdienst (Cloudflare Worker) ausliefern, damit eine
+  # neue App-Version nie vor dem Dienst live ist. Ohne Secrets (noch nicht eingerichtet) wird der Schritt übersprungen.
+  relay:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    # Braucht keine Pages-Rechte (Sicherheitsprüfung PR A).
+    permissions:
+      contents: read
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    defaults:
+      run:
+        working-directory: relay
+    steps:
+      - if: env.HAS_TOKEN != 'true'
+        working-directory: .
+        run: echo "::notice::Cloudflare-Secrets fehlen (docs/cloudflare-einrichten.md); Dienst wird nicht ausgeliefert."
+      - if: env.HAS_TOKEN == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - if: env.HAS_TOKEN == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: relay/package-lock.json
+      - if: env.HAS_TOKEN == 'true'
+        run: npm ci
+      - if: env.HAS_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          workingDirectory: relay
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  build:
+    needs: relay
+    if: always() && needs.relay.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

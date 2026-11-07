@@ -165,11 +165,29 @@ jobs:
           fail-on-scopes: runtime
           deny-licenses: GPL-3.0-only, AGPL-3.0-only
 
+  # Spec 007: eigener Vermittlungsdienst (Cloudflare Worker) in der echten Laufzeit workerd testen.
+  relay:
+    name: Dienst (Worker-Tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: relay
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: relay/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
   # Sammel-Check: wird im Ruleset für main als Pflicht-Check eingetragen.
   ci:
     name: ci
     if: always()
-    needs: [changes, quality, build, e2e, lighthouse, dependency-review]
+    needs: [changes, quality, build, relay, e2e, lighthouse, dependency-review]
     runs-on: ubuntu-latest
     steps:
       - name: Ergebnis aller Jobs prüfen

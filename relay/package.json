@@ -1,0 +1,21 @@
+{
+  "name": "torticker-relay",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Eigener Vermittlungsdienst des Live-Spieltags (Spec 007): Cloudflare Worker mit Durable Objects",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.6.0",
+    "@cloudflare/workers-types": "^5.20261107.1",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.158.0"
+  }
+}

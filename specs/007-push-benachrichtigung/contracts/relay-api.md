@@ -39,5 +39,5 @@ Fehlende Felder als leere Zeichenkette. Antworten: `200 {"seq":n}`, `204` (älte
 
 ## CORS und Sicherheit
 
-- `Access-Control-Allow-Origin` nur für `https://benztown711.github.io` und `http://localhost:4173`; WebSocket prüft `Origin` ebenso.
+- `Access-Control-Allow-Origin` nur für `https://benztown711.github.io` (lokal mit `wrangler dev` zusätzlich über `.dev.vars`); WebSocket prüft `Origin` ebenso. E2E-Tests nutzen den Nachbau, nicht den Dienst.
 - Keine Cookies, keine Konten, keine Klartext-Logs.
