@@ -37,6 +37,19 @@ import { getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
 import { liveSettingsChanged } from './live-events';
 import { startLiveSender } from './live-sender';
+import { movePlan } from './plan-sync';
+
+// Spec 015: über dieses (nachgeladene) Modul erreichbar, damit der Spielplan-Code nicht ins Hauptbundle rutscht.
+export {
+  adoptPlan,
+  changePlan,
+  linkPlanGame,
+  loadPlan,
+  planChoices,
+  refreshPlan,
+  type PlanChoice,
+  type PlanEdit,
+} from './plan-sync';
 import { publish } from './relay';
 import { shareText, type ShareResult } from './share';
 
@@ -243,6 +256,8 @@ export async function reissueLive(): Promise<Settings> {
   const old = (await getSettings()).live;
   const next = await manage((live) => reissueSpieltag(live, deps()));
   if (old) void announceRetired(old, await retireConfig(old, deps()));
+  // Spec 015: der Spielplan wandert mit.
+  if (old && next.live) void movePlan(old, next.live).catch(() => undefined);
   return next;
 }
 

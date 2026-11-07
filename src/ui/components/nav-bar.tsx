@@ -20,6 +20,7 @@ const TAB_OF: Record<Exclude<Route['name'], 'leadLink' | 'liveView'>, Tab> = {
   help: 'more',
   live: 'more',
   liveDash: 'more',
+  plan: 'more',
 };
 
 /**

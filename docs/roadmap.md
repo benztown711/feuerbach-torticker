@@ -4,6 +4,13 @@ Ergebnis eines Reviews der App hinsichtlich Zweck, UI/UX und fehlender Funktione
 
 Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer Infrastruktur). Modell: Haiku für Text und Kleinkram, Sonnet für Features im bestehenden Muster, Opus für Spec, Sync und Sicherheit. Status: offen, in Arbeit, erledigt, verworfen.
 
+## Übergabe (Stand 06.11.2026, 23:45)
+
+- **PR #63** (Spec 015 Spielplan, US1 und US2) ist fertig: CI grün, Code- und Security-Review erledigt, Review C von Atti erteilt ("i. O."). Es fehlt nur der Squash-Merge. **Erst mergen, wenn Atti "Merge #63" schreibt**: Er will die Spiele am Sa 07.11. noch mit der bisherigen Version machen und nach den Spielen am Nachmittag mergen lassen.
+- Nach dem Merge (Atti): die zwei Sonntagsspiele vom 08.11. von Hand unter "Mehr" → "Live-Spieltag" → "Spielplan" eintragen (E1 heim gegen SF Wernau E1, E2 heim gegen Sportvg Feuerbach D3, beide 10:00, 3 × 25). Sonntag vor 9:30 Uhr den Torticker einmal öffnen, damit der Plan erneut hinausgeht; die Lead-Handys wählen das Spiel unter "Neues Spiel" → "Aus dem Spielplan".
+- Spielplan der Hinrunde aus fußball.de (Stand 06.11.2026) im Einfügeformat: `docs/spielplan-hinrunde-2026.txt`. Bis "Liste einfügen" (Spec 015 US4) fertig ist, werden Spiele von Hand eingetragen; vergangene Zeilen (07./08.11.) beim Einfügen weglassen. Offen: Gegner der E2 am 15.11., Hallen-Spielzeit 1 × 10 oder 1 × 11.
+- Nächste Schritte Spec 015 (siehe `specs/015-spielplan/tasks.md`): US3 und US7 (Dashboard: nächstes Spiel, Spielplan, vergangene Spiele mit Endstand), US4 (Liste einfügen und teilen), US6 ("Ich tickere"), US5 (Kader "E1/E2" und "E3").
+
 ## Kurzfassung des Reviews
 
 - Zweck und Kern sind stark: ein Tap pro Tor, Uhr als Berechnung, offline, Live-Dashboard für Eltern ohne Installation.
@@ -42,14 +49,14 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 |---|---|---|---|---|---|---|
 | B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | offen |
 | B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | teilweise: „Trainer-Link einfügen“ auf dem Startbildschirm erkennt Trainer- und Zuschauer-Link (Spec 012 US1, #42); Paket und Kader offen |
-| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | offen |
+| B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | in Arbeit als Spec 015 US5 |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
 ## C. Spieltag-Komfort für Trainer und Eltern
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | offen |
+| C1 | Spielplan im Live-Spieltag: Gegner und Anstoßzeit je Mannschaft vorab; „Neues Spiel“ auf allen Trainer-Handys vorbelegt; Dashboard zeigt „Heute 10:30 E1 gegen …“ | 6 | Opus (Spec, Sync), Sonnet | hoch nach dem ersten Spieltag | Die „Magie im Hintergrund“ | in Arbeit als Spec 015 (Spielplan mit Anstoß, Liste einfügen, N6) |
 | C2 | Tor nachtragen mit Minute, Minute korrigieren | 3 | Sonnet | mittel | Kleiner Aufwand, häufiger Fall | erledigt (Spec 012 US2, #42) |
 | C3 | Endstand und Saison-Ergebnisse dauerhaft auf dem Dashboard (heute rund 12 Stunden) | 7 | Opus | hoch nach dem ersten Spieltag | Eigener Gratis-Dienst auf Cloudflare (Atti hat ein Konto, Gratis-Plan); Teil 1 von Spec 007; Constitution II wird angepasst (Atti 07.11.2026: ja) | nächste Spec nach N6 |
 | C4 | Push bei Toren auf dem Sperrbildschirm der Eltern (Spec 007) | 8 | Opus | niedrig bis mittel | Web Push ohne Lizenz; setzt C3 voraus, auf iPhone Dashboard auf dem Home-Bildschirm | offen |
@@ -93,8 +100,8 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 | N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
 
 | N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
-
 | N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
+| N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 fertig (#63), Review C erledigt, Merge nach dem 07.11. |
 
 | N6 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | in Arbeit: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit C3/D1 |
 

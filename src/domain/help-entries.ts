@@ -115,7 +115,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie lege ich ein Spiel an?',
     answer:
-      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; meist trägst du nur den Gegner ein. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
+      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; meist trägst du nur den Gegner ein. Steht das Spiel im Spielplan, tippst du es oben unter „Aus dem Spielplan“ an. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
     steps: [
       '„Neues Spiel“ antippen.',
       'Gegner eintragen, bei Bedarf Spielzeit, Trikots und Aufgebot ändern.',
@@ -123,9 +123,25 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'Im Spielbildschirm auf „Anpfiff“ tippen.',
     ],
     keywords: 'anlegen starten beginnen gegner spielzeit minuten anpfiff',
-    sources: ['001 US2', '004 US3', '011 US1', '011 US4'],
+    sources: ['001 US2', '004 US3', '011 US1', '011 US4', '015 US2'],
     open: { label: 'Neues Spiel', path: '/neu' },
-    related: ['tor', 'aufgebot', 'trikots'],
+    related: ['tor', 'aufgebot', 'spiel-aus-plan'],
+  },
+  {
+    id: 'spiel-aus-plan',
+    topic: 'spiel',
+    title: 'Wie lege ich ein Spiel aus dem Spielplan an?',
+    answer:
+      'Unter „Neues Spiel“ stehen oben unter „Aus dem Spielplan“ die heutigen Spiele aller Mannschaften; „Weitere Spiele“ zeigt die nächsten 14 Tage. Ein Tipp füllt Mannschaft, Gegner, Heim oder Auswärts, Trikot und Spielzeit aus. Du kannst alles noch ändern, auch das Aufgebot; das gilt nur für dein Spiel, nicht für den Plan. Nach „Weiter zum Anpfiff“ steht das Spiel im Spielplan als „angelegt“. Fehlt ein Spiel, legst du es wie gewohnt von Hand an.',
+    steps: [
+      '„Neues Spiel“ öffnen.',
+      'Unter „Aus dem Spielplan“ das Spiel antippen.',
+      'Bei Bedarf Aufgebot oder Angaben ändern, dann „Weiter zum Anpfiff“.',
+    ],
+    keywords: 'spielplan plan vorbelegt auswählen picken heute weitere spiele angelegt lead',
+    sources: ['015 US2'],
+    open: { label: 'Neues Spiel', path: '/neu' },
+    related: ['neues-spiel', 'spielplan'],
   },
   {
     id: 'tor',
@@ -557,11 +573,28 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie ändere ich Titel oder Mannschaften des Live-Spieltags?',
     answer:
-      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung.',
+      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung. Die Spiele der Saison trägst du unter „Spielplan“ ein.',
     keywords: 'titel ändern umbenennen mannschaft hinzufügen entfernen e3 neue mannschaft verwalten',
-    sources: ['006 US5'],
+    sources: ['006 US5', '015 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
-    related: ['live-anlegen', 'links-neu'],
+    related: ['live-anlegen', 'links-neu', 'spielplan'],
+  },
+  {
+    id: 'spielplan',
+    topic: 'live',
+    title: 'Wie trage ich den Spielplan ein?',
+    answer:
+      'Unter „Mehr“, „Live-Spieltag“ und „Spielplan“ tippst du auf „Spiel hinzufügen“. Wähle Mannschaft, Datum, Anstoß, Gegner, Heim oder Auswärts, Wettbewerb und Spielzeit; Pflichtfelder sind mit * markiert; Anstoß, Gegner und Wettbewerb dürfen leer bleiben. Alle Trainer-Handys mit Trainer-Link bekommen den Plan automatisch und dürfen ihn ändern. Fällt ein Spiel aus, tippst du es an und wählst „Abgesagt“. Vergangene Spiele stehen unten unter „Vergangene Spiele“.',
+    steps: [
+      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Spiel hinzufügen“ tippen und die Angaben eintragen.',
+      '„Speichern“ tippen. Zum Ändern, Absagen oder Löschen das Spiel antippen.',
+    ],
+    keywords:
+      'spielplan spiele saison termine plan gegner datum anstoß uhrzeit heim auswärts wettbewerb abgesagt absage leistungsliga kreisstaffel',
+    sources: ['015 US1'],
+    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    related: ['live-verwalten', 'live-anlegen'],
   },
   {
     id: 'links-neu',

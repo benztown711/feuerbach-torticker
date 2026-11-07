@@ -38,6 +38,8 @@ export interface ReceiverDeps {
   timeZone?: string;
   /** Spec 006 US5: jüngere signierte Konfiguration (Trainer-Handy übernimmt Titel und Mannschaften). */
   onConfig?(signed: SignedData): void;
+  /** Spec 015: geprüfte Nutzlast einer Plan-Meldung (Trainer-Handys übernehmen die Planspiele). */
+  onPlan?(payload: string): void;
 }
 
 export class LiveReceiver {
@@ -193,6 +195,7 @@ export class LiveReceiver {
       this.knownIat = config.iat;
       this.deps.onConfig?.(opened.signedConfig);
     }
+    if (opened.plan) this.deps.onPlan?.(opened.plan);
     const snap = parseSnapshot(opened.content);
     if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone);
     const liveAt = this.deps.now();

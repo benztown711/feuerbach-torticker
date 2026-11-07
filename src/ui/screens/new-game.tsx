@@ -12,7 +12,8 @@ import { shortTeamName } from '../../domain/team-name';
 import type { Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
 import { getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
-import { onLiveSettings } from '../../platform/live-events';
+import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
+import type { PlanChoice } from '../../platform/live-setup';
 import type { LiveWatch, RunningGame } from '../../platform/live-watch';
 import { setSignalSound, testSignal } from '../../platform/signal';
 import { KitRow } from '../components/kit-row';
@@ -34,6 +35,38 @@ async function heardWithin(load: Promise<LiveWatch | null> | null, ms: number): 
   if (!w) return null;
   await w.ready(Math.max(0, ms - (Date.now() - start)));
   return w;
+}
+
+type Choices = { today: PlanChoice[]; later: PlanChoice[] };
+
+/** Spec 015 US2: eine Zeile "Aus dem Spielplan" (heute mit Anstoß, später mit Datum). */
+function PickRow({
+  c,
+  lead,
+  selected,
+  onPick,
+}: {
+  c: PlanChoice;
+  lead: string;
+  selected: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      class="plan__row"
+      aria-pressed={selected}
+      data-testid={`plan-pick-${c.entry.id}`}
+      onClick={onPick}
+    >
+      <span class="plan__time">{lead}</span>
+      <span class="plan__text">
+        <strong class="plan__title">{c.title}</strong>
+        <span class="plan__detail">{c.detail}</span>
+      </span>
+      <span />
+    </button>
+  );
 }
 
 function Mark({ colorId }: { colorId: string }) {
@@ -69,6 +102,10 @@ export function NewGameScreen() {
     [],
   );
   const [running, setRunning] = useState<RunningGame | null>(null);
+  /** Spec 015 US2: Planspiele zur Auswahl und das gewählte (nachgeladen über live-setup, R-P6). */
+  const [choices, setChoices] = useState<Choices | null>(null);
+  const [fromPlan, setFromPlan] = useState<PlanChoice | null>(null);
+  const [showLater, setShowLater] = useState(false);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -114,6 +151,33 @@ export function NewGameScreen() {
   // US5-S1: übernommene Mannschaften und geänderte Titel sofort zeigen.
   useEffect(() => onLiveSettings(setSettings), []);
 
+  // Spec 015 US2 FR-P09: Planspiele heute und in den nächsten 14 Tagen, auch wenn ein anderes Handy sie ändert.
+  useEffect(() => {
+    const live = settings?.live;
+    if (!live?.orgKey) {
+      setChoices(null);
+      setFromPlan(null);
+      return;
+    }
+    let alive = true;
+    const load = (): void =>
+      void import('../../platform/live-setup')
+        .then((m) => m.planChoices(live))
+        .then((c) => {
+          if (!alive) return;
+          setChoices(c);
+          // Inzwischen von einem anderen Handy angelegt, abgesagt oder gelöscht: Auswahl aufheben.
+          setFromPlan((f) => (f && [...c.today, ...c.later].some((x) => x.entry.id === f.entry.id) ? f : null));
+        })
+        .catch(() => undefined);
+    load();
+    const off = onPlanChanged(load);
+    return () => {
+      alive = false;
+      off();
+    };
+  }, [settings?.live?.topic, settings?.live?.orgPub, !!settings?.live?.orgKey]);
+
   // FR-M03: eigenes Trikot folgt Heim/Auswärts, solange es nicht von Hand geändert wurde.
   useEffect(() => {
     if (team && !ownTouched) setOwnColor(ownColorFor(team, venue));
@@ -150,6 +214,13 @@ export function NewGameScreen() {
   const check = validateNewGame(input);
   const ownShort = shortTeamName(team.name);
   const liveTeam = liveTeamFor(team.name, settings.live);
+  const keyOf = (t: Team): string | undefined => liveTeamFor(t.name, settings.live)?.key;
+  /** Nur Planspiele von Mannschaften, für die dieses Handy sendet. */
+  const teamOf = (c: PlanChoice): Team | undefined => settings.teams.find((t) => keyOf(t) === c.entry.team);
+  const own = choices && {
+    today: choices.today.filter((c) => teamOf(c)),
+    later: choices.later.filter((c) => teamOf(c)),
+  };
   const oppLabel = opponent.trim() || 'Gegner';
   const sides =
     venue === 'home'
@@ -162,6 +233,22 @@ export function NewGameScreen() {
           { name: ownShort, color: ownColor },
         ];
   const [home, away] = sides as [{ name: string; color: string }, { name: string; color: string }];
+
+  /** Spec 015 US2 FR-P10: Mannschaft, Gegner, Heim/Auswärts, Trikot und Spielzeit aus dem Planspiel. */
+  const pick = (c: PlanChoice): void => {
+    const t = teamOf(c);
+    if (!t) return;
+    applyTeam(settings, t);
+    setOpponent(c.entry.opponent);
+    setOppTouched(false);
+    setVenue(c.entry.venue);
+    setOwnTouched(false);
+    if (c.entry.schema) {
+      setSections(c.entry.schema.sections);
+      setMinutes(c.entry.schema.sectionMinutes);
+    }
+    setFromPlan(c);
+  };
 
   const create = async (asPrivate = false): Promise<void> => {
     if (!check.ok || busy) return;
@@ -184,6 +271,11 @@ export function NewGameScreen() {
     // Spec 006 FR-L09: "Live aufs Dashboard" aus → das Spiel wird nicht gesendet.
     const game = liveTeam && (!liveOn || asPrivate) ? startPrivate(created) : created;
     await putGame(game);
+    // Spec 015 FR-P11: Planspiel als "angelegt" vermerken (nachgeladen, im Hintergrund).
+    if (fromPlan) {
+      const planId = fromPlan.entry.id;
+      void import('../../platform/live-setup').then((m) => m.linkPlanGame(planId, game.id)).catch(() => undefined);
+    }
     await putSettings(
       rememberColors(recordTeamUse(settings, team.id, { schema: check.value.schema, squad: chosen, now }), check.value),
     );
@@ -221,6 +313,61 @@ export function NewGameScreen() {
           void create();
         }}
       >
+        {own && own.today.length + own.later.length > 0 && (
+          <section class="card plan-pick" aria-labelledby="plan-pick-title" data-testid="plan-pick">
+            <h2 id="plan-pick-title" class="t-label card__title">
+              {own.today.length > 0 ? 'AUS DEM SPIELPLAN · HEUTE' : 'AUS DEM SPIELPLAN'}
+            </h2>
+            {own.today.length > 0 && (
+              <div class="plan-pick__rows">
+                {own.today.map((c) => (
+                  <PickRow
+                    key={c.entry.id}
+                    c={c}
+                    lead={c.entry.time ?? '–'}
+                    selected={fromPlan?.entry.id === c.entry.id}
+                    onPick={() => pick(c)}
+                  />
+                ))}
+              </div>
+            )}
+            {own.later.length > 0 && (
+              <button
+                type="button"
+                class="plan__head plan-pick__more"
+                aria-expanded={showLater}
+                data-testid="plan-pick-more"
+                onClick={() => setShowLater(!showLater)}
+              >
+                <span class="plan__date">Weitere Spiele</span>
+                <span class="plan__count">nächste 14 Tage</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon plan__chev">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+            {showLater && (
+              <div class="plan-pick__rows">
+                {own.later.map((c) => (
+                  <PickRow
+                    key={c.entry.id}
+                    c={c}
+                    lead={c.day}
+                    selected={fromPlan?.entry.id === c.entry.id}
+                    onPick={() => pick(c)}
+                  />
+                ))}
+              </div>
+            )}
+            {fromPlan && (
+              <p class="plan-pick__hint" data-testid="plan-pick-hint">
+                Aus dem Spielplan: {fromPlan.when}
+                {fromPlan.entry.competition ? ` · ${fromPlan.entry.competition}` : ''}. Änderungen gelten nur für dieses
+                Spiel.
+              </p>
+            )}
+          </section>
+        )}
         {/* Spec 011 FR-G03: Mannschaft, Live, Gegner, Begegnung und Trikots auf einer Karte */}
         <section class="card" aria-labelledby="card-matchup-title" data-testid="card-matchup">
           <h2 id="card-matchup-title" class="t-label card__title">
@@ -239,7 +386,11 @@ export function NewGameScreen() {
                     class="chip chip--wide"
                     aria-pressed={t.id === team.id}
                     data-testid={`team-chip-${i}`}
-                    onClick={() => applyTeam(settings, t)}
+                    onClick={() => {
+                      applyTeam(settings, t);
+                      // Andere Mannschaft als im gewählten Planspiel: kein Spiel aus dem Plan mehr.
+                      if (fromPlan && keyOf(t) !== fromPlan.entry.team) setFromPlan(null);
+                    }}
                   >
                     {teamShortLabel(t.name)}
                   </button>

@@ -183,3 +183,20 @@ describe('006 FR-L11 Umschlag: Prüfreihenfolge', () => {
     expect(toBase64Url(fromBase64Url(k.pub))).toBe(k.pub);
   });
 });
+
+describe('015 Plan-Meldung (contracts/plan-message.md)', () => {
+  it('p wird mit dem Organisator-Schlüssel geprüft; falsche Signatur oder zu lang → ohne Plan', async () => {
+    const org = await newSigningKey();
+    const view = { viewKey: newViewKey(), orgPub: org.pub };
+    const payload = { v: 1, e: [{ i: 'a1', k: 'E1', d: '2026-11-14', u: 1, h: 1 }] };
+    const plan = await signData(org.priv, payload);
+    const opened = await openMessage(view, await sealMessage(view.viewKey, { plan }));
+    expect(opened).toEqual({ content: null, cert: null, config: null, plan: plan.d });
+
+    const fake = await signData((await newSigningKey()).priv, payload);
+    expect((await openMessage(view, await sealMessage(view.viewKey, { plan: fake })))?.plan).toBeUndefined();
+
+    const long = await signData(org.priv, { v: 1, e: [], pad: 'x'.repeat(3000) });
+    expect((await openMessage(view, await sealMessage(view.viewKey, { plan: long })))?.plan).toBeUndefined();
+  });
+});
