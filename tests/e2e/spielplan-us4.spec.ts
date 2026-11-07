@@ -174,8 +174,10 @@ test('015 US4-S5 "Spielplan teilen": alle Spiele ab heute im Einfügeformat, unv
   await row(page, 'TSV Abgesagt').click();
   await page.getByTestId('plan-cancel').click();
 
+  // Die Aufzeichnung beginnt in WebKit nach dem Neuladen von vorn: ab hier zählen.
+  const before = (await recorded()).shares.length;
   await page.getByTestId('plan-share').click();
-  await expect.poll(async () => (await recorded()).shares.length).toBe(3); // 2 Links beim Einrichten
+  await expect.poll(async () => (await recorded()).shares.length).toBe(before + 1);
   const shared = (await recorded()).shares.at(-1);
   expect(shared?.title).toBe('Spielplan');
   expect(shared?.text).toBe(
