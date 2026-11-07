@@ -124,7 +124,7 @@
 
 ## Phase 13: Fehlerbehebung am Vorabend angelegte Spiele (Clarifications 07.11.2026, research.md R-L21)
 
-- [x] L067 [P] [US2] (FR-L06, US2-S10) Unit `tests/unit/live-sender.test.ts`: Rückkehr in den Vordergrund sendet angelegte Spiele erneut, höchstens einmal je Stunde; private und übernommene Spiele nicht; E2E `tests/e2e/live-us2.spec.ts` 006 US2-S10 (Meldungen beim Dienst abgelaufen, Vordergrund nach über einer Stunde und Neustart senden das Spiel erneut, ein frisches Dashboard zeigt es)
+- [x] L067 [P] [US2] (FR-L06, US2-S10) Unit `tests/unit/live-sender.test.ts`: Rückkehr in den Vordergrund sendet angelegte Spiele erneut, höchstens einmal je Stunde; private, übernommene und über zwei Tage alte Spiele nicht; E2E `tests/e2e/live-us2.spec.ts` 006 US2-S10 (Meldungen beim Dienst abgelaufen, Vordergrund nach über einer Stunde und Neustart senden das Spiel erneut, ein frisches Dashboard zeigt es)
 - [x] L068 [US2] `src/platform/live-sender.ts`: letzte Sendung je Spiel, `RESEND_CREATED_MS`, beim Start alle angelegten Spiele (macht L067 grün)
 - [x] L069 [P] [US3] (FR-L16, US3-S12) Unit `tests/unit/live-board.test.ts`: am Vortag angelegtes Spiel zählt heute (ohne Datum, kein "Zuletzt"), vor zwei Tagen angelegtes weiter mit Datum, `prune` behält das zweite angelegte Spiel neben dem angepfiffenen; E2E `tests/e2e/live-us3.spec.ts` 006 US3-S12
 - [x] L070 [US3] `src/domain/live-board.ts` (`dayOf` mit Vortag-Regel, `prune` mit Serverzeit der jüngsten Meldung, 100 % Branch-Coverage; macht L069 grün); Hilfe `spiel-vorabend` neu, `eltern-dashboard` geändert

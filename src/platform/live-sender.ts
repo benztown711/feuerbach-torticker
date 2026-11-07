@@ -21,6 +21,11 @@ export const RETRY_MS = [5_000, 10_000, 20_000, 30_000];
  * zurückliegt; der Dienst hält Meldungen nur rund 12 Stunden vor (research.md R-L21).
  */
 export const RESEND_CREATED_MS = 60 * 60_000;
+/** Nur Spiele, die höchstens so alt sind (am Vorabend vorbereitet), nicht längst vergessene. */
+export const RESEND_CREATED_MAX_AGE_MS = 48 * 60 * 60_000;
+/** Angelegt, noch nicht angepfiffen und jung genug zum erneuten Senden (US2-S10). */
+const preparedAt = (game: Game, now: number): boolean =>
+  game.status === 'created' && now - game.createdAt <= RESEND_CREATED_MAX_AGE_MS;
 /** Kader höchstens so oft neu lesen (er ändert sich im Spiel kaum). */
 export const PLAYERS_TTL_MS = 60_000;
 
@@ -155,7 +160,7 @@ export class LiveSender {
     for (const { game, team } of this.games.values()) {
       if (game.live === false || this.pending.has(game.id)) continue;
       const stale = now - (this.sentAt.get(game.id) ?? Number.NEGATIVE_INFINITY) >= RESEND_CREATED_MS;
-      if (ACTIVE.has(game.status) || (foreground && game.status === 'created' && stale)) this.enqueueGame(game, team);
+      if (ACTIVE.has(game.status) || (foreground && preparedAt(game, now) && stale)) this.enqueueGame(game, team);
     }
   }
 
@@ -336,5 +341,6 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
   for (const l of startListeners) l();
   const games = await listGames();
   const open = games.find((g) => g.status !== 'finished');
-  for (const game of games) if (game === open || game.status === 'created') sender.handle({ kind: 'put', game });
+  const now = Date.now();
+  for (const game of games) if (game === open || preparedAt(game, now)) sender.handle({ kind: 'put', game });
 }

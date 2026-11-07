@@ -6,7 +6,14 @@ import { setLive, startPrivate } from '../../src/domain/live-snapshot';
 import { handOver } from '../../src/domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../../src/domain/types';
 import type { MessageParts } from '../../src/platform/live-crypto';
-import { HEARTBEAT_MS, LiveSender, MIN_GAP_MS, RESEND_CREATED_MS, WAIT_AFTER_MS } from '../../src/platform/live-sender';
+import {
+  HEARTBEAT_MS,
+  LiveSender,
+  MIN_GAP_MS,
+  RESEND_CREATED_MAX_AGE_MS,
+  RESEND_CREATED_MS,
+  WAIT_AFTER_MS,
+} from '../../src/platform/live-sender';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 const E1_NAME = 'Sportvg Feuerbach E1';
@@ -287,6 +294,18 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     t.setHidden(false);
     await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
     expect(t.sent).toHaveLength(2);
+    t.sender.stop();
+  });
+
+  it('US2-S10 längst vergessene angelegte Spiele (älter als zwei Tage) gehen nicht erneut hinaus', async () => {
+    const t = setup();
+    t.sender.handle({ kind: 'put', game: newGame() });
+    await vi.advanceTimersByTimeAsync(RESEND_CREATED_MAX_AGE_MS + 1000);
+    const before = t.sent.length;
+    t.setHidden(true);
+    t.setHidden(false);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(before);
     t.sender.stop();
   });
 
