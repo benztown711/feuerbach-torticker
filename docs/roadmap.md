@@ -13,7 +13,7 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - **PR #70** (Spec 015 US6, "Ich tickere": Spiel vormerken, "Heute tickerst du" auf dem Startbildschirm; dazu Blätter scrollen auf kleinen iPhones) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #72** (Spec 015 US5, Kader "E1/E2" und "E3": mehrere Kader, Auswahl je Mannschaft, Aushilfen unter "Weitere Kinder", Sicherung mit Kadern und Spielplan) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026). Spec 015 ist damit vollständig.
 - **PR #73** (Spec 007 PR B: App spricht nur noch mit dem eigenen Dienst bei Cloudflare, US1 und US2; ntfy.sh entfällt) ist übernommen (Squash-Merge 07.11.2026, erster Praxistest beim Leistungsligaspiel am 08.11.2026). Hinweis in die Gruppen: "Torticker einmal öffnen und aktualisieren". Als Nächstes: Spec 007 PR C (US3 "Letzte Spiele").
-- **PR #74** (Spec 007 PR C, US3: "Letzte Spiele" ganz unten auf dem Dashboard, Filter Alle/E1/E2/E3, je Mannschaft bis zu 10 frühere Spiele) ist übernommen (Squash-Merge 07.11.2026). Als Nächstes: Trainer-Paket B1/B2 (Spec 016, Review A).
+- **PR #74** (Spec 007 PR C, US3: "Letzte Spiele" ganz unten auf dem Dashboard, Filter Alle/E1/E2/E3, je Mannschaft bis zu 10 frühere Spiele) ist übernommen (Squash-Merge 07.11.2026). Trainer-Paket B1/B2 (Spec 016) ist umgesetzt, PR #75 im Review C.
 
 ## Kurzfassung des Reviews
 
@@ -51,8 +51,8 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | in Arbeit: Spec 016, Review A |
-| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | teilweise: „Trainer-Link einfügen“ auf dem Startbildschirm erkennt Trainer- und Zuschauer-Link (Spec 012 US1, #42); Paket und Kader offen |
+| B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | umgesetzt in Spec 016 (PR #75): Kader gehen über den eigenen Dienst an alle Trainer-Handys, Review C offen |
+| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | umgesetzt in Spec 016 (PR #75): „Link einfügen“ erkennt Trainer-, Zuschauer-Link und Kader-Liste |
 | B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | erledigt: Spec 015 US5 (#72, 07.11.2026) |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
