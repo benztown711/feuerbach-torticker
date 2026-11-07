@@ -83,6 +83,8 @@ export async function createLive(input: LiveInput): Promise<Settings> {
   await putSettings(next);
   void publishConfig(live);
   void startLiveSender(next);
+  // Spec 016 R-B6: das neue Trainer-Handy hält die Verbindung für geteilte Kader (main.tsx).
+  liveSettingsChanged(next);
   return next;
 }
 
