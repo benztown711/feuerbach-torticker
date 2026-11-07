@@ -196,6 +196,34 @@ describe('006 US3 Empfänger', () => {
     expect(again.r.get().board.games).toHaveLength(1);
   });
 
+  it('007: Trainer-Handys (Übernahme von Konfiguration oder Plan) holen immer alles', async () => {
+    const first = setup();
+    await first.msg({ config, content: snap() }, T0 / 1000, 7);
+    await flush();
+    expect(setup({ storage: first.storage, onPlan: vi.fn() }).since).toEqual([undefined]);
+    expect(setup({ storage: first.storage, onConfig: vi.fn() }).since).toEqual([undefined]);
+    expect(setup({ storage: first.storage }).since).toEqual([7]);
+  });
+
+  it('007: eine Meldung, deren Verarbeitung scheitert, hält die folgenden nicht auf', async () => {
+    const onPlan = vi.fn(() => {
+      throw new Error('kaputt');
+    });
+    const s = setup({ onPlan });
+    s.relay().onMessage({
+      seq: 1,
+      time: T0 / 1000,
+      message: JSON.stringify({ content: null, cert: null, config: null, plan: '{"v":1}' }),
+    });
+    s.relay().onMessage({
+      seq: 2,
+      time: T0 / 1000,
+      message: JSON.stringify({ content: snap(), cert: null, config: null }),
+    });
+    await vi.waitFor(() => expect(s.r.get().board.games).toHaveLength(1));
+    expect(onPlan).toHaveBeenCalledTimes(1);
+  });
+
   it('007: ungültige gemerkte seq wird ignoriert (alles neu laden)', () => {
     for (const bad of [0, -3, 1.5, '7', null]) {
       const storage = memoryStore({ [KEY]: JSON.stringify({ games: [], removed: [], seq: bad }) });

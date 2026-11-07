@@ -132,12 +132,18 @@ export class LiveReceiver {
 
   start(): void {
     if (this.stopRelay || this.stopped) return;
+    // Trainer-Handys übernehmen Konfiguration und Spielplan aus jeder Meldung: Sie holen immer alles, denn den
+    // gemerkten Stand kann auch ein Empfänger ohne Übernahme (Seite des Zuschauer-Links) geschrieben haben.
+    const adopts = this.deps.onConfig !== undefined || this.deps.onPlan !== undefined;
     this.stopRelay = this.deps.subscribe(this.view, {
-      since: this.seq,
+      since: adopts ? undefined : this.seq,
       onMessage: (m) => {
         this.active(1);
         // Nacheinander, damit die gemerkte `seq` nie vor einer noch nicht verarbeiteten Meldung steht.
-        this.chain = this.chain.then(() => this.receive(m)).finally(() => this.active(-1));
+        this.chain = this.chain
+          .then(() => this.receive(m))
+          .catch(() => undefined)
+          .finally(() => this.active(-1));
       },
       onServerTime: (sec) => {
         // `hello` kommt vor den gespeicherten Meldungen: ab hier zählt die Ruhezeit.
