@@ -237,7 +237,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
     setSquad(ids);
     // Aushilfen aus dem letzten Spiel bleiben sichtbar.
     setMoreOpen(split.more.some((p) => ids.includes(p.id)));
-  }, [lastKey]);
+  }, [lastKey, team?.id]);
   const toggle = (id: string): void => setSquad(squad.includes(id) ? squad.filter((x) => x !== id) : [...squad, id]);
 
   // FR-031, FR-M04: Gegnerfarbe folgt dem Gegnernamen, solange sie nicht von Hand gewählt wurde.

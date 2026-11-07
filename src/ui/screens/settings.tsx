@@ -545,7 +545,9 @@ export function SettingsScreen() {
           } Nur übernehmen, wenn die Sicherung von dir stammt.`}
           yesLabel="Übernehmen"
           onNo={() => {
-            setImportMsg(`${pendingLive.base} Live-Spieltag nicht übernommen.`);
+            setImportMsg(
+              `${pendingLive.base} Live-Spieltag nicht übernommen.${pendingLive.plan ? ' Spielplan nicht übernommen.' : ''}`,
+            );
             setPendingLive(null);
           }}
           onYes={() => {

@@ -150,7 +150,9 @@ const isSquads = (v: unknown): boolean =>
   Array.isArray(v) &&
   v.length >= 1 &&
   v.length <= MAX_SQUADS &&
-  v.every((q) => isObj(q) && isStr(q.id, 1, 200) && isStr(q.name, 1, MAX_SQUAD_NAME) && /\S/.test(q.name as string));
+  v.every((q) => isObj(q) && isStr(q.id, 1, 200) && isStr(q.name, 1, MAX_SQUAD_NAME) && /\S/.test(q.name as string)) &&
+  new Set(v.map((q: Obj) => q.id)).size === v.length &&
+  new Set(v.map((q: Obj) => (q.name as string).trim().toLocaleLowerCase('de'))).size === v.length;
 
 const isPlan = (v: unknown): boolean =>
   isObj(v) &&

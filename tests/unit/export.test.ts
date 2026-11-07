@@ -347,6 +347,22 @@ describe('015 FR-P24 Sicherung mit Kadern und Spielplan', () => {
     expect(bad({ squads: [{ id: 'a', name: ' ' }] })).toEqual(squadError);
     expect(bad({ squads: [{ id: '', name: 'A' }] })).toEqual(squadError);
     expect(bad({ squads: 'E3' })).toEqual(squadError);
+    expect(
+      bad({
+        squads: [
+          { id: 'a', name: 'A' },
+          { id: 'a', name: 'B' },
+        ],
+      }),
+    ).toEqual(squadError);
+    expect(
+      bad({
+        squads: [
+          { id: 'a', name: 'E3' },
+          { id: 'b', name: 'e3 ' },
+        ],
+      }),
+    ).toEqual(squadError);
     expect(bad({ squads: 'ABCDEFG'.split('').map((c) => ({ id: c, name: c })) })).toEqual(squadError);
     expect(bad({ players: [{ ...withSquad[1], squadId: '' }] }).ok).toBe(false);
     const planError = { ok: false, error: 'Der Spielplan in der Sicherung ist beschädigt.' };
