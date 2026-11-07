@@ -26,8 +26,10 @@ import type { LiveConfig, PlanEntry, Schema, Score, Side, TeamDetail } from './t
 
 /** FR-L15: Ab so langer Funkstille bei laufendem Spiel zeigt die Karte "Letzte Meldung vor n Min". */
 export const STALE_MS = 5 * 60_000;
-/** Obergrenzen, damit der gemerkte Stand klein bleibt. */
-export const MAX_GAMES = 60;
+/** Spec 007 FR-N13: je Mannschaft so viele frühere Spiele (wie der Dienst, R-N10). */
+export const RECENT_PER_TEAM = 10;
+/** Obergrenzen, damit der gemerkte Stand klein bleibt (6 Mannschaften mit je 10 früheren und den heutigen Spielen). */
+export const MAX_GAMES = 90;
 export const MAX_REMOVED = 100;
 /** Spec 015 R-P7: gemerkt höchstens so viele Planspiele (mit Grabsteinen). */
 export const MAX_STORED_PLAN = 3 * MAX_PLAN;
@@ -145,18 +147,28 @@ function dayOf(e: BoardEntry, now: number, timeZone?: string): string {
 }
 
 /**
- * FR-L16: Je Mannschaft bleiben nur Spiele vom Spieltag ihres neuesten Spiels. "Heute" ist dabei die Serverzeit
- * der jüngsten bekannten Meldung, damit ein spät abgerufener alter Stand nichts verdrängt.
+ * FR-L16: Je Mannschaft bleiben die Spiele vom Spieltag ihres neuesten Spiels (Karte, "Heute außerdem") und, seit
+ * Spec 007 R-N10, die 10 jüngsten früheren Spiele ("Letzte Spiele"). "Heute" ist dabei die Serverzeit der jüngsten
+ * bekannten Meldung, damit ein spät abgerufener alter Stand nichts verdrängt.
  */
 function prune(games: BoardEntry[], timeZone?: string): BoardEntry[] {
   const now = Math.max(...games.map((e) => e.at));
+  const day = new Map(games.map((e) => [e, dayOf(e, now, timeZone)] as const));
   const newest = new Map<string, string>();
-  for (const e of games) {
-    const day = dayOf(e, now, timeZone);
-    if (day > (newest.get(e.snap.team) ?? '')) newest.set(e.snap.team, day);
+  for (const [e, d] of day) if (d > (newest.get(e.snap.team) ?? '')) newest.set(e.snap.team, d);
+  // Frühere Tage: nur angepfiffene Spiele, damit nie gespielte keine Ergebnisse verdrängen.
+  const earlier = new Map<string, BoardEntry[]>();
+  for (const [e, d] of day) {
+    if (d === newest.get(e.snap.team) || kickoffOf(e.snap) === null) continue;
+    const list = earlier.get(e.snap.team) ?? [];
+    list.push(e);
+    earlier.set(e.snap.team, list);
   }
+  const kept = new Set(
+    [...earlier.values()].flatMap((l) => l.sort((a, b) => startOf(b) - startOf(a)).slice(0, RECENT_PER_TEAM)),
+  );
   return games
-    .filter((e) => dayOf(e, now, timeZone) === newest.get(e.snap.team))
+    .filter((e) => day.get(e) === newest.get(e.snap.team) || kept.has(e))
     .sort((a, b) => a.at - b.at)
     .slice(-MAX_GAMES);
 }
@@ -267,6 +279,28 @@ export interface BoardView {
   retired: boolean;
   /** Spec 012 FR-S30: Mannschaften ohne Karte ("heute noch kein Spiel"), nur wenn es Karten gibt. */
   waiting: { key: string; name: string; color: string | null }[];
+  /** Spec 007 FR-N13: frühere Spiele je Mannschaft (Reihenfolge wie `teams`), ohne die heutigen. */
+  recent: RecentTeam[];
+}
+
+/** Spec 007 FR-N13: eine Zeile unter "Letzte Spiele", z. B. "31.10. · 2:1 gegen TSV Musterstadt". */
+export interface RecentRow {
+  date: string;
+  /** Eigene Tore zuerst. */
+  score: string;
+  /** "gegen …" bzw. "bei …", nach Elfmeterschießen mit ", i. E. 4:3" (eigene zuerst). */
+  text: string;
+  /** Spiel-ID, als Schlüssel der Zeile. */
+  id: string;
+  team: string;
+  /** Anpfiff in Serverzeit (ms), zum Sortieren unter "Alle". */
+  at: number;
+}
+
+export interface RecentTeam {
+  key: string;
+  /** Neuestes zuerst, höchstens 10. */
+  rows: RecentRow[];
 }
 
 interface GameState {
@@ -525,10 +559,12 @@ function teamCard(
     const after = afterLine(todayOpen);
     const next = after.length === 0 && (main.group === 'finished' || !main.today) ? future[0] : undefined;
     const lines = next ? [`Nächstes Spiel: ${entryWhen(next)} ${versus(next)}`] : after;
+    // Nur Spiele vom selben Tag ("Heute außerdem" bzw. "Außerdem am"); frühere stehen unter "Letzte Spiele".
+    const day = dayOf(main.entry, serverNow, timeZone);
     return cardOf(
       key,
       main,
-      states.filter((s) => s !== main),
+      states.filter((s) => s !== main && dayOf(s.entry, serverNow, timeZone) === day),
       serverNow,
       lines,
       timeZone,
@@ -551,6 +587,7 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
     board.config?.teams ?? [...new Set([...board.games.map((e) => e.snap.team), ...plan.map((e) => e.team)])].sort();
   const today = dayKey(serverNow, timeZone);
   const details = board.config?.m ?? [];
+  const recent: RecentTeam[] = [];
   const cards = teams
     .flatMap((key) => {
       // Laufendes Spiel vor neuestem (zwei Lead-Handys derselben Mannschaft), sonst das neueste.
@@ -562,6 +599,7 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
       // Entfernte Spiele dieser Mannschaft ("Nicht live senden", gelöscht): ihre Planspiele bleiben verbraucht.
       const gone = board.removed.filter(([id]) => id.startsWith(`${key}/`)).map(([id]) => id.slice(key.length + 1));
       const card = teamCard(key, states, plan, gone, detail, serverNow, today, timeZone);
+      recent.push({ key, rows: recentRows(key, states, timeZone) });
       return card ? [card] : [];
     })
     .sort((a, b) => rank(a) - rank(b));
@@ -581,7 +619,38 @@ export function boardView(board: Board, serverNow: number, timeZone?: string): B
     today: cards.some((c) => c.today),
     retired: board.config?.retired === true,
     waiting,
+    recent,
   };
+}
+
+/**
+ * Spec 007 FR-N13: beendete Spiele einer Mannschaft von früheren Tagen, neuestes zuerst, höchstens 10. Heutige
+ * Spiele stehen schon als Karte oder unter "Heute außerdem".
+ */
+function recentRows(key: string, states: GameState[], timeZone?: string): RecentRow[] {
+  return states
+    .filter((s) => s.group === 'finished' && !s.today)
+    .sort((a, b) => startOf(b.entry) - startOf(a.entry))
+    .slice(0, RECENT_PER_TEAM)
+    .map((s) => {
+      const snap = s.entry.snap;
+      const at = startOf(s.entry);
+      return {
+        date: shortDay(at, timeZone),
+        score: `${count(snap.goals, 'own')}:${count(snap.goals, 'opp')}`,
+        text: `${snap.venue === 'home' ? 'gegen' : 'bei'} ${snap.opp}${penalties(snap)}`,
+        id: snap.gameId,
+        team: key,
+        at,
+      };
+    });
+}
+
+/** Ergebnis des Elfmeterschießens aus eigener Sicht für "Letzte Spiele". */
+function penalties(s: LiveGameSnapshot): string {
+  if (!s.shootout) return '';
+  const hits = (side: Side): number => s.shootout!.shots.filter(([sd, hit]) => sd === side && hit).length;
+  return `, i. E. ${hits('own')}:${hits('opp')}`;
 }
 
 /**

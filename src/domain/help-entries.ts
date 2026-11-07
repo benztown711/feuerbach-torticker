@@ -678,12 +678,23 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Auf- und Zuklappen, und „Vergangene Spiele“ mit Endstand. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
+      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Auf- und Zuklappen, und „Vergangene Spiele“ mit Endstand. Ganz unten findest du „Letzte Spiele“ mit den früheren Ergebnissen. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
     keywords:
-      'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse',
-    sources: ['006 US3', '012 US5', '015 US3', '015 US7'],
+      'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse letzte spiele',
+    sources: ['006 US3', '012 US5', '015 US3', '015 US7', '007 US3'],
     parents: true,
-    related: ['eltern-home', 'keine-verbindung'],
+    related: ['eltern-home', 'letzte-spiele', 'keine-verbindung'],
+  },
+  {
+    id: 'letzte-spiele',
+    topic: 'live',
+    title: 'Wo sehe ich frühere Ergebnisse?',
+    answer:
+      'Ganz unten auf dem Dashboard tippst du auf „Letzte Spiele“. Dort stehen je Mannschaft bis zu 10 frühere Spiele, neuestes zuerst, mit Datum, Ergebnis und Gegner. Mit „Alle“, „E1“, „E2“ oder „E3“ wählst du die Mannschaft; dein Handy merkt sich die Auswahl. Spiele von heute stehen oben in den Karten, nicht noch einmal unten.',
+    keywords: 'frühere ergebnisse letzte spiele vergangene spiele ergebnis woche saison verpasst filter mannschaft',
+    sources: ['007 US3'],
+    parents: true,
+    related: ['eltern-dashboard'],
   },
   {
     id: 'eltern-home',
