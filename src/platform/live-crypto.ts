@@ -83,9 +83,13 @@ const aesKey = (viewKey: string): Promise<CryptoKey> =>
 
 /** Text packen und verschlüsseln: "t1." + base64url(IV ‖ Chiffrat). */
 export async function seal(viewKey: string, text: string): Promise<string> {
+  return sealWith(await aesKey(viewKey), text);
+}
+
+async function sealWith(key: CryptoKey, text: string): Promise<string> {
   const packed = await pipe(new TextEncoder().encode(text), new CompressionStream('deflate-raw'));
   const iv = random(IV_BYTES);
-  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aesKey(viewKey), packed));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, packed));
   const all = new Uint8Array(IV_BYTES + ct.length);
   all.set(iv);
   all.set(ct, IV_BYTES);
@@ -94,12 +98,16 @@ export async function seal(viewKey: string, text: string): Promise<string> {
 
 /** Gegenstück zu `seal`; jeder Fehler ergibt null. */
 export async function unseal(viewKey: string, text: string): Promise<string | null> {
+  return unsealWith(() => aesKey(viewKey), text);
+}
+
+async function unsealWith(key: () => Promise<CryptoKey>, text: string): Promise<string | null> {
   if (!text.startsWith(PREFIX)) return null;
   try {
     const all = fromBase64Url(text.slice(PREFIX.length));
     const iv = all.slice(0, IV_BYTES);
     const ct = all.slice(IV_BYTES);
-    const packed = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, await aesKey(viewKey), ct));
+    const packed = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, await key(), ct));
     return new TextDecoder('utf-8', { fatal: true }).decode(await pipe(packed, new DecompressionStream('deflate-raw')));
   } catch {
     return null;
@@ -134,6 +142,34 @@ export const slotOf = (viewKey: string, team: string, gameId: string): Promise<s
 
 /** R-N3: Kennung einer Mannschaft (für "die letzten 10 je Mannschaft"). */
 export const groupOf = (viewKey: string, team: string): Promise<string> => idOf(viewKey, ['group', team]);
+
+/** Spec 016: Kennung der Zeile eines geteilten Kaders beim Dienst. */
+export const squadSlot = (viewKey: string, sid: string): Promise<string> => idOf(viewKey, ['squad', sid]);
+
+/* ---------- Spec 016 R-B2: Kader-Schlüssel nur für Trainer-Handys ---------- */
+
+const SQUAD_INFO = 'torticker-squad-v1';
+
+/** AES-GCM-256 per HKDF aus dem privaten Organisator-Skalar `d`; den haben nur Handys mit Trainer-Link. */
+async function squadKey(orgKey: PrivateKeyParts): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey('raw', fromBase64Url(orgKey.d), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: new TextEncoder().encode(SQUAD_INFO) },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+/** Kader-Meldung verschlüsseln (contracts/squad-message.md). */
+export async function sealSquad(orgKey: PrivateKeyParts, text: string): Promise<string> {
+  return sealWith(await squadKey(orgKey), text);
+}
+
+/** Gegenstück zu `sealSquad`; jeder Fehler (auch eine Meldung für Zuschauer) ergibt null. */
+export const unsealSquad = (orgKey: PrivateKeyParts, text: string): Promise<string | null> =>
+  unsealWith(() => squadKey(orgKey), text);
 
 /** SHA-256 der Meldung, base64url (43 Zeichen). */
 export async function bodyHash(body: string): Promise<string> {
