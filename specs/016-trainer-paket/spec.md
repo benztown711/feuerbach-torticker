@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-07
 
-**Status**: Review A beantwortet (07.11.2026: "1A, 2B, 3A, 4A"), Bestätigung der Folgerungen offen. Voraussetzung: Constitution 3.1.0 (Prinzip II, Kader für Trainer-Handys über den eigenen Dienst).
+**Status**: Review A erledigt (07.11.2026: "1A, 2B, 3A, 4A", Folgerungen "passt"). Review B offen, Mockup: https://claude.ai/artifact/2R4hbBgR2vTAYSu95RP4qX Voraussetzung: Constitution 3.1.0 (Prinzip II, Kader für Trainer-Handys über den eigenen Dienst).
 
 **Input**: Atti (07.11.2026): "Spec 007 PR C „Letzte Spiele“ würde ich gerne machen und danach das Trainer paket B1/b2". Roadmap B1: "Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“". Roadmap B2: "Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet".
 
