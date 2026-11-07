@@ -81,6 +81,8 @@ export interface Decoded {
   content: Json | null;
   cert: Json | null;
   config: Json | null;
+  /** Spec 015 contracts/plan-message.md: Nutzlast einer Plan-Meldung, geprüft mit dem Organisator-Schlüssel. */
+  plan: Json | null;
 }
 
 /** Entschlüsselt und prüft eine Meldung mit den Schlüsseln aus dem Zuschauer-Link. */
@@ -99,7 +101,9 @@ export async function decodeMessage(viewerUrl: string, text: string): Promise<De
   const config = g && (await verify(view.o as string, g.d, g.s)) ? (JSON.parse(g.d) as Json) : null;
   const cert = c && (await verify(view.o as string, c.d, c.s)) ? (JSON.parse(c.d) as Json) : null;
   const ok = cert && typeof env.m === 'string' && (await verify(cert.pub as string, env.m, env.s as string));
-  return { content: ok ? (JSON.parse(env.m as string) as Json) : null, cert, config };
+  const p = signed(env.p);
+  const plan = p && (await verify(view.o as string, p.d, p.s)) ? (JSON.parse(p.d) as Json) : null;
+  return { content: ok ? (JSON.parse(env.m as string) as Json) : null, cert, config, plan };
 }
 
 /** Alle gültigen Live-Stände im Relay, älteste zuerst. */
@@ -108,6 +112,16 @@ export async function liveStates(relay: FakeRelay, viewerUrl: string): Promise<J
   for (const m of relay.all()) {
     const d = await decodeMessage(viewerUrl, m.message);
     if (d.content) out.push(d.content);
+  }
+  return out;
+}
+
+/** Spec 015: alle gültigen Plan-Nutzlasten im Relay, älteste zuerst. */
+export async function planPayloads(relay: FakeRelay, viewerUrl: string): Promise<Json[]> {
+  const out: Json[] = [];
+  for (const m of relay.all()) {
+    const d = await decodeMessage(viewerUrl, m.message);
+    if (d.plan) out.push(d.plan);
   }
   return out;
 }

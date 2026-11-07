@@ -3090,3 +3090,213 @@ body:has(.page:not(.dash, .lead-link)) {
   border-radius: var(--radius-md);
   background: var(--color-card);
 }
+
+/* Spec 015 US1: Spielplan (Mockup "Spielplan pflegen") */
+.plan__sub {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.plan__group {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+}
+
+.plan__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.plan__date {
+  font-weight: 700;
+}
+
+.plan__today {
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.plan__count {
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.plan__chev {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+
+.plan__head[aria-expanded='true'] .plan__chev {
+  transform: rotate(90deg);
+}
+
+.plan__rows {
+  border-top: 1px solid var(--color-line);
+}
+
+.plan__row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+}
+
+button.plan__row {
+  cursor: pointer;
+}
+
+.plan__row:last-child {
+  border-bottom: 0;
+}
+
+.plan__time {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plan__title {
+  overflow-wrap: anywhere;
+}
+
+.plan__detail {
+  color: var(--color-ink-muted);
+  font-size: 13px;
+}
+
+.plan__row--off .plan__title {
+  color: var(--color-ink-muted);
+  text-decoration: line-through;
+}
+
+.plan__state {
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.plan__state--off {
+  border-color: var(--color-rot-text);
+  color: var(--color-rot-text);
+  font-weight: 700;
+}
+
+.plan__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.plan__pair .input,
+.plan__pair .select {
+  width: 100%;
+  min-width: 0;
+}
+
+.plan__toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-2));
+  z-index: 11;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan__chev {
+    transition: none;
+  }
+}
+
+/* Spec 015 US2: "Aus dem Spielplan" unter "Neues Spiel" */
+.plan-pick__rows {
+  margin: 0 calc(-1 * var(--space-4));
+  border-top: 1px solid var(--color-line);
+}
+
+.plan-pick__rows .plan__row:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.plan-pick .plan__row[aria-pressed='true'] {
+  background: var(--color-rot-hell);
+}
+
+.plan-pick__more {
+  padding: 0;
+}
+
+.plan-pick__hint {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-size: 14px;
+}
+
+/* Spec 015: Pflichtfeld-Stern und deutsch angezeigte Datums- und Zeitfelder */
+.plan__req {
+  color: var(--color-rot-text);
+  font-weight: 700;
+}
+
+.picker {
+  position: relative;
+}
+
+.picker__shown {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker__native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.picker:focus-within .picker__shown {
+  outline: 3px solid var(--color-rot-text);
+  outline-offset: 2px;
+}

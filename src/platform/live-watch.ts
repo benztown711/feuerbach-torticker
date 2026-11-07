@@ -12,7 +12,7 @@ import { configOf, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
-import { adoptReceived } from './live-setup';
+import { adoptPlan, adoptReceived } from './live-setup';
 
 /**
  * Spec 006 US4 und US6: Trainer-Handys hören beim Anlegen und im Spielbildschirm mit: Läuft dasselbe Spiel
@@ -29,7 +29,12 @@ export { handOver };
 const receiverFor = (live: LiveSpieltag, deps: Partial<ReceiverDeps>): LiveReceiver =>
   newReceiver(
     viewerOf(live),
-    { onConfig: (signed) => void adoptReceived(signed, live), ...deps },
+    {
+      onConfig: (signed) => void adoptReceived(signed, live),
+      // Spec 015 US1-S4: Planspiele anderer Trainer-Handys übernehmen.
+      onPlan: (payload) => void adoptPlan(payload, live),
+      ...deps,
+    },
     configOf(live.config),
   );
 
@@ -141,4 +146,11 @@ export function watchGame(live: LiveSpieltag, hooks: GameWatchHooks, deps: Parti
     onChange: (cb) => r.onChange(cb),
     stop: () => r.stop(),
   };
+}
+
+/** Spec 015 US1-S4: Spielplan-Seite hört mit, solange sie offen ist (Planspiele anderer Trainer-Handys). */
+export function watchPlan(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {}): { stop(): void } {
+  const r = receiverFor(live, deps);
+  r.start();
+  return { stop: () => r.stop() };
 }

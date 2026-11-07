@@ -1,6 +1,6 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
 import { parseLeadCert } from '../domain/live-spieltag';
-import { isObj, isSignedData } from '../domain/live-validate';
+import { isObj, isSignedData, MAX_PLAN_SIGNED } from '../domain/live-validate';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
 
 /**
@@ -111,6 +111,8 @@ export interface MessageParts {
   leadKey?: PrivateKeyParts;
   cert?: SignedData;
   config?: SignedData;
+  /** Spec 015: Planspiele, signiert mit dem Organisator-Schlüssel (contracts/plan-message.md). */
+  plan?: SignedData;
 }
 
 /** Baut den Umschlag (contracts/live-message.md) und verschlüsselt ihn. */
@@ -122,6 +124,7 @@ export async function sealMessage(viewKey: string, parts: MessageParts): Promise
     env.c = parts.cert;
   }
   if (parts.config) env.g = parts.config;
+  if (parts.plan) env.p = parts.plan;
   return seal(viewKey, JSON.stringify(env));
 }
 
@@ -134,6 +137,8 @@ export interface OpenedMessage {
   config: unknown;
   /** Die geprüfte Konfiguration wie signiert, zum Weitergeben (Spec 006 US5); fehlt ohne gültiges g. */
   signedConfig?: SignedData;
+  /** Spec 015: geprüfte Nutzlast einer Plan-Meldung als JSON-Text; fehlt ohne gültiges p. */
+  plan?: string;
 }
 
 const parseJson = (text: string): unknown => {
@@ -171,5 +176,10 @@ export async function openMessage(
     }
   }
   // Eine geprüfte Konfiguration stammt immer aus g.
-  return config === null ? { content, cert, config } : { content, cert, config, signedConfig: g as SignedData };
+  const opened: OpenedMessage =
+    config === null ? { content, cert, config } : { content, cert, config, signedConfig: g as SignedData };
+  // Spec 015: Planspiele nur mit gültiger Signatur des Organisators.
+  const p = isSignedData(e.p, MAX_PLAN_SIGNED) ? e.p : null;
+  if (p && (await verify(view.orgPub, p.d, p.s))) opened.plan = p.d;
+  return opened;
 }

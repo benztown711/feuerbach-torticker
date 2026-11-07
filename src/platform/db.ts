@@ -1,11 +1,12 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { withSettingsDefaults } from '../domain/settings';
-import type { Game, Player, Settings } from '../domain/types';
+import type { Game, PlanStore, Player, Settings } from '../domain/types';
 
 interface TortickerDB extends DBSchema {
   games: { key: string; value: Game; indexes: { 'by-createdAt': number; 'by-status': string } };
   players: { key: string; value: Player };
-  settings: { key: string; value: Settings };
+  /** Schlüssel "app": Einstellungen; Schlüssel "plan": Spielplan (Spec 015 R-P3). */
+  settings: { key: string; value: Settings | PlanStore };
 }
 
 const DB_NAME = 'torticker';
@@ -102,9 +103,21 @@ export async function putPlayers(players: Player[]): Promise<void> {
 }
 
 export async function getSettings(): Promise<Settings> {
-  return withSettingsDefaults(await (await db()).get('settings', SETTINGS_KEY));
+  return withSettingsDefaults((await (await db()).get('settings', SETTINGS_KEY)) as Settings | undefined);
 }
 
 export async function putSettings(settings: Settings): Promise<void> {
   await (await db()).put('settings', settings, SETTINGS_KEY);
+}
+
+const PLAN_KEY = 'plan';
+
+/** Spec 015 R-P3: Spielplan unter eigenem Schlüssel, damit Bildschirme mit alten Einstellungen ihn nie überschreiben. */
+export async function getPlan(): Promise<PlanStore | undefined> {
+  const v = (await (await db()).get('settings', PLAN_KEY)) as PlanStore | undefined;
+  return v?.v === 1 ? v : undefined;
+}
+
+export async function putPlan(plan: PlanStore): Promise<void> {
+  await (await db()).put('settings', plan, PLAN_KEY);
 }
