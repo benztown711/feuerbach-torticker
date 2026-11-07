@@ -56,7 +56,7 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 - [x] T030 [P] [US3] E2E `tests/e2e/dienst-us3.spec.ts`: 007 US3-S1 (zugeklappt, Aufklappen zeigt Filter "Alle" gewählt, "E1" zeigt 10 jüngste ohne Kürzel), US3-S2 (Filter "E2", Karten unverändert, beim nächsten Aufklappen wieder "E2"), US3-S3 (heutiges Spiel der Karte nicht doppelt), US3-S4 (gelöscht bzw. "Nicht live senden" verschwindet), US3-S5 (ohne frühere Spiele kein Block; Mannschaft ohne Spiele: "Noch keine früheren Spiele"); 006 FR-L18 bei 320 pt mit Block
 - [x] T031 [US3] `src/ui/screens/live-dashboard.tsx`, `src/styles/app.css`: Block nach Mockup (Überschrift als Knopf mit `aria-expanded`, Filter als Knöpfe mit `aria-pressed`, Liste ruhig in `ink-muted`, Ergebnis in `ink`), Filter in `localStorage` `torticker-recent-filter` (Fehler ignoriert) (macht T030 grün); visueller Vergleich `dashboard-*` neu aus der CI. Umgesetzt: das Musterdashboard der Kernbildschirme hat keine früheren Spiele, die Bilder bleiben gleich; axe hell/dunkel zu, auf und gefiltert in `dienst-us3.spec.ts`
 - [x] T032 [US3] Hilfe: `eltern-dashboard` geändert, `letzte-spiele` neu (Eltern-Hilfe, "Wo sehe ich frühere Ergebnisse?"); Quellen 007 US3
-- [ ] T033 [US3] `/code-review`, `/security-review` für PR C; Screenshots iPhone hell/dunkel an Atti
+- [x] T033 [US3] `/code-review`, `/security-review` für PR C; Screenshots iPhone hell/dunkel an Atti
 
 ## Phase 6: Abschluss
 
