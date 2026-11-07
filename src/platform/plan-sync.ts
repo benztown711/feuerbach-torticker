@@ -1,5 +1,6 @@
 import {
   addEntry,
+  claimLabel,
   chunkEntries,
   deleteEntry,
   encodePayload,
@@ -7,26 +8,30 @@ import {
   entryTitle,
   entryWhen,
   formatPlanDateShort,
+  matchText,
   markSent,
   mergeEntries,
   needsRefresh,
   noteSeen,
   parsePayload,
+  myClaims,
   pickable,
   planFor,
   prunePlan,
   setCancelled,
+  setClaim,
   setGame,
   setScore,
   staleEntries,
   todayKey,
+  trainerName,
   updateEntry,
   type PlanInput,
 } from '../domain/plan';
 import { importPlan } from '../domain/plan-list';
 import { MAX_PLAN_SIGNED } from '../domain/live-validate';
 import type { LiveSpieltag, PlanEntry, PlanStore, Score } from '../domain/types';
-import { getPlan, getSettings, putPlan } from './db';
+import { getPlan, getSettings, putPlan, putSettings } from './db';
 import { sealMessage, signData } from './live-crypto';
 import { planChanged } from './live-events';
 import { publish } from './relay';
@@ -43,7 +48,9 @@ export type PlanEdit =
   | { kind: 'delete'; id: string }
   | { kind: 'link'; id: string; gameId: string }
   /** US4: Zeilen aus "Liste einfügen"; vorhandene Spiele werden aktualisiert (FR-P17). */
-  | { kind: 'import'; inputs: PlanInput[] };
+  | { kind: 'import'; inputs: PlanInput[] }
+  /** US6: "Ich tickere" (true) bzw. "Nicht mehr tickern"; `name` beim ersten Vormerken (FR-P26). */
+  | { kind: 'claim'; id: string; claim: boolean; name?: string };
 
 /** US2: Planspiel zur Auswahl unter "Neues Spiel", mit fertigen Beschriftungen. */
 export interface PlanChoice {
@@ -56,6 +63,10 @@ export interface PlanChoice {
   when: string;
   /** "Sa 14." */
   day: string;
+  /** US6: Vormerkung ("du", Name, "vergeben"), leer = frei. */
+  claim: string;
+  /** US6: "E1 gegen TSV Musterstadt" (Startbildschirm). */
+  match: string;
 }
 
 let queue: Promise<unknown> = Promise.resolve();
@@ -80,7 +91,19 @@ async function save(store: PlanStore): Promise<PlanStore> {
   return store;
 }
 
-function apply(store: PlanStore, edit: PlanEdit, now: number): PlanStore | null {
+/**
+ * US6: Kennung dieses Handys (beim ersten Mal angelegt) und Vorname für die Trainer; `name` speichert einen neuen
+ * Vornamen (FR-P26, auch leer = ohne Namen, dann fragt die App nicht mehr).
+ */
+async function identity(name?: string): Promise<{ me: string; name: string }> {
+  const s = await getSettings();
+  const me = s.deviceId ?? crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+  const next = name === undefined ? (s.trainerName ?? '') : trainerName(name);
+  if (s.deviceId !== me || s.trainerName !== next) await putSettings({ ...s, deviceId: me, trainerName: next });
+  return { me, name: next };
+}
+
+function apply(store: PlanStore, edit: PlanEdit, now: number, me: { me: string; name: string }): PlanStore | null {
   switch (edit.kind) {
     case 'add':
       return addEntry(store, edit.input, newId(), now).store;
@@ -94,6 +117,13 @@ function apply(store: PlanStore, edit: PlanEdit, now: number): PlanStore | null 
       return setGame(store, edit.id, edit.gameId, now)?.store ?? null;
     case 'import':
       return importPlan(store, edit.inputs, todayKey(now), now, newId).store;
+    case 'claim': {
+      // Schon so vorgemerkt bzw. frei: nichts zu senden, aber auch kein Fehler.
+      // Schon so vorgemerkt bzw. frei: derselbe Stand (nichts zu speichern oder zu senden).
+      const r = setClaim(store, edit.id, edit.claim ? me.me : '', me.name, now);
+      const entry = store.entries.find((e) => e.id === edit.id && !e.deleted && !e.cancelled);
+      return r ? r.store : entry ? store : null;
+    }
   }
 }
 
@@ -130,23 +160,27 @@ function flush(): Promise<boolean> {
 
 /** US1-S1 bis S3, S7, US4: ändern, speichern und an die anderen Trainer-Handys senden. */
 export async function changePlan(edit: PlanEdit): Promise<PlanStore> {
-  const store = await serial(async () => {
+  const { store, changed } = await serial(async () => {
     const live = (await getSettings()).live;
     if (!live?.orgKey) throw new Error('Nur Trainer-Handys mit Trainer-Link können den Spielplan ändern.');
-    const next = apply(await loadPlan(live), edit, Date.now());
+    const me = edit.kind === 'claim' ? await identity(edit.name) : { me: '', name: '' };
+    const before = await loadPlan(live);
+    const next = apply(before, edit, Date.now(), me);
     if (!next) throw new Error('Dieses Spiel gibt es nicht mehr im Spielplan.');
-    return save(next);
+    return next === before ? { store: before, changed: false } : { store: await save(next), changed: true };
   });
-  void flush().catch(() => false);
+  if (changed) void flush().catch(() => false);
   return store;
 }
 
-const choiceOf = (entry: PlanEntry): PlanChoice => ({
+const choiceOf = (entry: PlanEntry, me: string): PlanChoice => ({
   entry,
   title: entryTitle(entry),
   detail: entryDetail(entry),
   when: entryWhen(entry),
   day: formatPlanDateShort(entry.date),
+  claim: claimLabel(entry, me),
+  match: matchText(entry),
 });
 
 /** US2 FR-P09: heutige und kommende Planspiele (14 Tage) für "Aus dem Spielplan". */
@@ -154,7 +188,14 @@ export async function planChoices(
   live: Pick<LiveSpieltag, 'topic' | 'orgPub'>,
 ): Promise<{ today: PlanChoice[]; later: PlanChoice[] }> {
   const r = pickable(await loadPlan(live), todayKey(Date.now()));
-  return { today: r.today.map(choiceOf), later: r.later.map(choiceOf) };
+  const me = (await getSettings()).deviceId ?? '';
+  return { today: r.today.map((e) => choiceOf(e, me)), later: r.later.map((e) => choiceOf(e, me)) };
+}
+
+/** US6-S5 FR-P28: eigene Vormerkungen von heute für den Startbildschirm ("Heute tickerst du"). */
+export async function todayClaims(live: Pick<LiveSpieltag, 'topic' | 'orgPub'>): Promise<PlanChoice[]> {
+  const me = (await getSettings()).deviceId ?? '';
+  return myClaims(await loadPlan(live), todayKey(Date.now()), me).map((e) => choiceOf(e, me));
 }
 
 /** US2 FR-P11: das angelegte Spiel im Planspiel vermerken ("angelegt"), auch für die anderen Trainer-Handys. */

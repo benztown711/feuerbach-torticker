@@ -198,6 +198,10 @@ export interface Settings {
   live: LiveSpieltag | null;
   /** Spec 006 R-L6: zuletzt geöffneter Zuschauer-Link. */
   liveView: ViewerLink | null;
+  /** Spec 015 US6: Kennung dieses Handys für Vormerkungen (beim ersten Vormerken angelegt). */
+  deviceId?: string;
+  /** Spec 015 FR-P26: Vorname für die Trainer; fehlt = noch nie gefragt, leer = ohne Namen. */
+  trainerName?: string;
 }
 
 /** Spec 006: signierter JSON-Text (`d`) mit ECDSA-Signatur (`s`, base64url). */
@@ -291,6 +295,16 @@ export interface NewGameInput {
 }
 
 /** Spec 015: ein Planspiel im Spielplan des Live-Spieltags (data-model.md). */
+/** Spec 015 US6: Vormerkung; `by` leer = freigegeben (zählt beim Zusammenführen wie eine Vormerkung). */
+export interface PlanClaim {
+  /** Kennung des Handys. */
+  by: string;
+  /** Vorname des Trainers, leer = "vergeben". */
+  name: string;
+  /** Zeitpunkt (ms), je Planspiel streng steigend. */
+  at: number;
+}
+
 export interface PlanEntry {
   id: string;
   /** Kurzlabel der Mannschaft im Live-Spieltag, z. B. "E1". */
@@ -310,6 +324,8 @@ export interface PlanEntry {
   deleted: boolean;
   /** US3 FR-P30: Endstand des verknüpften Spiels aus Sicht der eigenen Mannschaft. */
   score?: Score;
+  /** US6 FR-P25: Vormerkung "Ich tickere". */
+  claim?: PlanClaim;
   /** Zeitpunkt der letzten Änderung, je Planspiel streng steigend. */
   updatedAt: number;
   /** US2 FR-P11: aus dem Planspiel angelegtes Spiel. */

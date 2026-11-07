@@ -33,8 +33,8 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich. Ein PR je Phase bzw
 
 ## Phase 5: US6 Spiel vormerken (P2)
 
-- [ ] T016 E2E 015 US6-S1 bis S7; Domain: Vormerkung, Name (FR-P25 bis P28)
-- [ ] T017 Spielplan-Blatt "Ich tickere", Rückfragen, Startbildschirm "Heute tickerst du"; Hilfe `spiel-vormerken`
+- [x] T016 E2E 015 US6-S1 bis S7; Domain: Vormerkung, Name (FR-P25 bis P28)
+- [x] T017 Spielplan-Blatt "Ich tickere", Rückfragen, Startbildschirm "Heute tickerst du"; Hilfe `spiel-vormerken`
 
 ## Phase 6: US3 und US7 Dashboard (P2)
 

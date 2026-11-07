@@ -145,6 +145,44 @@
   color: var(--color-ink-muted);
 }
 
+/* Spec 015 US6 FR-P28: "Heute tickerst du" über "Neues Spiel". */
+.start__mine {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.start__mine-title {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.start__mine-btn {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 2px solid var(--color-rot-tief);
+  border-radius: var(--radius-md);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.start__mine-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.start__mine-text span {
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
 /* ---------- Seiten mit Kopfzeile (Neues Spiel, Details) ---------- */
 
 .page {
@@ -963,7 +1001,12 @@ body:has(.page:not(.dash, .lead-link)) {
 .sheet {
   width: 100%;
   max-width: 600px;
+
+  /* Höher als der Bildschirm (kleine iPhones, große Schrift): im Blatt scrollen statt oben abschneiden. */
+  max-height: 100%;
   margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   gap: var(--space-2);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   padding: var(--space-4) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
@@ -3298,6 +3341,21 @@ button.plan__row {
   background: var(--color-rot-hell);
   color: var(--color-ink);
   font-size: 14px;
+}
+
+/* Spec 015 US6: "Ich tickere" im Blatt des Planspiels. */
+.plan__claim {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-rot-hell);
+}
+
+.plan__claim-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: 700;
 }
 
 /* Spec 015 US4: "Liste einfügen", Vorschau */

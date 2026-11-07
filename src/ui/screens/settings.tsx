@@ -290,6 +290,28 @@ export function SettingsScreen() {
           </button>
         </section>
 
+        {settings.live?.orgKey && (
+          <section class="settings__section card" aria-labelledby="s-trainer" data-testid="settings-trainer">
+            <h2 id="s-trainer" class="t-label card__title">
+              SPIELPLAN
+            </h2>
+            <label class="field__label t-label" for="trainer-name">
+              Dein Name für die Trainer
+            </label>
+            <input
+              id="trainer-name"
+              class="input"
+              maxLength={20}
+              placeholder="Vorname"
+              autocomplete="given-name"
+              value={settings.trainerName ?? ''}
+              data-testid="settings-trainer-name"
+              onChange={(e) => save({ ...settings, trainerName: e.currentTarget.value.trim() })}
+            />
+            <p class="field__help">Steht im Spielplan bei Spielen, die du tickerst („Tickert: …“). Leer: „vergeben“.</p>
+          </section>
+        )}
+
         <section class="settings__section card" aria-labelledby="s-roster" data-testid="settings-roster-sort">
           <h2 id="s-roster" class="t-label card__title">
             KADER

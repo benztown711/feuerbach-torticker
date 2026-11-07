@@ -102,6 +102,13 @@ US4 (Liste einfügen und teilen):
 - **UI** `live-dashboard.tsx`: geplante Karte (ohne Stand, "heute 12:00"), Zeilen "Danach" und "Nächstes Spiel" unter der Karte, Abschnitt "Spielplan" unter den Karten mit auf- und zuklappbaren Datumsköpfen.
 - **Hilfe**: `eltern-dashboard` geändert (nächstes Spiel mit Anstoß, Spielplan, vergangene Spiele).
 
+## Design (US6)
+
+- **Domain** `plan.ts`: `PlanClaim`, `setClaim` (vormerken, übernehmen, freigeben), `claimLabel` ("du", Name, "vergeben"), `entryState` mit "Tickert: …", `myClaims` (eigene von heute), `matchText`; Zusammenführen der Vormerkung nach ihrem Zeitpunkt (R-P10).
+- **Platform** `plan-sync.ts`: Änderung `claim` mit Kennung und Vorname aus den Einstellungen (`identity`), `planChoices` mit Vormerkung, `todayClaims` für den Startbildschirm.
+- **UI**: im Blatt des Planspiels Block "Ich tickere" bzw. "Nicht mehr tickern" mit Rückfragen (beim ersten Mal mit Vorname); "Neues Spiel" zeigt die Vormerkung je Zeile, fragt vor "Weiter zum Anpfiff" bei fremder Vormerkung und wählt über `#/neu/plan/<id>` ein Planspiel vor; Startbildschirm "Heute tickerst du" (nachgeladen); Einstellungen "Dein Name für die Trainer".
+- **Hilfe**: `spiel-vormerken` neu.
+
 ## Risiken
 
 - **Verlorene Änderung ohne Netz**: Wer offline ändert und die App dann nie wieder öffnet, sendet nicht. Abhilfe: `pending` wird bei jedem Öffnen und jeder Rückkehr nachgeholt.
