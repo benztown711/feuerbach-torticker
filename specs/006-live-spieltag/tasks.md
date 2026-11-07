@@ -116,7 +116,11 @@
 ## Phase 11: Fehlerbehebung Trainer-Link in WhatsApp (Clarifications 06.11.2026, research.md R-L20)
 
 - [x] L064 [US1] (FR-L02, US1-S8, US1-S9) Unit `tests/unit/live-link-short.test.ts` (Format, Länge, Formfehler, 100 % Branch-Coverage); `src/domain/live-link-short.ts`, `parseLinkPath` erkennt beide Formate; `verifyLink` signiert die Konfiguration selbst; Teilen-Text kurz; Seite des Trainer-Links setzt das Manifest (`src/ui/screens/lead-link.tsx`, `src/main.tsx`), Route `#/trainer/` ohne Daten zeigt den Hinweis; E2E `tests/e2e/live-us1.spec.ts` 006 US1-S8 US1-S9; Hilfe `trainer-link`
-- [ ] L065 Gerätetest (Atti): neuen Trainer-Link per WhatsApp an ein iPhone, ganz unterstrichen? Antippen, „Zum Home-Bildschirm“, Symbol starten, „Koppeln und loslegen“
+
+## Phase 12: Fehlerbehebung Dashboard-Karten als Tabellenzeilen (Clarifications 07.11.2026)
+
+- [x] L066 [US3] (FR-L12, FR-L18) E2E `tests/e2e/live-us3.spec.ts` 006 FR-L18 bei 320 pt: Namen in einer Zeile, Heim oben, Tore je Zeile; Karte in `src/ui/screens/live-dashboard.tsx` als Tabellenzeilen (Stand für Screenreader und Tests weiter als "2:1"), Stile in `src/styles/app.css`; neue Referenzbilder `dashboard-*` aus dem CI-Lauf (R-22)
+- [x] L065 Gerätetest kurzer Trainer-Link: am 06.11.2026 bestanden (Atti, Trainer der E3 per WhatsApp gekoppelt, sein Spiel auf dem Dashboard)
 
 ## Zuordnung Anforderungen → Aufgaben
 
@@ -129,7 +133,7 @@
 | FR-L08, FR-L09 | L022, L024, L025, L026, L046, L047 ("Live aufs Dashboard") |
 | FR-L10 | L020, L024 |
 | FR-L11 | L006, L029, L031 |
-| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057, L061 |
+| FR-L12 bis FR-L16 | L027, L029, L031, L032, L054 bis L057, L061, L066 |
 | FR-L17 | L031, L034 |
 | FR-L18 | L031, L033 |
 | FR-L19 bis FR-L21 | L036, L037, L038, L039 |

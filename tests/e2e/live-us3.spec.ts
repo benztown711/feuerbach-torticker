@@ -439,3 +439,26 @@ test('006 FR-L18 Karten ab 375 pt ohne waagrechtes Scrollen, auch mit langen Nam
   const overflow = await v.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test('006 FR-L12 FR-L18 Tabellenzeilen: bei 320 pt (große Schrift, Zoom) Namen in einer Zeile, Heim oben', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
+  onMatchday(relay);
+  // Befund 07.11.2026: "noch nicht angepfiffen" drückte die Namen auf wenige Buchstaben zusammen.
+  await sendAs(relay, links.trainer, liveSnap({ team: 'E1', now: T, opp: 'FC Stuttgart', clock: [], goals: [] }));
+  const v = await openViewer(newDevice, relay, links);
+  await v.setViewportSize({ width: 320, height: 640 });
+  await expect(v.getByTestId('dash-phase-E1')).toHaveText('noch nicht angepfiffen');
+  await expect(v.getByTestId('dash-score-E1')).toHaveText('0:0');
+  const card = v.getByTestId('dash-card-E1');
+  const names = card.locator('.dash-card__name');
+  await expect(names).toHaveText(['Feuerbach E1', 'FC Stuttgart']);
+  for (const box of await Promise.all((await names.all()).map((n) => n.boundingBox())))
+    expect(box?.height ?? 99).toBeLessThanOrEqual(24); // eine Zeile (22 px)
+  const overflow = await v.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});

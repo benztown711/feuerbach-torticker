@@ -76,6 +76,8 @@ function Card({
   onToggle: () => void;
 }) {
   const k = card.key;
+  // Tabellenzeilen (Nachtrag 07.11.2026): Heim oben, Gast darunter, Tore rechts.
+  const [homeGoals, awayGoals] = card.score.split(':');
   const cls = ['dash-card', card.live ? 'dash-card--live' : '', flash ? 'card--flash' : ''].filter(Boolean).join(' ');
   const stale = card.staleMinutes;
   return (
@@ -89,23 +91,27 @@ function Card({
         onClick={onToggle}
       >
         <span class="dash-card__match">
-          <span class="dash-card__team">
+          <span class="dash-card__row">
             <Mark color={card.home.color} />
-            <span>{card.home.name}</span>
-          </span>
-          <span class="dash-card__mid">
-            <span class="dash-card__score" data-testid={`dash-score-${k}`}>
-              {card.score}
-            </span>
-            <span class={card.live ? 'dash-card__phase dash-card__phase--live' : 'dash-card__phase'}>
-              {card.live && <span class="live-pill__dot" aria-hidden="true" />}
-              <span data-testid={`dash-phase-${k}`}>{card.phase}</span>
-              {stale !== null && <NoSignal label={`Letzte Meldung vor ${stale} Minuten`} />}
+            <span class="dash-card__name">{card.home.name}</span>
+            <span class="dash-card__goals" aria-hidden="true">
+              {homeGoals}
             </span>
           </span>
-          <span class="dash-card__team dash-card__team--away">
-            <span>{card.away.name}</span>
+          <span class="dash-card__row">
             <Mark color={card.away.color} />
+            <span class="dash-card__name">{card.away.name}</span>
+            <span class="dash-card__goals" aria-hidden="true">
+              {awayGoals}
+            </span>
+          </span>
+          <span class="visually-hidden" data-testid={`dash-score-${k}`}>
+            {card.score}
+          </span>
+          <span class={card.live ? 'dash-card__phase dash-card__phase--live' : 'dash-card__phase'}>
+            {card.live && <span class="live-pill__dot" aria-hidden="true" />}
+            <span data-testid={`dash-phase-${k}`}>{card.phase}</span>
+            {stale !== null && <NoSignal label={`Letzte Meldung vor ${stale} Minuten`} />}
           </span>
         </span>
         <Chevron />

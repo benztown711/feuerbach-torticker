@@ -92,6 +92,8 @@ Kosten: Apple 99 USD pro Jahr, Google 25 USD einmalig. Beides widerspricht Const
 | N2 | Historie: mehrere Spiele auswählen und löschen, 10 Sekunden „Rückgängig“ | 014 | erledigt (#48, #49) |
 | N3 | „Kader teilen“ und „Liste einfügen“: abgekürzte Namen wie „Max Mü.“ bleiben erhalten | 001 FR-028 | erledigt (#46) |
 
-| N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt: kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 offen |
+| N4 | Trainer-Link leichter übernehmen: Herauskopieren aus der Nachricht war im Gerätetest mühsam (G-2); in WhatsApp war der lange Link nur bis `#/trainer/` antippbar | 006 R-L20 | erledigt (#62): kurzer Trainer-Link und Symbol auf dem Home-Bildschirm, das koppelt; Gerätetest L065 bestanden |
+
+| N5 | Dashboard-Karten: Namen auf Android mit großer Schrift unlesbar umgebrochen | 006 FR-L12, FR-L18 | erledigt: Tabellenzeilen (Heim oben, Gast darunter, Tore rechts) |
 
 (weitere hier anfügen)

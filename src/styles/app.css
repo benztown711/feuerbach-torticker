@@ -2797,54 +2797,53 @@ body:has(.page:not(.dash, .lead-link)) {
 
 .dash-card__match {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 2px;
+  min-width: 0;
+}
+
+/*
+ * Tabellenzeilen (Spec 006 FR-L12, Nachtrag 07.11.2026): Heim oben, Gast darunter, Tore rechts. Die Namen haben
+ * fast die volle Kartenbreite, auch bei großer Schrift oder Bildschirmzoom (effektiv rund 320 pt).
+ */
+.dash-card__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-2);
-}
-
-.dash-card__team {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 20px;
-  overflow-wrap: break-word;
-  hyphens: auto;
+  line-height: 22px;
 }
 
-.dash-card__team > span:not(.team__mark) {
+.dash-card__row .team__mark {
+  margin-top: 0;
+}
+
+.dash-card__name {
   min-width: 0;
+
+  /* Umbruch an Leerzeichen und Bindestrichen; mitten im Wort nur, wenn ein Wort allein zu breit ist. */
+  overflow-wrap: break-word;
 }
 
-.dash-card__team--away {
-  justify-content: flex-end;
+.dash-card__goals {
+  min-width: 1.2em;
+  font-size: 26px;
+  line-height: 30px;
+  font-variant-numeric: tabular-nums lining-nums;
   text-align: right;
 }
 
-.dash-card__mid {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-}
-
-.dash-card__score {
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums lining-nums;
-  white-space: nowrap;
-}
-
 .dash-card__phase {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  margin-top: 2px;
+  padding-left: 20px;
   color: var(--color-ink-muted);
   font-size: 14px;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .dash-card__phase--live {
