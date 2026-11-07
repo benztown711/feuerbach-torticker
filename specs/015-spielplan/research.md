@@ -52,3 +52,9 @@
 - **Decision**: `boardView` bekommt je Mannschaft die Planspiele dazu. Hauptinhalt: laufendes Spiel; sonst heute angelegte, dann geplante (nach Anstoß, abgesagte zuletzt); sonst das zuletzt beendete Spiel; sonst das nächste Planspiel. Ein Planspiel mit `gameId`, dessen Spiel bekannt ist, erscheint nur als dieses Spiel. "Danach" und "Nächstes Spiel" stehen sichtbar unter der Karte, "Heute außerdem" bleibt wie bisher in den Details.
 - **Rationale**: Eine Karte je Mannschaft (Spec 006 FR-L14), kein doppeltes Spiel (FR-P15); "wie bisher" für "Heute außerdem" laut FR-P14.
 
+## R-P10 Vormerkung "Ich tickere" (US6)
+
+- **Decision**: Die Vormerkung ist Teil des Planspiels (`claim`, Feld `b`) mit eigenem Zeitpunkt; beim Zusammenführen gilt je Planspiel die jüngere Vormerkung, auch wenn das Planspiel selbst älter ist. Freigeben ist eine Vormerkung ohne Handy. Die Kennung des Handys (`deviceId`) und der Vorname (`trainerName`) stehen in den Einstellungen; die Kennung entsteht beim ersten Vormerken.
+- **Rationale**: Vormerken und Ändern passieren auf verschiedenen Handys; eine Änderung des Anstoßes darf eine gleichzeitige Vormerkung nicht verwerfen und umgekehrt. Eine eigene Meldungsart wäre mehr Code ohne Nutzen.
+- **Alternatives**: Vormerkung nur nach `u` (geht bei gleichzeitigem Ändern verloren); eigene Meldung je Vormerkung.
+
