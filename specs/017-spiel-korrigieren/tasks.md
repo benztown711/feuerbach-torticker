@@ -14,12 +14,12 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 2: US1 Tore in den Spieldetails korrigieren (P1)
 
-- [ ] T006 [P] [US1] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US1-S1 bis S11
+- [x] T006 [P] [US1] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US1-S1 bis S11
 - [x] T007 [P] [US1] `tests/unit/live-sender.test.ts`: beendetes, in der Sitzung unbekanntes Spiel nur senden, wenn `isRecent` zustimmt; zwei schnelle Korrekturen senden den neuesten Stand (FR-C06)
 - [x] T008 [US1] `src/platform/live-sender.ts`: Abhängigkeit `isRecent`, in `startLiveSender` über `listGames()` und `isRecentGame` (macht T007 grün)
-- [ ] T009 [US1] `src/ui/components/goal-editor.tsx` und `team-mark.tsx` aus `game.tsx` herauslösen (R-C1); `game.tsx` nutzt sie, Schnellauswahl nach dem Tor bleibt; bestehende E2E-Tests (001, 003, 009, 012) unverändert grün
-- [ ] T010 [US1] `src/ui/screens/game-details.tsx`, `src/styles/app.css`: Tore im Spielverlauf als Knöpfe, "Tor nachtragen", Speichern (macht T006 grün)
-- [ ] T011 [US1] Hilfe: neu `spiel-korrigieren`; geändert `torschuetze`, `vorlage-aendern`, `tor-minute`, `tor-nachtragen`, `tor-entfernen`, `historie`
+- [x] T009 [US1] `src/ui/components/goal-editor.tsx` und `team-mark.tsx` aus `game.tsx` herauslösen (R-C1); `game.tsx` nutzt sie, Schnellauswahl nach dem Tor bleibt; bestehende E2E-Tests (001, 003, 009, 012) unverändert grün
+- [x] T010 [US1] `src/ui/screens/game-details.tsx`, `src/styles/app.css`: Tore im Spielverlauf als Knöpfe, "Tor nachtragen", Speichern (macht T006 grün)
+- [x] T011 [US1] Hilfe: neu `spiel-korrigieren`; geändert `torschuetze`, `vorlage-aendern`, `tor-minute`, `tor-nachtragen`, `tor-entfernen`, `historie`
 
 ## Phase 3: US2 Trikots ändern (P2)
 

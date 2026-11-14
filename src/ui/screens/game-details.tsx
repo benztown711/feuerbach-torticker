@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { canAddLateGoal } from '../../domain/corrections';
 import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
 import { shootoutState } from '../../domain/cup';
@@ -8,12 +9,13 @@ import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
 import { buildShareText } from '../../domain/share-text';
 import { shortTeamName } from '../../domain/team-name';
-import type { ClockEvent, Game, Player } from '../../domain/types';
-import { getGame, getPlayers } from '../../platform/db';
+import type { ClockEvent, Game, Player, Settings } from '../../domain/types';
+import { getGame, getPlayers, getSettings, putGame } from '../../platform/db';
 import { trashGames } from '../../platform/trash';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
+import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
 import { SharePreview } from '../components/share-preview';
 import { navigate } from '../router';
 
@@ -43,16 +45,27 @@ const eventText = (e: ClockEvent, game: Game): string => {
 
 const fmtDay = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-/** Spieldetails (FR-022, FR-038, Mockup 8): Zeitleiste mit Uhrzeiten, Teilen, Löschen. */
+/**
+ * Spieldetails (FR-022, FR-038, Mockup 8): Zeitleiste mit Uhrzeiten, Teilen, Löschen. Spec 017: Tore lassen sich
+ * hier mit denselben Blättern wie im Spiel korrigieren, auch lange nach dem Schlusspfiff.
+ */
 export function GameDetailsScreen({ id }: { id: string }) {
   const [game, setGame] = useState<Game | null | undefined>(undefined);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [askDelete, setAskDelete] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
   const [marksMsg, setMarksMsg] = useState('');
+  /** Spec 017 R-C1: offenes Korrektur-Blatt. */
+  const [edit, setEdit] = useState<EditStep | null>(null);
+  const gameRef = useRef<Game | null>(null);
   useEffect(() => {
-    void getGame(id).then((g) => setGame(g ?? null));
+    void getGame(id).then((g) => {
+      gameRef.current = g ?? null;
+      setGame(g ?? null);
+    });
     void getPlayers().then(setPlayers);
+    void getSettings().then(setSettings);
   }, [id]);
   if (game === undefined) return <main class="page" aria-busy="true" />;
   if (game === null) {
@@ -62,6 +75,15 @@ export function GameDetailsScreen({ id }: { id: string }) {
       </main>
     );
   }
+
+  /** Spec 017 FR-C05: jede Korrektur sofort speichern (der Live-Sender meldet sie wie jede Änderung). */
+  const update = (g: Game): void => {
+    gameRef.current = g;
+    setGame(g);
+    void putGame(g);
+  };
+  const cur = (): Game => gameRef.current ?? game;
+  const now = Date.now();
 
   const ha = homeAway(game.venue, score(game));
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
@@ -178,20 +200,40 @@ export function GameDetailsScreen({ id }: { id: string }) {
                 <span class="details__time">{formatTime(item.at)}</span>
               </li>
             ) : (
-              <li
-                key={item.goal.id}
-                class={item.removed ? 'details__item details__item--removed' : 'details__item'}
-                data-testid={`goal-${item.goal.id}`}
-              >
-                <span class="details__minute">{item.label}</span>
-                <span class="details__score-cell">{item.score}</span>
-                <span class="details__what">{goalWho(game, item.goal, players)}</span>
-                <span class="details__time">{formatTime(item.at)}</span>
-                {item.removed && <span class="goal-row__tag">entfernt</span>}
+              <li key={item.goal.id} data-testid={`goal-${item.goal.id}`}>
+                {/* Spec 017 FR-C01: Tipp öffnet das Tor-Blatt wie im Spiel. */}
+                <button
+                  type="button"
+                  class={
+                    item.removed
+                      ? 'details__item details__item--goal details__item--removed'
+                      : 'details__item details__item--goal'
+                  }
+                  onClick={() => setEdit({ kind: 'goal', goalId: item.goal.id })}
+                >
+                  <span class="details__minute">{item.label}</span>
+                  <span class="details__score-cell">{item.score}</span>
+                  <span class="details__what">{goalWho(game, item.goal, players)}</span>
+                  <span class="details__time">{formatTime(item.at)}</span>
+                  {item.removed && <span class="goal-row__tag">entfernt</span>}
+                  <svg class="details__chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </li>
             ),
           )}
         </ol>
+        {canAddLateGoal(game, now) && (
+          <button
+            type="button"
+            class="btn btn--quiet details__add"
+            data-testid="details-add-goal"
+            onClick={() => setEdit(addGoalStep(cur(), Date.now()))}
+          >
+            Tor nachtragen
+          </button>
+        )}
       </section>
 
       {game.shootout && game.shootout.shots.length > 0 && (
@@ -272,6 +314,17 @@ export function GameDetailsScreen({ id }: { id: string }) {
           {shareMsg}
         </p>
       </section>
+
+      <GoalEditor
+        game={game}
+        players={players}
+        settings={settings}
+        step={edit}
+        onStep={setEdit}
+        cur={cur}
+        update={update}
+        now={now}
+      />
 
       {askDelete && (
         <Confirm
