@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-14
 
-**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B offen. Mockup: https://claude.ai/artifact/54YB4eDZx23EBH51WRWW9j
+**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B erledigt (14.11.2026, "Passt"). Mockup: https://claude.ai/artifact/54YB4eDZx23EBH51WRWW9j
 
 **Input**: Atti (14.11.2026): "Was würde es bedeuten, für Trainer eine Funktion zu implementieren, die Änderungen während und nach dem Spiel zulässt? Geändert werden können soll die Farben der Mannschaften, die Tore und dessen Schützen sowie Vorlagengeber und deren Spielminute. Wie könnte das aussehen?"
 
@@ -96,7 +96,7 @@ Atti hat das 2:1 nach dem Spiel in die Elterngruppe geteilt. Am Abend korrigiert
 ### Edge Cases
 
 - **Spiel eines anderen Handys** (Dashboard-Karte, Spiel übernommen und abgegeben): Korrigiert wird nur auf dem Handy, das das Spiel erfasst hat (1A). Auf einem Handy, das das Spiel abgegeben hat (Spec 006 FR-L24), wirkt eine Korrektur nur lokal.
-- **Alte Spiele**: Gehört ein live gesendetes Spiel nicht mehr zu den 10 zuletzt angelegten Spielen seiner Mannschaft auf diesem Handy, bleibt die Korrektur lokal. So verdrängt es unter "Letzte Spiele" kein jüngeres Spiel. Spiele aus einer Sicherung, die vor der Kopplung angelegt wurden, werden weiter nicht gesendet (Spec 006 FR-L06).
+- **Alte Spiele**: Gehört ein live gesendetes Spiel nicht mehr zu den 10 zuletzt angelegten Spielen seiner Mannschaft auf diesem Handy, bleibt die Korrektur lokal. So verdrängt es unter "Letzte Spiele" kein jüngeres Spiel. Nie live gesendete Spiele ("Live aufs Dashboard" beim Anlegen aus) zählen dabei nicht mit. Spiele aus einer Sicherung, die vor der Kopplung angelegt wurden, werden weiter nicht gesendet (Spec 006 FR-L06).
 - **"Nicht live senden"**: Korrekturen bleiben lokal, wie jede Änderung.
 - **Offline**: Korrekturen werden sofort gespeichert; das Dashboard bekommt sie mit der nächsten Verbindung, wie jede Änderung.
 - **Kader geändert**: Die Torschützen-Auswahl zeigt das Aufgebot dieses Spiels und unter "Andere …" den heutigen Kader. Ein inzwischen gelöschtes Kind bleibt als Torschütze bzw. Vorlage stehen, bis es geändert wird.
