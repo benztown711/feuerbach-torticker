@@ -8,7 +8,9 @@ import {
   isPaletteColor,
   needsBorder,
   rememberColors,
+  setKits,
 } from '../../src/domain/jersey-colors';
+import { createGame } from '../../src/domain/game';
 import { defaultSettings } from '../../src/domain/settings';
 
 describe('T090 FR-031 FR-032 Trikotfarben', () => {
@@ -56,5 +58,36 @@ describe('T090 FR-031 FR-032 Trikotfarben', () => {
     expect(next.lastOwnColor).toBeNull();
     const again = rememberColors(next, { oppColor: 'weiss', opponent: 'TSV Musterstadt' });
     expect(again.opponentColors).toEqual({ 'sv beispiel': 'blau', 'tsv musterstadt': 'weiss' });
+  });
+});
+
+describe('017 FR-C12 FR-C13 Trikots ändern', () => {
+  const game = createGame(
+    {
+      ownTeam: 'Sportvg Feuerbach E1',
+      opponent: 'TSV Musterstadt',
+      venue: 'home',
+      schema: { sections: 2, sectionMinutes: 25 },
+      ownColor: 'rot',
+      oppColor: 'schwarz',
+    },
+    { id: 'g1', now: 0 },
+  );
+
+  it('setzt beide Palettenfarben nur für dieses Spiel', () => {
+    const next = setKits(game, 'gelb', 'blau');
+    expect([next.ownColor, next.oppColor]).toEqual(['gelb', 'blau']);
+    expect([game.ownColor, game.oppColor]).toEqual(['rot', 'schwarz']);
+  });
+
+  it('lässt das Spiel bei ungültiger Farbe oder ohne Änderung unverändert', () => {
+    expect(setKits(game, 'pink', 'blau')).toBe(game);
+    expect(setKits(game, 'rot', 'pink')).toBe(game);
+    expect(setKits(game, 'rot', 'schwarz')).toBe(game);
+  });
+
+  it('die neue Gegnerfarbe wird als Vorschlag gemerkt (FR-031)', () => {
+    const s = rememberColors(defaultSettings(), setKits(game, 'rot', 'blau'));
+    expect(defaultOppColor(s, ' tsv musterstadt ', 'rot')).toBe('blau');
   });
 });

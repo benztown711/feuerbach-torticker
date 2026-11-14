@@ -6,6 +6,7 @@ import {
   createSpieltag,
   DEFAULT_LIVE_TITLE,
   isOrganizer,
+  isRecentGame,
   knowsTeam,
   liveTeamOptions,
   sendsFor,
@@ -24,7 +25,7 @@ import {
 } from '../../src/domain/live-spieltag';
 import type { LeadLinkData } from '../../src/domain/live-link';
 import { defaultSettings } from '../../src/domain/settings';
-import type { LiveSpieltag, PrivateKeyParts, SignedData, Team } from '../../src/domain/types';
+import type { Game, LiveSpieltag, LiveTeamCred, PrivateKeyParts, SignedData, Team } from '../../src/domain/types';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 
@@ -458,5 +459,52 @@ describe('006 FR-L03 FR-L04 Kopplung aus Trainer-Link', () => {
     expect(s1.live?.topic).toBe('zzzzzzzzzzzzzzzzzzzzzz');
     expect(s1.live?.createdAt).toBe(T0 + 1);
     expect(live.topic).not.toBe(s1.live?.topic);
+  });
+});
+
+describe('017 FR-C06 Korrekturen alter Spiele bleiben lokal', () => {
+  const cred = (name: string, key: string, sends = true) => ({ key, name, sends }) as unknown as LiveTeamCred;
+  const live = {
+    config: { d: 'kein json', s: '' },
+    teams: [
+      cred('Sportvg Feuerbach E1', 'k1'),
+      cred('Sportvg Feuerbach E2', 'k2'),
+      cred('Sportvg Feuerbach E3', 'k3', false),
+    ],
+  } as unknown as LiveSpieltag;
+  const game = (id: string, ownTeam: string, createdAt: number, extra: Partial<Game> = {}): Game => ({
+    ...createGame(
+      {
+        ownTeam,
+        opponent: 'TSV Musterstadt',
+        venue: 'home',
+        schema: { sections: 2, sectionMinutes: 25 },
+        ownColor: 'rot',
+        oppColor: 'schwarz',
+      },
+      { id, now: createdAt },
+    ),
+    ...extra,
+  });
+  const e1 = Array.from({ length: 12 }, (_, i) => game(`e1-${i}`, 'Sportvg Feuerbach E1', 1000 + i));
+
+  it('gehört zu den 10 zuletzt angelegten Spielen seiner Mannschaft', () => {
+    expect(isRecentGame(e1, e1[11]!, live)).toBe(true);
+    expect(isRecentGame(e1, e1[2]!, live)).toBe(true);
+    expect(isRecentGame(e1, e1[1]!, live)).toBe(false);
+    expect(isRecentGame(e1, e1[0]!, live)).toBe(false);
+  });
+
+  it('andere Mannschaften und nie gesendete Spiele zählen nicht mit', () => {
+    const e2 = Array.from({ length: 5 }, (_, i) => game(`e2-${i}`, 'Sportvg Feuerbach E2', 5000 + i));
+    const priv = [game('p1', 'Sportvg Feuerbach E1', 9000, { live: false, livePrivate: true })];
+    expect(isRecentGame([...e1, ...e2, ...priv, ...priv], e1[2]!, live)).toBe(true);
+    expect(isRecentGame([...e1, game('neu', 'Sportvg Feuerbach E1', 9001)], e1[2]!, live)).toBe(false);
+  });
+
+  it('ohne Live-Mannschaft (nicht gekoppelt, sendet nicht) nie', () => {
+    const e3 = game('e3', 'Sportvg Feuerbach E3', 1);
+    expect(isRecentGame([e3], e3, live)).toBe(false);
+    expect(isRecentGame(e1, e1[11]!, null)).toBe(false);
   });
 });

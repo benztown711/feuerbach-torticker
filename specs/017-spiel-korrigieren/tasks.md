@@ -6,11 +6,11 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 1: Grundlagen (blockiert alle User Stories)
 
-- [ ] T001 [P] `tests/unit/jersey-colors.test.ts`: `setKits` setzt beide Palettenfarben; ungültige Farbe oder keine Änderung lässt das Spiel unverändert
-- [ ] T002 [P] `tests/unit/share-text.test.ts`: `markShared` setzt `sharedAt`; `needsReshare` nur bei beendetem, geteiltem Spiel und anderem Teilen-Text (nicht bei gleichem Text, nicht vor dem Teilen, nicht bei laufendem Spiel)
-- [ ] T003 [P] `tests/unit/live-spieltag.test.ts`: `isRecentGame` (10 zuletzt angelegte je Live-Mannschaft, andere Mannschaften und `livePrivate` zählen nicht, Spiel ohne Live-Mannschaft nie)
-- [ ] T004 [P] `tests/unit/export.test.ts`: Sicherung mit `sharedAt` gültig, mit ungültigem `sharedAt` abgelehnt
-- [ ] T005 `src/domain/jersey-colors.ts`, `share-text.ts`, `live-spieltag.ts`, `export.ts`, `types.ts` (macht T001 bis T004 grün, 100 % Branch-Coverage)
+- [x] T001 [P] `tests/unit/jersey-colors.test.ts`: `setKits` setzt beide Palettenfarben; ungültige Farbe oder keine Änderung lässt das Spiel unverändert
+- [x] T002 [P] `tests/unit/share-text.test.ts`: `markShared` setzt `sharedAt`; `needsReshare` nur bei beendetem, geteiltem Spiel und anderem Teilen-Text (nicht bei gleichem Text, nicht vor dem Teilen, nicht bei laufendem Spiel)
+- [x] T003 [P] `tests/unit/live-spieltag.test.ts`: `isRecentGame` (10 zuletzt angelegte je Live-Mannschaft, andere Mannschaften und `livePrivate` zählen nicht, Spiel ohne Live-Mannschaft nie)
+- [x] T004 [P] `tests/unit/export.test.ts`: Sicherung mit `sharedAt` gültig, mit ungültigem `sharedAt` abgelehnt
+- [x] T005 `src/domain/jersey-colors.ts`, `share-text.ts`, `live-spieltag.ts`, `export.ts`, `types.ts` (macht T001 bis T004 grün, 100 % Branch-Coverage)
 
 ## Phase 2: US1 Tore in den Spieldetails korrigieren (P1)
 

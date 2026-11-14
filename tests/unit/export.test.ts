@@ -463,3 +463,17 @@ describe('006 FR-L21 Sicherung mit Live-Spieltag', () => {
     }
   });
 });
+
+describe('017 FR-C20 Sicherung mit "zuletzt geteilt"', () => {
+  it('liest sharedAt wieder ein (Schema) und lehnt ungültige Werte ab', () => {
+    const g: Game = { ...game(G1), sharedAt: T0 + min(70) };
+    const backup = buildBackup([g], players, T0 + min(80));
+    expect(validate(JSON.parse(JSON.stringify(backup)))).toBe(true);
+    const parsed = parseBackup(JSON.stringify(backup));
+    expect(parsed.ok && parsed.backup.games[0]?.sharedAt).toBe(T0 + min(70));
+    const bad = JSON.parse(JSON.stringify(backup)) as { games: { sharedAt: unknown }[] };
+    bad.games[0]!.sharedAt = 'gestern';
+    expect(parseBackup(JSON.stringify(bad)).ok).toBe(false);
+    expect(validate(bad)).toBe(false);
+  });
+});
