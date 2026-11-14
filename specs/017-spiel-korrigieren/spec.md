@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-14
 
-**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B offen.
+**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B offen. Mockup: https://claude.ai/artifact/54YB4eDZx23EBH51WRWW9j
 
 **Input**: Atti (14.11.2026): "Was würde es bedeuten, für Trainer eine Funktion zu implementieren, die Änderungen während und nach dem Spiel zulässt? Geändert werden können soll die Farben der Mannschaften, die Tore und dessen Schützen sowie Vorlagengeber und deren Spielminute. Wie könnte das aussehen?"
 
@@ -42,7 +42,7 @@ Am Sonntag fällt Atti in der Historie auf, dass beim 2:1 am Samstag Ben statt M
 
 1. **Given** ein beendetes Spiel in der Historie, **When** die Spieldetails öffnen, **Then** lässt sich jedes Tor im "Spielverlauf" antippen (auch entfernte), und unter dem Spielverlauf steht "Tor nachtragen".
 2. **Given** die Spieldetails, **When** ein eigenes Tor angetippt wird, **Then** öffnet das Tor-Blatt wie im Spiel: "Tor entfernen", "Torschütze ändern", "Minute ändern" und mit Schalter "Vorlagen" "Vorlage ändern"; bei einem entfernten Tor "Tor wiederherstellen" und "Torschütze ändern".
-3. **Given** das Tor-Blatt eines eigenen Tores von Max, **When** "Torschütze ändern" gewählt und Ben getippt wird, **Then** zeigt der Spielverlauf Ben, ohne Countdown und ohne Folgeschritt "Vorlage von?"; die Auswahl zeigt das Aufgebot dieses Spiels und "Weitere Kinder" wie im Spiel.
+3. **Given** das Tor-Blatt eines eigenen Tores von Max, **When** "Torschütze ändern" gewählt und Ben getippt wird, **Then** zeigt der Spielverlauf Ben, ohne Countdown und ohne Folgeschritt "Vorlage von?"; die Auswahl zeigt das Aufgebot dieses Spiels, "Andere …" und "Eigentor Gegner" wie im Spiel.
 4. **Given** das Tor-Blatt eines Gegentores, **When** "Torschütze ändern" gewählt wird, **Then** öffnet das Freitextfeld "Torschütze des Gegners" wie im Spiel.
 5. **Given** ein Tor in 15', **When** "Minute ändern" gewählt und 18' übernommen wird, **Then** steht das Tor bei 18' an der richtigen Stelle des Spielverlaufs; Halbzeit- und Endstand, Torschütze, Vorlage und Elfmeter-Kennzeichen bleiben bzw. folgen wie im Spiel (Spec 012 FR-S12 bis FR-S14). Die Minutenauswahl bietet alle gespielten Minuten des Spiels, vorgewählt ist die bisherige Minute des Tores.
 6. **Given** "Vorlagen" ist eingeschaltet, **When** bei einem eigenen Tor "Vorlage ändern" gewählt und Leo getippt wird, **Then** zeigt der Spielverlauf "Ben (Vorlage: Leo)"; "Ohne Vorlage" entfernt sie (Spec 009 US2).
@@ -99,7 +99,7 @@ Atti hat das 2:1 nach dem Spiel in die Elterngruppe geteilt. Am Abend korrigiert
 - **Alte Spiele**: Gehört ein live gesendetes Spiel nicht mehr zu den 10 zuletzt angelegten Spielen seiner Mannschaft auf diesem Handy, bleibt die Korrektur lokal. So verdrängt es unter "Letzte Spiele" kein jüngeres Spiel. Spiele aus einer Sicherung, die vor der Kopplung angelegt wurden, werden weiter nicht gesendet (Spec 006 FR-L06).
 - **"Nicht live senden"**: Korrekturen bleiben lokal, wie jede Änderung.
 - **Offline**: Korrekturen werden sofort gespeichert; das Dashboard bekommt sie mit der nächsten Verbindung, wie jede Änderung.
-- **Kader geändert**: Die Torschützen-Auswahl zeigt das Aufgebot dieses Spiels und "Weitere Kinder" aus dem heutigen Kader. Ein inzwischen gelöschtes Kind bleibt als Torschütze bzw. Vorlage stehen, bis es geändert wird.
+- **Kader geändert**: Die Torschützen-Auswahl zeigt das Aufgebot dieses Spiels und unter "Andere …" den heutigen Kader. Ein inzwischen gelöschtes Kind bleibt als Torschütze bzw. Vorlage stehen, bis es geändert wird.
 - **Uhr**: Korrekturen ändern die Uhr nicht (Spec 012 US2-S7). "Uhr korrigieren" und "Pfiff zurücknehmen" bleiben nur im Spielbildschirm mit ihren Regeln.
 - **Elfmeterschießen**: Schüsse lassen sich nicht korrigieren; Tore der regulären Spielzeit und der Verlängerung schon (Edge Case aus Spec 012).
 - **Spiel aus dem Spielplan** (Spec 015): Trikots ändern wirkt nur auf das Spiel, nicht auf den Spielplan.
@@ -114,7 +114,7 @@ Atti hat das 2:1 nach dem Spiel in die Elterngruppe geteilt. Am Abend korrigiert
 **Tore in den Spieldetails (US1)**
 
 - **FR-C01**: Jedes Tor im "Spielverlauf" der Spieldetails MUSS antippbar sein und das Tor-Blatt mit denselben Einträgen und Regeln wie im Spielbildschirm öffnen ("Tor entfernen" bzw. "Tor wiederherstellen", "Torschütze ändern", "Minute ändern", "Vorlage ändern"; Spec 001, 009, 012). Karten, Wechsel und Lesezeichen bleiben nur lesbar.
-- **FR-C02**: "Torschütze ändern" und "Vorlage ändern" MÜSSEN dieselbe Auswahl wie im Spiel öffnen (Aufgebot, "Weitere Kinder", Sortierung nach Spec 013; beim Gegner Freitext), ohne Countdown und ohne Folgeschritt.
+- **FR-C02**: "Torschütze ändern" und "Vorlage ändern" MÜSSEN dieselbe Auswahl wie im Spiel öffnen (Aufgebot, "Andere …", "Eigentor Gegner", Sortierung nach Spec 013; beim Gegner Freitext "Torschütze Gegner"), ohne Countdown und ohne Folgeschritt.
 - **FR-C03**: "Minute ändern" MUSS alle gespielten Minuten des Spiels anbieten (Spec 012 FR-S11), vorgewählt die bisherige Minute des Tores.
 - **FR-C04**: Unter dem Spielverlauf MUSS "Tor nachtragen" stehen, mit denselben Regeln wie im "…"-Menü (Spec 012 FR-S10, FR-S11, FR-S13).
 - **FR-C05**: Jede Korrektur MUSS sofort gespeichert werden; Spielstand in der Kopfkarte, Spielverlauf, Halbzeit- und Endstand, Teilen-Text und Historie folgen (Spec 012 FR-S13, FR-S14).
