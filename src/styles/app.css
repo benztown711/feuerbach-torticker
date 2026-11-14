@@ -1132,6 +1132,26 @@ body:has(.page:not(.dash, .lead-link)) {
   margin-top: var(--space-2);
 }
 
+/* Spec 017 FR-C10: Kopfkarte der Spieldetails mit Farbmarken und "Trikots ändern". */
+.details__match .team__mark {
+  display: inline-block;
+  margin-top: 0;
+  vertical-align: -1px;
+}
+
+.details__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.details__kits {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
 .details__minute {
   width: 52px;
   font-weight: 700;

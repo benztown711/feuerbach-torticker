@@ -23,9 +23,9 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 3: US2 Trikots ändern (P2)
 
-- [ ] T012 [P] [US2] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US2-S1 bis S7
-- [ ] T013 [US2] `src/ui/components/kits-sheet.tsx` (`KitsSheet`, `applyKits`); "…"-Menü "Trikots ändern" in `game.tsx`; Kopfkarte der Spieldetails mit Farbmarken und "Trikots ändern" (macht T012 grün)
-- [ ] T014 [US2] Hilfe: `trikots` geändert, `spiel-korrigieren` ergänzt
+- [x] T012 [P] [US2] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US2-S1 bis S7
+- [x] T013 [US2] `src/ui/components/kits-sheet.tsx` (`KitsSheet`, `applyKits`); "…"-Menü "Trikots ändern" in `game.tsx`; Kopfkarte der Spieldetails mit Farbmarken und "Trikots ändern" (macht T012 grün)
+- [x] T014 [US2] Hilfe: `trikots` geändert, `spiel-korrigieren` ergänzt
 
 ## Phase 4: US3 Erinnerung an neues Teilen (P2)
 

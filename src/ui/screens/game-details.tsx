@@ -16,6 +16,9 @@ import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
+import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { TeamMark } from '../components/team-mark';
+import { useDarkTheme } from '../hooks';
 import { SharePreview } from '../components/share-preview';
 import { navigate } from '../router';
 
@@ -58,6 +61,9 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [marksMsg, setMarksMsg] = useState('');
   /** Spec 017 R-C1: offenes Korrektur-Blatt. */
   const [edit, setEdit] = useState<EditStep | null>(null);
+  /** Spec 017 FR-C10: Blatt "Trikots". */
+  const [kitsOpen, setKitsOpen] = useState(false);
+  const dark = useDarkTheme();
   const gameRef = useRef<Game | null>(null);
   useEffect(() => {
     void getGame(id).then((g) => {
@@ -87,6 +93,9 @@ export function GameDetailsScreen({ id }: { id: string }) {
 
   const ha = homeAway(game.venue, score(game));
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
+  const [homeSide, awaySide] = game.venue === 'home' ? (['own', 'opp'] as const) : (['opp', 'own'] as const);
+  const [homeColor, awayColor] =
+    game.venue === 'home' ? [game.ownColor, game.oppColor] : [game.oppColor, game.ownColor];
   const finished = game.status === 'finished';
   const half = game.schema.sections > 1 && game.halfTimeScore ? homeAway(game.venue, game.halfTimeScore) : null;
   const fullTime = [...game.clockEvents].reverse().find((e) => e.type === 'fullTime');
@@ -145,11 +154,23 @@ export function GameDetailsScreen({ id }: { id: string }) {
         <p class="details__meta">{meta}</p>
         <div class="details__line">
           <p class="details__match">
-            {home} : {away}
+            {/* Spec 017 FR-C10: Trikotfarben beider Mannschaften. */}
+            <TeamMark colorId={homeColor} testId={`details-mark-${homeSide}`} /> {home} : {away}{' '}
+            <TeamMark colorId={awayColor} testId={`details-mark-${awaySide}`} />
           </p>
           <p class="details__score">{`${ha.home}:${ha.away}`}</p>
         </div>
-        {summary && <p class="details__meta">{summary}</p>}
+        <div class="details__foot">
+          <p class="details__meta">{summary}</p>
+          <button
+            type="button"
+            class="link-btn details__kits"
+            data-testid="details-kits"
+            onClick={() => setKitsOpen(true)}
+          >
+            Trikots ändern
+          </button>
+        </div>
       </section>
 
       <section class="card card--list" aria-labelledby="timeline-title" data-testid="card-timeline">
@@ -314,6 +335,18 @@ export function GameDetailsScreen({ id }: { id: string }) {
           {shareMsg}
         </p>
       </section>
+
+      {kitsOpen && (
+        <KitsSheet
+          game={game}
+          dark={dark}
+          onSave={(own, opp) => {
+            applyKits(cur(), own, opp, update);
+            setKitsOpen(false);
+          }}
+          onClose={() => setKitsOpen(false)}
+        />
+      )}
 
       <GoalEditor
         game={game}

@@ -251,3 +251,109 @@ test.describe('017 US1 Tore in den Spieldetails korrigieren', () => {
     await expect(page.locator('[data-testid^="goal-row-"]').first()).toContainText('Tom');
   });
 });
+
+const BLAU = 'rgb(31, 79, 191)';
+const GELB = 'rgb(255, 212, 0)';
+const SCHWARZ = 'rgb(35, 31, 32)';
+
+async function openKits(page: Page): Promise<Locator> {
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-kits').click();
+  const kits = page.getByTestId('kits-sheet');
+  await expect(kits).toBeVisible();
+  return kits;
+}
+
+async function pick(page: Page, side: 'own' | 'opp', color: string): Promise<void> {
+  await page.getByTestId(`kit-${side}-change`).click();
+  await page.getByTestId(`color-${side}-${color}`).click();
+}
+
+test.describe('017 US2 Trikots ändern', () => {
+  test('017 US2-S1 "Trikots ändern" im "…"-Menü vor dem Anpfiff, laufend, in der Pause und beendet', async ({
+    page,
+  }) => {
+    const check = async (): Promise<void> => {
+      await page.getByTestId('btn-menu').click();
+      await expect(page.getByTestId('menu-kits')).toHaveText('Trikots ändern');
+      await page.getByTestId('game-menu').getByRole('button', { name: 'Schließen' }).click();
+    };
+    await startGame(page, { opponent: 'TSV Musterstadt' });
+    await check();
+    await forward(page, 26 * MIN);
+    await whistle(page);
+    await check();
+    await page.getByTestId('btn-kickoff').click();
+    await check();
+    await forward(page, 26 * MIN);
+    await whistle(page);
+    await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+    await page.getByTestId('draw-accept').click();
+    await check();
+  });
+
+  test('017 US2-S2 US2-S3 SC-C02 Blatt "Trikots": Gegner auf Blau, Tor-Knopf und Dashboard folgen; ohne "Übernehmen" bleibt alles', async ({
+    page,
+    recorded,
+    relay,
+  }) => {
+    const links = await createLive(page, recorded, { teams: ['E1'] });
+    await startGame(page, { opponent: 'TSV Musterstadt', ownTeam: E1 });
+    const id = gameId(page);
+    let kits = await openKits(page);
+    await expect(kits).toContainText('Trikots');
+    await expect(page.getByTestId('kit-own-color')).toHaveText('Rot');
+    await expect(page.getByTestId('kit-opp-color')).toHaveText('Schwarz');
+    await pick(page, 'opp', 'blau');
+    await expect(page.getByTestId('kit-opp-color')).toHaveText('Blau');
+    // Schließen ohne "Übernehmen": unverändert.
+    await kits.getByRole('button', { name: 'Schließen' }).click();
+    await expect(page.getByTestId('btn-goal-opp')).toHaveCSS('background-color', SCHWARZ);
+
+    kits = await openKits(page);
+    await pick(page, 'opp', 'blau');
+    await page.getByTestId('kits-save').click();
+    await expect(kits).toHaveCount(0);
+    await expect(page.getByTestId('btn-goal-opp')).toHaveCSS('background-color', BLAU);
+    await settle(page);
+    await expect.poll(async () => (await latestState(relay, links.viewer, id))?.oppColor).toBe('blau');
+  });
+
+  test('017 US2-S4 US2-S5 neue Gegnerfarbe wird gemerkt, Leibchen gilt nur für dieses Spiel', async ({ page }) => {
+    await startGame(page, { opponent: 'TSV Musterstadt' });
+    await openKits(page);
+    await pick(page, 'opp', 'blau');
+    await pick(page, 'own', 'gelb');
+    await page.getByTestId('kits-save').click();
+    await expect(page.getByTestId('btn-goal-own')).toHaveCSS('background-color', GELB);
+
+    await page.goto('./');
+    await page.getByTestId('btn-new-game').click();
+    await page.getByTestId('input-opponent').fill('TSV Musterstadt');
+    await expect(page.getByTestId('kit-opp-color')).toHaveText('Blau');
+    await expect(page.getByTestId('kit-own-color')).toHaveText('Rot');
+  });
+
+  test('017 US2-S6 gleiche Farbe: Hinweis wie bei "Neues Spiel", "Übernehmen" bleibt möglich', async ({ page }) => {
+    await startGame(page, { opponent: 'TSV Musterstadt' });
+    const kits = await openKits(page);
+    await pick(page, 'opp', 'rot');
+    await expect(kits.getByTestId('color-clash-hint')).toContainText('Beide Mannschaften in derselben Farbe.');
+    await page.getByTestId('kits-save').click();
+    await expect(page.getByTestId('btn-goal-opp')).toHaveCSS('background-color', 'rgb(235, 30, 37)');
+  });
+
+  test('017 US2-S7 Spieldetails: Farbmarken in der Kopfkarte, "Trikots ändern" öffnet dasselbe Blatt', async ({
+    page,
+  }) => {
+    await playSaturday(page, { assists: false });
+    await openFromHistory(page);
+    await expect(page.getByTestId('details-mark-opp')).toHaveCSS('background-color', SCHWARZ);
+    await page.getByTestId('details-kits').click();
+    await expect(page.getByTestId('kits-sheet')).toBeVisible();
+    await pick(page, 'opp', 'blau');
+    await page.getByTestId('kits-save').click();
+    await expect(page.getByTestId('details-mark-opp')).toHaveCSS('background-color', BLAU);
+    await expect(page.getByTestId('share-preview')).toContainText('🔵');
+  });
+});

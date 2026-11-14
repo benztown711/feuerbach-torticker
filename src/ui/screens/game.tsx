@@ -70,6 +70,7 @@ import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
+import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
@@ -156,6 +157,8 @@ export function GameScreen({ id }: { id: string }) {
   const [firstAsk, setFirstAsk] = useState(false);
   // Spec 012: Uhr korrigieren.
   const [clockFix, setClockFix] = useState<number | null>(null);
+  /** Spec 017 FR-C10: Blatt "Trikots". */
+  const [kitsOpen, setKitsOpen] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -841,6 +844,17 @@ export function GameScreen({ id }: { id: string }) {
               Heim und Gast tauschen
             </button>
           )}
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="menu-kits"
+            onClick={() => {
+              setMenu(false);
+              setKitsOpen(true);
+            }}
+          >
+            Trikots ändern
+          </button>
           {liveStatus !== null && liveStatus !== 'handed' && (
             <button
               type="button"
@@ -1243,6 +1257,18 @@ export function GameScreen({ id }: { id: string }) {
             Math.max(1, Math.ceil((picker.until - now) / 1000)),
           )}
           {...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {})}
+        />
+      )}
+
+      {kitsOpen && (
+        <KitsSheet
+          game={game}
+          dark={dark}
+          onSave={(own, opp) => {
+            applyKits(cur(), own, opp, update);
+            setKitsOpen(false);
+          }}
+          onClose={() => setKitsOpen(false)}
         />
       )}
 

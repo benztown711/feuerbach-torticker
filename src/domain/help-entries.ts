@@ -411,9 +411,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie ändere ich die Trikotfarben für ein Spiel?',
     answer:
-      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Die Tor-Knöpfe erscheinen in diesen Farben.',
-    keywords: 'trikot farbe leibchen auswärtstrikot heimtrikot',
-    sources: ['004 US2'],
+      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Später geht das im Spiel über „…“ und „Trikots ändern“ oder in den Spieldetails; erst „Übernehmen“ ändert die Farben. Eine neue Gegnerfarbe schlägt der Torticker beim nächsten Spiel gegen diesen Gegner vor.',
+    keywords: 'trikot farbe leibchen auswärtstrikot heimtrikot falsche farbe gegner ändern',
+    sources: ['004 US2', '017 US2'],
     open: { label: 'Neues Spiel', path: '/neu' },
     related: ['mannschaft', 'neues-spiel'],
   },
@@ -491,11 +491,11 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'historie',
     title: 'Wie korrigiere ich ein Spiel nach dem Schlusspfiff?',
     answer:
-      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach. Das geht ohne Frist; Stand, geteilter Text und Dashboard folgen. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
+      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“. Das geht ohne Frist; Stand, geteilter Text und Dashboard folgen. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
     keywords: 'korrigieren korrektur nachträglich ändern falsch später historie spieldetails torschütze minute vorlage',
-    sources: ['017 US1'],
+    sources: ['017 US1', '017 US2'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['torschuetze', 'tor-minute', 'tor-nachtragen'],
+    related: ['torschuetze', 'tor-minute', 'trikots'],
   },
   {
     id: 'spiel-loeschen',
