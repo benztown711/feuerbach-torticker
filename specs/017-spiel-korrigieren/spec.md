@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-14
 
-**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B erledigt (14.11.2026, "Passt"). Mockup: https://claude.ai/artifact/54YB4eDZx23EBH51WRWW9j
+**Status**: Entwurf. Klärung im Chat erledigt (14.11.2026: "1A, 2A, 3A, 4A"). Review A und Review B erledigt (14.11.2026, "Passt"). US1 bis US3 umgesetzt (PR #83), Review C offen. Mockup: https://claude.ai/artifact/54YB4eDZx23EBH51WRWW9j
 
 **Input**: Atti (14.11.2026): "Was würde es bedeuten, für Trainer eine Funktion zu implementieren, die Änderungen während und nach dem Spiel zulässt? Geändert werden können soll die Farben der Mannschaften, die Tore und dessen Schützen sowie Vorlagengeber und deren Spielminute. Wie könnte das aussehen?"
 

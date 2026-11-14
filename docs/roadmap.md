@@ -109,6 +109,6 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 | N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026); US3 und US7 Dashboard übernommen (#68, 07.11.2026); US6 "Ich tickere" übernommen (#70, 07.11.2026); US5 Kader übernommen (#72, 07.11.2026); Spec 015 vollständig |
 
 | N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | erledigt: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit dem eigenen Dienst (#73) |
-| N8 | Spiel korrigieren auch nach dem Schlusspfiff: Tore, Torschützen, Vorlagen und Minuten aus den Spieldetails; Trikotfarben im Spiel und danach ändern; Erinnerung "Korrigiert. Ergebnis neu teilen?" | 017 | Review A und B erledigt (14.11.2026); Umsetzung in #83 |
+| N8 | Spiel korrigieren auch nach dem Schlusspfiff: Tore, Torschützen, Vorlagen und Minuten aus den Spieldetails; Trikotfarben im Spiel und danach ändern; Erinnerung "Korrigiert. Ergebnis neu teilen?" | 017 | US1 bis US3 umgesetzt (#83), Review C offen |
 
 (weitere hier anfügen)
