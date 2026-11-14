@@ -567,3 +567,38 @@ describe('017 FR-C20 "Ergebnis teilen" sendet nichts Neues', () => {
     t.sender.stop();
   });
 });
+
+describe('017 Fehlerbehebung: vor der Kopplung angelegt, danach gespielt (R-C7)', () => {
+  /** Spiel am Vorabend aus dem Spielplan angelegt, Handy erst vor dem Anpfiff gekoppelt (T0). */
+  const preparedEarlier = (id: string): Game => {
+    vi.setSystemTime(T0 - 12 * 60 * 60_000);
+    const g = newGame(E1_NAME, id);
+    vi.setSystemTime(T0);
+    return g;
+  };
+
+  it('Korrektur nach einem Neustart geht hinaus, wenn das Spiel erst nach der Kopplung beendet wurde', async () => {
+    const isRecent = vi.fn(async () => true);
+    const t = setup({ isRecent });
+    let g = kickoff(preparedEarlier('vorabend'), T0 + 60_000);
+    g = endSection(kickoff(endSection(g, T0 + 26 * 60_000), T0 + 30 * 60_000), T0 + 56 * 60_000);
+    vi.setSystemTime(T0 + 10 * 60 * 60_000);
+    // Neue Sitzung: der Sender kennt das Spiel nicht; die Korrektur kommt als erste Änderung.
+    t.sender.handle({ kind: 'put', game: addGoal(g, 'own', T0 + 20 * 60_000, () => 'nachgetragen').game });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.snaps().map((x) => x.gameId)).toEqual(['vorabend']);
+    t.sender.stop();
+  });
+
+  it('vor der Kopplung schon beendet (z. B. aus einer Sicherung): weiterhin nicht senden', async () => {
+    const t = setup({ isRecent: async () => true });
+    vi.setSystemTime(T0 - 24 * 60 * 60_000);
+    let g = kickoff(newGame(E1_NAME, 'sicherung'), Date.now());
+    g = endSection(kickoff(endSection(g, Date.now() + 1000), Date.now() + 2000), Date.now() + 3000);
+    vi.setSystemTime(T0 + 60_000);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(0);
+    t.sender.stop();
+  });
+});
