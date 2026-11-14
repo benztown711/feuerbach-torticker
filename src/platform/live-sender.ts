@@ -54,6 +54,10 @@ interface Pending {
 
 const ACTIVE = new Set(['running', 'paused', 'break']);
 
+/** Spec 017 FR-C20: Unterscheiden sich zwei Stände nur in `sharedAt`? */
+const onlySharedAtChanged = (a: Game, b: Game): boolean =>
+  a.sharedAt !== b.sharedAt && JSON.stringify({ ...a, sharedAt: 0 }) === JSON.stringify({ ...b, sharedAt: 0 });
+
 /** FR-L09: beim Anlegen ausgenommen und nie eingeschaltet; FR-L24: von einem anderen Handy übernommen. */
 const isPrivate = (game: Game): boolean =>
   game.live === false && (game.livePrivate === true || game.liveHandedOver === true);
@@ -65,6 +69,8 @@ export class LiveSender {
   private readonly games = new Map<string, { game: Game; team: LiveTeamCred }>();
   /** Spec 017 FR-C06: beendete Spiele, deren Prüfung "jüngst" noch läuft, mit dem jeweils neuesten Stand. */
   private readonly checking = new Map<string, Game>();
+  /** Spec 017 FR-C06: in dieser Sitzung als "nicht jüngst" erkannt (keine weitere Prüfung nötig). */
+  private readonly notRecent = new Set<string>();
   /** Zeitpunkt der letzten erfolgreichen Sendung je Spiel (US2-S10). */
   private readonly sentAt = new Map<string, number>();
   private readonly listeners = new Set<() => void>();
@@ -97,6 +103,7 @@ export class LiveSender {
   /** Neue Kopplung oder Konfiguration desselben Live-Spieltags übernehmen. */
   updateLive(live: LiveSpieltag): void {
     this.live = live;
+    this.notRecent.clear();
     // Spiele von Mannschaften, für die das Gerät nicht mehr sendet, nicht weiter melden.
     for (const [id, { game }] of [...this.games]) if (!this.teamFor(game)) this.forget(id);
     for (const [id, team] of [...this.teamOfPending])
@@ -139,12 +146,22 @@ export class LiveSender {
       this.forget(change.game.id);
       return;
     }
-    // Spec 017 FR-C06: Korrektur an einem beendeten Spiel, das in dieser Sitzung noch nicht hinausging, nur senden,
-    // wenn es zu den jüngsten seiner Mannschaft gehört (sonst verdrängte es unter "Letzte Spiele" ein jüngeres).
-    if (change.game.status === 'finished' && !this.games.has(change.game.id) && this.deps.isRecent) {
-      this.check(change.game, this.deps.isRecent);
+    const id = change.game.id;
+    // Spec 017 FR-C20: nur "zuletzt geteilt" geändert; das geht nicht an den Dienst, also nichts Neues zu senden.
+    const prev = this.games.get(id)?.game;
+    if (prev && onlySharedAtChanged(prev, change.game)) {
+      this.games.set(id, { game: change.game, team });
       return;
     }
+    // Spec 017 FR-C06: Korrektur an einem beendeten Spiel, das in dieser Sitzung noch nicht hinausging, nur senden,
+    // wenn es zu den jüngsten seiner Mannschaft gehört (sonst verdrängte es unter "Letzte Spiele" ein jüngeres).
+    if (change.game.status === 'finished' && !this.games.has(id) && this.deps.isRecent) {
+      if (this.notRecent.has(id)) this.forget(id);
+      else this.check(change.game, this.deps.isRecent);
+      return;
+    }
+    // Ein neuerer Stand geht direkt hinaus; eine noch laufende Prüfung darf keinen älteren nachschicken.
+    this.checking.delete(id);
     this.accept(change.game, team);
   }
 
@@ -157,6 +174,7 @@ export class LiveSender {
       .then((recent) => {
         const latest = this.checking.get(game.id);
         this.checking.delete(game.id);
+        if (!recent) this.notRecent.add(game.id);
         const team = latest ? this.teamFor(latest) : null;
         if (latest && team && recent && !this.stopped) this.accept(latest, team);
       });

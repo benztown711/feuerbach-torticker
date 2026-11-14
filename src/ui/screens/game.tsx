@@ -376,8 +376,8 @@ export function GameScreen({ id }: { id: string }) {
     setUndo(null);
     setEdit(null);
   };
-  /** Schnellauswahl direkt nach dem Tor offen (dann ohne Rückgängig-Leiste, "Rückgängig" steht in der Auswahl). */
-  const quickOpen = quickUntil !== undefined && !pickerExpired;
+  /** Torschützen- bzw. Vorlagen-Auswahl offen: ohne Rückgängig-Leiste (in der Schnellauswahl steht "Rückgängig"). */
+  const pickerOpen = !!edit && (edit.kind === 'scorer' || edit.kind === 'assist') && !pickerExpired;
   const roster = players ?? [];
   const flashing = now < flashUntil;
 
@@ -722,7 +722,7 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
-      {undoGoalObj && !quickOpen && (
+      {undoGoalObj && !pickerOpen && (
         <div class="undo-bar" data-testid="undo-bar" role="status">
           <span class="undo-bar__text">
             Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
@@ -1236,7 +1236,8 @@ export function GameScreen({ id }: { id: string }) {
         game={game}
         players={roster}
         settings={settings}
-        step={edit}
+        // Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage.
+        step={ask && edit?.kind === 'goal' ? null : edit}
         onStep={setEdit}
         cur={cur}
         update={update}

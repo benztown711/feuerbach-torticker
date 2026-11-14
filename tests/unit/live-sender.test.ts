@@ -524,4 +524,46 @@ describe('017 FR-C06 Korrekturen alter Spiele bleiben lokal (research.md R-C2)',
     ).toEqual(['deleted']);
     t.sender.stop();
   });
+
+  it('neuerer, nicht beendeter Stand während der Prüfung: die Prüfung schickt keinen älteren nach', async () => {
+    let answer: (v: boolean) => void = () => undefined;
+    const t = setup({ isRecent: () => new Promise<boolean>((r) => (answer = r)) });
+    const done = finished('zurück', 1);
+    t.sender.handle({ kind: 'put', game: done });
+    // "Schlusspfiff zurücknehmen": das Spiel läuft wieder und geht direkt hinaus.
+    const running = { ...done, status: 'running' as const, finalScore: null };
+    t.sender.handle({ kind: 'put', game: running });
+    answer(true);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(1);
+    t.sender.stop();
+  });
+
+  it('nicht jüngstes Spiel: weitere Korrekturen prüfen nicht erneut', async () => {
+    const isRecent = vi.fn(async () => false);
+    const t = setup({ isRecent });
+    t.sender.handle({ kind: 'put', game: finished('alt', 1) });
+    await vi.advanceTimersByTimeAsync(0);
+    t.sender.handle({ kind: 'put', game: finished('alt', 2) });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(isRecent).toHaveBeenCalledTimes(1);
+    expect(t.sent).toHaveLength(0);
+    t.sender.stop();
+  });
+});
+
+describe('017 FR-C20 "Ergebnis teilen" sendet nichts Neues', () => {
+  it('nur sharedAt geändert: keine weitere Sendung', async () => {
+    const t = setup();
+    const g = kickoff(newGame(E1_NAME, 'geteilt'), T0);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    t.sender.handle({ kind: 'put', game: { ...g, sharedAt: T0 + 1000 } });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(1);
+    t.sender.handle({ kind: 'put', game: addGoal({ ...g, sharedAt: T0 + 1000 }, 'own', T0 + 2000, () => 'x').game });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(2);
+    t.sender.stop();
+  });
 });

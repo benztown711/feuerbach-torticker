@@ -1148,6 +1148,7 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 .details__kits {
+  margin-left: auto;
   min-height: 44px;
   white-space: nowrap;
 }

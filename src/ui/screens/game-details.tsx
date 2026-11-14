@@ -19,7 +19,7 @@ import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-edito
 import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
-import { useDarkTheme } from '../hooks';
+import { useDarkTheme, useNow } from '../hooks';
 import { SharePreview } from '../components/share-preview';
 import { navigate } from '../router';
 
@@ -67,6 +67,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
   const dark = useDarkTheme();
+  // Gespielte Minuten für "Tor nachtragen" und "Minute ändern": bei laufendem Spiel jede Sekunde neu (US1-S11).
+  const now = useNow(game?.status === 'finished' ? 60_000 : 1_000);
   const gameRef = useRef<Game | null>(null);
   useEffect(() => {
     void getGame(id).then((g) => {
@@ -94,7 +96,6 @@ export function GameDetailsScreen({ id }: { id: string }) {
     if (before && needsReshare(before, g, players)) setReshareAt(Date.now());
   };
   const cur = (): Game => gameRef.current ?? game;
-  const now = Date.now();
 
   const ha = homeAway(game.venue, score(game));
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
@@ -169,7 +170,7 @@ export function GameDetailsScreen({ id }: { id: string }) {
           <p class="details__score">{`${ha.home}:${ha.away}`}</p>
         </div>
         <div class="details__foot">
-          <p class="details__meta">{summary}</p>
+          {summary && <p class="details__meta">{summary}</p>}
           <button
             type="button"
             class="link-btn details__kits"

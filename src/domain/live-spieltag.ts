@@ -394,17 +394,14 @@ export function liveTeamFor(ownTeam: string, live: LiveSpieltag | null): LiveTea
 /**
  * Spec 017 FR-C06 (research.md R-C2): Gehört das Spiel zu den `KEEP_PER_GROUP` zuletzt angelegten Spielen seiner
  * Live-Mannschaft auf diesem Handy? Der Dienst hält je Mannschaft nur so viele; eine Korrektur an einem älteren
- * Spiel brächte es als jüngstes zurück. Nie gesendete Spiele (`livePrivate`) zählen nicht mit.
+ * Spiel brächte es als jüngstes zurück. Nicht live gesendete Spiele ("Nicht live senden", nie gesendet) zählen nicht
+ * mit, weil der Dienst sie nicht unter "Letzte Spiele" führt.
  */
 export function isRecentGame(games: Game[], game: Game, live: LiveSpieltag | null): boolean {
   const team = liveTeamFor(game.ownTeam, live);
   if (!team) return false;
   const newer = games.filter(
-    (g) =>
-      g.id !== game.id &&
-      g.livePrivate !== true &&
-      g.createdAt > game.createdAt &&
-      liveTeamFor(g.ownTeam, live)?.key === team.key,
+    (g) => g.id !== game.id && g.createdAt > game.createdAt && sendingTeamFor(g, live)?.key === team.key,
   );
   return newer.length < KEEP_PER_GROUP;
 }

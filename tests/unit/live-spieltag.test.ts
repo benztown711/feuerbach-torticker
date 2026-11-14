@@ -497,8 +497,12 @@ describe('017 FR-C06 Korrekturen alter Spiele bleiben lokal', () => {
 
   it('andere Mannschaften und nie gesendete Spiele zählen nicht mit', () => {
     const e2 = Array.from({ length: 5 }, (_, i) => game(`e2-${i}`, 'Sportvg Feuerbach E2', 5000 + i));
-    const priv = [game('p1', 'Sportvg Feuerbach E1', 9000, { live: false, livePrivate: true })];
-    expect(isRecentGame([...e1, ...e2, ...priv, ...priv], e1[2]!, live)).toBe(true);
+    const priv = [
+      game('p1', 'Sportvg Feuerbach E1', 9000, { live: false, livePrivate: true }),
+      // "Nicht live senden": der Dienst führt es nicht unter "Letzte Spiele".
+      game('p2', 'Sportvg Feuerbach E1', 9002, { live: false }),
+    ];
+    expect(isRecentGame([...e1, ...e2, ...priv], e1[2]!, live)).toBe(true);
     expect(isRecentGame([...e1, game('neu', 'Sportvg Feuerbach E1', 9001)], e1[2]!, live)).toBe(false);
   });
 
