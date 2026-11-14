@@ -9,7 +9,6 @@ import { GameScreen } from './screens/game';
 import { HistoryScreen } from './screens/history';
 import { MoreScreen } from './screens/more';
 import { NewGameScreen } from './screens/new-game';
-import { SettingsScreen } from './screens/settings';
 import { StartScreen } from './screens/start';
 
 /** Spec 006 R-L7: selten genutzte Bildschirme werden nachgeladen (Bundle-Budget). */
@@ -45,6 +44,8 @@ const loadHelp = () => import('./screens/help').then((m) => m.HelpScreen);
 const loadLeadLink = () => import('./screens/lead-link').then((m) => m.LeadLinkScreen);
 /** Spec 015 US5: Kader-Bildschirm mit "Liste einfügen" wird nachgeladen (Bundle-Budget). */
 const loadRoster = () => import('./screens/roster').then((m) => m.RosterScreen);
+/** Spec 017 R-C6: Einstellungen (mit Sicherung) werden nachgeladen (Bundle-Budget). */
+const loadSettings = () => import('./screens/settings').then((m) => m.SettingsScreen);
 const loadViewer = () => import('./screens/live-dashboard').then((m) => m.ViewerScreen);
 const loadAppDashboard = () => import('./screens/live-dashboard').then((m) => m.AppDashboardScreen);
 
@@ -57,7 +58,7 @@ export function App() {
       {route.name === 'roster' && <Lazy load={loadRoster} props={{}} />}
       {route.name === 'history' && <HistoryScreen />}
       {route.name === 'more' && <MoreScreen />}
-      {route.name === 'settings' && <SettingsScreen />}
+      {route.name === 'settings' && <Lazy load={loadSettings} props={{}} />}
       {route.name === 'help' && <Lazy load={loadHelp} props={{ entry: route.entry }} />}
       {route.name === 'game' && <GameScreen key={route.id} id={route.id} />}
       {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}

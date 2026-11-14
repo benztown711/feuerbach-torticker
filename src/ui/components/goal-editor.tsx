@@ -14,7 +14,7 @@ import {
 import { formatMinute } from '../../domain/minute';
 import { activePlayers, otherPlayers, squadPlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
-import type { Game, Player, Settings, Side } from '../../domain/types';
+import type { Game, Player, Scorer, Settings, Side } from '../../domain/types';
 import { Confirm } from './confirm';
 import { ScorerPicker } from './scorer-picker';
 import { Sheet } from './sheet';
@@ -27,11 +27,17 @@ import { TeamMark } from './team-mark';
 export type EditStep =
   | { kind: 'goal'; goalId: string }
   | { kind: 'remove'; goalId: string }
-  | { kind: 'scorer'; goalId: string }
-  | { kind: 'assist'; goalId: string }
+  /** `until`: Schnellauswahl direkt nach dem Tor mit Countdown (US3-S2, Spec 009 FR-V02); fehlt = Korrektur. */
+  | { kind: 'scorer'; goalId: string; until?: number }
+  | { kind: 'assist'; goalId: string; until?: number }
   | { kind: 'text'; goalId: string; value: string }
   | { kind: 'minute'; goalId: string; label: string }
   | { kind: 'add'; side: Side; label: string };
+
+/** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
+export const PICKER_MS = 8_000;
+/** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
+export const ASSIST_MS = 5_000;
 
 /** Spec 012 FR-S10, FR-S11: "Tor nachtragen" mit vorgewählter letzter gespielter Minute, vor dem Anpfiff null. */
 export function addGoalStep(game: Game, now: number): EditStep | null {
@@ -73,9 +79,12 @@ interface Props {
   cur: () => Game;
   update: (game: Game) => void;
   now: number;
+  /** Nur Spielbildschirm: "Rückgängig" in der Schnellauswahl, solange das Tor noch zurückzunehmen ist. */
+  undoGoalId?: string | undefined;
+  onUndo?: (goalId: string) => void;
 }
 
-export function GoalEditor({ game, players, settings, step, onStep, cur, update, now }: Props) {
+export function GoalEditor({ game, players, settings, step, onStep, cur, update, now, undoGoalId, onUndo }: Props) {
   if (!step) return null;
   const goalOf = (id: string) => game.goals.find((g) => g.id === id);
   const close = (): void => onStep(null);
@@ -225,11 +234,29 @@ export function GoalEditor({ game, players, settings, step, onStep, cur, update,
   }
 
   if (step.kind === 'scorer' || step.kind === 'assist') {
+    const { until } = step;
+    // Abgelaufene Schnellauswahl: zu (die Seite setzt den Schritt zurück).
+    if (until !== undefined && now >= until) return null;
     // Spec 013 FR-K05: Reihenfolge aus den Einstellungen; Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
     const sort = settings?.rosterSort ?? 'name';
     const notScorer = (p: { id: string }): boolean => step.kind !== 'assist' || scorerPlayerId(goal) !== p.id;
+    const pick = (scorer: Scorer): void => {
+      if (step.kind === 'assist') {
+        update(setAssist(cur(), goal.id, scorer?.kind === 'player' ? scorer.playerId : null));
+        close();
+        return;
+      }
+      const next = setScorer(cur(), goal.id, scorer);
+      update(next);
+      // Spec 009 FR-V02, FR-V03: in der Schnellauswahl mit Schalter "Vorlagen" folgt "Vorlage von?".
+      const g = next.goals.find((x) => x.id === goal.id);
+      if (until !== undefined && settings?.features.assists && g && canHaveAssist(g))
+        onStep({ kind: 'assist', goalId: goal.id, until: Date.now() + ASSIST_MS });
+      else close();
+    };
     return (
       <ScorerPicker
+        // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
         key={step.kind}
         kind={step.kind}
         subtitle={`Tor in Minute ${formatMinute(goal.minute, goal.stoppage)}${
@@ -237,15 +264,18 @@ export function GoalEditor({ game, players, settings, step, onStep, cur, update,
         }`}
         squad={squadPlayers(players, game.squad, sort).filter(notScorer)}
         others={otherPlayers(players, game.squad, sort).filter(notScorer)}
-        onPick={(scorer) => {
-          update(
-            step.kind === 'scorer'
-              ? setScorer(cur(), goal.id, scorer)
-              : setAssist(cur(), goal.id, scorer?.kind === 'player' ? scorer.playerId : null),
-          );
-          close();
-        }}
+        onPick={pick}
         onClose={close}
+        {...(until !== undefined
+          ? {
+              // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 bzw. 5 s anzeigen.
+              countdown: Math.min(
+                (step.kind === 'scorer' ? PICKER_MS : ASSIST_MS) / 1000,
+                Math.max(1, Math.ceil((until - now) / 1000)),
+              ),
+              ...(onUndo && undoGoalId === goal.id ? { onUndo: () => onUndo(goal.id) } : {}),
+            }
+          : {})}
       />
     );
   }

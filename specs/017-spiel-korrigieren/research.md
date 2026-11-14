@@ -27,3 +27,9 @@
 
 - **Decision**: Das Blatt "Trikots" nutzt `KitRow` (Spec 004) für beide Mannschaften; "Übernehmen" setzt beide Farben über `setKits`. Eine geänderte Gegnerfarbe speichert `rememberColors` (FR-031) in den Einstellungen; die eigene Farbe bleibt nur am Spiel.
 - **Rationale**: Gleiche Bedienung wie beim Anlegen (Mockup); Palette und Kontrast sind schon geprüft (`design/trikot-farben.json`). Tor-Knöpfe, Farbmarken, Teilen-Text (Symbol der Gegnerfarbe) und Live-Meldung lesen die Farben schon aus dem Spiel.
+
+## R-C6 Bundle-Budget: Einstellungen nachladen
+
+- **Decision**: Der Bildschirm "Einstellungen" (mit Sicherung und Mannschaften) wird wie Hilfe, Kader und Spielplan nachgeladen (`Lazy` in `src/ui/app.tsx`, Spec 006 R-L7). Korrektur-Blätter, "Trikots" und Leiste bleiben im Hauptbundle; die Schnellauswahl nach dem Tor und die Korrektur nutzen dieselbe Auswahl in `GoalEditor` (kein doppelter Code).
+- **Rationale**: Mit allen drei User Stories lag das Hauptbundle bei 60,8 KB gzip (Budget 60 KB; `main` 59,3 KB: US1 +0,6, US2 +0,6, US3 +0,3). Die Einstellungen öffnet man selten und nie am Spielfeldrand; nachgeladen sind es 59,1 KB. Der Service Worker hält den nachgeladenen Teil offline vor.
+- **Gemessen und verworfen**: Spieldetails nachladen 61,3 KB, Korrektur-Blätter nachladen 61,1 KB, nur `GoalEditor` nachladen 61,0 KB: Vite 8 (Rolldown) lagert dabei gemeinsame Module in eigene, vorab geladene Teile aus (wie Spec 015 R-P6), die Summe steigt. Budget anheben: verworfen (Qualitätstor wird nicht abgeschwächt).

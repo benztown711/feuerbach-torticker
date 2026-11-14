@@ -50,6 +50,7 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 | `src/ui/screens/game.tsx` | Korrektur-Blätter über `GoalEditor`; die Schnellauswahl direkt nach dem Tor (Countdown, Rückgängig, "Vorlage von?") bleibt hier. "…"-Menü: "Trikots ändern" in jedem Zustand. `update` zeigt die Leiste bei `needsReshare`; "Ergebnis teilen" setzt `sharedAt` |
 | `src/ui/screens/game-details.tsx` | Spieldetails bearbeitbar: Einstellungen laden, `update` (speichern, Leiste), Tore im Spielverlauf als Knöpfe (öffnen `GoalEditor`), "Tor nachtragen" unter dem Spielverlauf, Kopfkarte mit Farbmarken und "Trikots ändern", Teilen setzt `sharedAt` |
 | `src/styles/app.css` | Tor-Zeilen der Spieldetails als Knöpfe (Ziel mindestens 44 px), Pfeil, Leiste über der Navigation wie in der Historie |
+| `src/ui/app.tsx` | "Einstellungen" nachgeladen (Bundle-Budget, R-C6) |
 | `src/domain/help-entries.ts` | Einträge laut Spec-Abschnitt "Hilfe" |
 
 ## Risiken

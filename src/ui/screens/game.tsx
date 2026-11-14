@@ -25,17 +25,7 @@ import {
   updateCard,
   updateSub,
 } from '../../domain/events';
-import {
-  addGoal,
-  canHaveAssist,
-  homeAway,
-  score,
-  scorerLabel,
-  setAssist,
-  scorerPlayerId,
-  setScorer,
-  undoGoal,
-} from '../../domain/goals';
+import { addGoal, homeAway, score, undoGoal } from '../../domain/goals';
 import {
   canAddLateGoal,
   canUndoWhistle,
@@ -49,7 +39,7 @@ import { formatTime } from '../../domain/format';
 import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
-import type { CardColor, EventPerson, Game, Scorer, Settings, Side } from '../../domain/types';
+import type { CardColor, EventPerson, Game, Settings, Side } from '../../domain/types';
 import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
 import {
@@ -71,14 +61,13 @@ import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
-import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
+import { addGoalStep, GoalEditor, PICKER_MS, type EditStep } from '../components/goal-editor';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
 import { ReshareBar } from '../components/reshare-bar';
-import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
@@ -93,10 +82,6 @@ const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
-/** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
-const PICKER_MS = 8_000;
-/** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
-const ASSIST_MS = 5_000;
 
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
@@ -136,8 +121,6 @@ export function GameScreen({ id }: { id: string }) {
   const [hintUntil, setHintUntil] = useState(0);
   const [players] = usePlayers();
   const [shareMsg, setShareMsg] = useState('');
-  /** Schnellauswahl direkt nach dem Tor: Torschütze bzw. (Spec 009) "Vorlage von?" mit Countdown bis `until`. */
-  const [picker, setPicker] = useState<{ goalId: string; until: number; kind: 'scorer' | 'assist' } | null>(null);
   const gameRef = useRef<Game | null>(null);
   // Spec 003: Ereignisse (Teil 1: Lesezeichen)
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -254,9 +237,11 @@ export function GameScreen({ id }: { id: string }) {
     [],
   );
 
-  const pickerExpired = picker !== null && now >= picker.until;
+  // US3-S2, Spec 009 FR-V02: Schnellauswahl schließt sich nach Ablauf von selbst.
+  const quickUntil = edit && (edit.kind === 'scorer' || edit.kind === 'assist') ? edit.until : undefined;
+  const pickerExpired = quickUntil !== undefined && now >= quickUntil;
   useEffect(() => {
-    if (pickerExpired) setPicker(null);
+    if (pickerExpired) setEdit(null);
   }, [pickerExpired]);
 
   if (game === undefined) return <main class="game" aria-busy="true" />;
@@ -309,7 +294,7 @@ export function GameScreen({ id }: { id: string }) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
       if (side === 'own' && activePlayers(players ?? []).length > 0)
-        setPicker({ goalId: r.goal.id, until: t + PICKER_MS, kind: 'scorer' });
+        setEdit({ kind: 'scorer', goalId: r.goal.id, until: t + PICKER_MS });
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
     }
@@ -389,25 +374,10 @@ export function GameScreen({ id }: { id: string }) {
   const doUndo = (goalId: string): void => {
     update(undoGoal(cur(), goalId));
     setUndo(null);
-    setPicker(null);
+    setEdit(null);
   };
-  const pickScorer = (goalId: string, scorer: Scorer): void => {
-    const next = setScorer(cur(), goalId, scorer);
-    update(next);
-    // Spec 009 FR-V02, FR-V03: in der Schnellauswahl mit Schalter "Vorlagen" folgt "Vorlage von?".
-    const goal = next.goals.find((g) => g.id === goalId);
-    if (settings?.features.assists && goal && canHaveAssist(goal))
-      setPicker({ goalId, until: Date.now() + ASSIST_MS, kind: 'assist' });
-    else setPicker(null);
-  };
-  const pickAssist = (goalId: string, scorer: Scorer): void => {
-    update(setAssist(cur(), goalId, scorer?.kind === 'player' ? scorer.playerId : null));
-    setPicker(null);
-  };
-  const pickerGoal = picker && !pickerExpired ? game.goals.find((g) => g.id === picker.goalId) : undefined;
-  /** Spec 009 FR-V02: "Vorlage von?" ohne den Torschützen. */
-  const notScorer = (p: { id: string }): boolean =>
-    picker?.kind !== 'assist' || !pickerGoal || scorerPlayerId(pickerGoal) !== p.id;
+  /** Schnellauswahl direkt nach dem Tor offen (dann ohne Rückgängig-Leiste, "Rückgängig" steht in der Auswahl). */
+  const quickOpen = quickUntil !== undefined && !pickerExpired;
   const roster = players ?? [];
   const flashing = now < flashUntil;
 
@@ -752,7 +722,7 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
-      {undoGoalObj && !pickerGoal && (
+      {undoGoalObj && !quickOpen && (
         <div class="undo-bar" data-testid="undo-bar" role="status">
           <span class="undo-bar__text">
             Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
@@ -1250,30 +1220,6 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
-      {pickerGoal && picker && (
-        <ScorerPicker
-          // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
-          key={picker.kind}
-          kind={picker.kind}
-          subtitle={`Tor in Minute ${formatMinute(pickerGoal.minute, pickerGoal.stoppage)}${
-            picker.kind === 'assist' ? ` · ${scorerLabel(pickerGoal, roster)}` : ''
-          }`}
-          // Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
-          squad={squadPl.filter(notScorer)}
-          others={otherPl.filter(notScorer)}
-          onPick={(scorer) =>
-            picker.kind === 'scorer' ? pickScorer(pickerGoal.id, scorer) : pickAssist(pickerGoal.id, scorer)
-          }
-          onClose={() => setPicker(null)}
-          // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 bzw. 5 s anzeigen.
-          countdown={Math.min(
-            (picker.kind === 'scorer' ? PICKER_MS : ASSIST_MS) / 1000,
-            Math.max(1, Math.ceil((picker.until - now) / 1000)),
-          )}
-          {...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {})}
-        />
-      )}
-
       {kitsOpen && (
         <KitsSheet
           game={game}
@@ -1295,6 +1241,8 @@ export function GameScreen({ id }: { id: string }) {
         cur={cur}
         update={update}
         now={now}
+        undoGoalId={undoGoalObj?.id}
+        onUndo={doUndo}
       />
 
       {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
