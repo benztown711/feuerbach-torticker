@@ -2,7 +2,7 @@ import { webcrypto } from 'node:crypto';
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import type { Page } from '@playwright/test';
 import { expect, type Recorded } from './fixtures';
-import { addTeam } from './helpers';
+import { ensureTeam } from './helpers';
 import type { FakeRelay } from './relay';
 
 /** Spec 006: Testhelfer für den Live-Spieltag (contracts/live-link.md). */
@@ -34,7 +34,8 @@ export async function createLive(
   recorded: () => Promise<Recorded>,
   o: { teams: string[]; without?: string[]; title?: string },
 ): Promise<LiveLinks> {
-  for (const t of o.teams) await addTeam(page, `Sportvg Feuerbach ${t}`);
+  // Spec 017 R-C7: Mannschaft kann schon angelegt sein (Spiel vor der Kopplung vorbereitet).
+  for (const t of o.teams) await ensureTeam(page, `Sportvg Feuerbach ${t}`);
   await page.goto('./#/mehr');
   await page.getByTestId('more-live').click();
   await page.getByTestId('btn-live-create').click();

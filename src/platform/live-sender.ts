@@ -54,6 +54,9 @@ interface Pending {
 
 const ACTIVE = new Set(['running', 'paused', 'break']);
 
+/** Zeitpunkt des letzten Uhr-Ereignisses (bei beendeten Spielen der Schlusspfiff), sonst das Anlegen. */
+const endedAt = (game: Game): number => game.clockEvents.at(-1)?.at ?? game.createdAt;
+
 /** Spec 017 FR-C20: Unterscheiden sich zwei Stände nur in `sharedAt`? */
 const onlySharedAtChanged = (a: Game, b: Game): boolean =>
   a.sharedAt !== b.sharedAt && JSON.stringify({ ...a, sharedAt: 0 }) === JSON.stringify({ ...b, sharedAt: 0 });
@@ -139,8 +142,10 @@ export class LiveSender {
       return;
     }
     const team = this.teamFor(change.game);
-    // Alte, beendete Spiele (z. B. aus einer Sicherung) nicht nachträglich veröffentlichen (FR-L06 "ab dem Anlegen").
-    const old = change.game.status === 'finished' && change.game.createdAt < this.live.createdAt;
+    // Spiele, die schon vor der Kopplung beendet waren (z. B. aus einer Sicherung), nicht nachträglich veröffentlichen
+    // (FR-L06). Spec 017 R-C7: maßgeblich ist der Schlusspfiff, nicht das Anlegen; ein vorher angelegtes, nach der
+    // Kopplung gespieltes Spiel war live und nimmt Korrekturen auch nach einem Neustart an.
+    const old = change.game.status === 'finished' && endedAt(change.game) < this.live.createdAt;
     if (!team || (old && !this.games.has(change.game.id))) {
       this.checking.delete(change.game.id);
       this.forget(change.game.id);

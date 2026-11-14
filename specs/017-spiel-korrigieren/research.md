@@ -33,3 +33,10 @@
 - **Decision**: Der Bildschirm "Einstellungen" (mit Sicherung und Mannschaften) wird wie Hilfe, Kader und Spielplan nachgeladen (`Lazy` in `src/ui/app.tsx`, Spec 006 R-L7). Korrektur-Blätter, "Trikots" und Leiste bleiben im Hauptbundle; die Schnellauswahl nach dem Tor und die Korrektur nutzen dieselbe Auswahl in `GoalEditor` (kein doppelter Code).
 - **Rationale**: Mit allen drei User Stories lag das Hauptbundle bei 60,8 KB gzip (Budget 60 KB; `main` 59,3 KB: US1 +0,6, US2 +0,6, US3 +0,3). Die Einstellungen öffnet man selten und nie am Spielfeldrand; nachgeladen sind es 59,1 KB. Der Service Worker hält den nachgeladenen Teil offline vor.
 - **Gemessen und verworfen**: Spieldetails nachladen 61,3 KB, Korrektur-Blätter nachladen 61,1 KB, nur `GoalEditor` nachladen 61,0 KB: Vite 8 (Rolldown) lagert dabei gemeinsame Module in eigene, vorab geladene Teile aus (wie Spec 015 R-P6), die Summe steigt. Budget anheben: verworfen (Qualitätstor wird nicht abgeschwächt).
+
+## R-C7 Korrekturen an Spielen, die vor der Kopplung angelegt wurden
+
+- **Decision**: Der Sender schließt ein beendetes Spiel nur aus, wenn sein Schlusspfiff (letztes Uhr-Ereignis) vor der Kopplung liegt, nicht schon, wenn es vorher angelegt wurde.
+- **Rationale**: Befund vom 14.11.2026 (Spec, Clarifications): Spiele werden am Vorabend aus dem Spielplan angelegt (Spec 015 US6), gekoppelt wird oft erst am Spieltag. Solche Spiele laufen live; ihre Korrekturen nach einem Neustart der App blieben bisher liegen. Ein vor der Kopplung beendetes Spiel kann dagegen nie live gewesen sein (Sicherung, Spec 006 FR-L06).
+- **Alternatives**: Am Spiel merken, dass es gesendet wurde (neues Feld, verworfen: mehr Zustand, alte Spiele hätten es nicht); Regel ganz streichen (verworfen: alte Spiele aus einer Sicherung kämen auf das Dashboard).
+
