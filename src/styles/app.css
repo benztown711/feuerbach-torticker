@@ -1712,7 +1712,8 @@ body:has(.page:not(.dash, .lead-link)) {
   margin: 0 auto;
 }
 
-.undo-bar.history__undo {
+.undo-bar.history__undo,
+.undo-bar.details__undo {
   position: fixed;
   right: max(var(--space-4), calc((100% - 448px) / 2));
   bottom: calc(var(--nav-h) + var(--space-2) + env(safe-area-inset-bottom));

@@ -29,9 +29,9 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 4: US3 Erinnerung an neues Teilen (P2)
 
-- [ ] T015 [P] [US3] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US3-S1 bis S6, dazu Edge Case "Teilen abgebrochen" (keine Leiste)
-- [ ] T016 [US3] `src/ui/components/reshare-bar.tsx`; `update` in `game.tsx` und `game-details.tsx` zeigt die Leiste bei `needsReshare`; "Ergebnis teilen" und "Teilen" setzen `sharedAt` (macht T015 grün)
-- [ ] T017 [US3] Hilfe: `ergebnis-teilen` geändert
+- [x] T015 [P] [US3] E2E `tests/e2e/spiel-korrigieren.spec.ts`: 017 US3-S1 bis S6, dazu Edge Case "Teilen abgebrochen" (keine Leiste)
+- [x] T016 [US3] `src/ui/components/reshare-bar.tsx`; `update` in `game.tsx` und `game-details.tsx` zeigt die Leiste bei `needsReshare`; "Ergebnis teilen" und "Teilen" setzen `sharedAt` (macht T015 grün)
+- [x] T017 [US3] Hilfe: `ergebnis-teilen` geändert
 
 ## Phase 5: Abschluss
 

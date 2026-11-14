@@ -50,7 +50,7 @@ import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../..
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
 import type { CardColor, EventPerson, Game, Scorer, Settings, Side } from '../../domain/types';
-import { buildShareText } from '../../domain/share-text';
+import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
 import {
   addShot,
@@ -77,6 +77,7 @@ import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
+import { ReshareBar } from '../components/reshare-bar';
 import { ScorerPicker } from '../components/scorer-picker';
 import { Sheet } from '../components/sheet';
 import { TeamMark } from '../components/team-mark';
@@ -159,6 +160,8 @@ export function GameScreen({ id }: { id: string }) {
   const [clockFix, setClockFix] = useState<number | null>(null);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
+  /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
+  const [reshareAt, setReshareAt] = useState(0);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -175,9 +178,12 @@ export function GameScreen({ id }: { id: string }) {
 
   /** FR-010: jede Änderung sofort speichern. */
   const update = (g: Game): void => {
+    const before = gameRef.current;
     gameRef.current = g;
     setGame(g);
     void putGame(g);
+    // Spec 017 FR-C21: Korrektur an einem schon geteilten Ergebnis.
+    if (before && needsReshare(before, g, players ?? [])) setReshareAt(Date.now());
   };
 
   // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
@@ -309,9 +315,11 @@ export function GameScreen({ id }: { id: string }) {
     }
   };
 
-  /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage). */
+  /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage); Spec 017 FR-C20 merkt es. */
   const doShare = async (): Promise<void> => {
+    setReshareAt(0);
     const r = await shareText(buildShareText(cur(), players ?? []));
+    if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
 
@@ -760,6 +768,12 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
+      <ReshareBar
+        at={reshareAt}
+        hidden={!!(undoGoalObj || markUndoObj || evUndoObj)}
+        onShare={() => void doShare()}
+        onHide={() => setReshareAt(0)}
+      />
       {shareMsg && (
         <div class="toast" data-testid="share-result" role="status">
           {shareMsg}

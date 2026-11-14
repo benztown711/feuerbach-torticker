@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { MIN, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, acceptDraw, confirmYes, forward, seedRoster, startGame } from './helpers';
 import { createLive, latestState } from './live-helpers';
 
 /** Spec 017: Spiel korrigieren (Tore in den Spieldetails, Trikots ändern, Erinnerung an neues Teilen). */
@@ -355,5 +355,138 @@ test.describe('017 US2 Trikots ändern', () => {
     await page.getByTestId('kits-save').click();
     await expect(page.getByTestId('details-mark-opp')).toHaveCSS('background-color', BLAU);
     await expect(page.getByTestId('share-preview')).toContainText('🔵');
+  });
+});
+
+/** Kurzes Spiel 1 × 12 mit Tor von Max in 2', Schlusspfiff (1:0); endet auf dem Spielbildschirm. */
+async function quickGame(page: Page, o: { interim?: boolean } = {}): Promise<void> {
+  await seedRoster(page, ROSTER);
+  await setAssists(page, false);
+  await startGame(page, { opponent: 'TSV Musterstadt', sections: 1, minutes: 12 });
+  await forward(page, MIN + 30 * SEC);
+  await ownGoal(page, '9 Max');
+  if (o.interim) {
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-share-interim').click();
+  }
+  await forward(page, 11 * MIN);
+  await whistle(page);
+  await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+}
+
+/** Torschütze des ersten Tores im Spielbildschirm ändern. */
+async function changeScorerInGame(page: Page, label: string): Promise<void> {
+  await page.locator('[data-testid^="goal-row-"]').first().click();
+  await page.getByTestId('goal-edit-scorer').click();
+  await page.getByTestId('scorer-picker').getByRole('button', { name: label, exact: true }).click();
+}
+
+const bar = (page: Page): Locator => page.getByTestId('reshare-bar');
+const lastShare = async (recorded: () => Promise<{ shares: { text?: string }[] }>): Promise<string> =>
+  (await recorded()).shares.at(-1)?.text ?? '';
+
+test.describe('017 US3 Erinnerung an neues Teilen', () => {
+  test('017 US3-S1 US3-S2 nach dem Teilen: Korrektur zeigt die Leiste, "Teilen" teilt den neuen Text', async ({
+    page,
+    recorded,
+  }) => {
+    await quickGame(page);
+    await page.getByTestId('btn-share').click();
+    await expect.poll(() => lastShare(recorded)).toContain('Max');
+
+    // Im Spielbildschirm nach dem Schlusspfiff.
+    await changeScorerInGame(page, '10 Tom');
+    await expect(bar(page)).toContainText('Korrigiert. Ergebnis neu teilen?');
+    await page.getByTestId('reshare-share').click();
+    await expect.poll(() => lastShare(recorded)).toContain('Tom');
+    await expect(bar(page)).toHaveCount(0);
+
+    // Später in den Spieldetails.
+    await openFromHistory(page);
+    await goalRows(page).first().click();
+    await page.getByTestId('goal-edit-scorer').click();
+    await page.getByTestId('scorer-picker').getByRole('button', { name: '7 Ben', exact: true }).click();
+    await expect(bar(page)).toContainText('Korrigiert. Ergebnis neu teilen?');
+    await page.getByTestId('reshare-share').click();
+    await expect.poll(() => lastShare(recorded)).toContain('Ben');
+    await expect(bar(page)).toHaveCount(0);
+  });
+
+  test('017 US3-S3 Leiste verschwindet nach 10 Sekunden und beim Verlassen; die nächste Korrektur zeigt sie neu', async ({
+    page,
+  }) => {
+    await quickGame(page);
+    await openFromHistory(page);
+    await page.getByTestId('btn-share').click();
+    await goalRows(page).first().click();
+    await page.getByTestId('goal-edit-scorer').click();
+    await page.getByTestId('scorer-picker').getByRole('button', { name: '7 Ben', exact: true }).click();
+    await expect(bar(page)).toBeVisible();
+    await page.clock.runFor(10_500);
+    await expect(bar(page)).toHaveCount(0);
+
+    await page.getByTestId('details-add-goal').click();
+    await page.getByTestId('add-goal-side-opp').click();
+    await page.getByTestId('add-goal-save').click();
+    await expect(bar(page)).toBeVisible();
+    await page.getByRole('button', { name: 'Zurück zur Historie' }).click();
+    await expect(page.getByTestId('details-timeline')).toHaveCount(0);
+    await expect(bar(page)).toHaveCount(0);
+  });
+
+  test('017 US3-S4 ohne Teilen, nach "Zwischenstand teilen" und nach abgebrochenem Teilen keine Leiste', async ({
+    page,
+  }) => {
+    await quickGame(page, { interim: true });
+    await changeScorerInGame(page, '10 Tom');
+    await expect(page.locator('[data-testid^="goal-row-"]').first()).toContainText('Tom');
+    await expect(bar(page)).toHaveCount(0);
+
+    await page.evaluate(() =>
+      Object.defineProperty(navigator, 'share', {
+        configurable: true,
+        value: async () => {
+          throw new DOMException('abgebrochen', 'AbortError');
+        },
+      }),
+    );
+    await page.getByTestId('btn-share').click();
+    await changeScorerInGame(page, '7 Ben');
+    await expect(page.locator('[data-testid^="goal-row-"]').first()).toContainText('Ben');
+    await expect(bar(page)).toHaveCount(0);
+  });
+
+  test('017 US3-S5 Änderung ohne Auswirkung auf den Text (eigenes Trikot): keine Leiste; Gegnerfarbe schon', async ({
+    page,
+  }) => {
+    await quickGame(page);
+    // Das Symbol der Gegnerfarbe steht im Text nur in Zeilen von Gegentoren.
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-add-goal').click();
+    await page.getByTestId('add-goal-side-opp').click();
+    await page.getByTestId('add-goal-save').click();
+    await acceptDraw(page);
+    await page.getByTestId('btn-share').click();
+    await openKits(page);
+    await pick(page, 'own', 'gelb');
+    await page.getByTestId('kits-save').click();
+    await expect(page.getByTestId('btn-goal-own')).toHaveCSS('background-color', GELB);
+    await expect(bar(page)).toHaveCount(0);
+    await openKits(page);
+    await pick(page, 'opp', 'blau');
+    await page.getByTestId('kits-save').click();
+    await expect(bar(page)).toBeVisible();
+  });
+
+  test('017 US3-S6 Spiel nicht beendet (Schlusspfiff zurückgenommen): keine Leiste', async ({ page }) => {
+    await quickGame(page);
+    await page.getByTestId('btn-share').click();
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-undo-whistle').click();
+    await confirmYes(page);
+    await expect(page.getByTestId('btn-section-end')).toBeVisible();
+    await changeScorerInGame(page, '10 Tom');
+    await expect(page.locator('[data-testid^="goal-row-"]').first()).toContainText('Tom');
+    await expect(bar(page)).toHaveCount(0);
   });
 });

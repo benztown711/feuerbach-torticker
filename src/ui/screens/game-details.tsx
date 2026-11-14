@@ -7,7 +7,7 @@ import { cardText, marksText, personLabel, subText } from '../../domain/events';
 import { goalWho, homeAway, score } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
-import { buildShareText } from '../../domain/share-text';
+import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { shortTeamName } from '../../domain/team-name';
 import type { ClockEvent, Game, Player, Settings } from '../../domain/types';
 import { getGame, getPlayers, getSettings, putGame } from '../../platform/db';
@@ -17,6 +17,7 @@ import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme } from '../hooks';
 import { SharePreview } from '../components/share-preview';
@@ -63,6 +64,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [edit, setEdit] = useState<EditStep | null>(null);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
+  /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
+  const [reshareAt, setReshareAt] = useState(0);
   const dark = useDarkTheme();
   const gameRef = useRef<Game | null>(null);
   useEffect(() => {
@@ -84,9 +87,11 @@ export function GameDetailsScreen({ id }: { id: string }) {
 
   /** Spec 017 FR-C05: jede Korrektur sofort speichern (der Live-Sender meldet sie wie jede Änderung). */
   const update = (g: Game): void => {
+    const before = gameRef.current;
     gameRef.current = g;
     setGame(g);
     void putGame(g);
+    if (before && needsReshare(before, g, players)) setReshareAt(Date.now());
   };
   const cur = (): Game => gameRef.current ?? game;
   const now = Date.now();
@@ -134,8 +139,11 @@ export function GameDetailsScreen({ id }: { id: string }) {
     );
   };
 
+  /** FR-011; Spec 017 FR-C20, FR-C22: teilt den aktuellen Text und merkt, dass geteilt wurde. */
   const doShare = async (): Promise<void> => {
-    const r = await shareText(text);
+    setReshareAt(0);
+    const r = await shareText(buildShareText(cur(), players));
+    if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
 
@@ -335,6 +343,13 @@ export function GameDetailsScreen({ id }: { id: string }) {
           {shareMsg}
         </p>
       </section>
+
+      <ReshareBar
+        at={reshareAt}
+        extraClass="details__undo"
+        onShare={() => void doShare()}
+        onHide={() => setReshareAt(0)}
+      />
 
       {kitsOpen && (
         <KitsSheet

@@ -348,11 +348,11 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'teilen',
     title: 'Wie teile ich das Ergebnis in WhatsApp?',
     answer:
-      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Ergebnis teilen“. Der Text zeigt Ergebnis, Halbzeit, den Verlauf als Anzeigetafel und die Torschützen. Die Vorschau darüber zeigt, wie es im Chat aussieht.',
-    keywords: 'whatsapp teilen senden schicken ergebnis elterngruppe text',
-    sources: ['001 US4', '005 US1', '005 US5'],
+      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Ergebnis teilen“. Der Text zeigt Ergebnis, Halbzeit, den Verlauf als Anzeigetafel und die Torschützen. Die Vorschau darüber zeigt, wie es im Chat aussieht. Korrigierst du danach etwas, das im Text steht, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“; „Teilen“ schickt den neuen Text.',
+    keywords: 'whatsapp teilen senden schicken ergebnis elterngruppe text korrigiert neu teilen',
+    sources: ['001 US4', '005 US1', '005 US5', '017 US3'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['zwischenstand', 'sternchen'],
+    related: ['zwischenstand', 'sternchen', 'spiel-korrigieren'],
   },
   {
     id: 'zwischenstand',
@@ -491,9 +491,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'historie',
     title: 'Wie korrigiere ich ein Spiel nach dem Schlusspfiff?',
     answer:
-      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“. Das geht ohne Frist; Stand, geteilter Text und Dashboard folgen. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
+      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“. Das geht ohne Frist; Stand, Teilen-Text und Dashboard folgen, und war das Ergebnis schon geteilt, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
     keywords: 'korrigieren korrektur nachträglich ändern falsch später historie spieldetails torschütze minute vorlage',
-    sources: ['017 US1', '017 US2'],
+    sources: ['017 US1', '017 US2', '017 US3'],
     open: { label: 'Historie', path: '/historie' },
     related: ['torschuetze', 'tor-minute', 'trikots'],
   },
