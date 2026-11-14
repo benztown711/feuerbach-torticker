@@ -1,5 +1,5 @@
 import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
-import { isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
+import { isRecentGame, isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
 import { getPlayers, getSettings, listGames, onGameWrite, type GameChange } from './db';
 import { MAX_MESSAGE, sealMessage, type MessageParts } from './live-crypto';
@@ -39,6 +39,11 @@ export interface SenderDeps {
   /** Spec 007: Live-Stand mit Ordnungsangaben und Schreibnachweis an den eigenen Dienst. */
   publish(live: LiveSpieltag, team: LiveTeamCred, snap: LiveSnapshot, text: string): Promise<boolean>;
   visibility?: { hidden(): boolean; onChange(cb: () => void): () => void };
+  /**
+   * Spec 017 FR-C06 (research.md R-C2): gehört ein beendetes Spiel zu den jüngsten seiner Mannschaft auf diesem Handy?
+   * Fehlt: jedes Spiel gilt als jüngst (wie vor Spec 017).
+   */
+  isRecent?(game: Game): Promise<boolean>;
 }
 
 interface Pending {
@@ -49,6 +54,10 @@ interface Pending {
 
 const ACTIVE = new Set(['running', 'paused', 'break']);
 
+/** Spec 017 FR-C20: Unterscheiden sich zwei Stände nur in `sharedAt`? */
+const onlySharedAtChanged = (a: Game, b: Game): boolean =>
+  a.sharedAt !== b.sharedAt && JSON.stringify({ ...a, sharedAt: 0 }) === JSON.stringify({ ...b, sharedAt: 0 });
+
 /** FR-L09: beim Anlegen ausgenommen und nie eingeschaltet; FR-L24: von einem anderen Handy übernommen. */
 const isPrivate = (game: Game): boolean =>
   game.live === false && (game.livePrivate === true || game.liveHandedOver === true);
@@ -58,6 +67,10 @@ export class LiveSender {
   private readonly pending = new Map<string, Pending>();
   private readonly teamOfPending = new Map<string, LiveTeamCred>();
   private readonly games = new Map<string, { game: Game; team: LiveTeamCred }>();
+  /** Spec 017 FR-C06: beendete Spiele, deren Prüfung "jüngst" noch läuft, mit dem jeweils neuesten Stand. */
+  private readonly checking = new Map<string, Game>();
+  /** Spec 017 FR-C06: in dieser Sitzung als "nicht jüngst" erkannt (keine weitere Prüfung nötig). */
+  private readonly notRecent = new Set<string>();
   /** Zeitpunkt der letzten erfolgreichen Sendung je Spiel (US2-S10). */
   private readonly sentAt = new Map<string, number>();
   private readonly listeners = new Set<() => void>();
@@ -90,6 +103,7 @@ export class LiveSender {
   /** Neue Kopplung oder Konfiguration desselben Live-Spieltags übernehmen. */
   updateLive(live: LiveSpieltag): void {
     this.live = live;
+    this.notRecent.clear();
     // Spiele von Mannschaften, für die das Gerät nicht mehr sendet, nicht weiter melden.
     for (const [id, { game }] of [...this.games]) if (!this.teamFor(game)) this.forget(id);
     for (const [id, team] of [...this.teamOfPending])
@@ -110,6 +124,7 @@ export class LiveSender {
 
   handle(change: GameChange): void {
     if (change.kind === 'delete') {
+      this.checking.delete(change.id);
       // Auch Spiele, die dieser Sender (z. B. nach einem Neustart) noch nicht gesehen hat.
       const known = this.games.get(change.id);
       const team = known?.team ?? (change.game ? this.teamFor(change.game) : null);
@@ -127,17 +142,53 @@ export class LiveSender {
     // Alte, beendete Spiele (z. B. aus einer Sicherung) nicht nachträglich veröffentlichen (FR-L06 "ab dem Anlegen").
     const old = change.game.status === 'finished' && change.game.createdAt < this.live.createdAt;
     if (!team || (old && !this.games.has(change.game.id))) {
+      this.checking.delete(change.game.id);
       this.forget(change.game.id);
       return;
     }
-    this.games.set(change.game.id, { game: change.game, team });
+    const id = change.game.id;
+    // Spec 017 FR-C20: nur "zuletzt geteilt" geändert; das geht nicht an den Dienst, also nichts Neues zu senden.
+    const prev = this.games.get(id)?.game;
+    if (prev && onlySharedAtChanged(prev, change.game)) {
+      this.games.set(id, { game: change.game, team });
+      return;
+    }
+    // Spec 017 FR-C06: Korrektur an einem beendeten Spiel, das in dieser Sitzung noch nicht hinausging, nur senden,
+    // wenn es zu den jüngsten seiner Mannschaft gehört (sonst verdrängte es unter "Letzte Spiele" ein jüngeres).
+    if (change.game.status === 'finished' && !this.games.has(id) && this.deps.isRecent) {
+      if (this.notRecent.has(id)) this.forget(id);
+      else this.check(change.game, this.deps.isRecent);
+      return;
+    }
+    // Ein neuerer Stand geht direkt hinaus; eine noch laufende Prüfung darf keinen älteren nachschicken.
+    this.checking.delete(id);
+    this.accept(change.game, team);
+  }
+
+  private check(game: Game, isRecent: (game: Game) => Promise<boolean>): void {
+    const waiting = this.checking.has(game.id);
+    this.checking.set(game.id, game);
+    if (waiting) return;
+    void isRecent(game)
+      .catch(() => false)
+      .then((recent) => {
+        const latest = this.checking.get(game.id);
+        this.checking.delete(game.id);
+        if (!recent) this.notRecent.add(game.id);
+        const team = latest ? this.teamFor(latest) : null;
+        if (latest && team && recent && !this.stopped) this.accept(latest, team);
+      });
+  }
+
+  private accept(game: Game, team: LiveTeamCred): void {
+    this.games.set(game.id, { game, team });
     // FR-L09: beim Anlegen "Live aufs Dashboard" aus und nie eingeschaltet: nichts senden, auch kein "off".
-    if (isPrivate(change.game)) {
-      this.pending.delete(change.game.id);
+    if (isPrivate(game)) {
+      this.pending.delete(game.id);
       this.notify();
       return;
     }
-    this.enqueueGame(change.game, team);
+    this.enqueueGame(game, team);
   }
 
   private enqueueGame(game: Game, team: LiveTeamCred): void {
@@ -337,6 +388,7 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
     seal: sealMessage,
     publish: sendGame,
     visibility: docVisibility,
+    isRecent: async (game) => isRecentGame(await listGames(), game, current?.spieltag() ?? null),
   });
   const sender = current;
   offDb = onGameWrite((c) => sender.handle(c));

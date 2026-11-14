@@ -53,7 +53,9 @@ function newGame(ownTeam = 'Sportvg Feuerbach E1', id = 'g1'): Game {
 }
 
 /** Fake-Abhängigkeiten: "Versiegeln" liefert lesbares JSON, Senden zeichnet auf. */
-function setup(o: { online?: boolean; big?: boolean; live?: LiveSpieltag } = {}) {
+function setup(
+  o: { online?: boolean; big?: boolean; live?: LiveSpieltag; isRecent?: (game: Game) => Promise<boolean> } = {},
+) {
   const sent: { topic: string; parts: MessageParts & { snap: LiveSnapshot } }[] = [];
   const attempts: number[] = [];
   let online = o.online ?? true;
@@ -78,6 +80,7 @@ function setup(o: { online?: boolean; big?: boolean; live?: LiveSpieltag } = {})
       sent.push({ topic: target.topic, parts });
       return true;
     },
+    ...(o.isRecent ? { isRecent: o.isRecent } : {}),
     visibility: {
       hidden: () => hidden.value,
       onChange: (cb) => {
@@ -457,6 +460,110 @@ describe('006 FR-L06 SC-L01 Lead-Handy sendet automatisch (research.md R-L3)', (
     seen.mockClear();
     t.sender.handle({ kind: 'put', game: newGame() });
     expect(seen).not.toHaveBeenCalled();
+    t.sender.stop();
+  });
+});
+
+describe('017 FR-C06 Korrekturen alter Spiele bleiben lokal (research.md R-C2)', () => {
+  const finished = (id: string, goals = 0): Game => {
+    let g = kickoff(newGame(E1_NAME, id), T0);
+    for (let i = 0; i < goals; i++) g = addGoal(g, 'own', T0 + (i + 1) * 60_000, () => `${id}-t${i}`).game;
+    return finish(g);
+  };
+  /** 2 × 25: Pausenpfiff, Anpfiff 2. Halbzeit, Schlusspfiff. */
+  const finish = (g: Game): Game =>
+    endSection(kickoff(endSection(g, T0 + 26 * 60_000), T0 + 30 * 60_000), T0 + 31 * 60_000);
+
+  it('beendetes, in dieser Sitzung unbekanntes Spiel geht nur hinaus, wenn es zu den jüngsten gehört', async () => {
+    const isRecent = vi.fn(async (g: Game) => g.id === 'neu');
+    const t = setup({ isRecent });
+    t.sender.handle({ kind: 'put', game: finished('alt', 1) });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(0);
+    t.sender.handle({ kind: 'put', game: finished('neu', 1) });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.snaps().map((x) => x.gameId)).toEqual(['neu']);
+    expect(isRecent).toHaveBeenCalledTimes(2);
+    t.sender.stop();
+  });
+
+  it('in dieser Sitzung schon gesendetes Spiel braucht keine Prüfung', async () => {
+    const isRecent = vi.fn(async () => false);
+    const t = setup({ isRecent });
+    const g = kickoff(newGame(E1_NAME, 'heute'), T0);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    t.sender.handle({ kind: 'put', game: finish(g) });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(2);
+    expect(isRecent).not.toHaveBeenCalled();
+    t.sender.stop();
+  });
+
+  it('zwei schnelle Korrekturen während der Prüfung: der neueste Stand geht hinaus; Löschen bricht ab', async () => {
+    let answer: (v: boolean) => void = () => undefined;
+    const isRecent = vi.fn(() => new Promise<boolean>((r) => (answer = r)));
+    const t = setup({ isRecent });
+    t.sender.handle({ kind: 'put', game: finished('neu', 1) });
+    t.sender.handle({ kind: 'put', game: finished('neu', 2) });
+    answer(true);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(isRecent).toHaveBeenCalledTimes(1);
+    expect(t.snaps().map((x) => (x as LiveGameSnapshot).goals?.length)).toEqual([2]);
+
+    const weg = finished('weg', 1);
+    t.sender.handle({ kind: 'put', game: weg });
+    t.sender.handle({ kind: 'delete', id: 'weg', game: weg });
+    answer(true);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(
+      t
+        .snaps()
+        .filter((x) => x.gameId === 'weg')
+        .map((x) => x.state),
+    ).toEqual(['deleted']);
+    t.sender.stop();
+  });
+
+  it('neuerer, nicht beendeter Stand während der Prüfung: die Prüfung schickt keinen älteren nach', async () => {
+    let answer: (v: boolean) => void = () => undefined;
+    const t = setup({ isRecent: () => new Promise<boolean>((r) => (answer = r)) });
+    const done = finished('zurück', 1);
+    t.sender.handle({ kind: 'put', game: done });
+    // "Schlusspfiff zurücknehmen": das Spiel läuft wieder und geht direkt hinaus.
+    const running = { ...done, status: 'running' as const, finalScore: null };
+    t.sender.handle({ kind: 'put', game: running });
+    answer(true);
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(1);
+    t.sender.stop();
+  });
+
+  it('nicht jüngstes Spiel: weitere Korrekturen prüfen nicht erneut', async () => {
+    const isRecent = vi.fn(async () => false);
+    const t = setup({ isRecent });
+    t.sender.handle({ kind: 'put', game: finished('alt', 1) });
+    await vi.advanceTimersByTimeAsync(0);
+    t.sender.handle({ kind: 'put', game: finished('alt', 2) });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(isRecent).toHaveBeenCalledTimes(1);
+    expect(t.sent).toHaveLength(0);
+    t.sender.stop();
+  });
+});
+
+describe('017 FR-C20 "Ergebnis teilen" sendet nichts Neues', () => {
+  it('nur sharedAt geändert: keine weitere Sendung', async () => {
+    const t = setup();
+    const g = kickoff(newGame(E1_NAME, 'geteilt'), T0);
+    t.sender.handle({ kind: 'put', game: g });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    t.sender.handle({ kind: 'put', game: { ...g, sharedAt: T0 + 1000 } });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(1);
+    t.sender.handle({ kind: 'put', game: addGoal({ ...g, sharedAt: T0 + 1000 }, 'own', T0 + 2000, () => 'x').game });
+    await vi.advanceTimersByTimeAsync(MIN_GAP_MS);
+    expect(t.sent).toHaveLength(2);
     t.sender.stop();
   });
 });

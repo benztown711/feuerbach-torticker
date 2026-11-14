@@ -1103,6 +1103,56 @@ body:has(.page:not(.dash, .lead-link)) {
   text-decoration: line-through;
 }
 
+/* Spec 017 FR-C01: Tore der Spieldetails sind Knöpfe (Tor-Blatt wie im Spiel). */
+.details__item--goal {
+  width: 100%;
+  min-height: 44px;
+  align-items: baseline;
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  border-radius: var(--radius-0);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.details__chevron {
+  flex-shrink: 0;
+  align-self: center;
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.details__add {
+  margin-top: var(--space-2);
+}
+
+/* Spec 017 FR-C10: Kopfkarte der Spieldetails mit Farbmarken und "Trikots ändern". */
+.details__match .team__mark {
+  display: inline-block;
+  margin-top: 0;
+  vertical-align: -1px;
+}
+
+.details__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.details__kits {
+  margin-left: auto;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
 .details__minute {
   width: 52px;
   font-weight: 700;
@@ -1663,7 +1713,8 @@ body:has(.page:not(.dash, .lead-link)) {
   margin: 0 auto;
 }
 
-.undo-bar.history__undo {
+.undo-bar.history__undo,
+.undo-bar.details__undo {
   position: fixed;
   right: max(var(--space-4), calc((100% - 448px) / 2));
   bottom: calc(var(--nav-h) + var(--space-2) + env(safe-area-inset-bottom));

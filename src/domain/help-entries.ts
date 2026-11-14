@@ -158,9 +158,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie entferne ich ein Tor?',
     answer:
-      'Direkt nach dem Tor tippst du auf „Rückgängig“. Später tippst du das Tor in der Torliste an und wählst „Tor entfernen“. Es bleibt durchgestrichen in der Liste und lässt sich mit „Tor wiederherstellen“ zurückholen.',
+      'Direkt nach dem Tor tippst du auf „Rückgängig“. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Tor entfernen“. Es bleibt durchgestrichen in der Liste und lässt sich mit „Tor wiederherstellen“ zurückholen.',
     keywords: 'löschen falsch verklickt aberkennen zurücknehmen rückgängig wiederherstellen',
-    sources: ['001 US1'],
+    sources: ['001 US1', '017 US1'],
     related: ['tor', 'torschuetze'],
   },
   {
@@ -168,9 +168,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie trage ich ein vergessenes Tor nach?',
     answer:
-      'Tippe im Spiel auf „…“ und „Tor nachtragen“. Wähle die Mannschaft und die Minute und tippe auf „Eintragen“. Das geht auch nach dem Schlusspfiff; Stand, Torliste, geteilter Text und Dashboard stimmen danach. Bei einem eigenen Tor fragt der Torticker anschließend nach dem Torschützen.',
+      'Tippe im Spiel auf „…“ und „Tor nachtragen“, oder später in den Spieldetails auf „Tor nachtragen“ unter dem Spielverlauf. Wähle die Mannschaft und die Minute und tippe auf „Eintragen“. Stand, Torliste, geteilter Text und Dashboard stimmen danach. Bei einem eigenen Tor fragt der Torticker anschließend nach dem Torschützen.',
     keywords: 'vergessen nachtragen nachträglich tor fehlt später schlusspfiff ergebnis falsch',
-    sources: ['012 US2'],
+    sources: ['012 US2', '017 US1'],
     related: ['tor-minute', 'tor-entfernen'],
   },
   {
@@ -178,9 +178,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie ändere ich die Minute eines Tores?',
     answer:
-      'Tippe in der Torliste auf das Tor und dann auf „Minute ändern“. Wähle die richtige Minute und tippe auf „Übernehmen“. Das Tor rutscht an die richtige Stelle, Torschütze und Vorlage bleiben.',
+      'Tippe in der Torliste oder in den Spieldetails auf das Tor und dann auf „Minute ändern“. Wähle die richtige Minute und tippe auf „Übernehmen“. Das Tor rutscht an die richtige Stelle, Torschütze und Vorlage bleiben.',
     keywords: 'minute falsch ändern korrigieren verschieben zeitpunkt',
-    sources: ['012 US2'],
+    sources: ['012 US2', '017 US1'],
     related: ['tor-nachtragen', 'uhr-korrigieren'],
   },
   {
@@ -250,9 +250,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich die Auswahl mit deinem Aufgebot; tippe auf den Namen oder schließe sie. Später tippst du das Tor in der Torliste an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
+      'Nach jedem Tor öffnet sich die Auswahl mit deinem Aufgebot; tippe auf den Namen oder schließe sie. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
     keywords: 'torschütze schütze spieler name nachtragen wer',
-    sources: ['001 US3'],
+    sources: ['001 US3', '017 US1'],
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
@@ -271,9 +271,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie ändere oder entferne ich eine Vorlage?',
     answer:
-      'Tippe das Tor in der Torliste an und wähle „Vorlage ändern“. Dort wählst du einen anderen Spieler oder „Ohne Vorlage“. Bei Gegentoren, Eigentoren und Elfmetern gibt es keine Vorlage.',
+      'Tippe das Tor in der Torliste oder in den Spieldetails an und wähle „Vorlage ändern“. Dort wählst du einen anderen Spieler oder „Ohne Vorlage“. Bei Gegentoren, Eigentoren und Elfmetern gibt es keine Vorlage.',
     keywords: 'vorlage ändern entfernen falsch assist korrigieren',
-    sources: ['009 US2'],
+    sources: ['009 US2', '017 US1'],
     related: ['vorlage', 'tor-entfernen'],
   },
   {
@@ -348,11 +348,11 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'teilen',
     title: 'Wie teile ich das Ergebnis in WhatsApp?',
     answer:
-      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Ergebnis teilen“. Der Text zeigt Ergebnis, Halbzeit, den Verlauf als Anzeigetafel und die Torschützen. Die Vorschau darüber zeigt, wie es im Chat aussieht.',
-    keywords: 'whatsapp teilen senden schicken ergebnis elterngruppe text',
-    sources: ['001 US4', '005 US1', '005 US5'],
+      'Öffne das Spiel in der Historie und tippe in den Spieldetails auf „Ergebnis teilen“. Der Text zeigt Ergebnis, Halbzeit, den Verlauf als Anzeigetafel und die Torschützen. Die Vorschau darüber zeigt, wie es im Chat aussieht. Korrigierst du danach etwas, das im Text steht, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“; „Teilen“ schickt den neuen Text.',
+    keywords: 'whatsapp teilen senden schicken ergebnis elterngruppe text korrigiert neu teilen',
+    sources: ['001 US4', '005 US1', '005 US5', '017 US3'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['zwischenstand', 'sternchen'],
+    related: ['zwischenstand', 'sternchen', 'spiel-korrigieren'],
   },
   {
     id: 'zwischenstand',
@@ -411,9 +411,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie ändere ich die Trikotfarben für ein Spiel?',
     answer:
-      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Die Tor-Knöpfe erscheinen in diesen Farben.',
-    keywords: 'trikot farbe leibchen auswärtstrikot heimtrikot',
-    sources: ['004 US2'],
+      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Später geht das im Spiel über „…“ und „Trikots ändern“ oder in den Spieldetails; erst „Übernehmen“ ändert die Farben. Eine neue Gegnerfarbe schlägt der Torticker beim nächsten Spiel gegen diesen Gegner vor.',
+    keywords: 'trikot farbe leibchen auswärtstrikot heimtrikot falsche farbe gegner ändern',
+    sources: ['004 US2', '017 US2'],
     open: { label: 'Neues Spiel', path: '/neu' },
     related: ['mannschaft', 'neues-spiel'],
   },
@@ -480,11 +480,22 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'historie',
     title: 'Wo finde ich frühere Spiele?',
     answer:
-      'Unter „Historie“ stehen alle Spiele nach Monaten, neueste zuerst, mit dem Ergebnis aus Feuerbach-Sicht: S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails.',
+      'Unter „Historie“ stehen alle Spiele nach Monaten, neueste zuerst, mit dem Ergebnis aus Feuerbach-Sicht: S, U oder N für Sieg, Unentschieden oder Niederlage. Oben filterst du nach Mannschaft. Ein Tipp öffnet die Spieldetails; dort kannst du das Spiel auch korrigieren.',
     keywords: 'historie alte spiele früher ergebnisse filter sieg niederlage monat',
-    sources: ['001 US6', '011 US1', '014 US1'],
+    sources: ['001 US6', '011 US1', '014 US1', '017 US1'],
     open: { label: 'Historie', path: '/historie' },
-    related: ['spiel-loeschen', 'spiele-loeschen-mehrere', 'ergebnis-teilen'],
+    related: ['spiel-korrigieren', 'spiel-loeschen', 'ergebnis-teilen'],
+  },
+  {
+    id: 'spiel-korrigieren',
+    topic: 'historie',
+    title: 'Wie korrigiere ich ein Spiel nach dem Schlusspfiff?',
+    answer:
+      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“. Das geht ohne Frist; Stand, Teilen-Text und Dashboard folgen, und war das Ergebnis schon geteilt, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
+    keywords: 'korrigieren korrektur nachträglich ändern falsch später historie spieldetails torschütze minute vorlage',
+    sources: ['017 US1', '017 US2', '017 US3'],
+    open: { label: 'Historie', path: '/historie' },
+    related: ['torschuetze', 'tor-minute', 'trikots'],
   },
   {
     id: 'spiel-loeschen',

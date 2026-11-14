@@ -25,41 +25,22 @@ import {
   updateCard,
   updateSub,
 } from '../../domain/events';
+import { addGoal, homeAway, score, undoGoal } from '../../domain/goals';
 import {
-  addGoal,
-  canHaveAssist,
-  goalWho,
-  homeAway,
-  removeGoal,
-  restoreGoal,
-  score,
-  scorerLabel,
-  setAssist,
-  scorerPlayerId,
-  setPenalty,
-  setScorer,
-  undoGoal,
-} from '../../domain/goals';
-import {
-  addGoalAt,
   canAddLateGoal,
   canUndoWhistle,
   clockShiftRange,
-  defaultOption,
-  minuteOptions,
-  setGoalMinute,
   shiftClock,
   undoWhistle,
   whistleKind,
 } from '../../domain/corrections';
-import { getColor } from '../../domain/jersey-colors';
 import { formatMinute, minuteFor } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
 import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
-import type { CardColor, EventPerson, Game, Goal, Scorer, Settings, Side } from '../../domain/types';
-import { buildShareText } from '../../domain/share-text';
+import type { CardColor, EventPerson, Game, Settings, Side } from '../../domain/types';
+import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
 import {
   addShot,
@@ -79,13 +60,16 @@ import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
+import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { addGoalStep, GoalEditor, PICKER_MS, type EditStep } from '../components/goal-editor';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
-import { ScorerPicker } from '../components/scorer-picker';
+import { ReshareBar } from '../components/reshare-bar';
 import { Sheet } from '../components/sheet';
+import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
@@ -98,17 +82,12 @@ const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
-/** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
-const PICKER_MS = 8_000;
-/** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
-const ASSIST_MS = 5_000;
 
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
 
 type Ask =
   | { kind: 'pause' | 'end' | 'swap' }
-  | { kind: 'remove'; goalId: string }
   | { kind: 'goalResume'; side: Side }
   | { kind: 'removeEvent'; id: string }
   | { kind: 'endShootout' }
@@ -129,52 +108,19 @@ type CardDraft = {
 type SubDraft = { id: string | null; at: number; out: string | null; inn: string | null; others: boolean };
 const CARDS: CardColor[] = ['gelb', 'gelbrot', 'rot', 'zeit'];
 
-function TeamMark({ colorId }: { colorId: string }) {
-  return <span class="team__mark" style={{ background: getColor(colorId, true).value }} aria-hidden="true" />;
-}
-
-/** Spec 012 FR-S11: Auswahl der gespielten Minuten (Wert = Bezeichnung wie "25+1'"). */
-function MinuteSelect(p: { id: string; options: { label: string }[]; value: string; onChange: (v: string) => void }) {
-  return (
-    <div class="field">
-      <label class="field__label t-label" for={p.id}>
-        MINUTE
-      </label>
-      <select
-        id={p.id}
-        class="select"
-        data-testid={p.id}
-        value={p.value}
-        onChange={(e) => p.onChange(e.currentTarget.value)}
-      >
-        {p.options.map((o) => (
-          <option key={o.label} value={o.label}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 export function GameScreen({ id }: { id: string }) {
   const now = useNow(250);
   const dark = useDarkTheme();
   const [game, setGame] = useState<Game | null | undefined>(undefined);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [menu, setMenu] = useState(false);
-  const [sheetGoal, setSheetGoal] = useState<string | null>(null);
+  /** Spec 017 R-C1: offenes Korrektur-Blatt (Tor-Blatt, Torschütze, Minute, Tor nachtragen). */
+  const [edit, setEdit] = useState<EditStep | null>(null);
   const [undo, setUndo] = useState<{ goalId: string; until: number } | null>(null);
   const [flashUntil, setFlashUntil] = useState(0);
   const [hintUntil, setHintUntil] = useState(0);
   const [players] = usePlayers();
   const [shareMsg, setShareMsg] = useState('');
-  /** Torschützen-Auswahl: `until` gesetzt = direkt nach dem Tor (mit Auto-Schließen), null = Nachtragen. */
-  /** Torschützen- bzw. (Spec 009) Vorlagen-Auswahl; `until` nur direkt nach dem Tor (Countdown). */
-  const [picker, setPicker] = useState<{ goalId: string; until: number | null; kind: 'scorer' | 'assist' } | null>(
-    null,
-  );
-  const [textEdit, setTextEdit] = useState<{ goalId: string; value: string } | null>(null);
   const gameRef = useRef<Game | null>(null);
   // Spec 003: Ereignisse (Teil 1: Lesezeichen)
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -193,10 +139,12 @@ export function GameScreen({ id }: { id: string }) {
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraMin, setExtraMin] = useState(10);
   const [firstAsk, setFirstAsk] = useState(false);
-  // Spec 012: Tor nachtragen, Minute ändern (Wert der Auswahl = Minuten-Bezeichnung), Uhr korrigieren.
-  const [addSheet, setAddSheet] = useState<{ side: Side; label: string } | null>(null);
-  const [minuteSheet, setMinuteSheet] = useState<{ goalId: string; label: string } | null>(null);
+  // Spec 012: Uhr korrigieren.
   const [clockFix, setClockFix] = useState<number | null>(null);
+  /** Spec 017 FR-C10: Blatt "Trikots". */
+  const [kitsOpen, setKitsOpen] = useState(false);
+  /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
+  const [reshareAt, setReshareAt] = useState(0);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -213,9 +161,12 @@ export function GameScreen({ id }: { id: string }) {
 
   /** FR-010: jede Änderung sofort speichern. */
   const update = (g: Game): void => {
+    const before = gameRef.current;
     gameRef.current = g;
     setGame(g);
     void putGame(g);
+    // Spec 017 FR-C21: Korrektur an einem schon geteilten Ergebnis.
+    if (before && needsReshare(before, g, players ?? [])) setReshareAt(Date.now());
   };
 
   // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
@@ -286,9 +237,11 @@ export function GameScreen({ id }: { id: string }) {
     [],
   );
 
-  const pickerExpired = picker?.until != null && now >= picker.until;
+  // US3-S2, Spec 009 FR-V02: Schnellauswahl schließt sich nach Ablauf von selbst.
+  const quickUntil = edit && (edit.kind === 'scorer' || edit.kind === 'assist') ? edit.until : undefined;
+  const pickerExpired = quickUntil !== undefined && now >= quickUntil;
   useEffect(() => {
-    if (pickerExpired) setPicker(null);
+    if (pickerExpired) setEdit(null);
   }, [pickerExpired]);
 
   if (game === undefined) return <main class="game" aria-busy="true" />;
@@ -341,15 +294,17 @@ export function GameScreen({ id }: { id: string }) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
       if (side === 'own' && activePlayers(players ?? []).length > 0)
-        setPicker({ goalId: r.goal.id, until: t + PICKER_MS, kind: 'scorer' });
+        setEdit({ kind: 'scorer', goalId: r.goal.id, until: t + PICKER_MS });
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
     }
   };
 
-  /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage). */
+  /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage); Spec 017 FR-C20 merkt es. */
   const doShare = async (): Promise<void> => {
+    setReshareAt(0);
     const r = await shareText(buildShareText(cur(), players ?? []));
+    if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
 
@@ -377,10 +332,6 @@ export function GameScreen({ id }: { id: string }) {
       setAsk(null);
       onGoal(ask.side);
       return;
-    }
-    if (ask.kind === 'remove') {
-      update(removeGoal(g, ask.goalId, t));
-      setSheetGoal(null);
     }
     if (ask.kind === 'removeEvent') {
       update(removeEvent(g, ask.id));
@@ -417,65 +368,19 @@ export function GameScreen({ id }: { id: string }) {
       'Die Uhr läuft weiter, als wäre nicht gepfiffen worden.',
       'Zurücknehmen',
     ],
-    remove: [
-      'Tor wirklich entfernen?',
-      'Es zählt nicht mehr, bleibt durchgestrichen in der Liste und lässt sich wiederherstellen.',
-      'Entfernen',
-    ],
   };
 
   const undoGoalObj = undo && now < undo.until ? game.goals.find((g) => g.id === undo.goalId) : undefined;
   const doUndo = (goalId: string): void => {
     update(undoGoal(cur(), goalId));
     setUndo(null);
-    setPicker(null);
+    setEdit(null);
   };
-  const pickScorer = (goalId: string, scorer: Scorer): void => {
-    const next = setScorer(cur(), goalId, scorer);
-    update(next);
-    // Spec 009 FR-V02, FR-V03: in der Schnellauswahl mit Schalter "Vorlagen" folgt "Vorlage von?".
-    const goal = next.goals.find((g) => g.id === goalId);
-    const quick = picker?.until != null;
-    if (quick && settings?.features.assists && goal && canHaveAssist(goal))
-      setPicker({ goalId, until: Date.now() + ASSIST_MS, kind: 'assist' });
-    else setPicker(null);
-  };
-  const pickAssist = (goalId: string, scorer: Scorer): void => {
-    update(setAssist(cur(), goalId, scorer?.kind === 'player' ? scorer.playerId : null));
-    setPicker(null);
-  };
-  const pickerGoal = picker && !pickerExpired ? game.goals.find((g) => g.id === picker.goalId) : undefined;
-  /** Spec 009 FR-V02: "Vorlage von?" ohne den Torschützen. */
-  const notScorer = (p: { id: string }): boolean =>
-    picker?.kind !== 'assist' || !pickerGoal || scorerPlayerId(pickerGoal) !== p.id;
+  /** Torschützen- bzw. Vorlagen-Auswahl offen: ohne Rückgängig-Leiste (in der Schnellauswahl steht "Rückgängig"). */
+  const pickerOpen = !!edit && (edit.kind === 'scorer' || edit.kind === 'assist') && !pickerExpired;
   const roster = players ?? [];
-  const selected: Goal | undefined = sheetGoal ? game.goals.find((g) => g.id === sheetGoal) : undefined;
   const flashing = now < flashUntil;
 
-  // Spec 012 FR-S10 bis FR-S12: gespielte Minuten für "Tor nachtragen" und "Minute ändern".
-  const options = addSheet || minuteSheet ? minuteOptions(game, now) : [];
-  const saveLateGoal = (): void => {
-    if (!addSheet) return;
-    const t = Date.now();
-    const opt = minuteOptions(cur(), t).find((o) => o.label === addSheet.label);
-    if (!opt) return;
-    const r = addGoalAt(cur(), addSheet.side, opt, t, () => globalThis.crypto.randomUUID());
-    update(r.game);
-    setAddSheet(null);
-    if (addSheet.side === 'own' && activePlayers(players ?? []).length > 0)
-      setPicker({ goalId: r.goal.id, until: null, kind: 'scorer' });
-  };
-  const minuteGoal = minuteSheet ? game.goals.find((g) => g.id === minuteSheet.goalId) : undefined;
-  const saveMinute = (): void => {
-    if (!minuteSheet) return;
-    const t = Date.now();
-    const goal = cur().goals.find((g) => g.id === minuteSheet.goalId);
-    const opt = minuteOptions(cur(), t).find((o) => o.label === minuteSheet.label);
-    // Unveränderte Minute: nichts tun, damit Tore derselben Minute ihre Reihenfolge behalten.
-    const same = goal && formatMinute(goal.minute, goal.stoppage) === minuteSheet.label;
-    if (opt && !same) update(setGoalMinute(cur(), minuteSheet.goalId, opt, t));
-    setMinuteSheet(null);
-  };
   // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
   const range = goalsOpen ? clockShiftRange(game, now) : null;
   const shiftRange = range && (range.min < 0 || range.max > 0) ? range : null;
@@ -748,7 +653,7 @@ export function GameScreen({ id }: { id: string }) {
             game={game}
 
             players={roster}
-            onOpen={(g) => setSheetGoal(g.id)}
+            onOpen={(g) => setEdit({ kind: 'goal', goalId: g.id })}
             events={allEvents}
             onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
@@ -817,7 +722,7 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
-      {undoGoalObj && !pickerGoal && (
+      {undoGoalObj && !pickerOpen && (
         <div class="undo-bar" data-testid="undo-bar" role="status">
           <span class="undo-bar__text">
             Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
@@ -833,6 +738,12 @@ export function GameScreen({ id }: { id: string }) {
           </button>
         </div>
       )}
+      <ReshareBar
+        at={reshareAt}
+        hidden={!!(undoGoalObj || markUndoObj || evUndoObj)}
+        onShare={() => void doShare()}
+        onHide={() => setReshareAt(0)}
+      />
       {shareMsg && (
         <div class="toast" data-testid="share-result" role="status">
           {shareMsg}
@@ -872,8 +783,7 @@ export function GameScreen({ id }: { id: string }) {
               data-testid="menu-add-goal"
               onClick={() => {
                 setMenu(false);
-                const d = defaultOption(cur(), Date.now());
-                if (d) setAddSheet({ side: 'own', label: d.label });
+                setEdit(addGoalStep(cur(), Date.now()));
               }}
             >
               Tor nachtragen
@@ -918,6 +828,17 @@ export function GameScreen({ id }: { id: string }) {
               Heim und Gast tauschen
             </button>
           )}
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="menu-kits"
+            onClick={() => {
+              setMenu(false);
+              setKitsOpen(true);
+            }}
+          >
+            Trikots ändern
+          </button>
           {liveStatus !== null && liveStatus !== 'handed' && (
             <button
               type="button"
@@ -1299,163 +1220,31 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
-      {selected && !ask && (
-        <Sheet
-          title={`${formatMinute(selected.minute, selected.stoppage)} ${goalWho(game, selected, roster)}`}
-          subtitle={`erfasst um ${formatTime(selected.at)} Uhr${selected.deletedAt !== null ? ' · entfernt' : ''}`}
-          testId="goal-actions"
-          onClose={() => setSheetGoal(null)}
-        >
-          {selected.deletedAt === null && (
-            <div class="chips" role="group" aria-label="Kennzeichen">
-              <button
-                type="button"
-                class="chip"
-                aria-pressed={!!selected.penalty}
-                data-testid="goal-penalty"
-                onClick={() => update(setPenalty(cur(), selected.id, !selected.penalty))}
-              >
-                Elfmeter
-              </button>
-            </div>
-          )}
-          {selected.deletedAt === null ? (
-            <button
-              type="button"
-              class="btn btn--primary"
-              data-testid="goal-remove"
-              onClick={() => setAsk({ kind: 'remove', goalId: selected.id })}
-            >
-              Tor entfernen
-            </button>
-          ) : (
-            <button
-              type="button"
-              class="btn btn--primary"
-              data-testid="goal-restore"
-              onClick={() => {
-                update(restoreGoal(cur(), selected.id));
-                setSheetGoal(null);
-              }}
-            >
-              Tor wiederherstellen
-            </button>
-          )}
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="goal-edit-scorer"
-            onClick={() => {
-              setSheetGoal(null);
-              if (selected.side === 'own') setPicker({ goalId: selected.id, until: null, kind: 'scorer' });
-              else
-                setTextEdit({
-                  goalId: selected.id,
-                  value: selected.scorer?.kind === 'text' ? selected.scorer.text : '',
-                });
-            }}
-          >
-            Torschütze ändern
-          </button>
-          {selected.deletedAt === null && (
-            <button
-              type="button"
-              class="btn btn--secondary"
-              data-testid="goal-edit-minute"
-              onClick={() => {
-                setSheetGoal(null);
-                setMinuteSheet({ goalId: selected.id, label: formatMinute(selected.minute, selected.stoppage) });
-              }}
-            >
-              Minute ändern
-            </button>
-          )}
-          {settings?.features.assists && selected.deletedAt === null && canHaveAssist(selected) && (
-            <button
-              type="button"
-              class="btn btn--secondary"
-              data-testid="goal-edit-assist"
-              onClick={() => {
-                setSheetGoal(null);
-                setPicker({ goalId: selected.id, until: null, kind: 'assist' });
-              }}
-            >
-              Vorlage ändern
-            </button>
-          )}
-        </Sheet>
-      )}
-
-      {pickerGoal && picker && (
-        <ScorerPicker
-          // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
-          key={picker.kind}
-          kind={picker.kind}
-          subtitle={`Tor in Minute ${formatMinute(pickerGoal.minute, pickerGoal.stoppage)}${
-            picker.kind === 'assist' ? ` · ${scorerLabel(pickerGoal, roster)}` : ''
-          }`}
-          // Spec 009 FR-V02: bei der Vorlage ohne den Torschützen.
-          squad={squadPl.filter(notScorer)}
-          others={otherPl.filter(notScorer)}
-          onPick={(scorer) =>
-            picker.kind === 'scorer' ? pickScorer(pickerGoal.id, scorer) : pickAssist(pickerGoal.id, scorer)
-          }
-          onClose={() => setPicker(null)}
-          {...(picker.until != null
-            ? {
-                // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 bzw. 5 s anzeigen.
-                countdown: Math.min(
-                  (picker.kind === 'scorer' ? PICKER_MS : ASSIST_MS) / 1000,
-                  Math.max(1, Math.ceil((picker.until - now) / 1000)),
-                ),
-                ...(undoGoalObj?.id === pickerGoal.id ? { onUndo: () => doUndo(pickerGoal.id) } : {}),
-              }
-            : {})}
+      {kitsOpen && (
+        <KitsSheet
+          game={game}
+          dark={dark}
+          onSave={(own, opp) => {
+            applyKits(cur(), own, opp, update);
+            setKitsOpen(false);
+          }}
+          onClose={() => setKitsOpen(false)}
         />
       )}
 
-      {textEdit && (
-        <Sheet title="Torschütze Gegner" testId="scorer-text" onClose={() => setTextEdit(null)}>
-          <form
-            class="scorer-text"
-            onSubmit={(e) => {
-              e.preventDefault();
-              update(setScorer(cur(), textEdit.goalId, { kind: 'text', text: textEdit.value }));
-              setTextEdit(null);
-            }}
-          >
-            <label class="visually-hidden" for="scorer-text-input">
-              Torschütze des Gegners
-            </label>
-            <input
-              id="scorer-text-input"
-              class="input"
-              data-testid="scorer-text-input"
-              value={textEdit.value}
-              maxLength={30}
-              autocomplete="off"
-              placeholder="Name oder Rückennummer"
-              onInput={(e) => setTextEdit({ ...textEdit, value: e.currentTarget.value })}
-            />
-            <div class="button-row">
-              <button
-                type="button"
-                class="btn btn--secondary"
-                data-testid="scorer-text-clear"
-                onClick={() => {
-                  update(setScorer(cur(), textEdit.goalId, null));
-                  setTextEdit(null);
-                }}
-              >
-                Ohne Torschütze
-              </button>
-              <button type="submit" class="btn btn--primary" data-testid="scorer-text-save">
-                Speichern
-              </button>
-            </div>
-          </form>
-        </Sheet>
-      )}
+      <GoalEditor
+        game={game}
+        players={roster}
+        settings={settings}
+        // Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage.
+        step={ask && edit?.kind === 'goal' ? null : edit}
+        onStep={setEdit}
+        cur={cur}
+        update={update}
+        now={now}
+        undoGoalId={undoGoalObj?.id}
+        onUndo={doUndo}
+      />
 
       {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
         <div class="overlay overlay--center">
@@ -1572,55 +1361,6 @@ export function GameScreen({ id }: { id: string }) {
             </button>
           </div>
         </div>
-      )}
-
-      {addSheet && (
-        <Sheet title="Tor nachtragen" testId="add-goal-sheet" onClose={() => setAddSheet(null)}>
-          <div class="chips" role="group" aria-label="Mannschaft">
-            {[homeSide, awaySide].map((side) => (
-              <button
-                type="button"
-                key={side}
-                class="chip chip--wide add-goal__side"
-                aria-pressed={addSheet.side === side}
-                data-testid={`add-goal-side-${side}`}
-                onClick={() => setAddSheet({ ...addSheet, side })}
-              >
-                <TeamMark colorId={colorOf(side)} />
-                {buttonName(side)}
-              </button>
-            ))}
-          </div>
-          <MinuteSelect
-            id="add-goal-minute"
-            options={options}
-            value={addSheet.label}
-            onChange={(label) => setAddSheet({ ...addSheet, label })}
-          />
-          <p class="field__help">Nur gespielte Minuten. Die Uhr bleibt, wie sie ist.</p>
-          <button type="button" class="btn btn--primary" data-testid="add-goal-save" onClick={saveLateGoal}>
-            Eintragen
-          </button>
-        </Sheet>
-      )}
-
-      {minuteSheet && minuteGoal && (
-        <Sheet
-          title="Minute ändern"
-          subtitle={`Tor ${goalWho(game, minuteGoal, roster)}`}
-          testId="minute-sheet"
-          onClose={() => setMinuteSheet(null)}
-        >
-          <MinuteSelect
-            id="goal-minute-select"
-            options={options}
-            value={minuteSheet.label}
-            onChange={(label) => setMinuteSheet({ ...minuteSheet, label })}
-          />
-          <button type="button" class="btn btn--primary" data-testid="goal-minute-save" onClick={saveMinute}>
-            Übernehmen
-          </button>
-        </Sheet>
       )}
 
       {clockFix !== null && shiftRange && (
