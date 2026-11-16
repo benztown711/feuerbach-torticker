@@ -16,9 +16,9 @@ export interface Pair {
 
 export const PAIRS: Pair[] = [
   { fg: 'on-rot', bg: 'vereinsrot', min: 3, where: 'Tor-Knopf Feuerbach (Schrift ab 24px fett)' },
-  { fg: 'surface', bg: 'ink', min: 4.5, where: 'Tor-Knopf Gegner' },
-  { fg: 'ink', bg: 'surface', min: 4.5, where: 'Text auf Hintergrund' },
-  { fg: 'ink', bg: 'surface-alt', min: 4.5, where: 'Torliste, Undo-Leiste' },
+  { fg: 'surface', bg: 'ink', min: 4.5, where: 'Tor-Knopf Gegner; Meldeband: Text (Spec 019)' },
+  { fg: 'ink', bg: 'surface', min: 4.5, where: 'Text auf Hintergrund; Meldeband: Knopf' },
+  { fg: 'ink', bg: 'surface-alt', min: 4.5, where: 'Torliste; Meldeband: Fläche gegen Torliste' },
   { fg: 'ink-muted', bg: 'surface', min: 4.5, where: 'Nebentext' },
   { fg: 'ink-muted', bg: 'surface-alt', min: 4.5, where: 'Meta-Angaben in Listen' },
   { fg: 'rot-text', bg: 'surface', min: 4.5, where: 'Nachspielzeit, Links' },
