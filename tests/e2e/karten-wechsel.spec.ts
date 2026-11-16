@@ -151,7 +151,9 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     await expect(page.getByTestId('details-timeline')).toContainText('Leo für Ben');
   });
 
-  test('003 FR-E06 Griff klappt die Liste über die Uhr-Knöpfe auf; FR-033 mit allen Schaltern', async ({ page }) => {
+  test('003 FR-E06 019 FR-A22 kein Griff: Uhr-Knöpfe und Ereignis-Zeile bleiben, die Liste scrollt in sich; FR-033 mit allen Schaltern', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await enable(page, 'cards', 'subs', 'marks');
     await startGame(page);
@@ -164,14 +166,9 @@ test.describe('Spec 003 Teil 2: Karten und Wechsel', () => {
     });
     expect(scroll.sh).toBeLessThanOrEqual(scroll.ih);
     await expect(page.getByTestId('event-row')).toBeVisible();
-    const before = (await page.getByTestId('goal-list').boundingBox())?.height ?? 0;
-    await page.getByTestId('list-grip').click();
-    await expect(page.getByTestId('btn-pause')).toBeHidden();
-    await expect(page.getByTestId('event-row')).toBeHidden();
-    await expect(page.getByTestId('score')).toBeVisible();
-    const after = (await page.getByTestId('goal-list').boundingBox())?.height ?? 0;
-    expect(after).toBeGreaterThan(before + 40);
-    await page.getByTestId('list-grip').click();
+    await expect(page.getByTestId('list-grip')).toHaveCount(0);
     await expect(page.getByTestId('btn-pause')).toBeVisible();
+    await expect(page.getByTestId('score')).toBeVisible();
+    await expect(page.getByTestId('goal-list')).toHaveCSS('overflow-y', 'auto');
   });
 });

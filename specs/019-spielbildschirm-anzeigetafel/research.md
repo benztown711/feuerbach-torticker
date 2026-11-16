@@ -20,7 +20,7 @@
 
 ## R-A4 Visuelle Referenzbilder
 
-- **Decision**: Die Referenzbilder des Spielbildschirms (`spiel-laeuft-*`, `spiel-nachspielzeit-*`, `spiel-halbzeit-*`, alle Profile) werden nach dem ersten CI-Lauf aus dem Artefakt `playwright-report-<profil>-<n>` (`*-actual.png`) übernommen, wie in Spec 001 R-22 beschrieben, und im selben PR eingecheckt. Dabei wird geprüft, warum die bisherigen Bilder für "Spiel läuft" noch den Stand vor Spec 011 zeigen (Design-Check vom 07.11.2026).
+- **Decision**: Die Referenzbilder des Spielbildschirms (`spiel-laeuft-*`, `spiel-nachspielzeit-*`, `spiel-halbzeit-*`, alle Profile) werden nach dem ersten CI-Lauf aus dem Artefakt `playwright-report-<profil>-<n>` (`*-actual.png`) übernommen, wie in Spec 001 R-22 beschrieben, und im selben PR eingecheckt. Befund 16.11.2026: Die bisherigen Bilder waren nicht veraltet; der CI-Lauf nach US1 war im Bildvergleich grün. Sehr helle Flächen (`surface-alt` auf `surface`) und der Griff liegen unter der Pixel-Toleranz von Playwright und fallen dem Vergleich nicht auf.
 - **Rationale**: Nur das Playwright-Image der CI liefert vergleichbare Schriftdarstellung.
 - **Alternatives considered**: Lokal erzeugen (Schrift weicht ab, Vergleich in der CI schlüge fehl).
 

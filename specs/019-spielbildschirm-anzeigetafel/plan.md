@@ -58,4 +58,4 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 
 - **Viele Tests hängen an den Leisten**: Testkennungen und Wortlaute bleiben gleich (siehe `MessageBand`). Neu ist nur, dass höchstens eine Meldung sichtbar ist; Tests, die zwei Leisten zugleich erwarten, gibt es nach Suche nicht (R-A1).
 - **Höhe auf dem SE**: Knöpfe +16 pt, Anzeigetafel −24 pt, Griff −14 pt. Mit Ereignis-Zeile bleiben für Liste und Tor-Knöpfe etwa 283 pt; Liste 2 × 48 pt, Tor-Knöpfe rund 185 pt (≥ 150). Die E2E-Tests für US3 messen das auf 375 × 667.
-- **Visuelle Referenzen**: Die Bilder für "Spiel läuft" zeigen noch den Stand vor Spec 011. Sie werden mit diesem PR neu erzeugt; ob der Vergleich bisher griff, klärt der CI-Lauf (R-A4).
+- **Visuelle Referenzen**: Die Bilder des Spielbildschirms werden mit diesem PR neu erzeugt (R-A4); der Verdacht, sie seien veraltet, hat sich nicht bestätigt.

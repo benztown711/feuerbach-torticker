@@ -27,15 +27,15 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 4: US3 Große Knöpfe, ruhige Torliste (P2)
 
-- [ ] T013 [P] [US3] E2E `tests/e2e/spielbildschirm-us3.spec.ts`: 019 US3-S1 (Knöpfe unter der Uhr in allen Zuständen ≥ 64 × 64), S2 (Torzeilen ≥ 48), S3 (kein `list-grip`, Liste scrollt in sich, Uhr-Knöpfe und Ereignis-Zeile sichtbar), S4 (375 × 667 mit allen drei Ereignis-Schaltern, gemessen ohne Band: kein Seiten-Scroll, zwei Torzeilen ganz sichtbar), S5 (393 × 852: Tor-Knöpfe ≈ ein Drittel der Höhe, ≥ 150, Abstand 12); zuerst rot
-- [ ] T014 [US3] `tests/e2e/karten-wechsel.spec.ts`: Griff-Teil (Spec 003 Klärung zu FR-E06) durch FR-A22 ersetzen (kein Griff, Uhr-Knöpfe und Ereignis-Zeile bleiben sichtbar, Liste scrollt in sich)
-- [ ] T015 [US3] `src/ui/screens/game.tsx`: Griff und `expanded` entfernen; `src/styles/app.css`: `.controls .btn` min. 64 × 64, `.goal-row` min. 48, `.goal-zone` flexibel und `.goal-list` mit Mindesthöhe zwei Zeilen (R-A3), Abstand der Tor-Knöpfe 12 px, `.list-grip` und `.game--expanded` entfernen (macht T013 und T014 grün)
-- [ ] T016 [US3] Hilfe: "Was zeigt der Spielbildschirm?" um Torliste (in sich scrollbar, Tor antippen zum Ändern) ergänzen
+- [x] T013 [P] [US3] E2E `tests/e2e/spielbildschirm-us3.spec.ts`: 019 US3-S1 (Knöpfe unter der Uhr in allen Zuständen ≥ 64 × 64), S2 (Torzeilen ≥ 48), S3 (kein `list-grip`, Liste scrollt in sich, Uhr-Knöpfe und Ereignis-Zeile sichtbar), S4 (375 × 667 mit allen drei Ereignis-Schaltern, gemessen ohne Band: kein Seiten-Scroll, zwei Torzeilen ganz sichtbar), S5 (393 × 852: Tor-Knöpfe ≈ ein Drittel der Höhe, ≥ 150, Abstand 12); zuerst rot
+- [x] T014 [US3] `tests/e2e/karten-wechsel.spec.ts`: Griff-Teil (Spec 003 Klärung zu FR-E06) durch FR-A22 ersetzen (kein Griff, Uhr-Knöpfe und Ereignis-Zeile bleiben sichtbar, Liste scrollt in sich)
+- [x] T015 [US3] `src/ui/screens/game.tsx`: Griff und `expanded` entfernen; `src/styles/app.css`: `.controls .btn` min. 64 × 64, `.goal-row` min. 48, `.goal-zone` flexibel und `.goal-list` mit Mindesthöhe zwei Zeilen (R-A3), Abstand der Tor-Knöpfe 12 px, `.list-grip` und `.game--expanded` entfernen (macht T013 und T014 grün)
+- [x] T016 [US3] Hilfe: "Was zeigt der Spielbildschirm?" um Torliste (in sich scrollbar, Tor antippen zum Ändern) ergänzen
 
 ## Phase 5: Abschluss
 
 - [ ] T017 `npm run check`, betroffene E2E lokal (siehe `quickstart.md`), `npm run e2e` (übergreifend: gemeinsame Komponente des Spielbildschirms)
-- [ ] T018 Visuelle Referenzbilder des Spielbildschirms aus dem CI-Artefakt übernehmen (R-A4); prüfen, warum die alten Bilder noch den Stand vor Spec 011 zeigten
+- [ ] T018 Visuelle Referenzbilder des Spielbildschirms aus dem CI-Artefakt übernehmen (R-A4); Verdacht "veraltet" geprüft: nicht bestätigt (CI nach US1 grün)
 - [ ] T019 `/code-review`, `/security-review`, Design-Check (Skill `design-check`, Ziel Spielbildschirm, SC-A06), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in `spec.md`
 
 ## Dependencies

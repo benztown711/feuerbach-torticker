@@ -136,7 +136,6 @@ export function GameScreen({ id }: { id: string }) {
   const [subDraft, setSubDraft] = useState<SubDraft | null>(null);
   const [evUndo, setEvUndo] = useState<{ id: string; until: number } | null>(null);
   const [evSheet, setEvSheet] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   // Spec 003 FR-P01 bis FR-P03: Pokal
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraMin, setExtraMin] = useState(10);
@@ -532,7 +531,7 @@ export function GameScreen({ id }: { id: string }) {
     ) : null;
 
   return (
-    <main class={expanded ? 'game game--expanded' : 'game'} onPointerDown={reArmAudio}>
+    <main class="game" onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>
@@ -701,16 +700,6 @@ export function GameScreen({ id }: { id: string }) {
             </section>
           )}
 
-          {(game.goals.length > 0 || allEvents.length > 0) && (
-            <button
-              type="button"
-              class="list-grip"
-              data-testid="list-grip"
-              aria-expanded={expanded}
-              aria-label={expanded ? 'Liste einklappen' : 'Liste aufklappen'}
-              onClick={() => setExpanded(!expanded)}
-            />
-          )}
           <GoalList
             game={game}
 
