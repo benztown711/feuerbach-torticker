@@ -72,6 +72,12 @@ test('006 US6-S1 US6-S2 US6-S3 B übernimmt das laufende E2-Spiel von A mit Stan
 
   // US6-S3: A merkt die Übernahme, sendet nichts mehr; das Dashboard bleibt bei B
   await expect(page.getByTestId('live-handed-over')).toContainText('E2 überträgt jetzt ein anderes Handy');
+  // Spec 019 FR-A04: Hinweis im Meldeplatz, höchstens drei Zeilen
+  const lines = await page
+    .getByTestId('live-handed-over')
+    .evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
+  expect(lines).toBeLessThanOrEqual(3);
+  await expect(page.locator('.band')).toHaveCount(1);
   await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'handed');
   const before = relay.all().length;
   await page.getByTestId('btn-goal-opp').click();

@@ -29,13 +29,16 @@ Bei Änderungen am Design System: Dateien hier aktualisieren und per Pull Reques
 | Rahmen um Tor-Knopf | – | `ink` 2px | nur wenn Trikotfarbe < 3:1 zum Hintergrund (z. B. Weiß hell, Schwarz dunkel) |
 | Uhr-Knöpfe, Pausen-/Schlusspfiff | `surface` mit `ink`-Rahmen | `ink` | neutral, damit nichts mit einer Mannschaftsfarbe verwechselt wird |
 | Hintergrund | `surface` | `ink` | |
-| Torliste, Undo-Leiste | `surface-alt` | `ink`, Meta in `ink-muted` | |
+| Torliste | `surface-alt` | `ink`, Meta in `ink-muted` | |
+| Meldeband (Rückgängig, Hinweise) über den Tor-Knöpfen | `ink` | `surface`; Knöpfe darin `surface` mit Schrift `ink` | Umkehrung des Grundes wie der Hauptknopf, siehe unten |
 | Hinweis "Halbzeit", "Abpfiff" | `rot-tief` | `on-rot` | kleine weiße Schrift nur auf `rot-tief` |
 | Restzeit unter 1 Minute | `surface` | `rot-text` | |
 
 Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startbildschirm. Auf dem Spielbildschirm gibt es keinen Balken, die Farbe kommt allein von den Trikotfarben.
 
 **Abweichung vom Design System (begründet):** Trikotfarben sind Spieldaten, keine Markenfarben. Sie stehen in `design/trikot-farben.json` mit geprüfter Schriftfarbe und gelten nur für die Tor-Knöpfe und kleine Farbmarken neben den Mannschaftsnamen. Keine Emojis in der Oberfläche; Symbole als einfarbige Linien-Icons.
+
+**Abweichung Meldeband (Spec 019, begründet):** Die Leiste "Tor … erfasst" mit "Rückgängig" stand bisher in `surface-alt` über der gleichfarbigen Torliste und war in der Sonne kaum von einer Listenzeile zu unterscheiden (Design-Check vom 07.11.2026). Bedienbarkeit am Spielfeldrand geht vor (Constitution I und VII): Das Band ist in beiden Themes die Umkehrung des Grundes (`ink`, Schrift `surface`), die Knöpfe darin `surface` mit Schrift `ink`, mindestens 64 × 64 pt. Es ist neutral, damit es nicht mit einer Trikotfarbe verwechselt wird, und liegt mit Abstand über den Tor-Knöpfen. Gilt für alle Meldungen des Spielbildschirms (Tor, Karte, Wechsel, Lesezeichen, "neu teilen", kurze Hinweise).
 
 **Ausnahme Teilen-Text (Spec 005):** Die Vorschau in den Spieldetails zeigt den WhatsApp-Text wörtlich, also mit seinen Emojis, und die Verlaufstabelle in der Systemschrift mit fester Breite (`--font-mono`, keine Vereinsschrift), damit die Spalten wie im Chat bündig stehen.
 

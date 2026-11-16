@@ -67,12 +67,14 @@ import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
-import { ReshareBar } from '../components/reshare-bar';
+import { MessageBand, type BandHint } from '../components/message-band';
+import { useReshareTimer } from '../components/reshare-bar';
 import { Sheet } from '../components/sheet';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
+import { messageSlot } from '../../domain/message-slot';
 import { setLive } from '../../domain/live-snapshot';
 import { liveTeamFor, sendingTeamFor } from '../../domain/live-spieltag';
 import { onLiveSettings } from '../../platform/live-events';
@@ -145,6 +147,7 @@ export function GameScreen({ id }: { id: string }) {
   const [kitsOpen, setKitsOpen] = useState(false);
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
+  useReshareTimer(reshareAt, () => setReshareAt(0));
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -445,6 +448,89 @@ export function GameScreen({ id }: { id: string }) {
   };
   const showAudioHint = (status === 'running' || status === 'paused') && !audioReady();
 
+  // Spec 019 FR-A01 bis FR-A04: ein Meldeplatz, höchstens eine Meldung und ein Hinweis.
+  const slot = messageSlot({
+    goalUndo: !!undoGoalObj,
+    pickerOpen,
+    markUndo: !!markUndoObj,
+    eventUndo: !!evUndoObj,
+    reshare: reshareAt > 0,
+    handedOver: now < handedUntil,
+    shareResult: !!shareMsg,
+    doubleTap: now < hintUntil,
+  });
+  const bandHint: BandHint | null =
+    slot.hint === 'handedOver'
+      ? {
+          testId: 'live-handed-over',
+          text: `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
+        }
+      : slot.hint === 'shareResult'
+        ? { testId: 'share-result', text: shareMsg }
+        : slot.hint === 'doubleTap'
+          ? { testId: 'double-tap-hint', text: 'Schon gezählt' }
+          : null;
+  const band =
+    slot.message === 'goal' && undoGoalObj ? (
+      <MessageBand
+        testId="undo-bar"
+        text={`Tor ${undoGoalObj.side === 'own' ? ownShort : game.opponent} ${formatMinute(undoGoalObj.minute, undoGoalObj.stoppage)} erfasst`}
+        hint={bandHint}
+        actions={[{ label: 'Rückgängig', testId: 'btn-undo', undo: true, onClick: () => doUndo(undoGoalObj.id) }]}
+      />
+    ) : slot.message === 'mark' && markUndoObj ? (
+      <MessageBand
+        testId="mark-toast"
+        text={`Lesezeichen ${formatMinute(markUndoObj.minute, markUndoObj.stoppage)} gesetzt`}
+        hint={bandHint}
+        actions={[
+          {
+            label: 'Kommentar',
+            testId: 'mark-comment',
+            onClick: () => {
+              setMarkUndo(null);
+              setMarkEdit({ id: markUndoObj.id, value: markUndoObj.comment });
+            },
+          },
+          {
+            label: 'Rückgängig',
+            testId: 'mark-undo',
+            undo: true,
+            onClick: () => {
+              update(removeEvent(cur(), markUndoObj.id));
+              setMarkUndo(null);
+            },
+          },
+        ]}
+      />
+    ) : slot.message === 'event' && evUndoObj ? (
+      <MessageBand
+        testId="event-toast"
+        text={`${evUndoObj.kind === 'card' ? cardLabel(evUndoObj.card) : 'Wechsel'} ${formatMinute(evUndoObj.minute, evUndoObj.stoppage)} erfasst`}
+        hint={bandHint}
+        actions={[
+          {
+            label: 'Rückgängig',
+            testId: 'event-undo',
+            undo: true,
+            onClick: () => {
+              update(removeEvent(cur(), evUndoObj.id));
+              setEvUndo(null);
+            },
+          },
+        ]}
+      />
+    ) : slot.message === 'reshare' ? (
+      <MessageBand
+        testId="reshare-bar"
+        text="Korrigiert. Ergebnis neu teilen?"
+        hint={bandHint}
+        actions={[{ label: 'Teilen', testId: 'reshare-share', onClick: () => void doShare() }]}
+      />
+    ) : bandHint ? (
+      <MessageBand testId="message-band" hint={bandHint} />
+    ) : null;
+
   return (
     <main class={expanded ? 'game game--expanded' : 'game'} onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
@@ -658,107 +744,26 @@ export function GameScreen({ id }: { id: string }) {
             onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
 
-          <section class="goal-buttons" aria-label="Tore erfassen">
-            {[homeSide, awaySide].map((side) => (
-              <GoalButton
-                key={side}
-                testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-                team={buttonName(side)}
-                colorId={colorOf(side)}
-                dark={dark}
-                disabled={!goalsOpen}
-                onGoal={() => onGoal(side)}
-              />
-            ))}
-          </section>
+          <div class="goal-zone">
+            {band}
+            <section class="goal-buttons" aria-label="Tore erfassen">
+              {[homeSide, awaySide].map((side) => (
+                <GoalButton
+                  key={side}
+                  testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                  team={buttonName(side)}
+                  colorId={colorOf(side)}
+                  dark={dark}
+                  disabled={!goalsOpen}
+                  onGoal={() => onGoal(side)}
+                />
+              ))}
+            </section>
+          </div>
         </>
       )}
+      {shootoutActive && band && <div class="band-dock">{band}</div>}
 
-      {markUndoObj && !undoGoalObj && (
-        <div class="undo-bar" data-testid="mark-toast" role="status">
-          <span class="undo-bar__text">
-            Lesezeichen {formatMinute(markUndoObj.minute, markUndoObj.stoppage)} gesetzt
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="mark-comment"
-            onClick={() => {
-              setMarkUndo(null);
-              setMarkEdit({ id: markUndoObj.id, value: markUndoObj.comment });
-            }}
-          >
-            Kommentar
-          </button>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="mark-undo"
-            onClick={() => {
-              update(removeEvent(cur(), markUndoObj.id));
-              setMarkUndo(null);
-            }}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      {evUndoObj && !undoGoalObj && !markUndoObj && (
-        <div class="undo-bar" data-testid="event-toast" role="status">
-          <span class="undo-bar__text">
-            {evUndoObj.kind === 'card' ? cardLabel(evUndoObj.card) : 'Wechsel'}{' '}
-            {formatMinute(evUndoObj.minute, evUndoObj.stoppage)} erfasst
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="event-undo"
-            onClick={() => {
-              update(removeEvent(cur(), evUndoObj.id));
-              setEvUndo(null);
-            }}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      {undoGoalObj && !pickerOpen && (
-        <div class="undo-bar" data-testid="undo-bar" role="status">
-          <span class="undo-bar__text">
-            Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
-            {formatMinute(undoGoalObj.minute, undoGoalObj.stoppage)} erfasst
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="btn-undo"
-            onClick={() => doUndo(undoGoalObj.id)}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      <ReshareBar
-        at={reshareAt}
-        hidden={!!(undoGoalObj || markUndoObj || evUndoObj)}
-        onShare={() => void doShare()}
-        onHide={() => setReshareAt(0)}
-      />
-      {shareMsg && (
-        <div class="toast" data-testid="share-result" role="status">
-          {shareMsg}
-        </div>
-      )}
-      {now < hintUntil && (
-        <div class="toast" data-testid="double-tap-hint" role="status">
-          Schon gezählt
-        </div>
-      )}
-      {now < handedUntil && (
-        <div class="toast" data-testid="live-handed-over" role="status">
-          {teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.
-        </div>
-      )}
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
 
       {menu && (

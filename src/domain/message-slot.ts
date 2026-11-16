@@ -31,15 +31,7 @@ export interface Slot {
 
 export function messageSlot(s: SlotInput): Slot {
   const message: SlotMessage | null =
-    s.goalUndo && !s.pickerOpen
-      ? 'goal'
-      : s.markUndo
-        ? 'mark'
-        : s.eventUndo
-          ? 'event'
-          : s.reshare
-            ? 'reshare'
-            : null;
+    s.goalUndo && !s.pickerOpen ? 'goal' : s.markUndo ? 'mark' : s.eventUndo ? 'event' : s.reshare ? 'reshare' : null;
   const hint: SlotHint | null = s.handedOver
     ? 'handedOver'
     : s.shareResult

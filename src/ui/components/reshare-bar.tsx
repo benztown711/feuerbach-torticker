@@ -14,13 +14,21 @@ interface Props {
   extraClass?: string;
 }
 
-/** Spec 017 FR-C21, FR-C22 (research.md R-C4): "Korrigiert. Ergebnis neu teilen?" mit "Teilen". */
-export function ReshareBar({ at, onShare, onHide, hidden = false, extraClass = '' }: Props) {
+/**
+ * Zeitsteuerung der Leiste: nach RESHARE_MS ausblenden; jede neue Korrektur (neues `at`) startet neu.
+ * Spec 019: Der Spielbildschirm zeigt die Meldung im Meldeband und nutzt nur diesen Hook.
+ */
+export function useReshareTimer(at: number, onHide: () => void): void {
   useEffect(() => {
     if (!at) return;
     const t = setTimeout(onHide, RESHARE_MS);
     return () => clearTimeout(t);
   }, [at]);
+}
+
+/** Spec 017 FR-C21, FR-C22 (research.md R-C4): "Korrigiert. Ergebnis neu teilen?" mit "Teilen" (Spieldetails). */
+export function ReshareBar({ at, onShare, onHide, hidden = false, extraClass = '' }: Props) {
+  useReshareTimer(at, onHide);
   if (!at || hidden) return null;
   return (
     <div class={`undo-bar ${extraClass}`.trim()} data-testid="reshare-bar" role="status">
