@@ -33,4 +33,4 @@
 
 - Design-Tokens (`ink`, `surface`, `ergebnis`) und Maße in pt sind Vorgaben des Vereinsdesigns bzw. der Constitution, keine Technik.
 - SC-A07 nennt die bestehenden Qualitätstore (axe-core, Kontrastmatrix, visueller Vergleich) als Nachweis, wie in den bisherigen Specs.
-- Die Folgerungen in "Clarifications" sind in Review A zu bestätigen.
+- Review A am 16.11.2026 erledigt ("1A 2A 3A 4A").

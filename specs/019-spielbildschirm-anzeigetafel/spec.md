@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-16
 
-**Status**: Entwurf. Mockup vorab freigegeben (16.11.2026, "Okay" auf Variante "Empfehlung" einschließlich Wegfall des Griffs). Review A offen. Mockup: https://claude.ai/artifact/98UF1ac9XQguthKaAr1uPu
+**Status**: Freigegeben. Mockup vorab freigegeben (16.11.2026, "Okay" auf Variante "Empfehlung" einschließlich Wegfall des Griffs). Review A erledigt (16.11.2026, "1A 2A 3A 4A"). Mockup: https://claude.ai/artifact/98UF1ac9XQguthKaAr1uPu
 
 **Input**: Design-Check (Impeccable) des Spielbildschirms vom 07.11.2026 mit Urteil "nachbessern" (UX 31/40, Technik 16/20) und Atti (16.11.2026): "Okay" auf die Empfehlung: Anzeigetafel-Zeile, Rückgängig als eigenes Band, Aufklappen der Torliste entfällt, Bedienelemente nach Constitution I.
 
@@ -25,7 +25,7 @@ Gesichtet am 07.11.2026 (Design-Check mit Messung auf iPhone 393 × 659 und iPho
 
 - Q: Welche Variante aus dem Mockup? → A: "Empfehlung" (nicht die Alternative "nur Rückgängig-Band und 64-pt-Knöpfe").
 - Q: Darf das Aufklappen der Torliste (Griff, Spec 003 Klärung zu FR-E06) entfallen? → A: Ja.
-- Folgerungen mit Empfehlung, in Review A zu bestätigen:
+- Q: Band dunkel, ein Meldeplatz, Vorrang der Torliste auf dem SE, Doppelpfeil unter dem Spielstand? → A: Alle wie empfohlen ("1A 2A 3A 4A"):
   - Das Rückgängig-Band ist dunkel (`ink`, Schrift `surface`), in beiden Themes die Umkehrung des Grundes wie der Hauptknopf. `design/README.md` wird dafür angepasst und begründet (bisher "Undo-Leiste: `surface-alt`").
   - Alle Leisten an dieser Stelle (Tor, Karte, Wechsel, Lesezeichen, "Korrigiert. Ergebnis neu teilen?") und die kurzen Hinweise ("Schon gezählt", Teilen-Ergebnis, Übergabe an ein anderes Handy) teilen sich einen einzigen Meldeplatz; es steht immer höchstens eine Meldung da.
   - Auf dem iPhone SE hat die Torliste Vorrang vor größeren Tor-Knöpfen: mindestens zwei Torzeilen bleiben sichtbar, auch mit Ereignis-Zeile.
@@ -166,4 +166,4 @@ Kein Eintrag entfällt; der Griff hatte keinen eigenen Hilfe-Eintrag.
 - Die Mannschaftsnamen bleiben in der bisherigen Größe (15 px fett) statt `zwischentitel`, damit Spielstand und Namen auf dem iPhone SE in eine Zeile passen.
 - Der "…"-Knopf oben rechts (44 × 44 pt) und die Navigationsleiste (FR-037) bleiben unverändert.
 - Die visuellen Referenzbilder (`tests/e2e/visual.spec.ts-snapshots/`) werden im Playwright-Image der CI neu erzeugt; lokal weicht die Schrift ab. Dass die Referenzen für "Spiel läuft" noch den Stand vor Spec 011 zeigen (Design-Check 07.11.2026), wird dabei mit geklärt.
-- Spieldetails, Historie und Dashboard sind nicht betroffen; sie haben eigene Leisten bzw. Darstellungen. Die Leiste "Korrigiert. Ergebnis neu teilen?" in den Spieldetails übernimmt die neue Gestaltung mit (gleiche Komponente).
+- Spieldetails, Historie und Dashboard sind nicht betroffen; ihre Leisten ("Rückgängig" nach dem Löschen, "Korrigiert. Ergebnis neu teilen?" in den Spieldetails) bleiben wie sie sind. Das Band gilt nur für den Spielbildschirm.
