@@ -203,6 +203,18 @@ export function buildShareText(game: Game, players: Player[], timeZone?: string,
   return lines.join('\n');
 }
 
+/** Spec 017 FR-C20: "Ergebnis teilen" war erfolgreich (geteilt oder kopiert). */
+export const markShared = (game: Game, at: number): Game => ({ ...game, sharedAt: at });
+
+/**
+ * Spec 017 FR-C21: Leiste "Korrigiert. Ergebnis neu teilen?", wenn eine Änderung an einem beendeten, schon geteilten
+ * Spiel den Teilen-Text ändert. Vor dem ersten Teilen wäre "neu teilen" irreführend (research.md R-C3).
+ */
+export function needsReshare(before: Game, after: Game, players: Player[]): boolean {
+  if (after.status !== 'finished' || after.sharedAt === undefined) return false;
+  return buildShareText(before, players) !== buildShareText(after, players);
+}
+
 /** Abschnitt der Vorschau: Zeile (ganz fett oder normal) oder Block in Festbreitenschrift. */
 export type ShareBlock = { kind: 'line'; text: string; bold: boolean } | { kind: 'mono'; lines: string[] };
 

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { forward, MIN, startGame } from './helpers';
-import { latestState, pasteLink, planPayloads } from './live-helpers';
+import { latestState, MATCHDAY, pasteLink, planPayloads } from './live-helpers';
 import { addGame, openPlan, row, setupPlan, sync } from './plan-helpers';
 
 /**
@@ -144,6 +144,8 @@ test('015 US2-S5 anderes Handy überträgt dieselbe Mannschaft schon: Rückfrage
   await expect.poll(async () => (await latestState(relay, links.viewer))?.team).toBe('E2');
 
   const b = await newDevice();
+  // Auch B lebt am Spieltag (MATCHDAY), sonst läge das Planspiel je nach echter Uhrzeit schon in der Vergangenheit.
+  await b.clock.setSystemTime(MATCHDAY);
   await pasteLink(b, links.trainer);
   await b.goto('./#/neu');
   await expect

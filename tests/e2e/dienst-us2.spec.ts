@@ -48,12 +48,18 @@ test('007 US2-S1 Spielplan am Montag geändert, anderes Trainer-Handy öffnet am
   await at(b, relay, FRIDAY);
   await b.goto('./#/neu');
   const pick = b.getByTestId('plan-pick');
+  const more = b.getByTestId('plan-pick-more');
   await expect
-    .poll(async () => {
-      await sync(b);
-      if ((await b.getByTestId('plan-pick-more').count()) > 0) await b.getByTestId('plan-pick-more').click();
-      return (await pick.allInnerTexts()).join(' ');
-    })
+    .poll(
+      async () => {
+        await sync(b);
+        // "Weitere Spiele" nur aufklappen, nicht bei jedem Durchlauf wieder zuklappen.
+        if ((await more.count()) > 0 && (await more.getAttribute('aria-expanded')) !== 'true') await more.click();
+        return (await pick.allInnerTexts()).join(' ');
+      },
+      // Langsame WebKit-Läufer: jeder Durchlauf spult 3 s Uhr vor (Empfang, Prüfen der Signaturen, Speichern).
+      { timeout: 15_000 },
+    )
     .toContain('TSV Musterstadt');
   expect(relay.posts).toHaveLength(posts);
 });

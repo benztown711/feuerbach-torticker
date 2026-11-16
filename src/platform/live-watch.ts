@@ -4,11 +4,13 @@ import {
   otherGames,
   runningElsewhere,
   sentLabel,
+  takeoverOffers,
   type Board,
   type BoardCard,
   type BoardEntry,
+  type TakeoverOffer,
 } from '../domain/live-board';
-import { configOf, viewerOf } from '../domain/live-spieltag';
+import { configOf, sendsFor, viewerOf } from '../domain/live-spieltag';
 import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
@@ -153,4 +155,29 @@ export function watchPlan(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {}):
   const r = receiverFor(live, deps);
   r.start();
   return { stop: () => r.stop() };
+}
+
+export interface StartWatch {
+  /** Spec 018 FR-004: laufende Spiele anderer Handys, die dieses Handy übernehmen darf; `localIds` sendet es selbst. */
+  offers(localIds: string[]): TakeoverOffer[];
+  /** Spec 018 FR-005 (Spec 006 FR-L23): Spiel aus dem letzten Stand anlegen. */
+  takeover(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
+  onChange(cb: () => void): () => void;
+  stop(): void;
+}
+
+/** Spec 018 US2: Startbildschirm hört mit, solange er sichtbar ist (FR-006). */
+export function watchStart(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {}): StartWatch {
+  const r = receiverFor(live, deps);
+  const teams = live.teams.filter((t) => sendsFor(live, t)).map((t) => t.key);
+  r.start();
+  return {
+    // FR-004: nur mit Verbindung zum Dienst; ein gemerkter Stand von früher reicht zum Übernehmen nicht.
+    offers: (localIds) =>
+      r.get().relay === 'live' ? takeoverOffers(r.get().board, teams, localIds, r.serverNow(), deps.timeZone) : [],
+    takeover: (entry, ownTeam, players, newId) =>
+      takeoverGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
+    onChange: (cb) => r.onChange(cb),
+    stop: () => r.stop(),
+  };
 }

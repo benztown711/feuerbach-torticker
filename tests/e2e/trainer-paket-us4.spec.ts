@@ -84,7 +84,7 @@ test('016 US4-S6 gekoppelt: Live-Zeile statt Karte; "Link einfügen" unter "Live
   const b = await newDevice();
   await pasteLink(b, links.trainer);
   await b.goto('./');
-  await expect(b.getByTestId('start-live-line')).toBeVisible();
+  await expect(b.getByTestId('start-follow')).toBeVisible();
   await expect(b.getByTestId('start-trainer-card')).toHaveCount(0);
   await b.goto('./#/live-spieltag');
   await b.getByTestId('btn-paste-link').click();

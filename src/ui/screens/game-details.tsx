@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { canAddLateGoal } from '../../domain/corrections';
 import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
 import { shootoutState } from '../../domain/cup';
@@ -6,14 +7,19 @@ import { cardText, marksText, personLabel, subText } from '../../domain/events';
 import { goalWho, homeAway, score } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
-import { buildShareText } from '../../domain/share-text';
+import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { shortTeamName } from '../../domain/team-name';
-import type { ClockEvent, Game, Player } from '../../domain/types';
-import { getGame, getPlayers } from '../../platform/db';
+import type { ClockEvent, Game, Player, Settings } from '../../domain/types';
+import { getGame, getPlayers, getSettings, putGame } from '../../platform/db';
 import { trashGames } from '../../platform/trash';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
+import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
+import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { ReshareBar } from '../components/reshare-bar';
+import { TeamMark } from '../components/team-mark';
+import { useDarkTheme, useNow } from '../hooks';
 import { SharePreview } from '../components/share-preview';
 import { navigate } from '../router';
 
@@ -43,16 +49,34 @@ const eventText = (e: ClockEvent, game: Game): string => {
 
 const fmtDay = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-/** Spieldetails (FR-022, FR-038, Mockup 8): Zeitleiste mit Uhrzeiten, Teilen, Löschen. */
+/**
+ * Spieldetails (FR-022, FR-038, Mockup 8): Zeitleiste mit Uhrzeiten, Teilen, Löschen. Spec 017: Tore lassen sich
+ * hier mit denselben Blättern wie im Spiel korrigieren, auch lange nach dem Schlusspfiff.
+ */
 export function GameDetailsScreen({ id }: { id: string }) {
   const [game, setGame] = useState<Game | null | undefined>(undefined);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [askDelete, setAskDelete] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
   const [marksMsg, setMarksMsg] = useState('');
+  /** Spec 017 R-C1: offenes Korrektur-Blatt. */
+  const [edit, setEdit] = useState<EditStep | null>(null);
+  /** Spec 017 FR-C10: Blatt "Trikots". */
+  const [kitsOpen, setKitsOpen] = useState(false);
+  /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
+  const [reshareAt, setReshareAt] = useState(0);
+  const dark = useDarkTheme();
+  // Gespielte Minuten für "Tor nachtragen" und "Minute ändern": bei laufendem Spiel jede Sekunde neu (US1-S11).
+  const now = useNow(game?.status === 'finished' ? 60_000 : 1_000);
+  const gameRef = useRef<Game | null>(null);
   useEffect(() => {
-    void getGame(id).then((g) => setGame(g ?? null));
+    void getGame(id).then((g) => {
+      gameRef.current = g ?? null;
+      setGame(g ?? null);
+    });
     void getPlayers().then(setPlayers);
+    void getSettings().then(setSettings);
   }, [id]);
   if (game === undefined) return <main class="page" aria-busy="true" />;
   if (game === null) {
@@ -63,8 +87,21 @@ export function GameDetailsScreen({ id }: { id: string }) {
     );
   }
 
+  /** Spec 017 FR-C05: jede Korrektur sofort speichern (der Live-Sender meldet sie wie jede Änderung). */
+  const update = (g: Game): void => {
+    const before = gameRef.current;
+    gameRef.current = g;
+    setGame(g);
+    void putGame(g);
+    if (before && needsReshare(before, g, players)) setReshareAt(Date.now());
+  };
+  const cur = (): Game => gameRef.current ?? game;
+
   const ha = homeAway(game.venue, score(game));
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
+  const [homeSide, awaySide] = game.venue === 'home' ? (['own', 'opp'] as const) : (['opp', 'own'] as const);
+  const [homeColor, awayColor] =
+    game.venue === 'home' ? [game.ownColor, game.oppColor] : [game.oppColor, game.ownColor];
   const finished = game.status === 'finished';
   const half = game.schema.sections > 1 && game.halfTimeScore ? homeAway(game.venue, game.halfTimeScore) : null;
   const fullTime = [...game.clockEvents].reverse().find((e) => e.type === 'fullTime');
@@ -103,8 +140,11 @@ export function GameDetailsScreen({ id }: { id: string }) {
     );
   };
 
+  /** FR-011; Spec 017 FR-C20, FR-C22: teilt den aktuellen Text und merkt, dass geteilt wurde. */
   const doShare = async (): Promise<void> => {
-    const r = await shareText(text);
+    setReshareAt(0);
+    const r = await shareText(buildShareText(cur(), players));
+    if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
 
@@ -123,11 +163,23 @@ export function GameDetailsScreen({ id }: { id: string }) {
         <p class="details__meta">{meta}</p>
         <div class="details__line">
           <p class="details__match">
-            {home} : {away}
+            {/* Spec 017 FR-C10: Trikotfarben beider Mannschaften. */}
+            <TeamMark colorId={homeColor} testId={`details-mark-${homeSide}`} /> {home} : {away}{' '}
+            <TeamMark colorId={awayColor} testId={`details-mark-${awaySide}`} />
           </p>
           <p class="details__score">{`${ha.home}:${ha.away}`}</p>
         </div>
-        {summary && <p class="details__meta">{summary}</p>}
+        <div class="details__foot">
+          {summary && <p class="details__meta">{summary}</p>}
+          <button
+            type="button"
+            class="link-btn details__kits"
+            data-testid="details-kits"
+            onClick={() => setKitsOpen(true)}
+          >
+            Trikots ändern
+          </button>
+        </div>
       </section>
 
       <section class="card card--list" aria-labelledby="timeline-title" data-testid="card-timeline">
@@ -178,20 +230,40 @@ export function GameDetailsScreen({ id }: { id: string }) {
                 <span class="details__time">{formatTime(item.at)}</span>
               </li>
             ) : (
-              <li
-                key={item.goal.id}
-                class={item.removed ? 'details__item details__item--removed' : 'details__item'}
-                data-testid={`goal-${item.goal.id}`}
-              >
-                <span class="details__minute">{item.label}</span>
-                <span class="details__score-cell">{item.score}</span>
-                <span class="details__what">{goalWho(game, item.goal, players)}</span>
-                <span class="details__time">{formatTime(item.at)}</span>
-                {item.removed && <span class="goal-row__tag">entfernt</span>}
+              <li key={item.goal.id} data-testid={`goal-${item.goal.id}`}>
+                {/* Spec 017 FR-C01: Tipp öffnet das Tor-Blatt wie im Spiel. */}
+                <button
+                  type="button"
+                  class={
+                    item.removed
+                      ? 'details__item details__item--goal details__item--removed'
+                      : 'details__item details__item--goal'
+                  }
+                  onClick={() => setEdit({ kind: 'goal', goalId: item.goal.id })}
+                >
+                  <span class="details__minute">{item.label}</span>
+                  <span class="details__score-cell">{item.score}</span>
+                  <span class="details__what">{goalWho(game, item.goal, players)}</span>
+                  <span class="details__time">{formatTime(item.at)}</span>
+                  {item.removed && <span class="goal-row__tag">entfernt</span>}
+                  <svg class="details__chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </li>
             ),
           )}
         </ol>
+        {canAddLateGoal(game, now) && (
+          <button
+            type="button"
+            class="btn btn--quiet details__add"
+            data-testid="details-add-goal"
+            onClick={() => setEdit(addGoalStep(cur(), Date.now()))}
+          >
+            Tor nachtragen
+          </button>
+        )}
       </section>
 
       {game.shootout && game.shootout.shots.length > 0 && (
@@ -272,6 +344,36 @@ export function GameDetailsScreen({ id }: { id: string }) {
           {shareMsg}
         </p>
       </section>
+
+      <ReshareBar
+        at={reshareAt}
+        extraClass="details__undo"
+        onShare={() => void doShare()}
+        onHide={() => setReshareAt(0)}
+      />
+
+      {kitsOpen && (
+        <KitsSheet
+          game={game}
+          dark={dark}
+          onSave={(own, opp) => {
+            applyKits(cur(), own, opp, update);
+            setKitsOpen(false);
+          }}
+          onClose={() => setKitsOpen(false)}
+        />
+      )}
+
+      <GoalEditor
+        game={game}
+        players={players}
+        settings={settings}
+        step={edit}
+        onStep={setEdit}
+        cur={cur}
+        update={update}
+        now={now}
+      />
 
       {askDelete && (
         <Confirm

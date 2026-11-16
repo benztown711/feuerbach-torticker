@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGame, endSection, kickoff, pauseClock } from '../../src/domain/game';
 import { addGoal, removeGoal, setAssist, setScorer } from '../../src/domain/goals';
-import { buildShareText, oppSymbol, shareBlocks } from '../../src/domain/share-text';
+import { buildShareText, markShared, needsReshare, oppSymbol, shareBlocks } from '../../src/domain/share-text';
 import type { Game, NewGameInput, Player, Side } from '../../src/domain/types';
 
 /** Samstag, 07.11.2026, 10:30 Uhr in Stuttgart. */
@@ -328,5 +328,37 @@ describe('009 FR-V07 Vorlage im Teilen-Text', () => {
     expect(table(buildShareText(g, players, TZ, T0 + min(9)))[0]).toBe("🔴 3'  1:0  Max (Vorlage: Ben)");
     const removed = endSection(removeGoal(g, g.goals[0]!.id, T0 + min(9)), T0 + min(12));
     expect(buildShareText(removed, players, TZ)).not.toContain('Vorlage');
+  });
+});
+
+describe('017 FR-C20 FR-C21 Erinnerung an neues Teilen', () => {
+  const finished = (): Game => {
+    let g = kickoff(createGame(base, { id: 'g-share', now: T0 }), T0);
+    g = goal(g, 'own', T0 + min(2), 'p-max');
+    g = goal(g, 'opp', T0 + min(4));
+    g = endSection(g, T0 + min(26));
+    g = kickoff(g, T0 + min(36));
+    return endSection(g, T0 + min(62));
+  };
+
+  it('markShared merkt den Zeitpunkt des Teilens', () => {
+    expect(markShared(finished(), T0 + min(70)).sharedAt).toBe(T0 + min(70));
+  });
+
+  it('nach dem Teilen: Leiste, wenn sich der Text ändert', () => {
+    const before = markShared(finished(), T0 + min(70));
+    const after = setScorer(before, before.goals[0]!.id, { kind: 'player', playerId: 'p-ben' });
+    expect(needsReshare(before, after, players)).toBe(true);
+    expect(needsReshare(before, { ...before, oppColor: 'blau' }, players)).toBe(true);
+  });
+
+  it('keine Leiste ohne Textänderung, vor dem Teilen und bei laufendem Spiel', () => {
+    const shared = markShared(finished(), T0 + min(70));
+    expect(needsReshare(shared, { ...shared, ownColor: 'gelb' }, players)).toBe(false);
+    const unshared = finished();
+    const changed = setScorer(unshared, unshared.goals[0]!.id, null);
+    expect(needsReshare(unshared, changed, players)).toBe(false);
+    const running = markShared(kickoff(createGame(base, { id: 'g-run', now: T0 }), T0), T0 + min(5));
+    expect(needsReshare(running, goal(running, 'own', T0 + min(6)), players)).toBe(false);
   });
 });

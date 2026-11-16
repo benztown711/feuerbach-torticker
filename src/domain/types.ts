@@ -154,6 +154,8 @@ export interface Game {
   liveTakeover?: number;
   /** Spec 006 FR-L24: ein anderes Handy hat das Spiel übernommen; dieses sendet nichts mehr dafür. */
   liveHandedOver?: boolean;
+  /** Spec 017 FR-C20: "Ergebnis teilen" zuletzt erfolgreich (ms); fehlt = nie geteilt. Geht nicht an den Dienst. */
+  sharedAt?: number;
 }
 
 export interface Player {

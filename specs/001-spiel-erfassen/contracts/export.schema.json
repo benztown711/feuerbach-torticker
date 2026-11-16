@@ -604,6 +604,10 @@
             "type": "boolean",
             "description": "Spec 006 FR-L24: von einem anderen Handy übernommen, sendet nicht mehr (optional)"
           },
+          "sharedAt": {
+            "type": "integer",
+            "description": "Spec 017 FR-C20: Ergebnis zuletzt geteilt (ms seit 1970, optional)"
+          },
           "shootout": {
             "description": "Spec 003 FR-P03: Elfmeterschießen (optional)",
             "type": "object",

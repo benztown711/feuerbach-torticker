@@ -172,7 +172,7 @@ test('006 US1-S6 Trainer-Link im Browser: Link kopieren, hier koppeln', async ({
   await b.getByTestId('btn-couple-here').click();
   await b.getByTestId('couple-yes').click();
   // Spec 012 FR-S03: nach dem Koppeln der Startbildschirm; "Live-Spieltag" zeigt die Übersicht.
-  await expect(b.getByTestId('start-live-line')).toBeVisible();
+  await expect(b.getByTestId('start-follow')).toBeVisible();
   await b.goto('./#/live-spieltag');
   await expect(b.getByTestId('live-overview')).toBeVisible();
 
@@ -207,10 +207,10 @@ test('006 US1-S8 US1-S9 kurzer Trainer-Link: in WhatsApp antippbar, Symbol auf d
   await home.goto(links.trainer);
   await home.getByTestId('btn-couple-here').click();
   await home.getByTestId('couple-yes').click();
-  await expect(home.getByTestId('start-live-line')).toBeVisible();
+  await expect(home.getByTestId('start-follow')).toBeVisible();
   // Jeder weitere Start über das Symbol führt direkt zum Startbildschirm.
   await home.goto(links.trainer);
-  await expect(home.getByTestId('start-live-line')).toBeVisible();
+  await expect(home.getByTestId('start-follow')).toBeVisible();
 
   // US1-S8: Kommt nur der Anfang an ("#/trainer/"), erklärt die Seite das statt des Startbildschirms.
   await b.goto('./#/trainer/');

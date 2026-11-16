@@ -38,7 +38,7 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 ## Phase 5: Abschluss
 
 - [x] T020 Hilfe (spec.md "Hilfe"): neu "Wie bekommen Trainerkollegen die Kader?", geändert `trainer-link`, `kader-liste`, `live-anlegen`, Datenschutz für Trainer; Hilfe-Tests
-- [ ] T021 `npm run check`, betroffene E2E lokal, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti; Roadmap B1, B2; Status in `spec.md`
+- [x] T021 `npm run check`, betroffene E2E lokal, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti; Roadmap B1, B2; Status in `spec.md`
 - [ ] T022 Gerätetest P-1 bis P-5 aus `quickstart.md` mit Atti
 
 ## Abdeckung

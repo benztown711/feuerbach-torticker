@@ -60,3 +60,13 @@ export function defaultOppColor(settings: Settings, opponent: string, ownColor: 
 export function rememberColors(settings: Settings, game: { oppColor: string; opponent: string }): Settings {
   return { ...settings, opponentColors: { ...settings.opponentColors, [normalizeName(game.opponent)]: game.oppColor } };
 }
+
+/**
+ * Spec 017 FR-C12: Trikots eines Spiels ändern (nur Palettenfarben). Ungültige Farbe oder keine Änderung: dasselbe
+ * Spiel (Aufrufer erkennen "nichts zu tun" an der Identität).
+ */
+export function setKits<G extends { ownColor: string; oppColor: string }>(game: G, own: string, opp: string): G {
+  if (!isPaletteColor(own) || !isPaletteColor(opp)) return game;
+  if (own === game.ownColor && opp === game.oppColor) return game;
+  return { ...game, ownColor: own, oppColor: opp };
+}

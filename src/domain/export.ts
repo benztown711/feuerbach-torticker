@@ -181,6 +181,7 @@ const isGame = (v: unknown): boolean =>
   (v.livePrivate === undefined || typeof v.livePrivate === 'boolean') &&
   (v.liveTakeover === undefined || isInt(v.liveTakeover, 0, 100)) &&
   (v.liveHandedOver === undefined || typeof v.liveHandedOver === 'boolean') &&
+  (v.sharedAt === undefined || isTime(v.sharedAt)) &&
   (v.shootout === undefined || isShootout(v.shootout)) &&
   isStr(v.ownColor, 1, 40) &&
   isStr(v.oppColor, 1, 40) &&

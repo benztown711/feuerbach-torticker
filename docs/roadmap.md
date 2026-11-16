@@ -13,7 +13,8 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 - **PR #70** (Spec 015 US6, "Ich tickere": Spiel vormerken, "Heute tickerst du" auf dem Startbildschirm; dazu Blätter scrollen auf kleinen iPhones) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026).
 - **PR #72** (Spec 015 US5, Kader "E1/E2" und "E3": mehrere Kader, Auswahl je Mannschaft, Aushilfen unter "Weitere Kinder", Sicherung mit Kadern und Spielplan) ist übernommen (Review C von Atti, Squash-Merge 07.11.2026). Spec 015 ist damit vollständig.
 - **PR #73** (Spec 007 PR B: App spricht nur noch mit dem eigenen Dienst bei Cloudflare, US1 und US2; ntfy.sh entfällt) ist übernommen (Squash-Merge 07.11.2026, erster Praxistest beim Leistungsligaspiel am 08.11.2026). Hinweis in die Gruppen: "Torticker einmal öffnen und aktualisieren". Als Nächstes: Spec 007 PR C (US3 "Letzte Spiele").
-- **PR #74** (Spec 007 PR C, US3: "Letzte Spiele" ganz unten auf dem Dashboard, Filter Alle/E1/E2/E3, je Mannschaft bis zu 10 frühere Spiele) ist übernommen (Squash-Merge 07.11.2026). Trainer-Paket B1/B2 (Spec 016) ist umgesetzt, PR #75 im Review C.
+- **PR #74** (Spec 007 PR C, US3: "Letzte Spiele" ganz unten auf dem Dashboard, Filter Alle/E1/E2/E3, je Mannschaft bis zu 10 frühere Spiele) ist übernommen (Squash-Merge 07.11.2026). Trainer-Paket B1/B2 (Spec 016) ist umgesetzt.
+- **PR #75** (Spec 016 Trainer-Paket: geteilte Kader über den eigenen Dienst für alle Trainer-Handys, "Link einfügen" erkennt auch Kader-Listen) ist übernommen (Squash-Merge 07.11.2026). Offen: Gerätetest P-1 bis P-5.
 
 ## Kurzfassung des Reviews
 
@@ -51,8 +52,8 @@ Legende: Aufwand 1 bis 10 (1 = unter einer Stunde, 10 = mehrere Tage mit neuer I
 
 | Nr | Vorschlag | Aufwand | Modell | Dringlichkeit | Empfehlung | Status |
 |---|---|---|---|---|---|---|
-| B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | umgesetzt in Spec 016 (PR #75): Kader gehen über den eigenen Dienst an alle Trainer-Handys, Review C offen |
-| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | umgesetzt in Spec 016 (PR #75): „Link einfügen“ erkennt Trainer-, Zuschauer-Link und Kader-Liste |
+| B1 | Trainer-Paket: ein Link mit Kopplung, Mannschaften, Trikots und Kadern; im Torticker genügt „Link einfügen“ | 5 | Opus (Spec, Link-Format, Sicherheit), Sonnet (Umsetzung) | hoch | Wichtigste Verbesserung: aus drei Einfüge-Schritten wird einer | erledigt (#75, 07.11.2026): Kader gehen über den eigenen Dienst an alle Trainer-Handys |
+| B2 | Knopf „Link einfügen“ auf dem Startbildschirm, der jeden Torticker-Link erkennt (Paket, Trainer, Zuschauer, Kader) und die Zwischenablage anbietet | 3 | Sonnet | hoch | Mit B1 in einem PR | erledigt (#75, 07.11.2026): „Link einfügen“ erkennt Trainer-, Zuschauer-Link und Kader-Liste |
 | B3 | Kader je Mannschaft, Aufgebot aus der Mannschaft vorbelegt | 4 | Sonnet | mittel | Löst das E1/E2-Gemisch in der Torschützen-Auswahl | erledigt: Spec 015 US5 (#72, 07.11.2026) |
 | B4 | Erststart-Assistent: Mannschaft wählen oder Link einfügen, zwei Schritte | 3 | Sonnet | mittel | Erst nach B1 und B2 | offen |
 
@@ -108,5 +109,7 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 | N6 | Spielplan zentral anlegen (aus fußball.de, als Liste einfügen), Trainer wählen ihr Spiel unter "Neues Spiel" und ändern alles; Eltern sehen das nächste Spiel mit Anstoß; Kader "E1/E2" und "E3" (deckt C1 und B3 ab) | 015 | US1 und US2 übernommen (#63, 07.11.2026); US4 Liste einfügen und teilen übernommen (#66, 07.11.2026); US3 und US7 Dashboard übernommen (#68, 07.11.2026); US6 "Ich tickere" übernommen (#70, 07.11.2026); US5 Kader übernommen (#72, 07.11.2026); Spec 015 vollständig |
 
 | N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | erledigt: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit dem eigenen Dienst (#73) |
+| N8 | Spiel korrigieren auch nach dem Schlusspfiff: Tore, Torschützen, Vorlagen und Minuten aus den Spieldetails; Trikotfarben im Spiel und danach ändern; Erinnerung "Korrigiert. Ergebnis neu teilen?" | 017 | US1 bis US3 umgesetzt (#83), Review C offen |
+| N9 | Startbildschirm für Trainer: neues Spiel, fortsetzen, übernehmen (wenn schon jemand tickert) oder einfach nur zusehen; heute liegt das Dashboard hinter der Verwaltung | 018 | Review A und B erledigt (16.11.2026), umgesetzt in PR #85, Review C offen |
 
 (weitere hier anfügen)

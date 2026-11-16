@@ -670,6 +670,29 @@ export function otherGames(
   );
 }
 
+/** Spec 018 FR-004: laufendes Spiel eines anderen Handys, das dieses Handy übernehmen kann. */
+export interface TakeoverOffer {
+  entry: BoardEntry;
+  card: BoardCard;
+}
+
+/**
+ * Spec 018 FR-004: heute angepfiffene, nicht beendete Spiele der Mannschaften `teams` (für die dieses Handy senden
+ * darf), die nicht dieses Handy sendet (`localIds`), in der Reihenfolge des Dashboards. Anders als
+ * `runningElsewhere` (FR-L22) ohne Grenze für das Alter der letzten Meldung.
+ */
+export function takeoverOffers(
+  board: Board,
+  teams: string[],
+  localIds: string[],
+  serverNow: number,
+  timeZone?: string,
+): TakeoverOffer[] {
+  return boardView(board, serverNow, timeZone)
+    .cards.filter((c) => c.group === 'running' && teams.includes(c.key) && !localIds.includes(c.gameId))
+    .map((card) => ({ card, entry: board.games.find((e) => e.snap.gameId === card.gameId) as BoardEntry }));
+}
+
 /* ---------- Abschnitt "Spielplan" (Spec 015 US7) ---------- */
 
 export interface PlanRow {
