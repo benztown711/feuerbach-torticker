@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-16
 
-**Status**: Freigegeben. Mockup vorab freigegeben (16.11.2026, "Okay" auf Variante "Empfehlung" einschließlich Wegfall des Griffs). Review A erledigt (16.11.2026, "1A 2A 3A 4A"). Mockup: https://claude.ai/artifact/98UF1ac9XQguthKaAr1uPu
+**Status**: Freigegeben. Mockup vorab freigegeben (16.11.2026, "Okay" auf Variante "Empfehlung" einschließlich Wegfall des Griffs). Review A erledigt (16.11.2026, "1A 2A 3A 4A"). US1 bis US3 umgesetzt (PR #86), Review C offen. Mockup: https://claude.ai/artifact/98UF1ac9XQguthKaAr1uPu
 
 **Input**: Design-Check (Impeccable) des Spielbildschirms vom 07.11.2026 mit Urteil "nachbessern" (UX 31/40, Technik 16/20) und Atti (16.11.2026): "Okay" auf die Empfehlung: Anzeigetafel-Zeile, Rückgängig als eigenes Band, Aufklappen der Torliste entfällt, Bedienelemente nach Constitution I.
 
