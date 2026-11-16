@@ -15,7 +15,7 @@ Verbindlich sind außerdem `.specify/memory/constitution.md` (Grundsätze) und `
 | 5 **Review B: Mockup** | Atti | Feedback oder Freigabe | Freigabe |
 | 6 Planen | Agent | `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze` (keine kritischen Befunde offen) | plan.md, tasks.md |
 | 7 Umsetzen | Agent | Test-first je Aufgabe, kleine Commits (Conventional Commits), ein PR pro User Story bzw. Phase; **Hilfe-Einträge im selben PR** (Constitution IX) | Draft-PR |
-| 8 Selbstprüfung | Agent | Lokal schnell prüfen (siehe "Lokal testen"), volle Suite in der CI grün, `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti senden | grüner PR |
+| 8 Selbstprüfung | Agent | Lokal schnell prüfen (siehe "Lokal testen"), volle Suite in der CI grün, `/code-review`, `/security-review`, Design-Check bei sichtbaren Änderungen (siehe "Design-Check"), Screenshots iPhone hell/dunkel an Atti senden | grüner PR |
 | 9 **Review C: Ergebnis** | Atti | Screenshots/Live-Test prüfen, PR mit "Squash and merge" übernehmen | Merge |
 | 10 Ausliefern | Automatisch | Deploy auf GitHub Pages, release-please erzeugt Version + Changelog | Live |
 
@@ -47,6 +47,17 @@ Lokal nur prüfen, was die Änderung betrifft; die volle E2E-Suite in allen Prof
 4. Die volle Suite lokal (`npm run e2e`, ca. 4 min) nur bei übergreifenden Änderungen (Navigation, Speicher, Service Worker, gemeinsame Komponenten)
 
 Im Cloud-Container `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium` setzen; dann läuft automatisch nur das Profil `android`. Der visuelle Vergleich (`visual.spec.ts`) ist nur im Playwright-Image der CI aussagekräftig, lokal weicht die Schriftdarstellung ab.
+
+## Design-Check (Selbstprüfung, Schritt 8)
+
+Pflicht bei jeder Änderung mit sichtbarer Wirkung in der App; entfällt bei reiner Logik, Tests, Texten ohne sichtbare Wirkung und Abhängigkeits-Updates.
+
+1. Skill `design-check` aufrufen (Attis globaler Skill, verpackt Impeccable; in Cloud-Sitzungen `anthropic-skills:design-check`). Er prüft im Hintergrund per Subagent und liefert Befunde P0 bis P3 mit Begründung und einer Empfehlung.
+2. Ziel sind die geänderten Bildschirme, Grundlage die Screenshots iPhone hell/dunkel (dieselben wie für Atti) bzw. die CI-Referenzbilder in `tests/e2e/visual.spec.ts-snapshots/`.
+3. Modus "Frei": Empfehlungen dürfen über das Vereinsdesign hinausgehen, der Bericht markiert sie mit ⚠. Umgesetzt wird nur, was `design/README.md` und die Regeln unten einhält. Schreibt Atti "halte dich an das Vereinsdesign" o. Ä., gilt `design/README.md` auch für die Empfehlungen.
+4. P0/P1-Befunde, die innerhalb von Spec und Vereinsdesign behebbar sind, behebt der Agent vor "ready for review" selbst. Ändert eine Behebung Verhalten oder Wortlaut, läuft sie wie jede Verhaltensänderung über `spec.md` und Hilfe.
+5. Den Rest (P2/P3, ⚠-Empfehlungen, Richtungswechsel) bekommt Atti als Kurzfassung mit "Meine Empfehlung" zusammen mit den Screenshots, außerdem steht er im PR-Abschnitt "Design-Check". Atti entscheidet in Review C, ob etwas davon umgesetzt wird.
+6. Ist der Skill nicht verfügbar, im PR "Design-Check: nicht gelaufen" mit Grund vermerken.
 
 ## Regeln für den Agenten
 
