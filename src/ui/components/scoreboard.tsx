@@ -24,7 +24,7 @@ export function Scoreboard({ homeName, awayName, homeColor, awayColor, score, on
           {homeName}
         </span>
       </div>
-      <div class="score" data-testid="score">
+      <div class="scoreboard__score t-ergebnis" data-testid="score">
         {score}
       </div>
       <div class="team team--away scoreboard__away">

@@ -491,8 +491,9 @@ body:has(.page:not(.dash, .lead-link)) {
   padding: var(--space-2) var(--space-4) 0;
 }
 
-.teams__gap {
-  width: 0;
+.teams__swap {
+  width: 40px;
+  height: 40px;
 }
 
 /* Spec 019 US2 (FR-A10 bis FR-A13): Anzeigetafel; vor dem Anpfiff der Doppelpfeil unter dem Spielstand. */
@@ -561,15 +562,20 @@ body:has(.page:not(.dash, .lead-link)) {
   border-color: var(--color-line);
 }
 
-/* Spielstand im Stil `ergebnis` aus design/tokens.json (Spec 019 FR-A11, R-A5) */
 .score {
-  grid-area: score;
   flex-shrink: 0;
-  font-family: var(--font-display);
-  font-size: 64px;
+  font-family: var(--font-sans);
+  font-size: 48px;
   font-variant-numeric: tabular-nums lining-nums;
   font-weight: 700;
-  line-height: 64px;
+  line-height: 52px;
+  text-align: center;
+}
+
+/* Spec 019 FR-A11 (R-A5): Spielstand der Anzeigetafel im Stil `ergebnis` (Klasse `t-ergebnis` aus tokens.css). */
+.scoreboard__score {
+  grid-area: score;
+  font-variant-numeric: tabular-nums lining-nums;
   text-align: center;
   white-space: nowrap;
 
@@ -976,7 +982,6 @@ body:has(.page:not(.dash, .lead-link)) {
 .toast {
   position: absolute;
   right: var(--space-4);
-  bottom: calc(var(--goal-h) + var(--space-1));
   left: var(--space-4);
   z-index: 5;
   display: flex;
@@ -991,7 +996,6 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 .toast {
-  bottom: calc(var(--goal-h) + 56px);
   font-weight: 700;
 }
 
@@ -1011,12 +1015,11 @@ body:has(.page:not(.dash, .lead-link)) {
   min-height: calc(150px + var(--space-2) + var(--space-4));
 }
 
-/* Elfmeterschießen: keine Tor-Knöpfe, das Band steht unten im Spielbildschirm. */
+/* Elfmeterschießen: keine Tor-Knöpfe; das Band legt sich unter die Anzeigetafel, nie über "Treffer"/"Verschossen". */
 .band-dock {
-  position: absolute;
-  right: 0;
-  bottom: var(--space-4);
-  left: 0;
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
   height: 0;
 }
 
@@ -1081,6 +1084,21 @@ body:has(.page:not(.dash, .lead-link)) {
 
 .band__icon {
   stroke-width: 2.5;
+}
+
+/* Zwei Knöpfe (Lesezeichen): Text über die ganze Breite, Knöpfe teilen sich die zweite Zeile, damit das Band
+   auf dem SE nicht über die Torliste hinaus bis zur Ereignis-Zeile wächst. */
+.band--stack .band__body {
+  flex-basis: 100%;
+}
+
+.band--stack .band__btn {
+  flex: 1 1 0;
+}
+
+.band-dock .band {
+  top: var(--space-2);
+  bottom: auto;
 }
 
 .signal-flash {

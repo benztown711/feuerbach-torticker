@@ -39,6 +39,11 @@ async function expectAboveGoals(page: Page, band: Locator): Promise<void> {
   const controls = page.locator('.controls');
   const c = await box(controls);
   expect(b.y).toBeGreaterThanOrEqual(c.y + c.height - 1);
+  const events = page.getByTestId('event-row');
+  if (await events.isVisible()) {
+    const e = await box(events);
+    expect(b.y).toBeGreaterThanOrEqual(e.y + e.height - 1);
+  }
 }
 
 test.describe('019 US1 Rückgängig sicher treffen', () => {
@@ -75,9 +80,12 @@ test.describe('019 US1 Rückgängig sicher treffen', () => {
     await expect(page.locator('.band')).toHaveCount(1);
   });
 
-  test('019 US1-S4 Lesezeichen und Karte im selben Band, Knöpfe mindestens 64 hoch', async ({ page }) => {
+  test('019 US1-S4 Lesezeichen und Karte im selben Band, Knöpfe mindestens 64 hoch, auch auf dem SE mit Ereignis-Zeile', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
     await seedRoster(page, ['2 Ben', '3 Tom', '4 Leo'].join('\n'));
-    await enable(page, 'cards', 'marks');
+    await enable(page, 'cards', 'subs', 'marks');
     await startGame(page);
     await forward(page, 5 * MIN);
 
@@ -135,6 +143,23 @@ test.describe('019 US1 Rückgängig sicher treffen', () => {
     await expect(band).toHaveCSS('background-color', INK.dark);
     await expect(band.locator('.band__text')).toHaveCSS('color', SURFACE.dark);
     await expect(page.getByTestId('btn-undo')).toHaveCSS('background-color', SURFACE.dark);
+  });
+
+  test('019 US1 Randfall: Teilen-Hinweis ist kurz; danach erscheint "Schon gezählt" wieder', async ({ page }) => {
+    await startGame(page);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } });
+    });
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-share-interim').click();
+    await expect(page.getByTestId('share-result')).toContainText('kopiert');
+    await forward(page, 6 * SEC);
+    await expect(page.getByTestId('share-result')).toHaveCount(0);
+    await expect(page.locator('.band')).toHaveCount(0);
+    await page.getByTestId('btn-goal-own').click();
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('double-tap-hint')).toHaveText('Schon gezählt');
   });
 
   test('019 US1 Randfall: Band erscheint nach dem Schließen der Torschützen-Auswahl', async ({ page }) => {

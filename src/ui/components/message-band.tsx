@@ -33,7 +33,7 @@ function UndoIcon() {
 
 export function MessageBand({ testId, text, actions = [], hint = null }: Props) {
   return (
-    <div class="band" data-testid={testId} role="status">
+    <div class={actions.length > 1 ? 'band band--stack' : 'band'} data-testid={testId} role="status">
       <div class="band__body">
         {text && <span class="band__text">{text}</span>}
         {hint && (
