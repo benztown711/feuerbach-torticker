@@ -73,9 +73,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'start',
     title: 'Wo finde ich was?',
     answer:
-      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live-Spieltag und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück. Wo du gerade bist, zeigt die rote Marke über dem Eintrag.',
+      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, zum Übernehmen oder um die Spiele zu verfolgen, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live-Spieltag und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück. Wo du gerade bist, zeigt die rote Marke über dem Eintrag.',
     keywords: 'menü navigation leiste unten übersicht reiter wo bin ich',
-    sources: ['001 FR-037', '011 US3'],
+    sources: ['001 FR-037', '011 US3', '018 US1'],
     related: ['neues-spiel', 'historie', 'hilfe-suche'],
   },
   {
@@ -544,10 +544,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“. Danach steht unter „Neues Spiel“ „Live: …“, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“. Danach steht auf dem Startbildschirm „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
     keywords:
       'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
-    sources: ['006 US1', '012 US1', '016 US2', '016 US4'],
+    sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1'],
     open: { label: 'Live-Spieltag', path: '/live-spieltag' },
     related: ['live-anlegen', 'trainer-kader', 'live-senden'],
   },
@@ -593,14 +593,25 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-senden', 'eltern-dashboard'],
   },
   {
+    id: 'spiele-verfolgen',
+    topic: 'live',
+    title: 'Wie verfolge ich die Spiele, wenn ein anderer Trainer tickert?',
+    answer:
+      'Auf dem Startbildschirm „Spiele verfolgen“ antippen. Du siehst das Dashboard wie die Eltern: laufende Spiele mit Stand und Minute, die nächsten Spiele und „Letzte Spiele“. Mit „Spiel“ unten kommst du zurück. Links teilen, Mannschaften und Spielplan verwaltest du weiter unter „Mehr“ und „Live-Spieltag“.',
+    keywords:
+      'zusehen zuschauen verfolgen ergebnisse dashboard spielstand nicht tickern kollege trainer startbildschirm',
+    sources: ['018 US1'],
+    related: ['spiel-uebernehmen', 'andere-spiele', 'eltern-dashboard'],
+  },
+  {
     id: 'spiel-uebernehmen',
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
     answer:
-      'Legst du ein Spiel für eine Mannschaft an, die gerade ein anderes Handy überträgt, fragt die App nach. Mit „Spiel übernehmen“ bekommst du Gegner, Uhr und Tore auf dein Handy und sendest ab dann allein; das andere Handy zeigt, dass jetzt ein anderes Handy überträgt, und erfasst nur noch lokal. Mit „Nur hier erfassen (nicht live)“ zählst du nur für dich mit. Hat dein Handy den Live-Spieltag noch nicht geladen, wartet „Weiter zum Anpfiff“ kurz, höchstens 3 Sekunden.',
+      'Tickert ein anderes Handy gerade ein Spiel, steht auf dem Startbildschirm etwa „E2 übernehmen“ mit Stand und Minute, auch bei leerem Akku des anderen Handys. Antippen und „Spiel übernehmen“ bestätigen: Gegner, Uhr und Tore kommen mit, ab dann sendest nur du. Legst du unter „Neues Spiel“ ein Spiel derselben Mannschaft an, fragt die App ebenfalls nach; „Nur hier erfassen (nicht live)“ zählt nur für dich mit.',
     keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang',
-    sources: ['006 US6'],
-    related: ['live-senden', 'trainer-link'],
+    sources: ['006 US6', '018 US2'],
+    related: ['live-senden', 'trainer-link', 'spiele-verfolgen'],
   },
   {
     id: 'live-verwalten',

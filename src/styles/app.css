@@ -119,15 +119,15 @@
   color: var(--color-ink);
 }
 
-/* Spec 012 FR-S04: Zeile "Live: …" auf gekoppelten Handys. */
-.start__live {
+/* Spec 018: "E2 übernehmen" und "Spiele verfolgen" unter "Neues Spiel". */
+.start__opt {
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-ink);
   font: inherit;
@@ -135,12 +135,43 @@
   cursor: pointer;
 }
 
-.start__live-text {
-  flex: 1;
-  min-width: 0;
+.start__opt--take {
+  border-color: var(--color-rot-tief);
 }
 
-.start__live-chevron {
+.start__opt-icon {
+  flex-shrink: 0;
+  color: var(--color-rot-text);
+}
+
+.start__opt-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.start__opt-text strong {
+  color: var(--color-ink);
+  font-size: 17px;
+}
+
+.start__opt-warn {
+  color: var(--color-rot-text);
+  font-weight: 700;
+}
+
+.start__opt-dot {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: 1px;
+  color: var(--color-rot-text);
+}
+
+.start__opt-chevron {
   flex-shrink: 0;
   color: var(--color-ink-muted);
 }
@@ -2721,12 +2752,6 @@ body:has(.page:not(.dash, .lead-link)) {
   border-radius: 50%;
   background: currentColor;
   animation: live-pulse 1.6s ease-in-out infinite;
-}
-
-/* Spec 012 FR-S04: Punkt in der Zeile "Live: …" auf dem Startbildschirm. */
-.start__live-dot {
-  flex-shrink: 0;
-  color: var(--color-rot-text);
 }
 
 @keyframes live-pulse {
