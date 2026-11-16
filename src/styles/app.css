@@ -561,11 +561,6 @@ body:has(.page:not(.dash, .lead-link)) {
   border-color: var(--color-line);
 }
 
-/* FR-040 auf dem SE: lange Namen wie "Feuerbach U15-Juniorinnen" passen neben den Spielstand in zwei Zeilen. */
-.scoreboard .team {
-  gap: 2px;
-}
-
 /* Spielstand im Stil `ergebnis` aus design/tokens.json (Spec 019 FR-A11, R-A5) */
 .score {
   grid-area: score;
@@ -577,7 +572,9 @@ body:has(.page:not(.dash, .lead-link)) {
   line-height: 64px;
   text-align: center;
   white-space: nowrap;
-  word-spacing: -0.12em;
+
+  /* FR-040 auf dem SE: engere Leerzeichen, damit lange Namen wie "Feuerbach U15-Juniorinnen" in zwei Zeilen passen. */
+  word-spacing: -0.16em;
 }
 
 .clock {
