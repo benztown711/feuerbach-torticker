@@ -29,12 +29,27 @@ async function viewerToOpen(): Promise<string | null> {
 }
 
 type StartCoupleModule = typeof import('../components/start-couple');
+type StartOffersModule = typeof import('../components/start-offers');
 
-/** Spec 012 FR-S01, FR-S04: Hinweis zum Koppeln bzw. Zeile "Live: …" unter "Neues Spiel". */
+/**
+ * Spec 012 FR-S01: Hinweis zum Koppeln. Spec 018: "E2 übernehmen" (US2) und "Spiele verfolgen" (US1) unter
+ * "Neues Spiel"; ersetzt die Zeile "Live: …" (Spec 012 FR-S04).
+ */
 function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: Settings) => void }) {
   const [flow, setFlow] = useState<{ text: string | null; mod: StartCoupleModule } | null>(null);
   const [msg, setMsg] = useState('');
+  const [offers, setOffers] = useState<StartOffersModule | null>(null);
   const live = settings.live;
+  const coupled = !!live && !isRetired(live);
+  // Spec 018 US2: "E2 übernehmen" nachgeladen, nur auf gekoppelten Handys (Hauptbundle, R-L7).
+  useEffect(() => {
+    if (!coupled) return;
+    let alive = true;
+    void import('../components/start-offers').then((m) => alive && setOffers(m)).catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [coupled]);
 
   const onPaste = (): void => {
     setMsg('');
@@ -44,24 +59,38 @@ function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: S
       .catch(() => setMsg('Das hat nicht geklappt. Bitte erneut versuchen.'));
   };
 
+  const active = !!live && !isRetired(live);
+  // Spec 018 FR-002: gekoppelt (nicht neu ausgestellt) oder ein Zuschauer-Link ist bekannt.
+  const follow = active ? live : !live ? settings.liveView : undefined;
+
   return (
     <>
-      {live && !isRetired(live) ? (
+      {active && offers && <offers.StartOffers live={live} />}
+      {follow && (
         <button
           type="button"
-          class="start__live"
-          data-testid="start-live-line"
-          onClick={() => navigate('/live-spieltag')}
+          class="start__opt"
+          data-testid="start-follow"
+          onClick={() => navigate('/live-spieltag/dashboard')}
         >
-          <span class="live-pill__dot start__live-dot" aria-hidden="true" />
-          <span class="start__live-text">
-            Live: {titleOf(live)} · {live.teams.map((t) => teamShortLabel(t.name)).join(', ')}
+          <svg class="icon start__opt-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span class="start__opt-text">
+            <strong>Spiele verfolgen</strong>
+            <span data-testid="start-follow-line">
+              {active
+                ? `${titleOf(live)} · ${live.teams.map((t) => teamShortLabel(t.name)).join(', ')}`
+                : settings.liveView?.title}
+            </span>
           </span>
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon start__live-chevron">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon start__opt-chevron">
             <path d="M9 5l7 7-7 7" />
           </svg>
         </button>
-      ) : (
+      )}
+      {!active && (
         <section class="card start__trainer" data-testid="start-trainer-card">
           <p class="start__trainer-text">
             {live ? (

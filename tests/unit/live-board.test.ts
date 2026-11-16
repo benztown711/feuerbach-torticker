@@ -18,6 +18,7 @@ import {
   sentLabel,
   parseBoard,
   runningElsewhere,
+  takeoverOffers,
   type Board,
 } from '../../src/domain/live-board';
 import type { LiveGameSnapshot, LiveGoal, LiveSnapshot } from '../../src/domain/live-snapshot';
@@ -1108,5 +1109,35 @@ describe('007 US3 FR-N13 Letzte Spiele (T028)', () => {
     expect(view(gone, T0).recent[0]?.rows.map((r) => r.date)).toEqual(['06.11.', '01.11.']);
     const notLive = put(gone, { v: 1, kind: 'game', state: 'off', gameId: off.gameId, team: 'E1', sentAt: T0, h: 0 });
     expect(view(notLive, T0).recent[0]?.rows.map((r) => r.date)).toEqual(['06.11.']);
+  });
+});
+
+describe('018 US2 Spiel übernehmen vom Startbildschirm', () => {
+  const b = [
+    snap({ gameId: 'eigen', clock: kicked(), sentAt: T0 + min(5) }),
+    snap({ team: 'E3', gameId: 'e3', clock: kicked(), sentAt: T0 + min(2), venue: 'away', goals: [goal('opp', 1)] }),
+    snap({ team: 'E2', gameId: 'e2', clock: kicked(), sentAt: T0 + min(3), goals: [goal('own', 2)] }),
+    snap({ team: 'D1', gameId: 'd1', clock: kicked(), sentAt: T0 + min(3) }),
+  ].reduce((acc, s) => put(acc, s), applyConfig(emptyBoard(), config(['E1', 'E2', 'E3', 'D1'])));
+
+  it('018 US2-S1 US2-S4 US2-S5 laufende Spiele anderer Handys in der Reihenfolge des Dashboards, ohne eigene', () => {
+    const offers = takeoverOffers(b, ['E1', 'E2', 'E3'], ['eigen'], T0 + min(12), TZ);
+    expect(offers.map((o) => [o.card.key, o.entry.snap.gameId, o.card.score, o.card.phase])).toEqual([
+      ['E2', 'e2', '1:0', "13'"],
+      ['E3', 'e3', '1:0', "13'"],
+    ]);
+  });
+
+  it('018 US2-S7 auch ohne Meldung seit 35 Minuten, mit Hinweis', () => {
+    const [e2] = takeoverOffers(b, ['E2'], [], T0 + min(38), TZ);
+    expect(e2?.card.staleMinutes).toBe(35);
+  });
+
+  it('018 US2-S6 nicht für angelegte, beendete oder gestrige Spiele', () => {
+    const created = put(emptyBoard(), snap({ team: 'E2', gameId: 'neu' }));
+    expect(takeoverOffers(created, ['E2'], [], T0 + min(1), TZ)).toEqual([]);
+    const ended = put(emptyBoard(), snap({ team: 'E2', gameId: 'aus', clock: fullTime, sentAt: T0 + min(56) }));
+    expect(takeoverOffers(ended, ['E2'], [], T0 + min(57), TZ)).toEqual([]);
+    expect(takeoverOffers(b, ['E2'], [], T0 + DAY, TZ)).toEqual([]);
   });
 });

@@ -110,5 +110,6 @@ Stand 07.11.2026 (Atti): Apple-App vorerst nein, Push zuerst über Web-Push (C4)
 
 | N7 | Erster Spieltag: am Vorabend angelegte Spiele fehlten auf manchen Dashboards (Home-Bildschirm-Symbol, neu geöffnete Seiten), weil ntfy.sh nur rund 12 Stunden vorhält | 006 US2-S10, US3-S12, R-L21 | erledigt: Trainer-Handy sendet angelegte Spiele beim Öffnen erneut, Dashboard zählt am Vortag angelegte Spiele zu heute; dauerhaft mit dem eigenen Dienst (#73) |
 | N8 | Spiel korrigieren auch nach dem Schlusspfiff: Tore, Torschützen, Vorlagen und Minuten aus den Spieldetails; Trikotfarben im Spiel und danach ändern; Erinnerung "Korrigiert. Ergebnis neu teilen?" | 017 | US1 bis US3 umgesetzt (#83), Review C offen |
+| N9 | Startbildschirm für Trainer: neues Spiel, fortsetzen, übernehmen (wenn schon jemand tickert) oder einfach nur zusehen; heute liegt das Dashboard hinter der Verwaltung | 018 | Review A und B erledigt (16.11.2026), umgesetzt in PR #85, Review C offen |
 
 (weitere hier anfügen)

@@ -16,7 +16,7 @@ const setClipboard = (p: Page, text: string | null): Promise<void> =>
 
 const liveOf = async (p: Page) => (await readStored<{ live: { topic: string } | null }>(p, 'settings', 'app'))?.live;
 
-test('012 US1-S1 US1-S2 US1-S5 Startbildschirm: Karte, Trainer-Link aus der Zwischenablage, danach Live-Zeile', async ({
+test('012 US1-S1 US1-S2 US1-S5 Startbildschirm: Karte, Trainer-Link aus der Zwischenablage, danach Spiele verfolgen', async ({
   page,
   recorded,
   newDevice,
@@ -26,7 +26,7 @@ test('012 US1-S1 US1-S2 US1-S5 Startbildschirm: Karte, Trainer-Link aus der Zwis
   await b.goto('./');
   const card = b.getByTestId('start-trainer-card');
   await expect(card).toContainText('Trainer? Füge den Link aus der Trainergruppe ein.');
-  await expect(b.getByTestId('start-live-line')).toHaveCount(0);
+  await expect(b.getByTestId('start-follow')).toHaveCount(0);
 
   await setClipboard(b, `Hier der Trainer-Link:\n${links.trainer}\n`);
   await b.getByTestId('btn-start-paste').click();
@@ -37,11 +37,11 @@ test('012 US1-S1 US1-S2 US1-S5 Startbildschirm: Karte, Trainer-Link aus der Zwis
 
   await expect(b.getByTestId('btn-new-game')).toBeVisible();
   await expect(card).toHaveCount(0);
-  const line = b.getByTestId('start-live-line');
-  await expect(line).toHaveText('Live: Unser Spieltag · E1, E2');
+  // Spec 018 US1-S1: "Spiele verfolgen" ersetzt die Zeile "Live: …" (012 FR-S04).
+  await expect(b.getByTestId('start-follow-line')).toHaveText('Unser Spieltag · E1, E2');
   expect((await liveOf(b))?.topic).toBeTruthy();
-  await line.click();
-  await expect(b.getByTestId('live-overview')).toBeVisible();
+  await b.getByTestId('start-follow').click();
+  await expect(b.getByTestId('dashboard')).toBeVisible();
 });
 
 test('012 US1-S3 leere oder gesperrte Zwischenablage: Einfügefeld, danach Startbildschirm', async ({
@@ -57,7 +57,7 @@ test('012 US1-S3 leere oder gesperrte Zwischenablage: Einfügefeld, danach Start
   await b.getByTestId('paste-link-input').fill(`Trainer-Link: ${links.trainer}`);
   await b.getByTestId('paste-link-apply').click();
   await b.getByTestId('couple-yes').click();
-  await expect(b.getByTestId('start-live-line')).toHaveText('Live: Unser Spieltag · E1, E2');
+  await expect(b.getByTestId('start-follow-line')).toHaveText('Unser Spieltag · E1, E2');
   await expect(b.getByTestId('paste-link-input')).toHaveCount(0);
 
   const c = await newDevice();
@@ -119,7 +119,7 @@ test('012 US1-S5 neu ausgestellt: Startbildschirm zeigt wieder die Karte mit Hin
   await expect(b.getByTestId('start-trainer-card')).toContainText(
     '„Unser Spieltag“ wurde neu ausgestellt. Füge den neuen Trainer-Link ein.',
   );
-  await expect(b.getByTestId('start-live-line')).toHaveCount(0);
+  await expect(b.getByTestId('start-follow')).toHaveCount(0);
 });
 
 test('012 US1-S6 Live-Spieltag ohne Kopplung: Trainer-Link einfügen ist der Hauptknopf', async ({ page }) => {
@@ -156,7 +156,7 @@ test('012 US1-S7 US1-S8 Trainer-Link im Browser: koppeln und loslegen, danach wi
   await couple.click();
   await b.getByTestId('couple-yes').click();
   await expect(b.getByTestId('btn-new-game')).toBeVisible();
-  await expect(b.getByTestId('start-live-line')).toHaveText('Live: Unser Spieltag · E1, E2');
+  await expect(b.getByTestId('start-follow-line')).toHaveText('Unser Spieltag · E1, E2');
 
   // US1-S7: nächste Woche wieder angetippt → direkt der Startbildschirm.
   await b.goto(asPath(links.trainer));
