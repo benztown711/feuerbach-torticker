@@ -144,6 +144,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['neues-spiel', 'spielplan', 'spielplan-fehlt'],
   },
   {
+    id: 'spielbildschirm',
+    topic: 'spiel',
+    title: 'Was zeigt der Spielbildschirm?',
+    answer:
+      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
+    keywords: 'übersicht anzeigetafel spielstand uhr torliste knöpfe aufbau band meldung',
+    sources: ['019 US2', '019 US3'],
+    related: ['tor', 'tor-entfernen', 'uhr-anhalten'],
+  },
+  {
     id: 'tor',
     topic: 'spiel',
     title: 'Wie erfasse ich ein Tor?',

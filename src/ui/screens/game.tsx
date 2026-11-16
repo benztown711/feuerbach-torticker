@@ -69,8 +69,8 @@ import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
 import { MessageBand, type BandHint } from '../components/message-band';
 import { useReshareTimer } from '../components/reshare-bar';
+import { Scoreboard } from '../components/scoreboard';
 import { Sheet } from '../components/sheet';
-import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
@@ -571,35 +571,14 @@ export function GameScreen({ id }: { id: string }) {
       </header>
       {watch && <LiveOthers watch={watch} gameId={game.id} team={ownKey} now={now} />}
 
-      <section class="teams" aria-label="Spielstand">
-        <div class="team">
-          <TeamMark colorId={colorOf(homeSide)} />
-          <span class="team__name" data-testid="team-home">
-            {buttonName(homeSide)}
-          </span>
-        </div>
-        {status === 'created' ? (
-          <button
-            type="button"
-            class="icon-btn teams__swap"
-            aria-label="Heim und Gast tauschen"
-            data-testid="btn-swap-venue"
-            onClick={() => update(swapVenue(cur()))}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-              <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />
-            </svg>
-          </button>
-        ) : (
-          <span class="teams__gap" />
-        )}
-        <div class="team team--away">
-          <span class="team__name" data-testid="team-away">
-            {buttonName(awaySide)}
-          </span>
-          <TeamMark colorId={colorOf(awaySide)} />
-        </div>
-      </section>
+      <Scoreboard
+        homeName={buttonName(homeSide)}
+        awayName={buttonName(awaySide)}
+        homeColor={colorOf(homeSide)}
+        awayColor={colorOf(awaySide)}
+        score={`${ha.home} : ${ha.away}`}
+        onSwap={status === 'created' ? () => update(swapVenue(cur())) : undefined}
+      />
       {shootoutActive ? (
         <ShootoutView
           game={game}
@@ -613,9 +592,6 @@ export function GameScreen({ id }: { id: string }) {
         />
       ) : (
         <>
-          <div class="score" data-testid="score">
-            {`${ha.home} : ${ha.away}`}
-          </div>
           {game.shootout?.done &&
             (() => {
               const st = shootoutState(game);

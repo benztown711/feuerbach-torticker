@@ -21,9 +21,9 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 3: US2 Spielstand auf einen Blick (P2)
 
-- [ ] T010 [P] [US2] E2E `tests/e2e/spielbildschirm-us2.spec.ts`: 019 US2-S1 (Namen, Farbmarken und Spielstand in einer Zeile, Spielstand 64 px in `--font-display`), S2 (Uhr darunter, gleiche Schriftfamilie, kleiner als der Spielstand), S3 (langer Gegnername höchstens zwei Zeilen, Spielstand ungekürzt), S4 (vor dem Anpfiff Doppelpfeil ≥ 44 × 44 unter dem Spielstand, tauscht; nach dem Anpfiff weg), S5 (10:9 auf 375 × 667 in einer Zeile), S6 (Elfmeterschießen: Anzeigetafel bleibt); zuerst rot
-- [ ] T011 [US2] `src/ui/components/scoreboard.tsx` und `src/ui/screens/game.tsx`: Anzeigetafel statt `.teams` + `.score`, Testkennungen `team-home`, `team-away`, `score`, `btn-swap-venue`; `src/styles/app.css`: `.scoreboard`, Spielstand nach `ergebnis` (R-A5), Uhr 40 px `--font-display` (macht T010 grün; `us2-layout-se`, `us2-farben-namen`, `us2-uhr`, `pokal` bleiben grün)
-- [ ] T012 [US2] Hilfe: neu "Was zeigt der Spielbildschirm?" (Quelle "019 US2", "019 US3"), Bezeichnungen wörtlich wie in der App
+- [x] T010 [P] [US2] E2E `tests/e2e/spielbildschirm-us2.spec.ts`: 019 US2-S1 (Namen, Farbmarken und Spielstand in einer Zeile, Spielstand 64 px in `--font-display`), S2 (Uhr darunter, gleiche Schriftfamilie, kleiner als der Spielstand), S3 (langer Gegnername höchstens zwei Zeilen, Spielstand ungekürzt), S4 (vor dem Anpfiff Doppelpfeil ≥ 44 × 44 unter dem Spielstand, tauscht; nach dem Anpfiff weg), S5 (10:9 auf 375 × 667 in einer Zeile), S6 (Elfmeterschießen: Anzeigetafel bleibt); zuerst rot
+- [x] T011 [US2] `src/ui/components/scoreboard.tsx` und `src/ui/screens/game.tsx`: Anzeigetafel statt `.teams` + `.score`, Testkennungen `team-home`, `team-away`, `score`, `btn-swap-venue`; `src/styles/app.css`: `.scoreboard`, Spielstand nach `ergebnis` (R-A5), Uhr 40 px `--font-display` (macht T010 grün; `us2-layout-se`, `us2-farben-namen`, `us2-uhr`, `pokal` bleiben grün)
+- [x] T012 [US2] Hilfe: neu "Was zeigt der Spielbildschirm?" (Quelle "019 US2", "019 US3"), Bezeichnungen wörtlich wie in der App
 
 ## Phase 4: US3 Große Knöpfe, ruhige Torliste (P2)
 
