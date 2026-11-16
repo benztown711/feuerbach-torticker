@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-15
 
-**Status**: Entwurf, Review A offen.
+**Status**: Entwurf, Review A und Review B offen. Mockup: https://claude.ai/artifact/68Yc92Lj3PLVNHirF5eYDe
 
 **Input**: Atti (15.11.2026): "mir ist aufgefallen, dass es für jemandem mit trainerlink nicht einfach ist nur zuzusehen per Dashbaord, wenn jemand anders tickert. Wie könnten wir das beheben?" Nach dem Vorschlag eines Reiters "Spieltag" in der Navigationsleiste: "ich finde es muss auf der Startseite sein die möglichkeit, dass man entweder ein neues Spiel anlegt, ein bestehendes weiterführt, eines übernimtm (wenn schon jemand tickert) und einfach nur zusieht"
 
