@@ -36,6 +36,7 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 ## Phase 5: Abschluss
 
 - [x] T018 `npm run check`, betroffene E2E lokal (`spiel-korrigieren`, `spieltag-sicher-korrekturen`, `assists`/Vorlagen, `ereignisse`, `us1-entfernen`, `a11y`), `/code-review`, `/security-review`, Screenshots iPhone hell/dunkel an Atti; Roadmap N8, Status in `spec.md`
+- [x] T020 Fehlerbehebung 14.11.2026 (R-C7): `tests/unit/live-sender.test.ts` und E2E "017 US1-S10 auch nach einem Neustart" zuerst rot; `src/platform/live-sender.ts` prüft den Schlusspfiff statt des Anlegens; `createLive` (E2E) nutzt schon angelegte Mannschaften
 - [ ] T019 Gerätetest K-1 bis K-3 aus `quickstart.md` mit Atti
 
 ## Abdeckung

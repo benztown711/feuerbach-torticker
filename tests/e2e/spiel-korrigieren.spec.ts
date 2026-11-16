@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { MIN, SEC, acceptDraw, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, acceptDraw, confirmYes, ensureTeam, forward, seedRoster, startGame } from './helpers';
 import { createLive, latestState } from './live-helpers';
 
 /** Spec 017: Spiel korrigieren (Tore in den Spieldetails, Trikots ändern, Erinnerung an neues Teilen). */
@@ -55,6 +55,18 @@ async function playSaturday(page: Page, o: { ownTeam?: string; assists?: boolean
   await forward(page, 9 * MIN);
   await whistle(page);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+}
+
+/** Spiel 1 × 12 gegen "TSV Musterstadt" für E1 anlegen, noch nicht anpfeifen (endet auf dem Spielbildschirm). */
+async function startGameLater(page: Page): Promise<void> {
+  await ensureTeam(page, E1);
+  await page.goto('./');
+  await page.getByTestId('btn-new-game').click();
+  await page.getByTestId('input-opponent').fill('TSV Musterstadt');
+  await page.getByTestId('schema-sections').selectOption('1');
+  await page.getByTestId('schema-minutes').selectOption('12');
+  await page.getByTestId('btn-create').click();
+  await expect(page.getByTestId('btn-kickoff')).toBeVisible();
 }
 
 /** Wie Atti am Sonntag: über die Historie in die Spieldetails. */
@@ -231,6 +243,48 @@ test.describe('017 US1 Tore in den Spieldetails korrigieren', () => {
     await expect
       .poll(async () => ((await latestState(relay, links.viewer, id))?.goals as unknown[] | undefined)?.length)
       .toBe(4);
+  });
+
+  test('017 US1-S10 auch nach einem Neustart, wenn das Spiel vor der Kopplung angelegt wurde (R-C7)', async ({
+    page,
+    recorded,
+    relay,
+  }) => {
+    // Spiel am Vorabend vorbereitet, Handy erst danach gekoppelt (wie der E3-Trainer am 14.11.2026).
+    await startGameLater(page);
+    const id = gameId(page);
+    await forward(page, 10 * MIN);
+    const links = await createLive(page, recorded, { teams: ['E1'] });
+    await page.goto(`./#/spiel/${id}`);
+    await page.getByTestId('btn-kickoff').click();
+    await forward(page, 2 * MIN);
+    // Falscher Knopf: Tor für den Gegner statt für Feuerbach.
+    await page.getByTestId('btn-goal-opp').click();
+    await forward(page, 11 * MIN);
+    await whistle(page);
+    await settle(page);
+    await expect.poll(async () => (await latestState(relay, links.viewer, id))?.goals as unknown[]).toHaveLength(1);
+
+    // Abends: App neu gestartet, Gegentor entfernen, Tor für Feuerbach nachtragen.
+    await page.goto('./#/historie');
+    await page.reload();
+    await page
+      .getByRole('link', { name: /TSV Musterstadt/ })
+      .first()
+      .click();
+    await goalRows(page).first().click();
+    await page.getByTestId('goal-remove').click();
+    await confirmYes(page);
+    await page.getByTestId('details-add-goal').click();
+    await page.getByTestId('add-goal-side-own').click();
+    await page.getByTestId('add-goal-minute').selectOption("3'");
+    await page.getByTestId('add-goal-save').click();
+    await expect(page.getByTestId('details-score')).toContainText('1:0');
+    await settle(page);
+    await settle(page);
+    await expect
+      .poll(async () => ((await latestState(relay, links.viewer, id))?.goals as { side: string }[]).map((g) => g.side))
+      .toEqual(['own']);
   });
 
   test('017 US1-S11 laufendes Spiel: Spieldetails über "…", gleiche Korrekturen, "Zum Spiel" bleibt', async ({

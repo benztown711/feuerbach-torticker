@@ -26,6 +26,11 @@ Gesichtet am 14.11.2026:
 - Q: Wie lange nach dem Spiel? → A: Ohne Frist (2A).
 - Q: Geänderte Gegnerfarbe merken? → A: Ja, als Vorschlag fürs nächste Spiel gegen diesen Gegner (3A). Die eigene Mannschaft unter "Meine Mannschaften" bleibt unverändert (Spec 004 FR-M03).
 - Q: Nach einer Korrektur "Korrigiert, neu teilen?" anzeigen? → A: Ja (4A). Folgerung: nur bei beendeten Spielen, deren Ergebnis von diesem Handy schon geteilt wurde, und nur wenn sich der Teilen-Text dadurch ändert; vor dem ersten Teilen wäre "neu teilen" irreführend.
+### Fehlerbehebung nach dem ersten Einsatz (14.11.2026)
+
+- Befund (Atti, Screenshots): Der E3-Trainer hatte alle Tore für den Gegner getickert und abends korrigiert; seine Historie zeigte 7:0 für Feuerbach, das Dashboard weiter 7:0 für SSV Zuffenhausen III. Ursache: Der Sender veröffentlicht beendete Spiele, die vor der Kopplung angelegt wurden, nicht nachträglich (Spec 006 FR-L06, gedacht für Spiele aus einer Sicherung). Das Spiel war am Vortag angelegt und erst danach gekoppelt; live lief es, die Korrektur nach dem Neustart blieb liegen.
+- Entscheidung (Fehlerbehebung ohne Mockup): Maßgeblich ist der Schlusspfiff. Nur Spiele, die schon vor der Kopplung beendet waren, bleiben unveröffentlicht (research.md R-C7).
+
 - Folgerungen mit Empfehlung, in Review A zu bestätigen: Die Spieldetails nutzen dieselben Blätter wie der Spielbildschirm (nichts Neues zu lernen); "Trikots ändern" mit "Übernehmen" wie "Minute ändern" und "Uhr korrigieren"; Karten, Wechsel, Lesezeichen und Elfmeterschießen bleiben in den Spieldetails nur lesbar.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -96,7 +101,7 @@ Atti hat das 2:1 nach dem Spiel in die Elterngruppe geteilt. Am Abend korrigiert
 ### Edge Cases
 
 - **Spiel eines anderen Handys** (Dashboard-Karte, Spiel übernommen und abgegeben): Korrigiert wird nur auf dem Handy, das das Spiel erfasst hat (1A). Auf einem Handy, das das Spiel abgegeben hat (Spec 006 FR-L24), wirkt eine Korrektur nur lokal.
-- **Alte Spiele**: Gehört ein live gesendetes Spiel nicht mehr zu den 10 zuletzt angelegten Spielen seiner Mannschaft auf diesem Handy, bleibt die Korrektur lokal. So verdrängt es unter "Letzte Spiele" kein jüngeres Spiel. Nie live gesendete Spiele ("Live aufs Dashboard" beim Anlegen aus) zählen dabei nicht mit. Spiele aus einer Sicherung, die vor der Kopplung angelegt wurden, werden weiter nicht gesendet (Spec 006 FR-L06).
+- **Alte Spiele**: Gehört ein live gesendetes Spiel nicht mehr zu den 10 zuletzt angelegten Spielen seiner Mannschaft auf diesem Handy, bleibt die Korrektur lokal. So verdrängt es unter "Letzte Spiele" kein jüngeres Spiel. Nie live gesendete Spiele ("Live aufs Dashboard" beim Anlegen aus) zählen dabei nicht mit. Spiele, die schon vor der Kopplung beendet waren (z. B. aus einer Sicherung), werden weiter nicht gesendet (Spec 006 FR-L06); ein vorher angelegtes, aber erst nach der Kopplung gespieltes Spiel nimmt Korrekturen an (R-C7).
 - **"Nicht live senden"**: Korrekturen bleiben lokal, wie jede Änderung.
 - **Offline**: Korrekturen werden sofort gespeichert; das Dashboard bekommt sie mit der nächsten Verbindung, wie jede Änderung.
 - **Kader geändert**: Die Torschützen-Auswahl zeigt das Aufgebot dieses Spiels und unter "Andere …" den heutigen Kader. Ein inzwischen gelöschtes Kind bleibt als Torschütze bzw. Vorlage stehen, bis es geändert wird.
