@@ -34,8 +34,8 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 5: Abschluss
 
-- [ ] T017 `npm run check`, betroffene E2E lokal (siehe `quickstart.md`), `npm run e2e` (übergreifend: gemeinsame Komponente des Spielbildschirms)
-- [ ] T018 Visuelle Referenzbilder des Spielbildschirms aus dem CI-Artefakt übernehmen (R-A4); Verdacht "veraltet" geprüft: nicht bestätigt (CI nach US1 grün)
+- [x] T017 `npm run check`, betroffene E2E lokal (siehe `quickstart.md`), `npm run e2e` (übergreifend: gemeinsame Komponente des Spielbildschirms)
+- [x] T018 Visuelle Referenzbilder des Spielbildschirms aus dem CI-Artefakt übernehmen (R-A4); Verdacht "veraltet" geprüft: nicht bestätigt (CI nach US1 grün)
 - [ ] T019 `/code-review`, `/security-review`, Design-Check (Skill `design-check`, Ziel Spielbildschirm, SC-A06), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in `spec.md`
 
 ## Dependencies
