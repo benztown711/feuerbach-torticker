@@ -124,9 +124,10 @@ test('012 US1-S5 neu ausgestellt: Startbildschirm zeigt wieder die Karte mit Hin
 
 test('012 US1-S6 Live-Spieltag ohne Kopplung: Trainer-Link einfügen vor Live-Spieltag anlegen', async ({ page }) => {
   await page.goto('./#/live-spieltag');
-  // Geändert durch Spec 020 FR-E15: Hauptknopf ist "Link für Eltern teilen"; Einfügen und Anlegen stehen in dieser
-  // Reihenfolge unter "Für Trainer".
-  await expect(page.getByTestId('btn-share-viewer')).toHaveClass(/btn--primary/);
+  // Geändert durch Spec 020 FR-E15: Hauptknopf ist "Link für Eltern teilen", ohne eigene Mannschaft (wie hier)
+  // "Zu den Einstellungen"; Einfügen und Anlegen stehen in dieser Reihenfolge unter "Für Trainer".
+  await expect(page.getByTestId('btn-live-settings')).toHaveClass(/btn--primary/);
+  await expect(page.locator('main.page .btn--primary')).toHaveCount(1);
   await openTrainerSection(page);
   const paste = page.getByTestId('btn-paste-link');
   const create = page.getByTestId('btn-live-create');

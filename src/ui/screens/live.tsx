@@ -2,6 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
 import { addableTeams } from '../../domain/live-manage';
+import { quickAction } from '../../domain/live-quick';
 import {
   checkTitle,
   couplingKind,
@@ -249,8 +250,26 @@ export function LiveScreen() {
         <div class="form live" data-testid="live-empty">
           {settings?.liveView && <DashboardButton label={`Dashboard „${settings.liveView.title}“ ansehen`} />}
           <p class="live__lead">Eltern sehen eure Spiele live: Stand, Minute und Tore, ohne App und ohne Konto.</p>
-          {/* Spec 020 FR-E15: Hauptknopf öffnet das Blatt mit "Link einfügen" und "Neu starten". */}
-          <ShareViewer onClick={() => setQuick(true)} />
+          {/* Spec 020 FR-E15: Hauptknopf öffnet das Blatt mit "Link einfügen" und "Neu starten"; ohne eigene
+              Mannschaft (wie "Eltern live zuschauen lassen", FR-E03) zuerst in die Einstellungen. */}
+          {quickAction(settings, null).kind === 'start' ? (
+            <ShareViewer onClick={() => setQuick(true)} />
+          ) : (
+            <>
+              <p class="live__text" data-testid="live-empty-no-teams">
+                Lege zuerst deine Mannschaft in den Einstellungen an. Hast du einen Trainer-Link, füge ihn unter „Für
+                Trainer“ ein.
+              </p>
+              <button
+                type="button"
+                class="btn btn--primary live__main"
+                data-testid="btn-live-settings"
+                onClick={() => navigate('/einstellungen')}
+              >
+                Zu den Einstellungen
+              </button>
+            </>
+          )}
           <div class="live__box card">
             <span class="t-label card__title">WAS DAS HANDY VERLÄSST</span>
             <p class="live__text">

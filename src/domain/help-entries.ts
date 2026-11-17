@@ -544,7 +544,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie lasse ich Eltern live zuschauen?',
     answer:
-      'Tippe auf dem Startbildschirm oder im Spiel unter „…“ auf „Eltern live zuschauen lassen“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
+      'Tippe auf dem Startbildschirm oder im Spiel unter „…“ auf „Eltern live zuschauen lassen“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Ohne eigene Mannschaft legst du sie zuerst in den Einstellungen an. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
     keywords: 'eltern zuschauen live link elterngruppe schicken senden schnell neu starten mitschauen verfolgen',
     sources: ['020 US1'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },

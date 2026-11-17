@@ -402,3 +402,24 @@ test('020 US2-S10 US2-S11 "Ergebnis teilen" und "neu teilen" teilen direkt, ohne
   await expect.poll(async () => (await recorded()).shares.length).toBe(3);
   await expect(page.getByTestId('share-sheet')).toHaveCount(0);
 });
+
+test('020 US2-S12 ohne Mannschaft und ohne Live-Spieltag: Hinweis und "Zu den Einstellungen" statt Teilen', async ({
+  page,
+}) => {
+  await openLiveFresh(page);
+  const empty = page.getByTestId('live-empty');
+  await expect(page.getByTestId('btn-share-viewer')).toHaveCount(0);
+  await expect(page.getByTestId('live-empty-no-teams')).toHaveText(
+    'Lege zuerst deine Mannschaft in den Einstellungen an. Hast du einen Trainer-Link, füge ihn unter „Für Trainer“ ein.',
+  );
+  const settings = page.getByTestId('btn-live-settings');
+  await expect(settings).toHaveText('Zu den Einstellungen');
+  await expect(settings).toHaveClass(/btn--primary/);
+  await expect(page.locator('main.page .btn--primary')).toHaveCount(1);
+  const order = await ids(empty);
+  expect(order.indexOf('btn-live-settings')).toBeLessThan(order.indexOf('live-trainer-toggle'));
+  await toggle(page).click();
+  await expect(page.getByTestId('btn-paste-link')).toHaveText('Trainer-Link einfügen');
+  await settings.click();
+  await expect(page).toHaveURL(/#\/einstellungen$/);
+});
