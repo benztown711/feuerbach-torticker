@@ -6,6 +6,8 @@
 
 **Status**: Entwurf. Entscheidungen von Atti vorab gesetzt (17.11.2026, Freigabe der Umsetzung nach dem Nutzertest), daher keine Clarify-Fragen; die Entscheidungen stehen unter "Clarifications". Mockup/Review B: auf Wunsch von Atti übersprungen, Prüfung in Review C über Screenshots. Umsetzung in zwei parallelen Paketen: Paket A (Trainer, US1 und US2) und Paket C (Zuschauer, US3 bis US5), siehe `plan.md` und `tasks.md`.
 
+**Status Paket A (US1, US2)**: umgesetzt am 17.11.2026 (Arbeitszweig Paket A); Prüfung in Review C über Screenshots.
+
 **Input**: Nutzertest vom 17.11.2026 mit fünf Personas (Trainer am Spielfeldrand, Turnier-Trainer, Oma als Zuschauerin, Elternteil im Büro, Nutzer mit VoiceOver) und Atti (17.11.2026): Umsetzung freigegeben, nur bei echter Unsicherheit fragen.
 
 ## Ausgangslage
@@ -39,6 +41,7 @@ Gesichtet am 17.11.2026 im Code und im Nutzertest:
 
 - **"Ergebnis teilen" bleibt ein Tipp**: Nach dem Schlusspfiff teilt "Ergebnis teilen" unter der Uhr den Ergebnis-Text direkt wie bisher (Spec 001 FR-011, Spec 017 FR-C20), ohne Blatt. Das neue Blatt "Teilen" mit "Live-Link für Eltern" und "Stand als Text" ersetzt nur "Zwischenstand teilen" im Spielmenü während des Spiels (vom Anpfiff bis zum Schlusspfiff, auch in Pausen, wie bisher "Zwischenstand teilen"). Nach dem Schlusspfiff gibt es im Spielmenü kein "Teilen"; der Live-Link ist dort über "Eltern live zuschauen lassen" erreichbar. Geändert: US2 (Erzählung, Independent Test, S8 bis S10), FR-E18, FR-E19, Hilfe `ergebnis-teilen` (unverändert).
 - **Mockup und Review B**: auf Wunsch von Atti übersprungen; Prüfung in Review C über Screenshots iPhone hell und dunkel.
+- **Wegangaben in der App** (Paket A, zu FR-E12): Der Hinweis unter "Neues Spiel" bei neu ausgestelltem Live-Spieltag nennt "„Mehr“ → „Live für Eltern“", der Hinweis "Spielplan" ohne Trainer-Link "„Live für Eltern“ → „Für Trainer“"; Rückfrage "Alle Links neu ausstellen?" und die Hilfetexte unter "Für Trainer" sagen "Link für Eltern" statt "Zuschauer-Link".
 - **Blatt nach "Neu starten"**: Hat das Teilen geklappt (oder wurde es abgebrochen), zeigt das Blatt "Fertig. „<Titel>“ ist live." und "Link für Eltern teilen" (zum erneuten Teilen); klappt es nicht, "Fertig. Jetzt den Link teilen." (FR-E08). In beiden Fällen folgt der Hinweis auf den Trainer-Link.
 
 ### Session 2026-11-17 (Präzisierungen beim Spezifizieren)
