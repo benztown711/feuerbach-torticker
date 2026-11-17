@@ -52,7 +52,7 @@ Im Cloud-Container `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium` setzen; dann lä
 
 Pflicht bei jeder Änderung mit sichtbarer Wirkung in der App; entfällt bei reiner Logik, Tests, Texten ohne sichtbare Wirkung und Abhängigkeits-Updates.
 
-1. Skill `design-check` aufrufen (Attis globaler Skill, verpackt Impeccable; in Cloud-Sitzungen `anthropic-skills:design-check`). Er prüft im Hintergrund per Subagent und liefert Befunde P0 bis P3 mit Begründung und einer Empfehlung.
+1. Skill `attila-design-check` aufrufen (Attis globaler Skill, verpackt Impeccable; in Cloud-Sitzungen `anthropic-skills:attila-design-check`). Er prüft im Hintergrund per Subagent und liefert Befunde P0 bis P3 mit Begründung und einer Empfehlung.
 2. Ziel sind die geänderten Bildschirme, Grundlage die Screenshots iPhone hell/dunkel (dieselben wie für Atti) bzw. die CI-Referenzbilder in `tests/e2e/visual.spec.ts-snapshots/`.
 3. Modus "Frei": Empfehlungen dürfen über das Vereinsdesign hinausgehen, der Bericht markiert sie mit ⚠. Umgesetzt wird nur, was `design/README.md` und die Regeln unten einhält. Schreibt Atti "halte dich an das Vereinsdesign" o. Ä., gilt `design/README.md` auch für die Empfehlungen.
 4. P0/P1-Befunde, die innerhalb von Spec und Vereinsdesign behebbar sind, behebt der Agent vor "ready for review" selbst. Ändert eine Behebung Verhalten oder Wortlaut, läuft sie wie jede Verhaltensänderung über `spec.md` und Hilfe.
