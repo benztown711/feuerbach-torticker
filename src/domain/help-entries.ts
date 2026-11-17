@@ -539,15 +539,26 @@ export const HELP_ENTRIES: HelpEntry[] = [
 
   // Live-Spieltag
   {
+    id: 'eltern-zuschauen',
+    topic: 'live',
+    title: 'Wie lasse ich Eltern live zuschauen?',
+    answer:
+      'Tippe auf dem Startbildschirm oder im Spiel unter „…“ auf „Eltern live zuschauen lassen“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
+    keywords: 'eltern zuschauen live link elterngruppe schicken senden schnell neu starten mitschauen verfolgen',
+    sources: ['020 US1'],
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
+    related: ['live-anlegen', 'live-senden', 'trainer-link'],
+  },
+  {
     id: 'live-anlegen',
     topic: 'live',
     title: 'Wie richte ich einen Live-Spieltag ein?',
     answer:
-      'Das macht nur einer, einmal für alle Mannschaften. Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Live-Spieltag anlegen“ und wählst bis zu sechs Mannschaften. Den Zuschauer-Link teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer; beim ersten Teilen fragt die App „Kader mit den Trainern teilen?“. Gibt es schon einen Live-Spieltag, tippst du stattdessen auf „Trainer-Link einfügen“.',
-    keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen kader teilen',
-    sources: ['006 US1', '012 US1', '016 US1'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
-    related: ['trainer-link', 'live-senden'],
+      'Das macht nur einer, einmal für alle Mannschaften. Am schnellsten: „Eltern live zuschauen lassen“, dann „Neu starten“. Titel und Mannschaften wählst du selbst unter „Mehr“, „Live für Eltern“ und „Für Trainer“ mit „Live-Spieltag anlegen“, bis zu sechs. Den Link für Eltern teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer; beim ersten Teilen fragt die App „Kader mit den Trainern teilen?“. Gibt es schon einen Live-Spieltag, tippst du auf „Trainer-Link einfügen“.',
+    keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen kader teilen neu starten',
+    sources: ['006 US1', '012 US1', '016 US1', '020 US1'],
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
+    related: ['eltern-zuschauen', 'trainer-link', 'live-senden'],
   },
   {
     id: 'trainer-link',
@@ -577,9 +588,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Woran sehe ich, dass mein Spiel live gesendet wird?',
     answer:
-      'Oben im Spiel steht „Live“. Ohne Netz steht dort „Wartet auf Netz“; Tore zählen trotzdem sofort und werden nachgeschickt. Soll ein Spiel nicht gesendet werden, zum Beispiel ein Testspiel, tippst du auf „…“ und „Nicht live senden“.',
+      'Oben im Spiel steht „Live“. Ohne Netz steht dort „Wartet auf Netz“; Tore zählen trotzdem sofort und werden nachgeschickt. Soll ein Spiel nicht gesendet werden, zum Beispiel ein Testspiel, tippst du auf „…“ und „Nicht live senden“. „Eltern live zuschauen lassen“ schaltet ein Spiel, das auf „Nicht live senden“ steht, wieder ein.',
     keywords: 'live senden netz funkloch wartet nicht live testspiel',
-    sources: ['006 US2'],
+    sources: ['006 US2', '020 US1'],
     related: ['live-anlegen', 'trainer-link'],
   },
   {
