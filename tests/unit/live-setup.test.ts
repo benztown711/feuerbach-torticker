@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { LeadLinkData, TrainerLinkData } from '../../src/domain/live-link';
 import { newSigningKey, newTopic, newViewKey, signData } from '../../src/platform/live-crypto';
-import { verifyLeadLink, verifyTrainerLink } from '../../src/platform/live-setup';
+import { createSpieltag, trainerLinkFor } from '../../src/domain/live-spieltag';
+import { prepareLive, preparedDeps, verifyLeadLink, verifyTrainerLink } from '../../src/platform/live-setup';
 
 const T0 = Date.UTC(2026, 10, 7, 9, 0, 0);
 
@@ -96,5 +97,34 @@ describe('006 FR-L03 FR-L11 Trainer-Link prüfen', () => {
   it('kaputter privater Schlüssel → ungültig statt Fehler', async () => {
     const t = await trainer();
     expect(await verifyTrainerLink({ ...t, orgKey: { d: 'AAAA', x: 'AAAA', y: 'AAAA' } })).toBeNull();
+  });
+});
+
+describe('020 R-E1 Schlüssel vorab für "Neu starten"', () => {
+  it('020 US1-S6 vorbereitete Schlüssel, Topic und Zuschauer-Schlüssel werden genutzt, danach neue', async () => {
+    const prepared = await prepareLive(1);
+    expect(prepared.keys).toHaveLength(2);
+    const d = preparedDeps(prepared, T0);
+    expect(d.now).toBe(T0);
+    expect(d.newTopic()).toBe(prepared.topic);
+    expect(d.newViewKey()).toBe(prepared.viewKey);
+    expect(await d.newSigningKey()).toBe(prepared.keys[0]);
+    expect(await d.newSigningKey()).toBe(prepared.keys[1]);
+    const extra = await d.newSigningKey();
+    expect(prepared.keys).not.toContain(extra);
+    expect(extra.pub).toMatch(/^[A-Za-z0-9_-]{87}$/);
+  });
+
+  it('ein Live-Spieltag aus vorbereiteten Schlüsseln ist gültig signiert', async () => {
+    const prepared = await prepareLive(1);
+    const team = { id: 't1', name: 'Sportvg Feuerbach E1', homeColor: 'rot', awayColor: 'schwarz' };
+    const live = await createSpieltag(
+      { title: 'Unser Spieltag', teamIds: ['t1'] },
+      [{ ...team, lastSchema: null, lastSquad: [], lastUsedAt: 0 }],
+      preparedDeps(prepared, T0),
+    );
+    expect(live.topic).toBe(prepared.topic);
+    expect(live.orgPub).toBe(prepared.keys[0]?.pub);
+    expect(await verifyTrainerLink(trainerLinkFor(live)!)).not.toBeNull();
   });
 });

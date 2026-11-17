@@ -33,10 +33,10 @@ import {
 } from '../domain/live-manage';
 import type { LiveTeamOption } from '../domain/live-spieltag';
 import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData } from '../domain/types';
-import { getSettings, putSettings } from './db';
+import { getGame, getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
 import { liveSettingsChanged } from './live-events';
-import { startLiveSender } from './live-sender';
+import { liveSender, startLiveSender } from './live-sender';
 import { movePlan } from './plan-sync';
 
 // Spec 015: über dieses (nachgeladene) Modul erreichbar, damit der Spielplan-Code nicht ins Hauptbundle rutscht.
@@ -75,10 +75,42 @@ export async function publishConfig(live: LiveSpieltag): Promise<boolean> {
   return sendOrg(live, { kind: 'cfg', iat, body: await sealMessage(live.viewKey, { config: live.config }) });
 }
 
-/** FR-L01: anlegen und speichern; ersetzt einen bisherigen Live-Spieltag dieses Geräts. */
-export async function createLive(input: LiveInput): Promise<Settings> {
+/** Spec 020 R-E1: vorab erzeugte Schlüssel, damit "Neu starten" nur noch signiert und speichert. */
+export interface PreparedLive {
+  topic: string;
+  viewKey: string;
+  /** Organisator-Schlüssel und je Mannschaft ein Lead-Schlüssel, in dieser Reihenfolge verbraucht. */
+  keys: { pub: string; priv: PrivateKeyParts }[];
+}
+
+/** Erzeugt Topic, Zuschauer-Schlüssel und `teams + 1` Signaturschlüssel (Organisator und Mannschaften). */
+export async function prepareLive(teams: number): Promise<PreparedLive> {
+  const keys = await Promise.all(Array.from({ length: teams + 1 }, () => newSigningKey()));
+  return { topic: newTopic(), viewKey: newViewKey(), keys };
+}
+
+/** Abhängigkeiten für `createSpieltag`, die zuerst die vorbereiteten Schlüssel nutzen, danach neue. */
+export function preparedDeps(prepared: PreparedLive, now = Date.now()): LiveDeps {
+  const pool = [...prepared.keys];
+  return {
+    ...deps(),
+    now,
+    newTopic: () => prepared.topic,
+    newViewKey: () => prepared.viewKey,
+    newSigningKey: () => {
+      const key = pool.shift();
+      return key ? Promise.resolve(key) : newSigningKey();
+    },
+  };
+}
+
+/**
+ * FR-L01: anlegen und speichern; ersetzt einen bisherigen Live-Spieltag dieses Geräts. Spec 020 R-E1: mit
+ * vorbereiteten Schlüsseln (je Vorbereitung nur einmal verwenden, sonst gäbe es zwei Live-Spieltage mit einem Topic).
+ */
+export async function createLive(input: LiveInput, prepared?: PreparedLive): Promise<Settings> {
   const settings = await getSettings();
-  const live = await createSpieltag(input, settings.teams, deps());
+  const live = await createSpieltag(input, settings.teams, prepared ? preparedDeps(prepared) : deps());
   const next = { ...settings, live };
   await putSettings(next);
   void publishConfig(live);
@@ -212,6 +244,16 @@ export function shareTrainerLink(live: LiveSpieltag): Promise<ShareResult> {
   // Kurz halten: WhatsApp macht lange Nachrichten mit Link schlecht antippbar (research.md R-L20).
   const text = `Trainer-Link für "${titleOf(live)}", nur für die Trainergruppe. Antippen und loslegen:\n${url}`;
   return shareText(text, `Trainer-Link ${titleOf(live)}`);
+}
+
+/**
+ * Spec 020 FR-E09 (research.md R-E3): meldet das Spiel sofort, nicht erst beim nächsten Lebenszeichen, z. B. nachdem
+ * der Live-Spieltag mitten im Spiel angelegt, gekoppelt oder um die Mannschaft ergänzt wurde. Beendete Spiele nicht.
+ */
+export async function sendGameNow(gameId: string): Promise<void> {
+  await startLiveSender();
+  const game = await getGame(gameId);
+  if (game && game.status !== 'finished') liveSender()?.handle({ kind: 'put', game });
 }
 
 /** FR-L03: koppelt mit einem geprüften Link. */
