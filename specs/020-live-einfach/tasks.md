@@ -110,7 +110,7 @@ Die Hinweise "geändert durch Spec 020" in den Specs 001, 005, 006, 007, 008, 01
 - [x] T034 [US5] [C] `tests/unit/help-entries.test.ts`: Liste der Eltern-Einträge (neun), Ausnahme "Öffnen" nur `selbst-trainieren`, Ziel `/` zulässig; `tests/e2e/hilfe-eltern.spec.ts` "010 US2-S6" (kein "Zum Torticker") und "010 US2-S7" (neun Einträge, `eltern-home` weiter ohne Knopf); zuerst rot, dann mit T036 grün
 - [x] T035 [US5] [C] `tests/e2e/live-us3.spec.ts` "006 R-L6" und "006 US3-S11": statt "Zum Torticker" `page.goto('./#/')` bzw. Hilfe-Knopf "Torticker öffnen"; Prüfung des Manifests unverändert
 - [x] T036 [US5] [C] Hilfe: neu `selbst-trainieren` "Ich trainiere selbst. Wo finde ich den Torticker?" nach `keine-meldung` (für Eltern, `open: { label: 'Torticker', path: '/' }`, verwandt `eltern-home`, Quelle "020 US5"); Hilfe-Abdeckung grün (macht T031 S3, S4 und T034 grün)
-- [ ] T037 [US5] [C] Visuelle Referenzbilder `dashboard-hell-*` und `dashboard-dunkel-*` aller Profile aus dem CI-Artefakt übernehmen (R-E9)
+- [x] T037 [US5] [C] Visuelle Referenzbilder `dashboard-hell-*` und `dashboard-dunkel-*` aller Profile aus dem CI-Artefakt übernehmen (R-E9)
 
 **Checkpoint**: Paket C fertig.
 
@@ -118,11 +118,11 @@ Die Hinweise "geändert durch Spec 020" in den Specs 001, 005, 006, 007, 008, 01
 
 ## Abschluss (je Paket)
 
-- [ ] T038 [A] [C] `npm run check` (auch Bundle-Budget); Netzwerk-Wächter grün (FR-E28, keine neuen Verbindungen); `npm run e2e:changed`; gezielt die E2E der eigenen User Stories; Paket A zusätzlich `npm run e2e` (viele Tests umgestellt, Spielbildschirm). Im Cloud-Container `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`
+- [x] T038 [A] [C] `npm run check` (auch Bundle-Budget); Netzwerk-Wächter grün (FR-E28, keine neuen Verbindungen); `npm run e2e:changed`; gezielt die E2E der eigenen User Stories; Paket A zusätzlich `npm run e2e` (viele Tests umgestellt, Spielbildschirm). Im Cloud-Container `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`
 - [x] T039 [A] `tests/e2e/a11y.spec.ts`: neuer `test` für Startbildschirm mit Knopf, Blätter "Eltern live zuschauen lassen" und "Teilen", "Live für Eltern" eingeklappt und aufgeklappt (axe ohne Verstöße)
 - [x] T040 [C] `tests/e2e/a11y.spec.ts`: neuer `test` für die Eltern-Ansicht mit Schalter, Aktualität und Warnung (axe ohne Verstöße)
-- [ ] T041 [A] [C] Hilfe gegenprüfen: alle Einträge des Pakets aus spec.md "Hilfe" vorhanden, Bezeichnungen wörtlich wie in der App, keine Verweise auf "Zwischenstand teilen", "Kopplung beenden" oder "Zum Torticker" mehr (Constitution IX, Pflicht)
-- [ ] T042 [A] [C] `/code-review`, `/security-review`; Design-Check (Skill `anthropic-skills:attila-design-check`, Ziel: Paket A Startbildschirm, Spielmenü, Blätter, "Live für Eltern"; Paket C Dashboard hell/dunkel), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in spec.md
+- [x] T041 [A] [C] Hilfe gegenprüfen: alle Einträge des Pakets aus spec.md "Hilfe" vorhanden, Bezeichnungen wörtlich wie in der App, keine Verweise auf "Zwischenstand teilen", "Kopplung beenden" oder "Zum Torticker" mehr (Constitution IX, Pflicht)
+- [x] T042 [A] [C] `/code-review`, `/security-review`; Design-Check (Skill `anthropic-skills:attila-design-check`, Ziel: Paket A Startbildschirm, Spielmenü, Blätter, "Live für Eltern"; Paket C Dashboard hell/dunkel), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in spec.md
 - [ ] T043 [A] [C] Gerätetest iPhone und Android: Teilen direkt nach "Neu starten" (R-E1), "Ton bei Toren" nach Rückkehr aus dem Hintergrund, Vibration auf Android, Tab-Titel am Rechner; Ergebnis in research.md
 
 ## Dependencies

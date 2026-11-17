@@ -8,6 +8,8 @@
 
 **Status Paket A (US1, US2)**: umgesetzt am 17.11.2026 (Arbeitszweig Paket A); Prüfung in Review C über Screenshots.
 
+**Selbstprüfung (17.11.2026)**: `/code-review` (8 Befunde behoben, Befund "angehaltene Uhr" entspricht FR-E30/US4-S3 und bleibt), `/security-review` ohne Befund, Design-Check (P1 "Ton aus · tippen" behoben, P2/P3 an Atti in Review C), Referenzbilder `dashboard-*` aus der CI übernommen. Offen: Gerätetest T043.
+
 **Input**: Nutzertest vom 17.11.2026 mit fünf Personas (Trainer am Spielfeldrand, Turnier-Trainer, Oma als Zuschauerin, Elternteil im Büro, Nutzer mit VoiceOver) und Atti (17.11.2026): Umsetzung freigegeben, nur bei echter Unsicherheit fragen.
 
 ## Ausgangslage
