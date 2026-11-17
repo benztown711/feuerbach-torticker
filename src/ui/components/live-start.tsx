@@ -4,7 +4,7 @@ import { quickAction, quickTeams, startHint, teamHint, type QuickAction } from '
 import { DEFAULT_LIVE_TITLE, isRetired, titleOf } from '../../domain/live-spieltag';
 import { setLive } from '../../domain/live-snapshot';
 import type { Game, LiveSpieltag, Settings } from '../../domain/types';
-import { putGame } from '../../platform/db';
+import { getGame, putGame } from '../../platform/db';
 import {
   addTeamToLive,
   createLive,
@@ -35,17 +35,17 @@ export const SHARE_MSG: Record<ShareResult, string> = {
 
 const join = (...parts: (string | null)[]): string => parts.filter(Boolean).join(' ');
 
+/** Spiel wieder live senden: wendet die Änderung auf den neuesten Stand an und erfüllt sich, wenn sie gespeichert ist. */
+export type GameLive = (live: (g: Game) => Game) => Promise<void>;
+
 /**
  * FR-E04, FR-E05, FR-E09: nach dem Teilen das Spiel wieder live schalten, die fehlende Mannschaft hinzufügen und das
- * Spiel sofort melden. Liefert den Hinweis zur Mannschaft (oder null).
+ * Spiel sofort melden. Liefert den Hinweis zur Mannschaft (oder null). Der Live-Schalter geht auf den neuesten Stand
+ * des Spiels (das Teilen-Menü kann lange offen sein), und gemeldet wird erst, wenn er gespeichert ist.
  */
-async function afterLive(
-  action: QuickAction,
-  game: Game | null,
-  onGameLive: (g: Game) => void,
-): Promise<string | null> {
+export async function afterLive(action: QuickAction, game: Game | null, onGameLive: GameLive): Promise<string | null> {
   if (action.kind !== 'share') return null;
-  if (action.makeLive && game) onGameLive(setLive(game, true));
+  if (action.makeLive && game) await onGameLive((g) => setLive(g, true)).catch(() => undefined);
   let team = action.team;
   if (team?.kind === 'add') {
     const label = team.label;
@@ -62,8 +62,8 @@ export interface QuickHost {
   settings: Settings;
   /** Aktuelles Spiel (im Spiel dieses, auf dem Startbildschirm das hinter "Spiel fortsetzen"). */
   game: Game | null;
-  /** Spiel wieder live senden (im Spiel über den Spielbildschirm, sonst speichern). */
-  onGameLive: (g: Game) => void;
+  /** Spiel wieder live senden (im Spiel über den Spielbildschirm, sonst frisch aus dem Speicher). */
+  onGameLive: GameLive;
   /** Ergebnis des Teilens und Hinweise; leer: nichts zeigen. */
   onMsg: (text: string) => void;
   /** Ohne Live-Spieltag: Blatt "Eltern live zuschauen lassen" öffnen. */
@@ -92,7 +92,7 @@ type Done = { kind: 'started' | 'coupled'; live: LiveSpieltag; failed: boolean }
 interface SheetProps {
   settings: Settings;
   game: Game | null;
-  onGameLive: (g: Game) => void;
+  onGameLive: GameLive;
   onSettings: (s: Settings) => void;
   onClose: () => void;
 }
@@ -323,7 +323,11 @@ export function StartLive({
   // Spec 018 FR-002: gekoppelt (nicht neu ausgestellt) oder ein Zuschauer-Link ist bekannt.
   const follow = active ? live : !live ? settings.liveView : undefined;
   const quick = quickAction(settings, open);
-  const onGameLive = (g: Game): void => void putGame(g);
+  // FR-E04: neuester gespeicherter Stand des Spiels, nicht der beim Öffnen des Startbildschirms.
+  const onGameLive: GameLive = async (live) => {
+    const g = open ? await getGame(open.id) : undefined;
+    if (g) await putGame(live(g));
+  };
 
   return (
     <>

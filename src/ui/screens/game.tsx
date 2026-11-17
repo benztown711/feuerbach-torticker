@@ -175,14 +175,23 @@ export function GameScreen({ id }: { id: string }) {
     });
   }, [id]);
 
-  /** FR-010: jede Änderung sofort speichern. */
-  const update = (g: Game): void => {
+  /** FR-010: jede Änderung sofort speichern; erfüllt sich, wenn gespeichert ist. */
+  const save = (g: Game): Promise<void> => {
     const before = gameRef.current;
     gameRef.current = g;
     setGame(g);
-    void putGame(g);
     // Spec 017 FR-C21: Korrektur an einem schon geteilten Ergebnis.
     if (before && needsReshare(before, g, players ?? [])) setReshareAt(Date.now());
+    return putGame(g);
+  };
+  const update = (g: Game): void => void save(g);
+  /**
+   * Spec 020 FR-E04, FR-E09: Live-Schalter nach dem Teilen auf den neuesten Stand (z. B. ein inzwischen gemerktes
+   * Signal bleibt) und gespeichert, bevor das Spiel sofort gemeldet wird.
+   */
+  const goLive = async (live: (g: Game) => Game): Promise<void> => {
+    const g = gameRef.current;
+    if (g) await save(live(g));
   };
 
   // Spec 006 FR-L09: Menüeintrag nur, wenn dieses Gerät für die Mannschaft sendet (reagiert auf Start des Senders).
@@ -757,7 +766,7 @@ export function GameScreen({ id }: { id: string }) {
         <quick.ShareSheet
           settings={settings}
           game={cur()}
-          onGameLive={update}
+          onGameLive={goLive}
           onMsg={showMsg}
           onStart={() => setQuickSheet(true)}
           onText={() => void doShareInterim()}
@@ -768,7 +777,7 @@ export function GameScreen({ id }: { id: string }) {
         <quick.LiveStartSheet
           settings={settings}
           game={cur()}
-          onGameLive={update}
+          onGameLive={goLive}
           onSettings={setSettings}
           onClose={() => setQuickSheet(false)}
         />
@@ -780,7 +789,7 @@ export function GameScreen({ id }: { id: string }) {
             <quick.MenuQuick
               settings={settings}
               game={cur()}
-              onGameLive={update}
+              onGameLive={goLive}
               onMsg={showMsg}
               onStart={() => setQuickSheet(true)}
               onClose={() => setMenu(false)}

@@ -305,7 +305,7 @@ export function LiveScreen() {
         <LiveStartSheet
           settings={settings}
           game={null}
-          onGameLive={() => undefined}
+          onGameLive={() => Promise.resolve()}
           onSettings={setSettings}
           onClose={() => setQuick(false)}
         />
