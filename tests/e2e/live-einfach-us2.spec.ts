@@ -2,6 +2,7 @@ import { webcrypto } from 'node:crypto';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test, type Recorded } from './fixtures';
 import {
+  acceptDraw,
   confirmYes,
   ensureTeam,
   forward,
@@ -332,6 +333,7 @@ test('020 US2-S8 Spielmenü: "Eltern live zuschauen lassen", dann "Teilen"; kein
   await page.getByTestId('btn-section-end').click();
   await confirmYes(page);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
+  await acceptDraw(page);
   await page.getByTestId('btn-menu').click();
   await expect(page.getByTestId('menu-live-quick')).toBeVisible();
   await expect(page.getByTestId('menu-share')).toHaveCount(0);
