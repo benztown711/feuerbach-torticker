@@ -23,8 +23,9 @@ import { shareText } from '../../platform/share';
 import { audioReady, playGoalSignal, unlockAudio } from '../../platform/signal';
 import { pointManifestTo } from '../../platform/web-manifest';
 import { ViewerNav } from '../components/viewer-nav';
-import { useGoalAlert, useGoalFlash, useNow } from '../hooks';
+import { useGoalFlash, useNow } from '../hooks';
 import { navigate } from '../router';
+import { useGoalAlert } from '../use-goal-alert';
 import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */

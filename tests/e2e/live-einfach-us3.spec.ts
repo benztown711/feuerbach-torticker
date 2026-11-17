@@ -90,10 +90,11 @@ test('020 US3-S2 Titel zurück: Seite wieder sichtbar, Fokus, 30 Sekunden, weite
   newDevice,
 }) => {
   const { v, goal } = await open(page, recorded, relay, newDevice);
-  // Seite war im Hintergrund, wird wieder sichtbar
-  await visibility(v, 'hidden');
+  // Seite geht in den Hintergrund (die Verbindung wird getrennt, relay.ts) und wird wieder sichtbar
   await goal(1);
   await expect.poll(() => v.title()).toBe('Tor! Feuerbach E1 3:1');
+  await visibility(v, 'hidden');
+  expect(await v.title()).toBe('Tor! Feuerbach E1 3:1');
   await visibility(v, 'visible');
   await expect.poll(() => v.title()).toBe(APP_TITLE);
   // Fenster bekommt den Fokus
