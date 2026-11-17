@@ -471,3 +471,27 @@ export async function recordManifests(p: Page): Promise<void> {
 }
 export const firstManifest = async (p: Page) =>
   unpack(p, (await p.evaluate(() => (window as unknown as { __manifests: string[] }).__manifests))[0] ?? '');
+
+/* ---------- Spec 020 Paket C: Tore mit Torschütze für die Torhinweise ---------- */
+
+/**
+ * E1 in Minute 37 wie `e1At37` (2:1), dazu weitere Tore. `now` ist die Sendezeit; wer später sendet, gibt
+ * `minutesLater` an, damit die Minute zur Zeit passt (die Anpfiffe liegen relativ zu `now`).
+ */
+export function e1WithGoals(extra: GoalSpec[] = [], now = MATCHDAY, minutesLater = 0): Json {
+  return liveSnap({
+    team: 'E1',
+    now,
+    clock: [
+      ['kickoff', 50 + minutesLater, 1],
+      ['sectionEnd', 25 + minutesLater, 1],
+      ['kickoff', 11.2 + minutesLater, 2],
+    ],
+    goals: [
+      { side: 'own', minute: 6, who: 'Max' },
+      { side: 'opp', minute: 12 },
+      { side: 'own', minute: 31, section: 2, who: 'Ben', penalty: true },
+      ...extra,
+    ],
+  });
+}

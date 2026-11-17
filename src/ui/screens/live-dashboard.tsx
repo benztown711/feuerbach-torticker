@@ -6,6 +6,7 @@ import {
   dayKey,
   formatClockTime,
   formatDay,
+  freshnessText,
   planSection,
   type BoardCard,
   type PlanRow,
@@ -19,10 +20,12 @@ import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { shareText } from '../../platform/share';
+import { audioReady, playGoalSignal, unlockAudio } from '../../platform/signal';
 import { pointManifestTo } from '../../platform/web-manifest';
 import { ViewerNav } from '../components/viewer-nav';
 import { useGoalFlash, useNow } from '../hooks';
 import { navigate } from '../router';
+import { useGoalAlert } from '../use-goal-alert';
 import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */
@@ -42,17 +45,10 @@ function Mark({ color }: { color: string | null }) {
   );
 }
 
-function NoSignal({ label }: { label?: string }) {
+/** Funkloch-Symbol, nur Schmuck: der Text daneben trägt die Aussage (Spec 020 FR-E34). */
+function NoSignal() {
   return (
-    <svg
-      class="dash__icon"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      role={label ? 'img' : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : 'true'}
-    >
+    <svg class="dash__icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 20v-3M9 20v-7M14 20v-11M19 20V5M3 3l18 18" />
     </svg>
   );
@@ -66,16 +62,17 @@ function Chevron() {
   );
 }
 
+/** Spec 020 FR-E33: bei bestehender Verbindung ruhig "Aktualisiert sich automatisch" statt "Live · Stand 10:49 Uhr". */
 const STATE_TEXT: Record<RelayState, string> = {
-  live: 'Live',
+  live: 'Aktualisiert sich automatisch',
   connecting: 'Verbinde …',
   offline: 'Keine Verbindung',
 };
 
-/** "Stand" ist die letzte bestätigte Verbindung (Lebenszeichen, Meldung), nicht die Uhrzeit (FR-L15). */
+/** "Stand von" ist die letzte bestätigte Verbindung (Lebenszeichen, Meldung), nicht die Uhrzeit (FR-L15). */
 function statusDetail(relay: RelayState, liveAt: number | null): string {
+  if (relay === 'live') return '';
   const time = liveAt === null ? '' : `${formatClockTime(liveAt)} Uhr`;
-  if (relay === 'live') return time && ` · Stand ${time}`;
   const since = time && ` · Stand von ${time}`;
   return relay === 'offline' ? `${since}. Aktualisiert sich von selbst.` : since;
 }
@@ -96,7 +93,8 @@ function Card({
   const planned = card.group === 'planned';
   const [homeGoals, awayGoals] = planned ? ['', ''] : card.score.split(':');
   const cls = ['dash-card', card.live ? 'dash-card--live' : '', flash ? 'card--flash' : ''].filter(Boolean).join(' ');
-  const stale = card.staleMinutes;
+  // Spec 020 FR-E30 bis FR-E32: Alter der letzten Meldung bzw. ab 5 Minuten die Warnung, nur bei laufendem Spiel.
+  const fresh = card.freshness;
   return (
     <article class={cls} data-testid={`dash-card-${k}`} data-game={card.gameId} data-plan={card.planId ?? undefined}>
       <button
@@ -127,10 +125,28 @@ function Card({
               {card.score}
             </span>
           )}
-          <span class={card.live ? 'dash-card__phase dash-card__phase--live' : 'dash-card__phase'}>
+          <span
+            class={card.live ? 'dash-card__phase dash-card__phase--live' : 'dash-card__phase'}
+            data-testid={`dash-phaseline-${k}`}
+          >
             {card.live && <span class="live-pill__dot" aria-hidden="true" />}
             <span data-testid={`dash-phase-${k}`}>{card.phase}</span>
-            {stale !== null && <NoSignal label={`Letzte Meldung vor ${stale} Minuten`} />}
+            {fresh && fresh.kind !== 'silent' && (
+              <>
+                <span class="dash-card__sep" aria-hidden="true">
+                  {' · '}
+                </span>
+                <span class="dash-card__fresh" data-testid={`dash-fresh-${k}`}>
+                  {freshnessText(fresh)}
+                </span>
+              </>
+            )}
+            {fresh?.kind === 'silent' && (
+              <span class="dash-card__warn" data-testid={`dash-stale-${k}`}>
+                <NoSignal />
+                {freshnessText(fresh)}
+              </span>
+            )}
           </span>
         </span>
         <Chevron />
@@ -163,12 +179,6 @@ function Card({
             </ol>
           ) : (
             <p class="dash-card__info">Noch keine Tore</p>
-          )}
-          {stale !== null && (
-            <p class="dash-card__note" data-testid={`dash-stale-${k}`}>
-              <NoSignal />
-              Letzte Meldung vor {stale} Min · Minute läuft weiter
-            </p>
           )}
           {card.earlier && (
             <p class="dash-card__more" data-testid={`dash-earlier-${k}`}>
@@ -358,6 +368,52 @@ function DashPlan({ section }: { section: PlanSection }) {
   );
 }
 
+/** Spec 020 FR-E25: "Ton bei Toren" auf diesem Gerät merken (nur Eltern-Ansicht); Fehler (privates Surfen) egal. */
+const GOAL_SOUND = 'torticker-goal-sound';
+
+function savedGoalSound(): boolean {
+  try {
+    return window.localStorage.getItem(GOAL_SOUND) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function saveGoalSound(on: boolean): void {
+  try {
+    window.localStorage.setItem(GOAL_SOUND, on ? '1' : '0');
+  } catch {
+    // Speicher gesperrt: der Schalter gilt nur bis zum Neuladen.
+  }
+}
+
+/** Spec 020 FR-E25, FR-E26: Schalter "Ton bei Toren"; gesperrter Ton wird neben dem Schalter genannt. */
+function GoalSound({ on, locked, onToggle }: { on: boolean; locked: boolean; onToggle: () => void }) {
+  return (
+    <div class="dash-sound">
+      <button
+        type="button"
+        class="dash-sound__row"
+        role="switch"
+        aria-checked={on}
+        aria-labelledby="dash-sound-title"
+        data-testid="dash-sound"
+        onClick={onToggle}
+      >
+        <span class="dash-sound__title" id="dash-sound-title">
+          Ton bei Toren
+        </span>
+        <span class="dash-sound__knob" aria-hidden="true" />
+      </button>
+      {locked && (
+        <p class="dash-sound__locked" data-testid="dash-sound-locked">
+          Ton aus · tippen
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function Dashboard({
   view,
   inApp,
@@ -418,6 +474,22 @@ export function Dashboard({
   const lastLabel =
     planned === 0 ? 'ZULETZT' : planned === v.cards.length ? 'ALS NÄCHSTES' : 'ZULETZT UND ALS NÄCHSTES';
   const flash = useGoalFlash(v.cards, now, serverNow);
+  // Spec 020 US3: Tab-Titel und Ansage überall; Vibration und "Ton bei Toren" nur in der Eltern-Ansicht (FR-E27).
+  const parents = !inApp;
+  const [soundOn, setSoundOn] = useState(() => parents && savedGoalSound());
+  const [, refresh] = useState(0);
+  const announcement = useGoalAlert(v.cards, serverNow, { feedback: parents, sound: soundOn });
+  const toggleSound = (): void => {
+    const next = !soundOn;
+    setSoundOn(next);
+    saveGoalSound(next);
+    // Einschalten spielt den Ton einmal zur Probe und schaltet ihn damit frei (FR-E25).
+    if (next) void playGoalSignal().then(() => refresh((n) => n + 1));
+  };
+  // FR-E26: Jede Berührung schaltet einen gesperrten Ton frei (iOS braucht dafür eine Berührung).
+  const unlock = (): void => {
+    if (soundOn && !audioReady()) unlockAudio();
+  };
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const teamsKey = v.teams.join('|');
   useEffect(() => onInfo?.({ title, teams: v.teams }), [title, teamsKey]);
@@ -430,7 +502,13 @@ export function Dashboard({
     });
 
   return (
-    <main class="page dash" data-testid="dashboard" hidden={hidden}>
+    <main
+      class="page dash"
+      data-testid="dashboard"
+      hidden={hidden}
+      onClick={parents ? unlock : undefined}
+      onTouchEnd={parents ? unlock : undefined}
+    >
       <header class="dash__head">
         <img
           class="dash__wappen"
@@ -451,16 +529,24 @@ export function Dashboard({
         data-testid="dash-status"
         data-state={state.relay}
       >
-        {state.relay === 'offline' ? <NoSignal /> : <span class="live-pill__dot" aria-hidden="true" />}
+        {state.relay === 'offline' ? (
+          <NoSignal />
+        ) : (
+          state.relay === 'connecting' && <span class="live-pill__dot" aria-hidden="true" />
+        )}
         <span>
           <span role="status">{STATE_TEXT[state.relay]}</span>
           {statusDetail(state.relay, state.liveAt)}
         </span>
       </div>
+      {parents && <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} />}
+      <div class="visually-hidden" aria-live="polite" aria-atomic="true" data-testid="dash-goal-announce">
+        {announcement}
+      </div>
       {v.retired && (
         <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
           {inApp
-            ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live-Spieltag).`
+            ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live für Eltern → Für Trainer).`
             : `„${title}“ wurde neu ausgestellt. Bitte den neuen Link aus der Elterngruppe öffnen.`}
         </p>
       )}
@@ -502,21 +588,10 @@ export function Dashboard({
       )}
       <DashPlan section={plan} />
       <DashRecent recent={v.recent} />
-      <footer class="dash__foot">
+      <footer class="dash__foot" data-testid="dash-foot">
         {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
-        {!inApp && (
-          <>
-            <p>
-              Nur lesen. Die Stände kommen verschlüsselt von den Handys am Spielfeldrand. Tipp: Seite als Lesezeichen
-              oder auf dem Home-Bildschirm speichern, der Link gilt die ganze Saison.
-            </p>
-            <p>
-              <a class="link-btn" href="#/">
-                Zum Torticker
-              </a>
-            </p>
-          </>
-        )}
+        {/* Spec 020 FR-E40: Eltern-Ansicht ohne Ausgang in die Trainer-App (Weg über die Eltern-Hilfe). */}
+        {parents && <p>Aktualisiert sich von selbst.</p>}
       </footer>
     </main>
   );
@@ -606,7 +681,7 @@ export function AppDashboardScreen() {
       <main class="page dash" data-testid="dashboard-none">
         <p class="dash-empty__text dash__invalid">Noch kein Live-Spieltag auf diesem Handy.</p>
         <button type="button" class="btn btn--secondary" onClick={() => navigate('/live-spieltag')}>
-          Zum Live-Spieltag
+          Zu „Live für Eltern“
         </button>
       </main>
     );

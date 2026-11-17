@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
 import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
-import { sampleDashboard } from './live-helpers';
+import { later, sampleDashboard } from './live-helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -167,6 +167,34 @@ test.describe('020 Paket A: Startbildschirm, Blätter und "Live für Eltern" ohn
       await page.getByTestId('menu-share').click();
       await expect(page.getByTestId('share-sheet')).toBeVisible();
       await axe();
+    });
+  }
+});
+
+test.describe('020 US3 US4 Eltern-Ansicht mit Schalter, Aktualität und Warnung ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Eltern-Ansicht ${scheme === 'light' ? 'hell' : 'dunkel'}: Schalter aus und an, "vor n Min", Warnung`, async ({
+      page,
+      recorded,
+      relay,
+      newDevice,
+    }) => {
+      const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
+      await expect(v.getByTestId('dash-fresh-E1')).toHaveText('gerade aktualisiert');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      await v.getByRole('switch', { name: 'Ton bei Toren' }).click();
+      await later(v, relay, 2 * MIN);
+      await expect(v.getByTestId('dash-fresh-E1')).toHaveText('vor 2 Min aktualisiert');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      await later(v, relay, 5 * MIN);
+      await expect(v.getByTestId('dash-stale-E1')).toHaveText('Seit 7 Min keine Meldung vom Spielfeld');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      // Ton gesperrt nach Rückkehr aus dem Hintergrund: Hinweis neben dem Schalter
+      await v.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+      await expect(v.getByTestId('dash-sound-locked')).toBeVisible();
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
     });
   }
 });

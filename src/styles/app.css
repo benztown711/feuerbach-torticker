@@ -3321,17 +3321,6 @@ body:has(.page:not(.dash, .lead-link)) {
   font-size: 14px;
 }
 
-.dash-card__note {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-rot-hell);
-  color: var(--color-ink);
-  font-size: 13px;
-}
-
 .dash-goals {
   margin: 0;
   padding: 0;
@@ -3398,6 +3387,89 @@ body:has(.page:not(.dash, .lead-link)) {
 
 .dash__invalid {
   padding: var(--space-4);
+}
+
+/* Spec 020 Paket C: Aktualität der Karte, Schalter "Ton bei Toren" */
+.dash-card__fresh {
+  font-weight: 400;
+}
+
+/* Warnung ab 5 Minuten ohne Meldung: eigene Zeile unter der Minute, hervorgehoben wie die Statuszeile ohne Netz */
+.dash-card__warn {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dash-sound {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dash-sound__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-sound__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+/* Wie der Schalter in den Einstellungen, nur als Schmuck innerhalb der ganzen Zeile */
+.dash-sound__knob {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 32px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.dash-sound__knob::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-ink);
+  content: '';
+}
+
+.dash-sound__row[aria-checked='true'] .dash-sound__knob {
+  background: var(--color-ink);
+}
+
+.dash-sound__row[aria-checked='true'] .dash-sound__knob::after {
+  background: var(--color-surface);
+  transform: translateX(24px);
+}
+
+.dash-sound__locked {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-2);
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 @media (prefers-reduced-motion: reduce) {
