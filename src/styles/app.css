@@ -3464,12 +3464,21 @@ body:has(.page:not(.dash, .lead-link)) {
   transform: translateX(24px);
 }
 
+/* FR-E26: eigener Knopf, mindestens 44 pt hoch, schaltet den Ton frei */
 .dash-sound__locked {
+  display: block;
+  min-height: 44px;
   margin: 0;
   padding: 0 var(--space-4) var(--space-2);
+  border: 0;
+  background: transparent;
   color: var(--color-ink);
+  font: inherit;
   font-size: 14px;
   font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

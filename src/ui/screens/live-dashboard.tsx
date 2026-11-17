@@ -387,8 +387,33 @@ function saveGoalSound(on: boolean): void {
   }
 }
 
-/** Spec 020 FR-E25, FR-E26: Schalter "Ton bei Toren"; gesperrter Ton wird neben dem Schalter genannt. */
-function GoalSound({ on, locked, onToggle }: { on: boolean; locked: boolean; onToggle: () => void }) {
+/**
+ * Tipp nur hier verarbeiten, nicht zusätzlich auf der Seite (FR-E26): Sonst schaltet die Berührung den Ton schon
+ * frei, bevor der Klick den Schalter erreicht, und der Schalter ginge aus.
+ */
+const stop = (e: Event): void => e.stopPropagation();
+const only =
+  (fn: () => void) =>
+  (e: Event): void => {
+    stop(e);
+    fn();
+  };
+
+/**
+ * Spec 020 FR-E25, FR-E26: Schalter "Ton bei Toren"; gesperrter Ton steht als Knopf "Ton aus · tippen" darunter. Bei
+ * gesperrtem Ton schaltet auch der Schalter nur frei und bleibt an.
+ */
+function GoalSound({
+  on,
+  locked,
+  onToggle,
+  onUnlock,
+}: {
+  on: boolean;
+  locked: boolean;
+  onToggle: () => void;
+  onUnlock: () => void;
+}) {
   return (
     <div class="dash-sound">
       <button
@@ -398,7 +423,8 @@ function GoalSound({ on, locked, onToggle }: { on: boolean; locked: boolean; onT
         aria-checked={on}
         aria-labelledby="dash-sound-title"
         data-testid="dash-sound"
-        onClick={onToggle}
+        onClick={only(locked ? onUnlock : onToggle)}
+        onTouchEnd={stop}
       >
         <span class="dash-sound__title" id="dash-sound-title">
           Ton bei Toren
@@ -406,9 +432,15 @@ function GoalSound({ on, locked, onToggle }: { on: boolean; locked: boolean; onT
         <span class="dash-sound__knob" aria-hidden="true" />
       </button>
       {locked && (
-        <p class="dash-sound__locked" data-testid="dash-sound-locked">
+        <button
+          type="button"
+          class="dash-sound__locked"
+          data-testid="dash-sound-locked"
+          onClick={only(onUnlock)}
+          onTouchEnd={stop}
+        >
           Ton aus · tippen
-        </p>
+        </button>
       )}
     </div>
   );
@@ -541,7 +573,9 @@ export function Dashboard({
             {statusDetail(state.relay, state.liveAt)}
           </span>
         </div>
-        {parents && <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} />}
+        {parents && (
+          <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} onUnlock={unlock} />
+        )}
         {v.retired && (
           <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
             {inApp

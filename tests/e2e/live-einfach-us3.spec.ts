@@ -381,3 +381,36 @@ test('020 US3-S12 FR-E26 "Ton aus · tippen" verschwindet sofort nach dem Freisc
   await expect(v.getByTestId('dash-sound-locked')).toHaveCount(0);
   await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
 });
+
+test('020 US3-S13 FR-E26 Schalter bleibt an nach Tipp im gesperrten Zustand; "Ton aus · tippen" ist ein Knopf', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const { v, goal, rec } = await open(page, recorded, relay, newDevice);
+  const locked = v.getByTestId('dash-sound-locked');
+  await sound(v).click();
+  await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
+
+  // Tipp auf den Schalter (Berührung wie am Handy): nur freischalten, der Schalter bleibt an, keine Probe
+  await v.reload();
+  await expect(locked).toHaveText('Ton aus · tippen');
+  await sound(v).tap();
+  await expect(locked).toHaveCount(0);
+  await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
+  expect((await rec()).sounds).toBe(0);
+  await goal(1);
+  await expect.poll(async () => (await rec()).sounds).toBe(1);
+
+  // "Ton aus · tippen" ist ein eigener Knopf, mindestens 44 pt hoch, und schaltet ebenso frei
+  await v.reload();
+  const hint = v.getByRole('button', { name: 'Ton aus · tippen' });
+  await expect(hint).toBeVisible();
+  expect((await hint.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await hint.tap();
+  await expect(locked).toHaveCount(0);
+  await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
+  await goal(2);
+  await expect.poll(async () => (await rec()).sounds).toBe(1);
+});

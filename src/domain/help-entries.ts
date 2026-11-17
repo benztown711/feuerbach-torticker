@@ -795,7 +795,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Merke ich, wenn ein Tor fällt?',
     answer:
-      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest. Steht daneben „Ton aus · tippen“, tippe einmal auf die Seite. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
+      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
     keywords:
       'tor ton vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren voiceover screenreader pfiff',
     sources: ['020 US3'],
