@@ -67,12 +67,14 @@ import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
 import { LivePill, useLiveStatus } from '../components/live-pill';
 import { ShootoutView } from '../components/shootout';
-import { ReshareBar } from '../components/reshare-bar';
+import { MessageBand, type BandAction, type BandHint } from '../components/message-band';
+import { useReshareTimer } from '../components/reshare-bar';
+import { Scoreboard } from '../components/scoreboard';
 import { Sheet } from '../components/sheet';
-import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow, usePlayers } from '../hooks';
 import { navigate } from '../router';
 import { teamShortLabel } from '../../domain/history';
+import { messageSlot, type SlotHint, type SlotMessage } from '../../domain/message-slot';
 import { setLive } from '../../domain/live-snapshot';
 import { liveTeamFor, sendingTeamFor } from '../../domain/live-spieltag';
 import { onLiveSettings } from '../../platform/live-events';
@@ -82,6 +84,8 @@ const base = import.meta.env.BASE_URL;
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
+/** Spec 019 FR-A04: so lange steht das Ergebnis der Teilen-Aktion als Hinweis im Meldeband. */
+const SHARE_MSG_MS = 5_000;
 
 /** Spec 003 FR-E05: Schnellwahl für den Kommentar eines Lesezeichens. */
 const QUICK_COMMENTS = ['Ansehen', 'Torchance', 'Abwehr', 'Standard'];
@@ -121,6 +125,8 @@ export function GameScreen({ id }: { id: string }) {
   const [hintUntil, setHintUntil] = useState(0);
   const [players] = usePlayers();
   const [shareMsg, setShareMsg] = useState('');
+  /** Spec 019 FR-A04: Der Teilen-Hinweis ist ein kurzer Hinweis und verschwindet nach SHARE_MSG_MS. */
+  const [shareUntil, setShareUntil] = useState(0);
   const gameRef = useRef<Game | null>(null);
   // Spec 003: Ereignisse (Teil 1: Lesezeichen)
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -134,7 +140,6 @@ export function GameScreen({ id }: { id: string }) {
   const [subDraft, setSubDraft] = useState<SubDraft | null>(null);
   const [evUndo, setEvUndo] = useState<{ id: string; until: number } | null>(null);
   const [evSheet, setEvSheet] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   // Spec 003 FR-P01 bis FR-P03: Pokal
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraMin, setExtraMin] = useState(10);
@@ -145,6 +150,7 @@ export function GameScreen({ id }: { id: string }) {
   const [kitsOpen, setKitsOpen] = useState(false);
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
+  useReshareTimer(reshareAt, () => setReshareAt(0));
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -300,18 +306,23 @@ export function GameScreen({ id }: { id: string }) {
     }
   };
 
+  const showShareResult = (r: string): void => {
+    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+    setShareUntil(Date.now() + SHARE_MSG_MS);
+  };
+
   /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage); Spec 017 FR-C20 merkt es. */
   const doShare = async (): Promise<void> => {
     setReshareAt(0);
     const r = await shareText(buildShareText(cur(), players ?? []));
     if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
-    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+    showShareResult(r);
   };
 
   /** FR-042: Zwischenstand während des Spiels teilen (Fallback Zwischenablage). */
   const doShareInterim = async (): Promise<void> => {
     const r = await shareText(buildShareText(cur(), players ?? [], undefined, Date.now()));
-    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+    showShareResult(r);
   };
 
   const doKickoff = (): void => {
@@ -445,8 +456,91 @@ export function GameScreen({ id }: { id: string }) {
   };
   const showAudioHint = (status === 'running' || status === 'paused') && !audioReady();
 
+  // Spec 019 FR-A01 bis FR-A04: ein Meldeplatz, höchstens eine Meldung und ein Hinweis.
+  const slot = messageSlot({
+    goalUndo: !!undoGoalObj,
+    pickerOpen,
+    markUndo: !!markUndoObj,
+    eventUndo: !!evUndoObj,
+    reshare: reshareAt > 0,
+    handedOver: now < handedUntil,
+    shareResult: !!shareMsg && now < shareUntil,
+    doubleTap: now < hintUntil,
+  });
+  const hints: Record<SlotHint, BandHint> = {
+    handedOver: {
+      testId: 'live-handed-over',
+      text: `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
+    },
+    shareResult: { testId: 'share-result', text: shareMsg },
+    doubleTap: { testId: 'double-tap-hint', text: 'Schon gezählt' },
+  };
+  const bandHint = slot.hint ? hints[slot.hint] : null;
+  const undoAction = (testId: string, onClick: () => void): BandAction => ({
+    label: 'Rückgängig',
+    testId,
+    undo: true,
+    onClick,
+  });
+  /** Je Meldung Testkennung, Text und Knöpfe; null, wenn das zugehörige Objekt gerade fehlt. */
+  const messages: Record<SlotMessage, () => { testId: string; text: string; actions: BandAction[] } | null> = {
+    goal: () =>
+      undoGoalObj
+        ? {
+            testId: 'undo-bar',
+            text: `Tor ${undoGoalObj.side === 'own' ? ownShort : game.opponent} ${formatMinute(undoGoalObj.minute, undoGoalObj.stoppage)} erfasst`,
+            actions: [undoAction('btn-undo', () => doUndo(undoGoalObj.id))],
+          }
+        : null,
+    mark: () =>
+      markUndoObj
+        ? {
+            testId: 'mark-toast',
+            text: `Lesezeichen ${formatMinute(markUndoObj.minute, markUndoObj.stoppage)} gesetzt`,
+            actions: [
+              {
+                label: 'Kommentar',
+                testId: 'mark-comment',
+                onClick: () => {
+                  setMarkUndo(null);
+                  setMarkEdit({ id: markUndoObj.id, value: markUndoObj.comment });
+                },
+              },
+              undoAction('mark-undo', () => {
+                update(removeEvent(cur(), markUndoObj.id));
+                setMarkUndo(null);
+              }),
+            ],
+          }
+        : null,
+    event: () =>
+      evUndoObj
+        ? {
+            testId: 'event-toast',
+            text: `${evUndoObj.kind === 'card' ? cardLabel(evUndoObj.card) : 'Wechsel'} ${formatMinute(evUndoObj.minute, evUndoObj.stoppage)} erfasst`,
+            actions: [
+              undoAction('event-undo', () => {
+                update(removeEvent(cur(), evUndoObj.id));
+                setEvUndo(null);
+              }),
+            ],
+          }
+        : null,
+    reshare: () => ({
+      testId: 'reshare-bar',
+      text: 'Korrigiert. Ergebnis neu teilen?',
+      actions: [{ label: 'Teilen', testId: 'reshare-share', onClick: () => void doShare() }],
+    }),
+  };
+  const msg = slot.message ? messages[slot.message]() : null;
+  const band = msg ? (
+    <MessageBand testId={msg.testId} text={msg.text} actions={msg.actions} hint={bandHint} />
+  ) : bandHint ? (
+    <MessageBand testId="message-band" hint={bandHint} />
+  ) : null;
+
   return (
-    <main class={expanded ? 'game game--expanded' : 'game'} onPointerDown={reArmAudio}>
+    <main class="game" onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>
@@ -485,35 +579,15 @@ export function GameScreen({ id }: { id: string }) {
       </header>
       {watch && <LiveOthers watch={watch} gameId={game.id} team={ownKey} now={now} />}
 
-      <section class="teams" aria-label="Spielstand">
-        <div class="team">
-          <TeamMark colorId={colorOf(homeSide)} />
-          <span class="team__name" data-testid="team-home">
-            {buttonName(homeSide)}
-          </span>
-        </div>
-        {status === 'created' ? (
-          <button
-            type="button"
-            class="icon-btn teams__swap"
-            aria-label="Heim und Gast tauschen"
-            data-testid="btn-swap-venue"
-            onClick={() => update(swapVenue(cur()))}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon">
-              <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />
-            </svg>
-          </button>
-        ) : (
-          <span class="teams__gap" />
-        )}
-        <div class="team team--away">
-          <span class="team__name" data-testid="team-away">
-            {buttonName(awaySide)}
-          </span>
-          <TeamMark colorId={colorOf(awaySide)} />
-        </div>
-      </section>
+      <Scoreboard
+        homeName={buttonName(homeSide)}
+        awayName={buttonName(awaySide)}
+        homeColor={colorOf(homeSide)}
+        awayColor={colorOf(awaySide)}
+        score={`${ha.home} : ${ha.away}`}
+        onSwap={status === 'created' ? () => update(swapVenue(cur())) : undefined}
+      />
+      {shootoutActive && band && <div class="band-dock">{band}</div>}
       {shootoutActive ? (
         <ShootoutView
           game={game}
@@ -527,9 +601,6 @@ export function GameScreen({ id }: { id: string }) {
         />
       ) : (
         <>
-          <div class="score" data-testid="score">
-            {`${ha.home} : ${ha.away}`}
-          </div>
           {game.shootout?.done &&
             (() => {
               const st = shootoutState(game);
@@ -639,16 +710,6 @@ export function GameScreen({ id }: { id: string }) {
             </section>
           )}
 
-          {(game.goals.length > 0 || allEvents.length > 0) && (
-            <button
-              type="button"
-              class="list-grip"
-              data-testid="list-grip"
-              aria-expanded={expanded}
-              aria-label={expanded ? 'Liste einklappen' : 'Liste aufklappen'}
-              onClick={() => setExpanded(!expanded)}
-            />
-          )}
           <GoalList
             game={game}
 
@@ -658,107 +719,25 @@ export function GameScreen({ id }: { id: string }) {
             onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
 
-          <section class="goal-buttons" aria-label="Tore erfassen">
-            {[homeSide, awaySide].map((side) => (
-              <GoalButton
-                key={side}
-                testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-                team={buttonName(side)}
-                colorId={colorOf(side)}
-                dark={dark}
-                disabled={!goalsOpen}
-                onGoal={() => onGoal(side)}
-              />
-            ))}
-          </section>
+          <div class="goal-zone">
+            {band}
+            <section class="goal-buttons" aria-label="Tore erfassen">
+              {[homeSide, awaySide].map((side) => (
+                <GoalButton
+                  key={side}
+                  testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                  team={buttonName(side)}
+                  colorId={colorOf(side)}
+                  dark={dark}
+                  disabled={!goalsOpen}
+                  onGoal={() => onGoal(side)}
+                />
+              ))}
+            </section>
+          </div>
         </>
       )}
 
-      {markUndoObj && !undoGoalObj && (
-        <div class="undo-bar" data-testid="mark-toast" role="status">
-          <span class="undo-bar__text">
-            Lesezeichen {formatMinute(markUndoObj.minute, markUndoObj.stoppage)} gesetzt
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="mark-comment"
-            onClick={() => {
-              setMarkUndo(null);
-              setMarkEdit({ id: markUndoObj.id, value: markUndoObj.comment });
-            }}
-          >
-            Kommentar
-          </button>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="mark-undo"
-            onClick={() => {
-              update(removeEvent(cur(), markUndoObj.id));
-              setMarkUndo(null);
-            }}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      {evUndoObj && !undoGoalObj && !markUndoObj && (
-        <div class="undo-bar" data-testid="event-toast" role="status">
-          <span class="undo-bar__text">
-            {evUndoObj.kind === 'card' ? cardLabel(evUndoObj.card) : 'Wechsel'}{' '}
-            {formatMinute(evUndoObj.minute, evUndoObj.stoppage)} erfasst
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="event-undo"
-            onClick={() => {
-              update(removeEvent(cur(), evUndoObj.id));
-              setEvUndo(null);
-            }}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      {undoGoalObj && !pickerOpen && (
-        <div class="undo-bar" data-testid="undo-bar" role="status">
-          <span class="undo-bar__text">
-            Tor {undoGoalObj.side === 'own' ? ownShort : game.opponent}{' '}
-            {formatMinute(undoGoalObj.minute, undoGoalObj.stoppage)} erfasst
-          </span>
-          <button
-            type="button"
-            class="btn btn--secondary btn--small"
-            data-testid="btn-undo"
-            onClick={() => doUndo(undoGoalObj.id)}
-          >
-            Rückgängig
-          </button>
-        </div>
-      )}
-      <ReshareBar
-        at={reshareAt}
-        hidden={!!(undoGoalObj || markUndoObj || evUndoObj)}
-        onShare={() => void doShare()}
-        onHide={() => setReshareAt(0)}
-      />
-      {shareMsg && (
-        <div class="toast" data-testid="share-result" role="status">
-          {shareMsg}
-        </div>
-      )}
-      {now < hintUntil && (
-        <div class="toast" data-testid="double-tap-hint" role="status">
-          Schon gezählt
-        </div>
-      )}
-      {now < handedUntil && (
-        <div class="toast" data-testid="live-handed-over" role="status">
-          {teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.
-        </div>
-      )}
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
 
       {menu && (

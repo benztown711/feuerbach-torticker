@@ -431,8 +431,6 @@ body:has(.page:not(.dash, .lead-link)) {
 /* ---------- Spielbildschirm ---------- */
 
 .game {
-  --goal-h: clamp(150px, 29dvh, 260px);
-
   position: relative;
   display: flex;
   flex-direction: column;
@@ -493,13 +491,35 @@ body:has(.page:not(.dash, .lead-link)) {
   padding: var(--space-2) var(--space-4) 0;
 }
 
-.teams__gap {
-  width: 0;
-}
-
 .teams__swap {
   width: 40px;
   height: 40px;
+}
+
+/* Spec 019 US2 (FR-A10 bis FR-A13): Anzeigetafel; vor dem Anpfiff der Doppelpfeil unter dem Spielstand. */
+.scoreboard {
+  display: grid;
+  grid-template-areas:
+    'home score away'
+    '. swap .';
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-1);
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.scoreboard__home {
+  grid-area: home;
+}
+
+.scoreboard__away {
+  grid-area: away;
+}
+
+.scoreboard__swap {
+  grid-area: swap;
+  justify-self: center;
 }
 
 .team {
@@ -552,6 +572,17 @@ body:has(.page:not(.dash, .lead-link)) {
   text-align: center;
 }
 
+/* Spec 019 FR-A11 (R-A5): Spielstand der Anzeigetafel im Stil `ergebnis` (Klasse `t-ergebnis` aus tokens.css). */
+.scoreboard__score {
+  grid-area: score;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+  white-space: nowrap;
+
+  /* FR-040 auf dem SE: engere Leerzeichen, damit lange Namen wie "Feuerbach U15-Juniorinnen" in zwei Zeilen passen. */
+  word-spacing: -0.16em;
+}
+
 .clock {
   display: flex;
   flex-direction: column;
@@ -559,13 +590,14 @@ body:has(.page:not(.dash, .lead-link)) {
   flex-shrink: 0;
 }
 
+/* Spec 019 FR-A12: dieselbe Schrift wie der Spielstand, sichtbar kleiner */
 .clock__time {
   padding: 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: 44px;
+  font-size: 40px;
   font-variant-numeric: tabular-nums lining-nums;
   font-weight: 700;
-  line-height: 46px;
+  line-height: 42px;
 }
 
 .clock__time--overtime {
@@ -600,10 +632,18 @@ body:has(.page:not(.dash, .lead-link)) {
   grid-column: 1 / -1;
 }
 
-/* Spec 011 FR-G07: Torliste auf abgesetzter Fläche (design/README.md) */
+/* Spec 019 FR-A20: Knöpfe unter der Uhr sind primäre Schaltflächen (Constitution I: mindestens 64 × 64 pt). */
+.controls .btn {
+  min-width: 64px;
+  min-height: 64px;
+  font-size: 17px;
+}
+
+/* Spec 011 FR-G07: Torliste auf abgesetzter Fläche (design/README.md).
+   Spec 019 FR-A23, FR-A24 (R-A3): Die Liste behält mindestens zwei Zeilen; den Rest teilt sie mit den Tor-Knöpfen. */
 .goal-list {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: calc(2 * 48px + 2px);
   margin: var(--space-2) var(--space-4) 0;
   padding: 0 var(--space-2);
   overflow-y: auto;
@@ -634,6 +674,12 @@ body:has(.page:not(.dash, .lead-link)) {
   line-height: 22px;
   text-align: left;
   cursor: pointer;
+}
+
+/* Spec 019 FR-A21: Torzeilen im Spiel mindestens 48 pt hoch. */
+.game .goal-row {
+  align-items: center;
+  min-height: 48px;
 }
 
 .goal-row__minute {
@@ -886,9 +932,9 @@ body:has(.page:not(.dash, .lead-link)) {
 .goal-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-  height: var(--goal-h);
-  flex-shrink: 0;
+  gap: calc(var(--space-2) + var(--space-1));
+  box-sizing: border-box;
+  height: 100%;
   padding: var(--space-2) var(--space-4) var(--space-4);
 }
 
@@ -936,7 +982,6 @@ body:has(.page:not(.dash, .lead-link)) {
 .toast {
   position: absolute;
   right: var(--space-4);
-  bottom: calc(var(--goal-h) + var(--space-1));
   left: var(--space-4);
   z-index: 5;
   display: flex;
@@ -951,7 +996,6 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 .toast {
-  bottom: calc(var(--goal-h) + 56px);
   font-weight: 700;
 }
 
@@ -959,6 +1003,102 @@ body:has(.page:not(.dash, .lead-link)) {
   flex-grow: 1;
   font-size: 14px;
   line-height: 18px;
+}
+
+/* Spec 019 FR-A01 bis FR-A04 (R-A2): Tor-Knöpfe und Meldeband teilen sich einen Bereich;
+   das Band liegt direkt über den Tor-Knöpfen auf dem unteren Teil der Torliste. */
+.goal-zone {
+  position: relative;
+
+  /* Spec 019 FR-A23 (R-A3): bis ein Drittel der Höhe, schrumpft bei Platzmangel bis auf 150 pt hohe Knöpfe. */
+  flex: 0 1 33dvh;
+  min-height: calc(150px + var(--space-2) + var(--space-4));
+}
+
+/* Elfmeterschießen: keine Tor-Knöpfe; das Band legt sich unter die Anzeigetafel, nie über "Treffer"/"Verschossen". */
+.band-dock {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  height: 0;
+}
+
+/* Spec 019 FR-A05: Meldeband in der Umkehrung des Grundes (wie der Hauptknopf), siehe design/README.md. */
+.band {
+  position: absolute;
+  right: var(--space-4);
+  bottom: 100%;
+  left: var(--space-4);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  min-height: 72px;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+
+.band__body {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-1) 0;
+}
+
+.band__text {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.band__hint {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.band__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.band__icon {
+  stroke-width: 2.5;
+}
+
+/* Zwei Knöpfe (Lesezeichen): Text über die ganze Breite, Knöpfe teilen sich die zweite Zeile, damit das Band
+   auf dem SE nicht über die Torliste hinaus bis zur Ereignis-Zeile wächst. */
+.band--stack .band__body {
+  flex-basis: 100%;
+}
+
+.band--stack .band__btn {
+  flex: 1 1 0;
+}
+
+.band-dock .band {
+  top: var(--space-2);
+  bottom: auto;
 }
 
 .signal-flash {
@@ -2321,39 +2461,6 @@ body:has(.page:not(.dash, .lead-link)) {
   background: var(--color-surface-alt);
   font-size: 16px;
   font-weight: 700;
-}
-
-.list-grip {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  width: 64px;
-  height: 18px;
-  margin: var(--space-1) 0 calc(-1 * var(--space-2));
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.list-grip::before {
-  width: 40px;
-  height: 6px;
-  border: 1px solid var(--color-line);
-  background: var(--color-surface-alt);
-  content: '';
-}
-
-.list-grip[aria-expanded='true']::before {
-  border-color: var(--color-ink-muted);
-  background: var(--color-ink-muted);
-}
-
-.game--expanded .controls,
-.game--expanded .event-row {
-  display: none;
 }
 
 .sheet__row {

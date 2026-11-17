@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import tokens from '../../design/tokens.json' with { type: 'json' };
 import type { DesignTokens } from '../../scripts/tokens-to-css';
-import { PAIRS, contrastRatio, checkContrast } from '../../scripts/check-contrast';
+import { PAIRS, contrastRatio, checkContrast, type Pair } from '../../scripts/check-contrast';
 
 describe('T011 SC-006 Kontrastmatrix', () => {
   it('berechnet Kontraste nach WCAG 2.x', () => {
@@ -23,6 +23,14 @@ describe('T011 SC-006 Kontrastmatrix', () => {
         'on-rot/rot-tief',
       ]),
     );
+  });
+
+  it('019 FR-A05 enthält die Paare des Meldebands (Text, Knopf, Fläche gegen Torliste und Grund)', () => {
+    const band = (fg: string, bg: string): Pair | undefined =>
+      PAIRS.find((p) => p.fg === fg && p.bg === bg && p.where.includes('Meldeband'));
+    expect(band('surface', 'ink')?.min).toBe(4.5);
+    expect(band('ink', 'surface')?.min).toBe(4.5);
+    expect(band('ink', 'surface-alt')?.min).toBeGreaterThanOrEqual(3);
   });
 
   it('Spec 011 SC-G01 enthält die Paare der Karten, Grundfläche, ruhigen Knöpfe und Felder', () => {

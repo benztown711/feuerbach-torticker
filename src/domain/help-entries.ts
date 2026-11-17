@@ -144,13 +144,23 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['neues-spiel', 'spielplan', 'spielplan-fehlt'],
   },
   {
+    id: 'spielbildschirm',
+    topic: 'spiel',
+    title: 'Was zeigt der Spielbildschirm?',
+    answer:
+      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
+    keywords: 'übersicht anzeigetafel spielstand uhr torliste knöpfe aufbau band meldung',
+    sources: ['019 US2', '019 US3'],
+    related: ['tor', 'tor-entfernen', 'uhr-anhalten'],
+  },
+  {
     id: 'tor',
     topic: 'spiel',
     title: 'Wie erfasse ich ein Tor?',
     answer:
-      'Ein Tipp auf den großen Knopf der Mannschaft, die getroffen hat. Die Minute wird automatisch festgehalten. Danach öffnet sich die Auswahl für den Torschützen; das geht auch später.',
-    keywords: 'tor zählen treffer knopf erfassen eintragen',
-    sources: ['001 US1'],
+      'Ein Tipp auf den großen Knopf der Mannschaft, die getroffen hat. Die Minute wird automatisch festgehalten. Danach öffnet sich die Auswahl für den Torschützen; das geht auch später. Tippst du aus Versehen zweimal, zählt das Tor nur einmal, und im dunklen Band über den Tor-Knöpfen steht „Schon gezählt“.',
+    keywords: 'tor zählen treffer knopf erfassen eintragen zweimal doppelt schon gezählt',
+    sources: ['001 US1', '019 US1'],
     related: ['tor-entfernen', 'torschuetze', 'uhr-anhalten'],
   },
   {
@@ -158,9 +168,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie entferne ich ein Tor?',
     answer:
-      'Direkt nach dem Tor tippst du auf „Rückgängig“. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Tor entfernen“. Es bleibt durchgestrichen in der Liste und lässt sich mit „Tor wiederherstellen“ zurückholen.',
-    keywords: 'löschen falsch verklickt aberkennen zurücknehmen rückgängig wiederherstellen',
-    sources: ['001 US1', '017 US1'],
+      'Direkt nach dem Tor erscheint 10 Sekunden lang ein dunkles Band direkt über den Tor-Knöpfen; tippe dort auf „Rückgängig“. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Tor entfernen“. Es bleibt durchgestrichen in der Liste und lässt sich mit „Tor wiederherstellen“ zurückholen.',
+    keywords: 'löschen falsch verklickt aberkennen zurücknehmen rückgängig wiederherstellen band',
+    sources: ['001 US1', '017 US1', '019 US1'],
     related: ['tor', 'torschuetze'],
   },
   {
