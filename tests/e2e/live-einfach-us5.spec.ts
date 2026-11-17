@@ -1,7 +1,17 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes, readStored } from './helpers';
-import { createLive, e1At37, manifestOf, MATCHDAY, onMatchday, openViewer, pasteLink, sendAs } from './live-helpers';
+import {
+  createLive,
+  e1At37,
+  manifestOf,
+  MATCHDAY,
+  onMatchday,
+  openTrainerSection,
+  openViewer,
+  pasteLink,
+  sendAs,
+} from './live-helpers';
 
 /**
  * Spec 020 US5: Eltern-Ansicht ohne Ausgang in die Trainer-App. Fußzeile "Aktualisiert sich von selbst.", Weg für
@@ -126,12 +136,6 @@ test('020 US5-S5 Dashboard in der App: Fußzeile unverändert, ohne den Eltern-S
   await expect(page.getByText('Aktualisiert sich von selbst.')).toHaveCount(0);
 });
 
-/** Klappt "Für Trainer" auf, falls es die Seite so gibt (Paket A, Spec 020 US2). */
-async function revealTrainerArea(p: Page): Promise<void> {
-  const toggle = p.getByTestId('live-trainer-toggle');
-  if ((await toggle.count()) > 0 && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
-}
-
 test('020 US5-S6 FR-E42 Texte in der App: Hinweis bei neu ausgestelltem Live-Spieltag und ohne Live-Spieltag', async ({
   page,
   recorded,
@@ -143,7 +147,7 @@ test('020 US5-S6 FR-E42 Texte in der App: Hinweis bei neu ausgestelltem Live-Spi
   const b = await newDevice();
   await pasteLink(b, old.trainer);
   await page.goto('./#/live-spieltag');
-  await revealTrainerArea(page);
+  await openTrainerSection(page);
   await page.getByTestId('btn-live-reissue').click();
   await confirmYes(page);
   await expect(page.getByTestId('live-reissued')).toBeVisible();
