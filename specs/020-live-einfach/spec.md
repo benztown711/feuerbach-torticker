@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-17
 
-**Status**: Entwurf. Entscheidungen von Atti vorab gesetzt (17.11.2026, Freigabe der Umsetzung nach dem Nutzertest), daher keine Clarify-Fragen; die Entscheidungen stehen unter "Clarifications". Mockup (Schritt 4) und Review B offen. Umsetzung in zwei parallelen Paketen: Paket A (Trainer, US1 und US2) und Paket C (Zuschauer, US3 bis US5), siehe `plan.md` und `tasks.md`.
+**Status**: Entwurf. Entscheidungen von Atti vorab gesetzt (17.11.2026, Freigabe der Umsetzung nach dem Nutzertest), daher keine Clarify-Fragen; die Entscheidungen stehen unter "Clarifications". Mockup/Review B: auf Wunsch von Atti übersprungen, Prüfung in Review C über Screenshots. Umsetzung in zwei parallelen Paketen: Paket A (Trainer, US1 und US2) und Paket C (Zuschauer, US3 bis US5), siehe `plan.md` und `tasks.md`.
 
 **Input**: Nutzertest vom 17.11.2026 mit fünf Personas (Trainer am Spielfeldrand, Turnier-Trainer, Oma als Zuschauerin, Elternteil im Büro, Nutzer mit VoiceOver) und Atti (17.11.2026): Umsetzung freigegeben, nur bei echter Unsicherheit fragen.
 
@@ -30,10 +30,16 @@ Gesichtet am 17.11.2026 im Code und im Nutzertest:
 - Q: Wird der Live-Spieltag erst mitten im Spiel angelegt? → A: Dann geht das laufende Spiel automatisch live.
 - Ziel: Link für die Eltern in unter 30 Sekunden ohne Vorwissen, höchstens 2 Tipps bis zum Teilen-Menü.
 - Q: Live-Seite? → A: Oben als einziger Hauptknopf "Link für Eltern teilen". Trainer-Link, Spielplan, Mannschaften, "Alle Links neu ausstellen", Beenden usw. stehen eingeklappt unter "Für Trainer". Navigationseintrag und Titel heißen "Live für Eltern" statt "Live-Spieltag". "Kopplung" verschwindet aus den sichtbaren Texten der Hauptansicht; in der eingeklappten Verwaltung heißt es "Live beenden" statt "Kopplung beenden".
-- Q: Teilen im Spiel? → A: Ein gemeinsames "Teilen" mit zwei Wegen: "Live-Link für Eltern" und "Stand als Text". Nach dem Schlusspfiff bleibt "Ergebnis teilen" als direkter Knopf, öffnet aber dasselbe Blatt mit "Stand als Text" als erster Möglichkeit.
+- Q: Teilen im Spiel? → A: Ein gemeinsames "Teilen" mit zwei Wegen: "Live-Link für Eltern" und "Stand als Text". ~~Nach dem Schlusspfiff bleibt "Ergebnis teilen" als direkter Knopf, öffnet aber dasselbe Blatt mit "Stand als Text" als erster Möglichkeit.~~ (geändert durch die Präzisierung 2026-11-17 unten)
 - Q: Hinweis bei Toren für Zuschauer? → A: Bei offener Seite: Tab-Titel "Tor! <Mannschaft> <Stand>", kurzes Vibrieren, wo das Gerät es kann, Ansage für Screenreader und ein Schalter "Ton bei Toren" (Standard aus, auf dem Gerät gemerkt, spielt den Signalton aus Spec 008). Web Push (Spec 007 US4) diese Saison nicht.
 - Q: Status? → A: Je Karte in Klartext "gerade aktualisiert" bzw. "vor X Min aktualisiert", ab 5 Minuten ohne Meldung bei laufendem Spiel "Seit X Min keine Meldung vom Spielfeld". In der Halbzeitpause und nach Spielende keine Warnung. Die Kopfzeile nennt nur bei Verbindungsproblemen einen Hinweis, sonst "Aktualisiert sich automatisch". Ersetzt Spec 006 FR-L15 (Teil Status) und US3-S7.
 - Q: Eltern-Ansicht? → A: Link "Zum Torticker" entfällt; der Weg für Eltern, die selbst trainieren, steht als Eintrag in der Eltern-Hilfe. Fußzeile nur noch "Aktualisiert sich von selbst."
+
+### Präzisierung 2026-11-17 (Product Owner, vor der Umsetzung von Paket A)
+
+- **"Ergebnis teilen" bleibt ein Tipp**: Nach dem Schlusspfiff teilt "Ergebnis teilen" unter der Uhr den Ergebnis-Text direkt wie bisher (Spec 001 FR-011, Spec 017 FR-C20), ohne Blatt. Das neue Blatt "Teilen" mit "Live-Link für Eltern" und "Stand als Text" ersetzt nur "Zwischenstand teilen" im Spielmenü während des Spiels (vom Anpfiff bis zum Schlusspfiff, auch in Pausen, wie bisher "Zwischenstand teilen"). Nach dem Schlusspfiff gibt es im Spielmenü kein "Teilen"; der Live-Link ist dort über "Eltern live zuschauen lassen" erreichbar. Geändert: US2 (Erzählung, Independent Test, S8 bis S10), FR-E18, FR-E19, Hilfe `ergebnis-teilen` (unverändert).
+- **Mockup und Review B**: auf Wunsch von Atti übersprungen; Prüfung in Review C über Screenshots iPhone hell und dunkel.
+- **Blatt nach "Neu starten"**: Hat das Teilen geklappt (oder wurde es abgebrochen), zeigt das Blatt "Fertig. „<Titel>“ ist live." und "Link für Eltern teilen" (zum erneuten Teilen); klappt es nicht, "Fertig. Jetzt den Link teilen." (FR-E08). In beiden Fällen folgt der Hinweis auf den Trainer-Link.
 
 ### Session 2026-11-17 (Präzisierungen beim Spezifizieren)
 
@@ -74,11 +80,11 @@ Bens Vater betreut heute die E2. Kurz nach dem Anpfiff fragt die Elterngruppe in
 
 ### User Story 2 - Live-Seite aufgeräumt, ein gemeinsames Teilen (Priority: P2)
 
-Leos Mutter tickert zum ersten Mal und öffnet "Mehr" → "Live für Eltern". Oben steht nur ein großer Knopf "Link für Eltern teilen"; alles für Trainer ist unter "Für Trainer" eingeklappt. Im Spiel findet sie unter "…" ein "Teilen" mit zwei Wegen: "Live-Link für Eltern" und "Stand als Text". Nach dem Schlusspfiff tippt sie wie gewohnt auf "Ergebnis teilen" und wählt "Stand als Text".
+Leos Mutter tickert zum ersten Mal und öffnet "Mehr" → "Live für Eltern". Oben steht nur ein großer Knopf "Link für Eltern teilen"; alles für Trainer ist unter "Für Trainer" eingeklappt. Im Spiel findet sie unter "…" ein "Teilen" mit zwei Wegen: "Live-Link für Eltern" und "Stand als Text". Nach dem Schlusspfiff tippt sie wie gewohnt auf "Ergebnis teilen", und das Teilen-Menü öffnet sich direkt mit dem Ergebnis (Präzisierung 2026-11-17).
 
 **Why this priority**: Weniger Fehlbedienung und weniger Fachwörter; baut auf US1 auf, ist aber ohne US1 nutzbar (die Seite und das Teilen im Spiel funktionieren für sich).
 
-**Independent Test**: Trainer-Handy mit Live-Spieltag; "Mehr" → "Live für Eltern": genau ein Hauptknopf, "Für Trainer" eingeklappt, kein "Kopplung" sichtbar. Im laufenden Spiel "…" → "Teilen" → "Stand als Text" teilt den Zwischenstand; nach dem Schlusspfiff öffnet "Ergebnis teilen" dasselbe Blatt mit "Stand als Text" oben.
+**Independent Test**: Trainer-Handy mit Live-Spieltag; "Mehr" → "Live für Eltern": genau ein Hauptknopf, "Für Trainer" eingeklappt, kein "Kopplung" sichtbar. Im laufenden Spiel "…" → "Teilen" → "Stand als Text" teilt den Zwischenstand; nach dem Schlusspfiff teilt "Ergebnis teilen" direkt wie bisher.
 
 **Acceptance Scenarios**:
 
@@ -89,9 +95,9 @@ Leos Mutter tickert zum ersten Mal und öffnet "Mehr" → "Live für Eltern". Ob
 5. **Given** die Seite aus Szenario 2 eingeklappt, **Then** kommen in den sichtbaren Texten die Wörter "Kopplung" und "Zuschauer-Link" nicht vor, und es gibt genau einen Hauptknopf.
 6. **Given** "Für Trainer" ist offen, **When** "Live beenden …" getippt wird, **Then** fragt die App "Live beenden?" mit "Dieses Handy sendet dann nichts mehr an „Unser Spieltag“. Die Spiele bleiben auf dem Handy." und "Beenden"; danach erscheint "Live beendet. Dieses Handy sendet nichts mehr." (Verhalten wie Spec 006 US5-S2).
 7. **Given** ein Handy ohne Live-Spieltag, **When** "Live für Eltern" öffnet, **Then** stehen oben ein Satz, was Eltern sehen, der einzige Hauptknopf "Link für Eltern teilen" (öffnet das Blatt aus US1-S5) und die Karte "WAS DAS HANDY VERLÄSST"; eingeklappt unter "Für Trainer" folgen "Trainer-Link einfügen" und darunter "Live-Spieltag anlegen" (Titel und Mannschaften selbst wählen) mit dem Hinweis "Nur einmal für alle Mannschaften. Gibt es schon einen, füge den Trainer-Link ein."
-8. **Given** ein laufendes Spiel, **When** im Spielmenü "…" getippt wird, **Then** stehen oben "Eltern live zuschauen lassen" (US1) und "Teilen"; "Zwischenstand teilen" gibt es nicht mehr. **When** "Teilen" getippt wird, **Then** erscheint das Blatt "Teilen" mit "Live-Link für Eltern" (Unterzeile "Eltern sehen Stand und Minute live") und darunter "Stand als Text" (Unterzeile "Zwischenstand für WhatsApp").
+8. **Given** ein laufendes Spiel (auch in der Pause), **When** im Spielmenü "…" getippt wird, **Then** stehen oben "Eltern live zuschauen lassen" (US1) und "Teilen"; "Zwischenstand teilen" gibt es nicht mehr. Vor dem Anpfiff und nach dem Schlusspfiff gibt es kein "Teilen" (Präzisierung 2026-11-17). **When** "Teilen" getippt wird, **Then** erscheint das Blatt "Teilen" mit "Live-Link für Eltern" (Unterzeile "Eltern sehen Stand und Minute live") und darunter "Stand als Text" (Unterzeile "Zwischenstand für WhatsApp").
 9. **Given** das Blatt "Teilen" aus Szenario 8, **When** "Stand als Text" getippt wird, **Then** öffnet sich das Teilen-Menü mit dem Zwischenstand-Text wie bisher (Spec 001 FR-042, Spec 005 US4); **When** stattdessen "Live-Link für Eltern" getippt wird, **Then** verhält sich die App wie "Eltern live zuschauen lassen" (US1-S3 bis US1-S10).
-10. **Given** ein beendetes Spiel, **When** unter der Uhr "Ergebnis teilen" getippt wird, **Then** erscheint dasselbe Blatt "Teilen" mit "Stand als Text" (Unterzeile "Ergebnis für WhatsApp") als erster Möglichkeit und "Live-Link für Eltern" darunter; "Stand als Text" teilt den Ergebnis-Text wie bisher und merkt sich das Teilen (Spec 017 FR-C20).
+10. **Given** ein beendetes Spiel, **When** unter der Uhr "Ergebnis teilen" getippt wird, **Then** öffnet sich das Teilen-Menü direkt mit dem Ergebnis-Text wie bisher, ohne Blatt, und das Spiel merkt sich das Teilen (Spec 001 FR-011, Spec 017 FR-C20; Präzisierung 2026-11-17).
 11. **Given** ein beendetes, schon geteiltes Spiel wird korrigiert, **When** im Band "Korrigiert. Ergebnis neu teilen?" "Teilen" getippt wird, **Then** öffnet sich das Teilen-Menü direkt mit dem Ergebnis-Text, ohne das Blatt (Spec 017 FR-C22 unverändert); ebenso "Ergebnis teilen" in den Spieldetails.
 
 ---
@@ -203,8 +209,8 @@ Toms Mutter scrollt in der Eltern-Ansicht nach unten. Dort steht nur noch "Aktua
 - **FR-E15**: Ohne Live-Spieltag MUSS die Seite zeigen: gegebenenfalls "Dashboard „<Titel>“ ansehen" (gemerkter Zuschauer-Link, wie bisher), "Eltern sehen eure Spiele live: Stand, Minute und Tore, ohne App und ohne Konto.", den einzigen Hauptknopf "Link für Eltern teilen" (öffnet das Blatt aus FR-E06), die Karte "WAS DAS HANDY VERLÄSST" (unverändert) und eingeklappt "Für Trainer" mit "Trainer-Link einfügen", darunter "Live-Spieltag anlegen" und dem Hinweis "Nur einmal für alle Mannschaften. Gibt es schon einen, füge den Trainer-Link ein." (ändert Spec 012 FR-S05, die Reihenfolge Einfügen vor Anlegen bleibt).
 - **FR-E16**: Ein Lead-Handy der ersten Version (ohne Trainer-Link) MUSS oben "Link für Eltern teilen" als Hauptknopf, die Karte "DIESES HANDY SENDET LIVE" und "Dashboard ansehen" zeigen, unter "Für Trainer" "Link einfügen" und "Live beenden …". Ein neu ausgestelltes Handy (Spec 006 US5-S3) bleibt wie bisher, nur mit "Live beenden …".
 - **FR-E17**: Außerhalb von "Für Trainer" DÜRFEN die sichtbaren Texte der Seite die Wörter "Kopplung" und "Zuschauer-Link" nicht enthalten. "Kopplung beenden …" MUSS "Live beenden …" heißen; Rückfrage "Live beenden?" mit "Dieses Handy sendet dann nichts mehr an „<Titel>“. Die Spiele bleiben auf dem Handy." und "Beenden"; Meldung danach "Live beendet. Dieses Handy sendet nichts mehr." Das Verhalten bleibt Spec 006 FR-L20.
-- **FR-E18**: Im Spielmenü "…" MUSS "Zwischenstand teilen" durch "Teilen" ersetzt werden, direkt unter "Eltern live zuschauen lassen", sichtbar ab dem ersten Anpfiff (auch nach dem Schlusspfiff). "Teilen" öffnet das Blatt "Teilen" mit zwei großen Knöpfen (mindestens 64 pt hoch): "Live-Link für Eltern" (Unterzeile "Eltern sehen Stand und Minute live", Verhalten wie FR-E04 bis FR-E10) und "Stand als Text" (Unterzeile "Zwischenstand für WhatsApp", nach dem Schlusspfiff "Ergebnis für WhatsApp"). Vor dem Schlusspfiff steht "Live-Link für Eltern" oben, danach "Stand als Text". "Stand als Text" teilt vor dem Schlusspfiff den Zwischenstand (Spec 001 FR-042, Spec 005 US4), danach das Ergebnis (Spec 001 FR-011) und merkt sich dann das Teilen (Spec 017 FR-C20).
-- **FR-E19**: "Ergebnis teilen" unter der Uhr (Spec 019 FR-A20) MUSS bleiben und das Blatt "Teilen" mit "Stand als Text" oben öffnen. Direkt teilen weiter: "Teilen" im Band "Korrigiert. Ergebnis neu teilen?" (Spec 017 FR-C22) und "Ergebnis teilen" in den Spieldetails (Spec 001 FR-038).
+- **FR-E18**: Im Spielmenü "…" MUSS "Zwischenstand teilen" durch "Teilen" ersetzt werden, direkt unter "Eltern live zuschauen lassen", sichtbar wie bisher "Zwischenstand teilen" vom ersten Anpfiff bis zum Schlusspfiff (Uhr läuft, angehalten oder Pause; Präzisierung 2026-11-17). "Teilen" öffnet das Blatt "Teilen" mit zwei großen Knöpfen (mindestens 64 pt hoch): oben "Live-Link für Eltern" (Unterzeile "Eltern sehen Stand und Minute live", Verhalten wie FR-E04 bis FR-E10), darunter "Stand als Text" (Unterzeile "Zwischenstand für WhatsApp"), der den Zwischenstand teilt (Spec 001 FR-042, Spec 005 US4).
+- **FR-E19**: "Ergebnis teilen" unter der Uhr (Spec 019 FR-A20) MUSS bleiben und wie bisher mit einem Tipp den Ergebnis-Text teilen (Spec 001 FR-011) und sich das Teilen merken (Spec 017 FR-C20), ohne Blatt (Präzisierung 2026-11-17). Ebenso direkt teilen weiter: "Teilen" im Band "Korrigiert. Ergebnis neu teilen?" (Spec 017 FR-C22) und "Ergebnis teilen" in den Spieldetails (Spec 001 FR-038).
 
 **Torhinweis bei offener Seite (US3, Paket C)**
 
@@ -252,7 +258,7 @@ Einträge in `src/domain/help-entries.ts`; Bezeichnungen wörtlich wie in der Ap
 | `live-anlegen` "Wie richte ich einen Live-Spieltag ein?" | geändert: schnellster Weg "Eltern live zuschauen lassen" → "Neu starten"; Titel und Mannschaften selbst wählen unter "Mehr" → "Live für Eltern" → "Für Trainer" → "Live-Spieltag anlegen"; "Link für Eltern teilen" statt "Zuschauer-Link"; Knopf "Live für Eltern öffnen" | 006 US1, 012 US1, 016 US1, 020 US1 |
 | `live-senden` "Woran sehe ich, dass mein Spiel live gesendet wird?" | geändert: ergänzt "„Eltern live zuschauen lassen“ schaltet ein Spiel, das auf „Nicht live senden“ steht, wieder ein." | 006 US2, 020 US1 |
 | `zwischenstand` "Wie teile ich den Zwischenstand während des Spiels?" | geändert: "…" → "Teilen" → "Stand als Text"; "Live-Link für Eltern" im selben Blatt | 005 US4, 020 US2 |
-| `ergebnis-teilen` "Wie teile ich das Ergebnis in WhatsApp?" | geändert: ergänzt "Direkt nach dem Schlusspfiff: „Ergebnis teilen“, dann „Stand als Text“." | 001 US4, 005 US1, 005 US5, 017 US3, 020 US2 |
+| `ergebnis-teilen` "Wie teile ich das Ergebnis in WhatsApp?" | unverändert ("Ergebnis teilen" bleibt ein Tipp, Präzisierung 2026-11-17) | 001 US4, 005 US1, 005 US5, 017 US3 |
 | `kopplung-beenden` "Wie höre ich auf, live zu senden?" | geändert: "„Mehr“ → „Live für Eltern“ → „Für Trainer“ → „Live beenden …“"; Knopf "Live für Eltern öffnen" | 006 US5, 020 US2 |
 | `navigation` "Wo finde ich was?" | geändert: "Mehr" für "Kader, Einstellungen, Live für Eltern und diese Hilfe" | 001 FR-037, 011 US3, 018 US1, 020 US2 |
 | `trainer-kader`, `spiele-verfolgen`, `live-verwalten`, `spielplan`, `spiel-vormerken`, `spielplan-liste`, `spielplan-fehlt`, `links-neu`, `trainer-link` | geändert: Wege "„Mehr“ und „Live-Spieltag“" werden zu "„Mehr“, „Live für Eltern“ und „Für Trainer“" (auch in den Schritten); Knopf "Live-Spieltag öffnen" wird "Live für Eltern öffnen"; Quellen unverändert | wie bisher |
@@ -279,7 +285,7 @@ Kein Eintrag entfällt. Die Eltern-Hilfe hat danach neun Einträge (bisher sechs
 
 ## Assumptions
 
-- Grundlage ist der Nutzertest vom 17.11.2026; Atti hat die Entscheidungen vorab gesetzt. Ein Mockup (Schritt 4) folgt vor der Umsetzung, sofern Atti es nicht ausdrücklich überspringt.
+- Grundlage ist der Nutzertest vom 17.11.2026; Atti hat die Entscheidungen vorab gesetzt. Mockup (Schritt 4) und Review B hat Atti übersprungen (Präzisierung 2026-11-17); geprüft wird in Review C über Screenshots.
 - Das Trainer-Handy sendet während eines laufenden oder pausierten Spiels alle 3 Minuten ein Lebenszeichen (Spec 006 R-L3); "vor X Min aktualisiert" liegt damit im Normalfall zwischen 0 und 3 Minuten, die Warnung ab 5 Minuten ist ein echtes Zeichen.
 - Vibration gibt es in Safari auf dem iPhone nicht (Constitution, Technische Rahmenbedingungen); Chrome auf Android vibriert erst, nachdem die Seite einmal berührt wurde (research.md R-E4).
 - Der Tab-Titel hilft vor allem am Rechner (Elternteil im Büro); auf dem iPhone hält Safari Seiten im Hintergrund an.
