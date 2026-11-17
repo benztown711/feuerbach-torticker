@@ -73,9 +73,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'start',
     title: 'Wo finde ich was?',
     answer:
-      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, zum Übernehmen oder um die Spiele zu verfolgen, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live-Spieltag und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück. Wo du gerade bist, zeigt die rote Marke über dem Eintrag.',
+      'Unten stehen immer drei Einträge: „Spiel“ für das laufende oder ein neues Spiel, zum Übernehmen oder um die Spiele zu verfolgen, „Historie“ für alle bisherigen Spiele und „Mehr“ für Kader, Einstellungen, Live für Eltern und diese Hilfe. Läuft ein Spiel, zeigt „Spiel“ die Minute und führt direkt zurück. Wo du gerade bist, zeigt die rote Marke über dem Eintrag.',
     keywords: 'menü navigation leiste unten übersicht reiter wo bin ich',
-    sources: ['001 FR-037', '011 US3', '018 US1'],
+    sources: ['001 FR-037', '011 US3', '018 US1', '020 US2'],
     related: ['neues-spiel', 'historie', 'hilfe-suche'],
   },
   {
@@ -368,9 +368,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     id: 'zwischenstand',
     topic: 'teilen',
     title: 'Wie teile ich den Zwischenstand während des Spiels?',
-    answer: 'Tippe im Spiel oben rechts auf „…“ und dann auf „Zwischenstand teilen“. Der Text nennt Stand und Minute.',
-    keywords: 'zwischenstand halbzeitstand whatsapp teilen während',
-    sources: ['005 US4'],
+    answer:
+      'Tippe im Spiel oben rechts auf „…“, dann auf „Teilen“ und „Stand als Text“. Der Text nennt Stand und Minute. Im selben Blatt teilt „Live-Link für Eltern“ den Link, mit dem die Eltern live zuschauen.',
+    keywords: 'zwischenstand halbzeitstand whatsapp teilen während stand als text',
+    sources: ['005 US4', '020 US2'],
     related: ['ergebnis-teilen', 'live-anlegen'],
   },
   {
@@ -569,7 +570,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     keywords:
       'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
     sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'trainer-kader', 'live-senden'],
   },
   {
@@ -618,7 +619,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele, wenn ein anderer Trainer tickert?',
     answer:
-      'Auf dem Startbildschirm „Spiele verfolgen“ antippen. Du siehst das Dashboard wie die Eltern: laufende Spiele mit Stand und Minute, die nächsten Spiele und „Letzte Spiele“. Mit „Spiel“ unten kommst du zurück. Links teilen, Mannschaften und Spielplan verwaltest du weiter unter „Mehr“ und „Live-Spieltag“.',
+      'Auf dem Startbildschirm „Spiele verfolgen“ antippen. Du siehst das Dashboard wie die Eltern: laufende Spiele mit Stand und Minute, die nächsten Spiele und „Letzte Spiele“. Mit „Spiel“ unten kommst du zurück. Links teilen, Mannschaften und Spielplan verwaltest du weiter unter „Mehr“, „Live für Eltern“ und „Für Trainer“.',
     keywords:
       'zusehen zuschauen verfolgen ergebnisse dashboard spielstand nicht tickern kollege trainer startbildschirm',
     sources: ['018 US1'],
@@ -639,10 +640,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie ändere ich Titel oder Mannschaften des Live-Spieltags?',
     answer:
-      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung. Die Spiele der Saison trägst du unter „Spielplan“ ein.',
+      'Unter „Mehr“, „Live für Eltern“ und „Für Trainer“ tippst du auf „Titel ändern“ oder „Mannschaft hinzufügen“; mit „Entfernen“ nimmst du eine Mannschaft heraus. Link für Eltern und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Änderung, sobald sie das nächste Mal Stände empfangen. Ändern zwei Trainer gleichzeitig, gilt die jüngste Änderung. Die Spiele der Saison trägst du unter „Spielplan“ ein.',
     keywords: 'titel ändern umbenennen mannschaft hinzufügen entfernen e3 neue mannschaft verwalten',
     sources: ['006 US5', '015 US1'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'links-neu', 'spielplan'],
   },
   {
@@ -650,16 +651,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie trage ich den Spielplan ein?',
     answer:
-      'Unter „Mehr“, „Live-Spieltag“ und „Spielplan“ tippst du auf „Spiel hinzufügen“. Wähle Mannschaft, Datum, Anstoß, Gegner, Heim oder Auswärts, Wettbewerb und Spielzeit; Pflichtfelder sind mit * markiert; Anstoß, Gegner und Wettbewerb dürfen leer bleiben. Alle Trainer-Handys mit Trainer-Link bekommen den Plan automatisch und dürfen ihn ändern. Fällt ein Spiel aus, tippst du es an und wählst „Abgesagt“. Vergangene Spiele stehen unten unter „Vergangene Spiele“.',
+      'Unter „Mehr“, „Live für Eltern“, „Für Trainer“ und „Spielplan“ tippst du auf „Spiel hinzufügen“. Wähle Mannschaft, Datum, Anstoß, Gegner, Heim oder Auswärts, Wettbewerb und Spielzeit; Pflichtfelder sind mit * markiert; Anstoß, Gegner und Wettbewerb dürfen leer bleiben. Alle Trainer-Handys mit Trainer-Link bekommen den Plan automatisch und dürfen ihn ändern. Fällt ein Spiel aus, tippst du es an und wählst „Abgesagt“. Vergangene Spiele stehen unten unter „Vergangene Spiele“.',
     steps: [
-      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Mehr“, „Live für Eltern“, „Für Trainer“, „Spielplan“ öffnen.',
       '„Spiel hinzufügen“ tippen und die Angaben eintragen.',
       '„Speichern“ tippen. Zum Ändern, Absagen oder Löschen das Spiel antippen.',
     ],
     keywords:
       'spielplan spiele saison termine plan gegner datum anstoß uhrzeit heim auswärts wettbewerb abgesagt absage leistungsliga kreisstaffel',
     sources: ['015 US1'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['spielplan-liste', 'live-verwalten', 'live-anlegen'],
   },
   {
@@ -669,14 +670,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei.',
     steps: [
-      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Mehr“, „Live für Eltern“, „Für Trainer“, „Spielplan“ öffnen.',
       'Das Spiel antippen und „Ich tickere“ wählen.',
       '„Ja, ich tickere“ tippen.',
     ],
     keywords:
       'vormerken tickern lead handy wer tickert übernehmen zuständig ankündigen reservieren startbildschirm heute tickerst du name vergeben',
     sources: ['015 US6'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['spielplan', 'spiel-aus-plan'],
   },
   {
@@ -686,14 +687,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     answer:
       'Unter „Spielplan“ tippst du auf „Liste einfügen“ und setzt eine Liste ein, eine Zeile je Spiel, z. B. „So 15.11. 10:00 E1 auswärts SV Beispielhausen (Leistungsliga, 3×25)“. Anstoß, Wettbewerb und Spielzeit dürfen fehlen; „?“ heißt Gegner offen. Die Vorschau zeigt, was erkannt wurde; fehlerhafte Zeilen bleiben draußen. Steht ein Spiel schon im Plan (gleiche Mannschaft, gleicher Tag, gleicher Gegner), wird es aktualisiert; ein Spiel mit „?“ bekommt so seinen Gegner. „Spielplan teilen“ gibt dieselbe Liste aus, z. B. für die Elterngruppe.',
     steps: [
-      '„Mehr“, „Live-Spieltag“, „Spielplan“ öffnen.',
+      '„Mehr“, „Live für Eltern“, „Für Trainer“, „Spielplan“ öffnen.',
       '„Liste einfügen“ tippen, die Liste einsetzen und „Weiter“ tippen.',
       'Vorschau prüfen, dann „Spiele übernehmen“ tippen.',
     ],
     keywords:
       'liste einfügen kopieren einsetzen whatsapp text fussball.de import mehrere spiele saison hinrunde teilen elterngruppe',
     sources: ['015 US4'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['spielplan', 'spielplan-fehlt'],
   },
   {
@@ -704,7 +705,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'Der Spielplan kommt über den Dienst des Live-Spieltags. Er hebt die Änderungen auf, und jedes Trainer-Handy holt sie beim Öffnen, auch nach Tagen. Fehlt trotzdem ein Spiel, hat das Handy, auf dem es eingetragen wurde, vermutlich noch kein Netz gehabt: Dort einmal den Torticker mit Netz öffnen. Schneller geht es mit „Spielplan teilen“ auf einem Handy mit vollständigem Plan und „Liste einfügen“ auf deinem. Zur Not legst du das Spiel unter „Neues Spiel“ von Hand an.',
     keywords: 'fehlt nicht da verschwunden leer abgleich synchron aktualisieren anderes handy',
     sources: ['015 FR-P07', '007 US2'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['spielplan-liste', 'spielplan', 'spiel-aus-plan'],
   },
   {
@@ -712,10 +713,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Was tue ich, wenn ein Link in falsche Hände geraten ist?',
     answer:
-      'Tippe unter „Mehr“ und „Live-Spieltag“ auf „Alle Links neu ausstellen …“. Schick den neuen Zuschauer-Link an die Elterngruppe und den neuen Trainer-Link an eure Trainergruppe. Handys mit dem alten Trainer-Link senden nichts mehr und bitten um den neuen; wer den alten Zuschauer-Link öffnet, sieht einen Hinweis. Das gilt auch, wenn jemand die Trainergruppe verlässt.',
+      'Tippe unter „Mehr“, „Live für Eltern“ und „Für Trainer“ auf „Alle Links neu ausstellen …“. Schick den neuen Link für Eltern an die Elterngruppe und den neuen Trainer-Link an eure Trainergruppe. Handys mit dem alten Trainer-Link senden nichts mehr und bitten um den neuen; wer den alten Link für Eltern öffnet, sieht einen Hinweis. Das gilt auch, wenn jemand die Trainergruppe verlässt.',
     keywords: 'link falsch weitergeleitet geleakt sicherheit neu ausstellen trainer verlässt gruppe',
     sources: ['006 US5'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-verwalten', 'trainer-link'],
   },
   {
@@ -723,10 +724,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie höre ich auf, live zu senden?',
     answer:
-      'Unter „Mehr“ und „Live-Spieltag“ tippst du auf „Kopplung beenden …“. Dein Handy sendet dann nichts mehr; deine Spiele bleiben in der Historie. Die anderen Trainer-Handys und das Dashboard laufen weiter. Einzelne Spiele nimmst du im Spiel über „…“ und „Nicht live senden“ aus.',
-    keywords: 'kopplung beenden aufhören live senden abmelden ausschalten handy',
-    sources: ['006 US5'],
-    open: { label: 'Live-Spieltag', path: '/live-spieltag' },
+      'Unter „Mehr“, „Live für Eltern“ und „Für Trainer“ tippst du auf „Live beenden …“. Dein Handy sendet dann nichts mehr; deine Spiele bleiben in der Historie. Die anderen Trainer-Handys und das Dashboard laufen weiter. Einzelne Spiele nimmst du im Spiel über „…“ und „Nicht live senden“ aus.',
+    keywords: 'kopplung beenden live beenden aufhören live senden abmelden ausschalten handy',
+    sources: ['006 US5', '020 US2'],
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-senden', 'trainer-link'],
   },
   {
