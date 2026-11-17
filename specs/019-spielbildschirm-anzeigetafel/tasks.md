@@ -44,7 +44,7 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 - [x] T021 [P] [US2] E2E `tests/e2e/spielbildschirm-us2.spec.ts`: 019 US2-S7 (langer Gegnername rechts: höchstens zwei Zeilen, Bildvergleich der Anzeigetafel zeigt "…"); Referenzbilder aus der CI
 - [x] T022 [US3] `src/styles/app.css`: `.event-row__btn` mindestens 64 hoch (FR-A25), macht T020 grün
 - [x] T023 [US2] `src/styles/app.css`: `.team__name` mit sichtbarem Überlauf und senkrechtem Zuschnitt (`clip-path`), damit Chromium das "…" bei rechtsbündigen Namen nicht wegschneidet (FR-A15)
-- [ ] T024 `npm run check`, betroffene E2E lokal, Design-Kurzcheck, Screenshots an Atti
+- [x] T024 `npm run check`, betroffene E2E lokal, Design-Kurzcheck, Screenshots an Atti
 
 ## Dependencies
 
