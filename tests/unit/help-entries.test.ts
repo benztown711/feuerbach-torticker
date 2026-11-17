@@ -53,14 +53,14 @@ describe('010 FR-H08 FR-H09 Inhalte', () => {
     }
   });
 
-  it('"Öffnen" führt zu einem Bildschirm der App (FR-H10)', () => {
-    const paths = new Set(['/neu', '/kader', '/historie', '/einstellungen', '/live-spieltag']);
+  it('"Öffnen" führt zu einem Bildschirm der App (FR-H10, 020 FR-E41: auch zum Startbildschirm "/")', () => {
+    const paths = new Set(['/', '/neu', '/kader', '/historie', '/einstellungen', '/live-spieltag']);
     const withOpen = HELP_ENTRIES.filter((e) => e.open);
     expect(withOpen.length).toBeGreaterThan(5);
     for (const e of withOpen) expect(paths.has(e.open?.path ?? ''), e.id).toBe(true);
   });
 
-  it('Einträge für Eltern: Dashboard, Letzte Spiele, Home-Bildschirm, Teilen, Keine Verbindung, Datenschutz (FR-H16, 007 US3)', () => {
+  it('Einträge für Eltern: Dashboard, Letzte Spiele, Home-Bildschirm, Teilen, Verbindung, Tor-Hinweis, Meldung, Selbst trainieren, Datenschutz (FR-H16, 007 US3, 020 US3 bis US5)', () => {
     const parents = HELP_ENTRIES.filter((e) => e.parents).map((e) => e.title);
     expect(parents).toEqual([
       'Wie verfolge ich die Spiele als Elternteil?',
@@ -68,11 +68,15 @@ describe('010 FR-H08 FR-H09 Inhalte', () => {
       'Wie lege ich den Spieltag auf den Home-Bildschirm?',
       'Wie teile ich den Spieltag mit Familie und Freunden?',
       'Was bedeutet „Keine Verbindung“?',
+      'Merke ich, wenn ein Tor fällt?',
+      'Was bedeutet „keine Meldung vom Spielfeld“?',
+      'Ich trainiere selbst. Wo finde ich den Torticker?',
       'Welche Daten verlassen mein Handy?',
     ]);
-    // Eltern-Einträge verweisen nur auf andere Eltern-Einträge und haben keinen "Öffnen"-Knopf
+    // Eltern-Einträge verweisen nur auf andere Eltern-Einträge; "Öffnen" hat nur "Ich trainiere selbst" (FR-E41)
     for (const e of HELP_ENTRIES.filter((x) => x.parents)) {
-      expect(e.open, e.id).toBeUndefined();
+      if (e.id === 'selbst-trainieren') expect(e.open).toEqual({ label: 'Torticker', path: '/' });
+      else expect(e.open, e.id).toBeUndefined();
       for (const r of e.related ?? []) expect(byId.get(r)?.parents, `${e.id} → ${r}`).toBe(true);
     }
   });
