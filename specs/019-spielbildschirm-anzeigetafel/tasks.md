@@ -38,6 +38,14 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 - [x] T018 Visuelle Referenzbilder des Spielbildschirms aus dem CI-Artefakt übernehmen (R-A4); Verdacht "veraltet" geprüft: nicht bestätigt (CI nach US1 grün)
 - [ ] T019 `/code-review`, `/security-review`, Design-Check (Skill `design-check`, Ziel Spielbildschirm, SC-A06), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in `spec.md`
 
+## Phase 6: Folgeänderung aus Review C (17.11.2026)
+
+- [x] T020 [P] [US3] E2E `tests/e2e/spielbildschirm-us3.spec.ts`: 019 US3-S6 (Ereignis-Knöpfe ≥ 64 hoch; auf 375 × 667 mit allen Schaltern kein Seiten-Scroll, zwei Torzeilen, Tor-Knöpfe ≥ 150); zuerst rot
+- [x] T021 [P] [US2] E2E `tests/e2e/spielbildschirm-us2.spec.ts`: 019 US2-S7 (langer Gegnername rechts: höchstens zwei Zeilen, Bildvergleich der Anzeigetafel zeigt "…"); Referenzbilder aus der CI
+- [x] T022 [US3] `src/styles/app.css`: `.event-row__btn` mindestens 64 hoch (FR-A25), macht T020 grün
+- [x] T023 [US2] `src/styles/app.css`: `.team__name` mit sichtbarem Überlauf und senkrechtem Zuschnitt (`clip-path`), damit Chromium das "…" bei rechtsbündigen Namen nicht wegschneidet (FR-A15)
+- [x] T024 `npm run check`, betroffene E2E lokal, Design-Kurzcheck, Screenshots an Atti
+
 ## Dependencies
 
 - Phase 1 vor allen User Stories (T002 für US1, T003 für FR-A05).

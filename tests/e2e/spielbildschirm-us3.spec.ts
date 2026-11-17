@@ -121,6 +121,26 @@ test.describe('019 US3 Große Knöpfe, ruhige Torliste', () => {
     expect(goal.y + goal.height).toBeLessThanOrEqual(667);
   });
 
+  test('019 US3-S6 Ereignis-Knöpfe mindestens 64 hoch; iPhone SE passt weiter', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await enable(page, 'cards', 'subs', 'marks');
+    await newGame(page);
+    await page.getByTestId('btn-kickoff').click();
+    await forward(page, MIN);
+    await goals(page, 3);
+    for (const id of ['btn-event-card', 'btn-event-sub', 'btn-event-mark']) {
+      expect((await box(page.getByTestId(id))).height).toBeGreaterThanOrEqual(64);
+    }
+    await noPageScroll(page);
+    const list = await box(page.getByTestId('goal-list'));
+    const rows = page.locator('[data-testid^="goal-row-"]');
+    for (let i = 0; i < 2; i++) {
+      const r = await box(rows.nth(i));
+      expect(r.y + r.height).toBeLessThanOrEqual(list.y + list.height + 1);
+    }
+    expect((await box(page.getByTestId('btn-goal-own'))).height).toBeGreaterThanOrEqual(150);
+  });
+
   test('019 US3-S5 größeres iPhone: Tor-Knöpfe etwa ein Drittel der Höhe, mindestens 150, Abstand 12', async ({
     page,
   }) => {

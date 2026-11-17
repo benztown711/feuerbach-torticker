@@ -534,10 +534,13 @@ body:has(.page:not(.dash, .lead-link)) {
   text-align: right;
 }
 
-/* FR-040: höchstens zwei Zeilen, erst danach "…" */
+/* FR-040: höchstens zwei Zeilen, erst danach "…". Spec 019 FR-A15: Chromium zeichnet das "…" bei rechtsbündigen
+   Namen außerhalb der Box und `overflow: hidden` schneidet es weg; daher sichtbarer Überlauf und nur senkrecht
+   zuschneiden (die dritte Zeile bleibt verborgen, das "…" sichtbar). */
 .team__name {
   display: -webkit-box;
-  overflow: hidden;
+  overflow: visible;
+  clip-path: inset(0 -1em);
   font-size: 15px;
   font-weight: 700;
   line-height: 20px;
@@ -746,7 +749,9 @@ body:has(.page:not(.dash, .lead-link)) {
 .event-row__btn {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 40px;
+
+  /* Spec 019 FR-A25: wie alle Live-Aktionen mindestens 64 pt (Constitution I) */
+  min-height: 64px;
   padding: 0 var(--space-2);
   font-size: 15px;
   white-space: nowrap;

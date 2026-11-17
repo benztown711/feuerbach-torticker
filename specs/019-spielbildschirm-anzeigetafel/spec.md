@@ -31,6 +31,10 @@ Gesichtet am 07.11.2026 (Design-Check mit Messung auf iPhone 393 × 659 und iPho
   - Auf dem iPhone SE hat die Torliste Vorrang vor größeren Tor-Knöpfen: mindestens zwei Torzeilen bleiben sichtbar, auch mit Ereignis-Zeile.
   - Vor dem Anpfiff steht der Doppelpfeil "Heim und Gast tauschen" unter dem Spielstand in der Anzeigetafel.
 
+### Session 2026-11-17 (Review C)
+
+- Q: Zwei offene Punkte aus dem Design-Check als kleine Folgeänderung umsetzen (Ereignis-Knöpfe 64 pt, "…" bei langen Namen)? → A: "ja". Folge: FR-A15, FR-A25, US2-S7, US3-S6; die Annahme "Ereignis-Knöpfe behalten ihre Höhe" entfällt.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Rückgängig sicher treffen (Priority: P1)
@@ -68,6 +72,7 @@ Eine Mutter kommt zur zweiten Halbzeit dazu und fragt "Wie steht's?". Ein Blick 
 4. **Given** ein noch nicht angepfiffenes Spiel, **Then** steht der Doppelpfeil "Heim und Gast tauschen" unter dem Spielstand und tauscht wie bisher; nach dem Anpfiff entfällt er.
 5. **Given** ein zweistelliger Spielstand (10:9), **Then** passt er auf dem iPhone SE in eine Zeile neben beide Namen.
 6. **Given** ein Elfmeterschießen läuft, **Then** bleibt die Anzeigetafel mit dem Spielstand nach der regulären Spielzeit oben stehen; darunter folgt die Ansicht des Elfmeterschießens wie bisher.
+7. **Given** ein Gegnername, der rechts neben dem Spielstand mehr als zwei Zeilen bräuchte ("SpVgg Musterstadt-Großdorf II"), **Then** endet die zweite Zeile sichtbar mit "…", genau wie links bei der Heim-Mannschaft.
 
 ---
 
@@ -86,6 +91,7 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 3. **Given** Tore und Ereignisse in der Torliste, **Then** gibt es keinen Griff zum Aufklappen mehr; Uhr-Knöpfe und Ereignis-Zeile bleiben immer sichtbar; mehr Einträge als Platz scrollen innerhalb der Liste.
 4. **Given** iPhone SE (375 × 667 pt), **When** das Spiel läuft und "Karte", "Wechsel" und "Lesezeichen" eingeschaltet sind, **Then** ist der Bildschirm ohne Seiten-Scroll bedienbar und die Torliste zeigt mindestens zwei Zeilen vollständig (FR-033).
 5. **Given** ein iPhone mit mehr Höhe als das SE, **Then** wachsen die Tor-Knöpfe bis etwa ein Drittel der Bildschirmhöhe, der Abstand zwischen Heim und Gast beträgt 12 pt; sie sind nie kleiner als 150 pt hoch.
+6. **Given** "Karte", "Wechsel" und "Lesezeichen" sind eingeschaltet, **Then** sind die Knöpfe der Ereignis-Zeile mindestens 64 pt hoch; auf dem iPhone SE gilt weiter FR-A24 (kein Seiten-Scroll, zwei Torzeilen, Tor-Knöpfe mindestens 150 pt).
 
 ---
 
@@ -119,6 +125,7 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 - **FR-A11**: Der Spielstand MUSS im Stil `ergebnis` aus `design/tokens.json` stehen (64 px, Display-Schrift, fett, gleich breite Ziffern) und darf nie verkleinert, umbrochen oder abgeschnitten werden; bei Platzmangel weichen die Namen.
 - **FR-A12**: Die Uhr MUSS unter der Anzeigetafel in derselben Display-Schrift stehen, sichtbar kleiner als der Spielstand (etwa 40 px), mit gleich breiten Ziffern; Beschriftung und Farben (Restzeit, Nachspielzeit, Aufblinken bei Signal) wie bisher.
 - **FR-A13**: Vor dem ersten Anpfiff MUSS der Knopf "Heim und Gast tauschen" (Doppelpfeil, mindestens 44 × 44 pt) unter dem Spielstand stehen; nach dem Anpfiff entfällt er wie bisher.
+- **FR-A15**: Namen in der Anzeigetafel MÜSSEN nach zwei Zeilen sichtbar mit "…" enden, links wie rechts (FR-040); kein Name darf ohne "…" abgeschnitten wirken.
 - **FR-A14**: Während eines Elfmeterschießens MUSS die Anzeigetafel mit dem Spielstand nach regulärer Spielzeit stehen bleiben; Ergebnis "i. E." und Ansicht des Elfmeterschießens folgen darunter wie bisher.
 
 **Knöpfe und Torliste (US3)**
@@ -127,6 +134,7 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 - **FR-A21**: Jede Zeile der Torliste auf dem Spielbildschirm MUSS mindestens 48 pt hoch sein.
 - **FR-A22**: Der Griff zum Aufklappen der Torliste MUSS entfallen (ersetzt die Klärung "Griff klappt die Torliste über die Uhr-Knöpfe auf" zu Spec 003 FR-E06). Uhr-Knöpfe und Ereignis-Zeile sind immer sichtbar; die Torliste scrollt in sich (FR-034).
 - **FR-A23**: Die Tor-Knöpfe MÜSSEN den übrigen Platz nutzen, bis höchstens etwa ein Drittel der Bildschirmhöhe, mindestens 150 pt hoch; Abstand zwischen Heim und Gast 12 pt. Vorrang hat FR-A24.
+- **FR-A25**: Die Knöpfe der Ereignis-Zeile ("Karte", "Wechsel", "Lesezeichen") MÜSSEN mindestens 64 pt hoch sein (Constitution I; ersetzt bei Spec 003 FR-E09 "behalten die Höhe der bisherigen Zeile"). Breite und Anordnung bleiben wie in FR-E09.
 - **FR-A24**: Auf 375 × 667 pt (iPhone SE) MUSS der Spielbildschirm in jedem Zustand ohne Seiten-Scroll bedienbar sein (FR-033) und die Torliste mindestens zwei Zeilen vollständig zeigen, auch wenn alle drei Ereignis-Schalter an sind.
 
 **Unverändert**
@@ -145,7 +153,7 @@ Keine neuen Daten. Betroffen sind nur Darstellung und Anordnung des Spielbildsch
 | `tor-entfernen` "Wie entferne ich ein Tor?" | geändert: "Rückgängig" steht im dunklen Band direkt über den Tor-Knöpfen | 001 US1, 017 US1, 019 US1 |
 | `tor` "Wie erfasse ich ein Tor?" | geändert: Doppeltipp zählt nur einmal, im Band steht dann "Schon gezählt" | 001 US1, 019 US1 |
 
-Kein Eintrag entfällt; der Griff hatte keinen eigenen Hilfe-Eintrag.
+Kein Eintrag entfällt; der Griff hatte keinen eigenen Hilfe-Eintrag. FR-A15 und FR-A25 (Review C) ändern weder Bedienung noch Wortlaut und brauchen keinen weiteren Eintrag.
 
 ## Success Criteria *(mandatory)*
 
@@ -162,7 +170,7 @@ Kein Eintrag entfällt; der Griff hatte keinen eigenen Hilfe-Eintrag.
 ## Assumptions
 
 - Grundlage ist das freigegebene Mockup (Variante "Empfehlung"); Abweichungen im Detail (Abstände, genaue Uhrgröße) folgen den Tokens aus `design/tokens.json`.
-- Die Knöpfe der Ereignis-Zeile ("Karte", "Wechsel", "Lesezeichen") behalten ihre Höhe (Spec 003 FR-E09); sie sind keine primären Aktionen.
+- Die Knöpfe der Ereignis-Zeile ("Karte", "Wechsel", "Lesezeichen") werden seit Review C (17.11.2026) ebenfalls 64 pt hoch (FR-A25); auf dem iPhone SE werden die Tor-Knöpfe dadurch kleiner, bleiben aber mindestens 150 pt.
 - Die Mannschaftsnamen bleiben in der bisherigen Größe (15 px fett) statt `zwischentitel`, damit Spielstand und Namen auf dem iPhone SE in eine Zeile passen.
 - Der "…"-Knopf oben rechts (44 × 44 pt) und die Navigationsleiste (FR-037) bleiben unverändert.
 - Die visuellen Referenzbilder (`tests/e2e/visual.spec.ts-snapshots/`) werden im Playwright-Image der CI neu erzeugt; lokal weicht die Schrift ab. Der Verdacht aus dem Design-Check (07.11.2026), die Referenzen für "Spiel läuft" seien veraltet, hat sich nicht bestätigt: Der Vergleich lief am 16.11.2026 in allen Profilen grün; zarte Flächen wie `surface-alt` auf `surface` und der Griff liegen unter der Toleranz des Bildvergleichs.
