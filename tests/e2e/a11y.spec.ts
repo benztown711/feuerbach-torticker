@@ -122,3 +122,51 @@ test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
     });
   }
 });
+
+test.describe('020 Paket A: Startbildschirm, Blätter und "Live für Eltern" ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Eltern live zuschauen lassen, Teilen und Live für Eltern ${scheme === 'light' ? 'hell' : 'dunkel'}`, async ({
+      page,
+      recorded,
+      relay,
+    }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const axe = async (): Promise<void> => {
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      };
+      // Mannschaft E1 und ein angelegtes Spiel (Startbildschirm mit "Spiel fortsetzen").
+      await newGame(page, { ownTeam: 'Sportvg Feuerbach E1' });
+      await page.goto('./');
+      await expect(page.getByTestId('start-live-quick')).toBeVisible();
+      await axe();
+      await page.getByTestId('start-live-quick').click();
+      await expect(page.getByTestId('live-start-sheet')).toBeVisible();
+      await axe();
+      await page.getByTestId('live-start-new').click();
+      await expect(page.getByTestId('live-start-done')).toBeVisible();
+      await axe();
+      await expect.poll(async () => (await recorded()).shares.length).toBe(1);
+      await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+
+      await page.goto('./#/live-spieltag');
+      await page.reload();
+      await expect(page.getByTestId('live-trainer-toggle')).toHaveAttribute('aria-expanded', 'false');
+      await axe();
+      await page.getByTestId('live-trainer-toggle').click();
+      await expect(page.getByTestId('live-trainer')).toBeVisible();
+      await axe();
+
+      await page.goto('./');
+      await page.getByTestId('btn-continue').click();
+      await page.getByTestId('btn-kickoff').click();
+      await page.getByTestId('btn-menu').click();
+      await expect(page.getByTestId('menu-live-quick')).toBeVisible();
+      await axe();
+      await page.getByTestId('menu-share').click();
+      await expect(page.getByTestId('share-sheet')).toBeVisible();
+      await axe();
+    });
+  }
+});
