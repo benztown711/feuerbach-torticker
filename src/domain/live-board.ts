@@ -24,8 +24,13 @@ import type { LiveConfig, PlanEntry, Schema, Score, Side, TeamDetail } from './t
  * gehende Uhren auf beiden Seiten die Minute nicht verfälschen.
  */
 
-/** FR-L15: Ab so langer Funkstille bei laufendem Spiel zeigt die Karte "Letzte Meldung vor n Min". */
+/**
+ * Spec 020 FR-E31: Ab so langer Funkstille bei laufendem Spiel zeigt die Karte "Seit n Min keine Meldung vom
+ * Spielfeld" (ersetzt FR-L15, "mehr als" ist jetzt "ab"); darunter steht das Alter der letzten Meldung.
+ */
 export const STALE_MS = 5 * 60_000;
+/** Spec 020 FR-E30: unter so langer Stille gilt der Stand als "gerade aktualisiert". */
+const FRESH_MS = 60_000;
 /** Spec 007 FR-N13: je Mannschaft so viele frühere Spiele (wie der Dienst, R-N10). */
 export const RECENT_PER_TEAM = 10;
 /** Obergrenzen, damit der gemerkte Stand klein bleibt (6 Mannschaften mit je 10 früheren und den heutigen Spielen). */
@@ -238,7 +243,14 @@ export interface GoalLine {
   /** Stand nach dem Tor, Heim:Gast. */
   score: string;
   who: string;
+  /** Spec 020 FR-E22: Name der Mannschaft, die getroffen hat (wie auf der Karte). */
+  team: string;
+  /** Spec 020 FR-E23: übertragener Torschütze, bei einem Eigentor "Eigentor", sonst `null`. */
+  scorer: string | null;
 }
+
+/** Spec 020 FR-E30, FR-E31: wie frisch der Stand eines laufenden Spiels ist. */
+export type Freshness = { kind: 'fresh' } | { kind: 'age'; minutes: number } | { kind: 'silent'; minutes: number };
 
 export interface BoardCard {
   key: string;
@@ -261,7 +273,10 @@ export interface BoardCard {
   shootout: string | null;
   /** Neuestes zuerst. */
   goals: GoalLine[];
+  /** Nur für "<Mannschaft> übernehmen" (Spec 018 FR-004): Minuten seit der letzten Meldung ab 5 Minuten. */
   staleMinutes: number | null;
+  /** Spec 020: Aktualität; `null` außerhalb laufender Spiele und in Pausen (FR-E32). */
+  freshness: Freshness | null;
   earlier: string | null;
   /** Serverzeit der letzten Meldung (ms): nur frische Tore werden hervorgehoben. */
   updatedAt: number;
@@ -307,6 +322,8 @@ interface GameState {
   entry: BoardEntry;
   group: CardGroup;
   live: boolean;
+  /** Spec 020 FR-E32: Halbzeit, Pause oder vor der Verlängerung; keine Meldung nötig. */
+  onBreak: boolean;
   phase: string;
   today: boolean;
 }
@@ -337,12 +354,19 @@ function stateOf(e: BoardEntry, serverNow: number, today: string, timeZone?: str
   const s = e.snap;
   const isToday = dayOf(e, serverNow, timeZone) === today;
   const base = { entry: e, today: isToday };
-  if (c.status === 'created') return { ...base, group: 'created', live: false, phase: 'noch nicht angepfiffen' };
+  if (c.status === 'created')
+    return { ...base, group: 'created', live: false, onBreak: false, phase: 'noch nicht angepfiffen' };
   const inShootout = c.status === 'finished' && s.shootout !== null && !s.shootout.done;
   // FR-L16: angepfiffenes Spiel vom Vortag erscheint wie beendet, ohne laufende Minute.
   if (!isToday || (c.status === 'finished' && !inShootout))
-    return { ...base, group: 'finished', live: false, phase: endLabel(s) };
-  return { ...base, group: 'running', live: true, phase: inShootout ? 'Elfmeterschießen' : runningPhase(c, s.schema) };
+    return { ...base, group: 'finished', live: false, onBreak: false, phase: endLabel(s) };
+  return {
+    ...base,
+    group: 'running',
+    live: true,
+    onBreak: c.status === 'break',
+    phase: inShootout ? 'Elfmeterschießen' : runningPhase(c, s.schema),
+  };
 }
 
 const count = (goals: LiveGoal[], side: Side): number => goals.filter((g) => g.side === side).length;
@@ -371,9 +395,24 @@ function goalLines(s: LiveGameSnapshot): GoalLine[] {
         minute: formatMinute(g.minute, g.stoppage),
         score: `${ha.home}:${ha.away}`,
         who: whoOf(g, s),
+        team: g.side === 'own' ? s.own : s.opp,
+        scorer: g.side === 'own' && g.ownGoal ? 'Eigentor' : g.who,
       };
     })
     .reverse();
+}
+
+/** Spec 020 FR-E30, FR-E31: Aktualität aus der Stille seit der letzten Meldung (Serverzeit). */
+function freshnessOf(silentMs: number): Freshness {
+  if (silentMs < FRESH_MS) return { kind: 'fresh' };
+  const minutes = Math.floor(silentMs / 60_000);
+  return silentMs >= STALE_MS ? { kind: 'silent', minutes } : { kind: 'age', minutes };
+}
+
+/** Spec 020 FR-E30, FR-E31: Text unter der Minute der Karte. */
+export function freshnessText(f: Freshness): string {
+  if (f.kind === 'fresh') return 'gerade aktualisiert';
+  return f.kind === 'age' ? `vor ${f.minutes} Min aktualisiert` : `Seit ${f.minutes} Min keine Meldung vom Spielfeld`;
 }
 
 function infoOf(st: GameState, key: string, timeZone?: string): string {
@@ -452,6 +491,7 @@ function cardOf(
     shootout: shootoutOf(s),
     goals: goalLines(s),
     staleMinutes: main.live && silent > STALE_MS ? Math.floor(silent / 60_000) : null,
+    freshness: main.live && !main.onBreak ? freshnessOf(silent) : null,
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: main.entry.at,
     lines,
@@ -516,6 +556,7 @@ function plannedCard(
     shootout: null,
     goals: [],
     staleMinutes: null,
+    freshness: null,
     earlier: rest.length > 0 ? `Heute außerdem: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: 0,
     lines,
