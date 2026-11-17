@@ -491,6 +491,8 @@ function cardOf(
     shootout: shootoutOf(s),
     goals: goalLines(s),
     staleMinutes: main.live && silent > STALE_MS ? Math.floor(silent / 60_000) : null,
+    // FR-E30, FR-E32: "Uhr angehalten" zählt als laufend (US4-S3, Edge Case): das Trainer-Handy sendet auch dann
+    // alle 3 Minuten ein Lebenszeichen, die Warnung ist also echt. Nur Halbzeit bzw. Pause bleiben ohne Alter.
     freshness: main.live && !main.onBreak ? freshnessOf(silent) : null,
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: main.entry.at,
