@@ -76,8 +76,11 @@ for (const scheme of ['light', 'dark'] as const) {
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       for (const id of ['more-settings', 'more-help']) {
         await page.getByTestId('nav-more').click();
+        await expect(page.getByTestId(id)).toBeVisible();
         expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
         await page.getByTestId(id).click();
+        // Einstellungen und Hilfe werden nachgeladen: erst prüfen, wenn die Seite steht.
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       }
     });
