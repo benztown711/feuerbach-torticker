@@ -502,98 +502,101 @@ export function Dashboard({
     });
 
   return (
-    <main
-      class="page dash"
-      data-testid="dashboard"
-      hidden={hidden}
-      onClick={parents ? unlock : undefined}
-      onTouchEnd={parents ? unlock : undefined}
-    >
-      <header class="dash__head">
-        <img
-          class="dash__wappen"
-          src={`${base}brand/wappen.svg`}
-          alt="Wappen der Sportvg Feuerbach"
-          width={26}
-          height={31}
-        />
-        <div class="dash__head-text">
-          <h1 class="dash__title" data-testid="dash-title">
-            {title}
-          </h1>
-          <p class="dash__date">{[formatDay(serverNow), ...v.teams].join(' · ')}</p>
-        </div>
-      </header>
-      <div
-        class={state.relay === 'offline' ? 'dash__status dash__status--alert' : 'dash__status'}
-        data-testid="dash-status"
-        data-state={state.relay}
+    <>
+      <main
+        class="page dash"
+        data-testid="dashboard"
+        hidden={hidden}
+        onClick={parents ? unlock : undefined}
+        onTouchEnd={parents ? unlock : undefined}
       >
-        {state.relay === 'offline' ? (
-          <NoSignal />
-        ) : (
-          state.relay === 'connecting' && <span class="live-pill__dot" aria-hidden="true" />
+        <header class="dash__head">
+          <img
+            class="dash__wappen"
+            src={`${base}brand/wappen.svg`}
+            alt="Wappen der Sportvg Feuerbach"
+            width={26}
+            height={31}
+          />
+          <div class="dash__head-text">
+            <h1 class="dash__title" data-testid="dash-title">
+              {title}
+            </h1>
+            <p class="dash__date">{[formatDay(serverNow), ...v.teams].join(' · ')}</p>
+          </div>
+        </header>
+        <div
+          class={state.relay === 'offline' ? 'dash__status dash__status--alert' : 'dash__status'}
+          data-testid="dash-status"
+          data-state={state.relay}
+        >
+          {state.relay === 'offline' ? (
+            <NoSignal />
+          ) : (
+            state.relay === 'connecting' && <span class="live-pill__dot" aria-hidden="true" />
+          )}
+          <span>
+            <span role="status">{STATE_TEXT[state.relay]}</span>
+            {statusDetail(state.relay, state.liveAt)}
+          </span>
+        </div>
+        {parents && <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} />}
+        {v.retired && (
+          <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
+            {inApp
+              ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live für Eltern → Für Trainer).`
+              : `„${title}“ wurde neu ausgestellt. Bitte den neuen Link aus der Elterngruppe öffnen.`}
+          </p>
         )}
-        <span>
-          <span role="status">{STATE_TEXT[state.relay]}</span>
-          {statusDetail(state.relay, state.liveAt)}
-        </span>
-      </div>
-      {parents && <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} />}
+        {!v.today && (
+          <section class="dash-empty" data-testid="dash-empty">
+            <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>
+            <p class="dash-empty__text">
+              Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${joinList(v.teams, 'oder')}` : ''} anlegt,
+              erscheint es hier.
+            </p>
+            {v.cards.length > 0 && (
+              <p class="dash-empty__label t-label" data-testid="dash-last-label">
+                {lastLabel}
+              </p>
+            )}
+          </section>
+        )}
+        {v.cards.length > 0 && (
+          <div class="dash__cards">
+            {v.cards.map((c) => (
+              <Card
+                key={c.key}
+                card={c}
+                open={open.has(c.key)}
+                flash={flash.has(c.gameId)}
+                onToggle={() => toggle(c.key)}
+              />
+            ))}
+            {/* Spec 012 FR-S30: Mannschaften ohne Spiel als schlichte Zeile unter den Karten. */}
+            {v.waiting.map((w) => (
+              <p key={w.key} class="dash-waiting" data-testid={`dash-waiting-${w.key}`}>
+                {w.color && <Mark color={w.color} />}
+                <span>
+                  <strong>{w.name}</strong> · heute noch kein Spiel
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
+        <DashPlan section={plan} />
+        <DashRecent recent={v.recent} />
+        <footer class="dash__foot" data-testid="dash-foot">
+          {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
+          {/* Spec 020 FR-E40: Eltern-Ansicht ohne Ausgang in die Trainer-App (Weg über die Eltern-Hilfe). */}
+          {parents && <p>Aktualisiert sich von selbst.</p>}
+        </footer>
+      </main>
+      {/* FR-E23: außerhalb von `main`, damit die Ansage auch bei offener Eltern-Hilfe (main verborgen) gelesen wird. */}
       <div class="visually-hidden" aria-live="polite" aria-atomic="true" data-testid="dash-goal-announce">
         {announcement}
       </div>
-      {v.retired && (
-        <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">
-          {inApp
-            ? `„${title}“ wurde neu ausgestellt. Füge den neuen Trainer-Link aus eurer Trainergruppe ein (Mehr → Live für Eltern → Für Trainer).`
-            : `„${title}“ wurde neu ausgestellt. Bitte den neuen Link aus der Elterngruppe öffnen.`}
-        </p>
-      )}
-      {!v.today && (
-        <section class="dash-empty" data-testid="dash-empty">
-          <h2 class="dash-empty__title">Heute noch kein Spiel live</h2>
-          <p class="dash-empty__text">
-            Sobald ein Trainer ein Spiel{v.teams.length > 0 ? ` von ${joinList(v.teams, 'oder')}` : ''} anlegt,
-            erscheint es hier.
-          </p>
-          {v.cards.length > 0 && (
-            <p class="dash-empty__label t-label" data-testid="dash-last-label">
-              {lastLabel}
-            </p>
-          )}
-        </section>
-      )}
-      {v.cards.length > 0 && (
-        <div class="dash__cards">
-          {v.cards.map((c) => (
-            <Card
-              key={c.key}
-              card={c}
-              open={open.has(c.key)}
-              flash={flash.has(c.gameId)}
-              onToggle={() => toggle(c.key)}
-            />
-          ))}
-          {/* Spec 012 FR-S30: Mannschaften ohne Spiel als schlichte Zeile unter den Karten. */}
-          {v.waiting.map((w) => (
-            <p key={w.key} class="dash-waiting" data-testid={`dash-waiting-${w.key}`}>
-              {w.color && <Mark color={w.color} />}
-              <span>
-                <strong>{w.name}</strong> · heute noch kein Spiel
-              </span>
-            </p>
-          ))}
-        </div>
-      )}
-      <DashPlan section={plan} />
-      <DashRecent recent={v.recent} />
-      <footer class="dash__foot" data-testid="dash-foot">
-        {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
-        {/* Spec 020 FR-E40: Eltern-Ansicht ohne Ausgang in die Trainer-App (Weg über die Eltern-Hilfe). */}
-        {parents && <p>Aktualisiert sich von selbst.</p>}
-      </footer>
-    </main>
+    </>
   );
 }
 

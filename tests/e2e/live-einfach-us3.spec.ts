@@ -353,3 +353,14 @@ test('020 US3-S10 FR-E21 Tor kurz vor dem Öffnen (gemerkter Stand älter): kein
   await expect.poll(() => v.title()).toBe('Tor! Feuerbach E1 4:1');
   await expect(announce(v)).toHaveText('Tor für Feuerbach E1, 4 zu 1, Tom');
 });
+
+test('020 US3-S11 FR-E23 Ansage auch bei offener Eltern-Hilfe', async ({ page, recorded, relay, newDevice }) => {
+  const { v, goal } = await open(page, recorded, relay, newDevice);
+  await v.getByTestId('viewer-nav-help').click();
+  await expect(v.getByTestId('dashboard')).toBeHidden();
+  await goal(1);
+  await expect.poll(() => v.title()).toBe('Tor! Feuerbach E1 3:1');
+  await expect(announce(v)).toHaveText('Tor für Feuerbach E1, 3 zu 1, Tom');
+  // Der Ansagebereich liegt nicht in einem verborgenen Teil der Seite, sonst schweigt der Screenreader.
+  expect(await announce(v).evaluate((el) => el.closest('[hidden], [aria-hidden="true"]') === null)).toBe(true);
+});
