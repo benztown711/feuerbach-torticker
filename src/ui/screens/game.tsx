@@ -81,6 +81,8 @@ import { onLiveSettings } from '../../platform/live-events';
 import type { GameWatch } from '../../platform/live-watch';
 
 const base = import.meta.env.BASE_URL;
+
+type LiveStartModule = typeof import('../components/live-start');
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
@@ -151,6 +153,10 @@ export function GameScreen({ id }: { id: string }) {
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
   useReshareTimer(reshareAt, () => setReshareAt(0));
+  /** Spec 020 US1: "Eltern live zuschauen lassen", vorab nachgeladen (R-E1, R-E10); Blatt ohne Live-Spieltag. */
+  const [quick, setQuick] = useState<LiveStartModule | null>(null);
+  const [quickSheet, setQuickSheet] = useState(false);
+  useEffect(() => void import('../components/live-start').then(setQuick, () => undefined), []);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -306,10 +312,13 @@ export function GameScreen({ id }: { id: string }) {
     }
   };
 
-  const showShareResult = (r: string): void => {
-    setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
+  /** Spec 019 FR-A04, Spec 020 FR-E11: kurzer Hinweis im Meldeband. */
+  const showMsg = (text: string): void => {
+    setShareMsg(text);
     setShareUntil(Date.now() + SHARE_MSG_MS);
   };
+  const showShareResult = (r: string): void =>
+    showMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
 
   /** FR-011: Ergebnis direkt nach dem Schlusspfiff teilen (Fallback Zwischenablage); Spec 017 FR-C20 merkt es. */
   const doShare = async (): Promise<void> => {
@@ -740,8 +749,28 @@ export function GameScreen({ id }: { id: string }) {
 
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
 
+      {quickSheet && quick && settings && (
+        <quick.LiveStartSheet
+          settings={settings}
+          game={cur()}
+          onGameLive={update}
+          onSettings={setSettings}
+          onClose={() => setQuickSheet(false)}
+        />
+      )}
+
       {menu && (
         <Sheet title="Spiel" testId="game-menu" onClose={() => setMenu(false)}>
+          {quick && settings && (
+            <quick.MenuQuick
+              settings={settings}
+              game={cur()}
+              onGameLive={update}
+              onMsg={showMsg}
+              onStart={() => setQuickSheet(true)}
+              onClose={() => setMenu(false)}
+            />
+          )}
           {goalsOpen || status === 'break' ? (
             <button
               type="button"

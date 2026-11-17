@@ -2820,6 +2820,36 @@ body:has(.page:not(.dash, .lead-link)) {
   color: var(--color-ink-muted);
 }
 
+/* Spec 020 Paket A */
+
+/* US1 FR-E06: Knöpfe im Blatt "Eltern live zuschauen lassen" mindestens 64 pt (Constitution I). */
+.live-start__btn {
+  min-height: 64px;
+}
+
+/* FR-E06: "Ein anderer Trainer hat schon einen Link?" zuerst, abgesetzt vom Hauptweg "Neu starten". */
+.live-start__alt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+}
+
+.live-start__done {
+  font-weight: 700;
+}
+
+/* FR-E11: kurze Statuszeile nach dem Teilen (Startbildschirm, Blatt). */
+.live-start__msg {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  line-height: 22px;
+}
+
 /* Spec 006 FR-L08: Kennzeichen "Live" im Spielbildschirm */
 .live-pill {
   display: inline-flex;

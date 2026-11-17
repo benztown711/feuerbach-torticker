@@ -297,7 +297,8 @@ test('020 US1-S9 fehlende Mannschaft kommt dazu; bei sechs Mannschaften nur ein 
 
   const full = await newDevice();
   const fullRec = recordedOf(full);
-  await createLive(full, fullRec, { teams: ['E1', 'E2', 'E3', 'D1', 'D2', 'D3', 'F1'], without: ['F1'] });
+  // Das Formular wählt die ersten sechs aus "Meine Mannschaften" vor; F1 bleibt draußen.
+  await createLive(full, fullRec, { teams: ['E1', 'E2', 'E3', 'D1', 'D2', 'D3', 'F1'] });
   await startGame(full, { ownTeam: team('F1') });
   const n = (await fullRec()).shares.length;
   await openQuickFromMenu(full);
