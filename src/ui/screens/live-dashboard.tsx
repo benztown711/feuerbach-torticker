@@ -478,7 +478,7 @@ export function Dashboard({
   const parents = !inApp;
   const [soundOn, setSoundOn] = useState(() => parents && savedGoalSound());
   const [, refresh] = useState(0);
-  const announcement = useGoalAlert(v.cards, serverNow, { feedback: parents, sound: soundOn });
+  const announcement = useGoalAlert(v.cards, serverNow, { feedback: parents, sound: soundOn, ready: state.loaded });
   const toggleSound = (): void => {
     const next = !soundOn;
     setSoundOn(next);

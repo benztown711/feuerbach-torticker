@@ -14,7 +14,7 @@ const TITLE_MS = 30_000;
 const SPEECH_MS = 5000;
 
 /**
- * Spec 020 US3: Neue Tore bei offenem Dashboard (FR-E21). Setzt den Tab-Titel auf "Tor! …" und stellt ihn zurück,
+ * Spec 020 US3: Neue Tore bei offenem Dashboard (FR-E21), erst ab dem ersten Stand vom Dienst (`ready`). Setzt den Tab-Titel auf "Tor! …" und stellt ihn zurück,
  * sobald die Seite wieder sichtbar wird, das Fenster den Fokus bekommt oder nach 30 Sekunden (FR-E22); liefert den
  * Text für den höflichen Ansagebereich (FR-E23). Mit `feedback` (nur Eltern-Ansicht, FR-E27) vibriert das Gerät
  * einmal kurz (FR-E24) und spielt mit `sound` den Signalton einmal (FR-E25), höchstens je einmal je Meldung.
@@ -22,7 +22,7 @@ const SPEECH_MS = 5000;
 export function useGoalAlert(
   cards: Pick<BoardCard, 'gameId' | 'goals' | 'updatedAt'>[],
   serverNow: number,
-  { feedback, sound }: { feedback: boolean; sound: boolean },
+  { feedback, sound, ready }: { feedback: boolean; sound: boolean; ready: boolean },
 ): string {
   const counts = useRef<Map<string, number> | null>(null);
   const title = useRef<{ original: string; timer: ReturnType<typeof setTimeout> } | null>(null);
@@ -55,6 +55,12 @@ export function useGoalAlert(
   }, []);
 
   useEffect(() => {
+    // FR-E21: Bis der erste Stand vom Dienst da ist (`ready`), zählt nichts als neu, auch nicht ein Tor, das kurz vor
+    // dem Öffnen fiel und im gemerkten Stand noch fehlt; die Basis ist der erste Stand vom Dienst.
+    if (!ready) {
+      counts.current = null;
+      return;
+    }
     const prev = counts.current;
     counts.current = new Map(cards.map((c) => [c.gameId, c.goals.length]));
     const goals = newGoals(prev, cards, serverNow);
@@ -71,8 +77,8 @@ export function useGoalAlert(
       vibrateShort();
       if (soundOn.current) void playGoalSignal();
     }
-    // Nur bei geänderter Toranzahl (signature), nicht bei jedem neuen Array.
-  }, [signature]);
+    // Nur bei geänderter Toranzahl (signature) oder erstem Stand vom Dienst, nicht bei jedem neuen Array.
+  }, [signature, ready]);
 
   return speech;
 }

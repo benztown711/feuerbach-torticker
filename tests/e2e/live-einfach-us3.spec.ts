@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { expect, test, type Recorded } from './fixtures';
 import { MIN, SEC } from './helpers';
 import {
+  asPath,
   createLive,
   e1WithGoals,
   later,
@@ -325,4 +326,30 @@ test('020 US3-S9 FR-E27 Dashboard in der App: Titel und Ansage, aber weder Vibra
   await expect.poll(() => page.title()).toBe('Tor! Feuerbach E1 3:1');
   await expect(announce(page)).toHaveText('Tor für Feuerbach E1, 3 zu 1, Tom');
   expect(await recorded()).toMatchObject({ sounds: 0, vibrations: 0 });
+});
+
+test('020 US3-S10 FR-E21 Tor kurz vor dem Öffnen (gemerkter Stand älter): kein Hinweis, das nächste Tor schon', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const { links, v, goal, rec } = await open(page, recorded, relay, newDevice);
+  await sound(v).click();
+  await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
+  // Seite zu; in der Zeit fällt das 3:1
+  await v.goto('about:blank');
+  await goal(1);
+  // Wieder öffnen: zuerst der gemerkte Stand 2:1, dann vom Dienst das 3:1 (Meldung jünger als 1 Minute)
+  await v.goto(asPath(links.viewer));
+  await expect(v.getByTestId('dash-score-E1')).toHaveText('3:1');
+  await v.getByTestId('dash-title').click();
+  await v.clock.runFor(2 * SEC);
+  expect(await v.title()).toBe(APP_TITLE);
+  await expect(announce(v)).toHaveText('');
+  expect(await rec()).toMatchObject({ sounds: 0, vibrations: 0 });
+  // Das nächste Tor bei offener Seite meldet sich wie gewohnt
+  await goal(2);
+  await expect.poll(() => v.title()).toBe('Tor! Feuerbach E1 4:1');
+  await expect(announce(v)).toHaveText('Tor für Feuerbach E1, 4 zu 1, Tom');
 });

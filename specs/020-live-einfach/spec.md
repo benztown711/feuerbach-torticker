@@ -126,6 +126,7 @@ Max' Oma hat den Link für Eltern auf dem Tablet offen, die Tante im Büro in ei
 7. **Given** die Eltern-Ansicht wird geöffnet und die Spiele haben schon Tore, oder sie holt nach einer Verbindungslücke Meldungen nach, die älter als 1 Minute sind, **Then** gibt es keinen Tab-Titel, keine Ansage, kein Vibrieren und keinen Ton.
 8. **Given** ein Tor wird auf dem Trainer-Handy korrigiert (Minute, Torschütze) oder entfernt, **Then** gibt es keinen Hinweis; der Stand auf der Karte ändert sich wie bisher.
 9. **Given** das Dashboard in der App eines Trainer-Handys ("Spiele verfolgen", "Dashboard ansehen"), **When** ein Tor fällt, **Then** ändern sich Tab-Titel und Ansage wie in Szenario 1 und 3, es gibt aber weder Vibration noch Ton und keinen Schalter "Ton bei Toren".
+10. **Given** die Eltern-Ansicht war schon einmal offen (gemerkter Stand 2:1) und ist zu, **When** E1 das 3:1 erzielt und die Seite kurz danach (innerhalb 1 Minute) wieder geöffnet wird, **Then** zeigt die Karte 3:1, aber es gibt keinen Tab-Titel, keine Ansage, kein Vibrieren und keinen Ton; erst ein Tor, das bei offener Seite fällt, meldet sich wie in Szenario 1 (FR-E21, Präzisierung nach Code-Review 2026-11-17).
 
 ---
 
@@ -223,7 +224,7 @@ Toms Mutter scrollt in der Eltern-Ansicht nach unten. Dort steht nur noch "Aktua
 
 **Torhinweis bei offener Seite (US3, Paket C)**
 
-- **FR-E21**: Als neues Tor MUSS gelten, wenn die Toranzahl eines Spiels durch eine Meldung steigt, die beim Empfang höchstens 1 Minute alt ist (gleiche Regel wie die Hervorhebung, Spec 006 US3-S3). Kein neues Tor: erstes Laden, nachgeholte ältere Meldungen, Korrektur (Minute, Torschütze), Entfernen, Schüsse im Elfmeterschießen.
+- **FR-E21**: Als neues Tor MUSS gelten, wenn die Toranzahl eines Spiels durch eine Meldung steigt, die beim Empfang höchstens 1 Minute alt ist (gleiche Regel wie die Hervorhebung, Spec 006 US3-S3). Kein neues Tor: erstes Laden (alles, was der Dienst beim Öffnen der Seite nachliefert, auch ein Tor, das kurz vor dem Öffnen fiel und im auf dem Gerät gemerkten Stand noch fehlt), nachgeholte ältere Meldungen, Korrektur (Minute, Torschütze), Entfernen, Schüsse im Elfmeterschießen.
 - **FR-E22**: Bei einem neuen Tor MUSS das Dashboard den Seitentitel auf "Tor! <Mannschaft> <Stand>" setzen (Mannschaft, die getroffen hat, wie auf der Karte; Stand Heim:Gast, z. B. "Tor! Feuerbach E1 3:1") und den vorigen Titel wiederherstellen, sobald die Seite nach dem Tor wieder sichtbar wird oder das Fenster den Fokus bekommt, spätestens 30 Sekunden nach dem Tor. Ein weiteres Tor ersetzt den Titel und startet die Frist neu.
 - **FR-E23**: Bei einem neuen Tor MUSS das Dashboard über einen höflichen Ansagebereich (Screenreader, unterbricht nicht) ansagen: "Tor für <Mannschaft>, <Heim> zu <Gast>" und, wenn übertragen, ", <Torschütze>" bzw. ", Eigentor" (Elfmeter und Vorlage werden nicht angesagt). Mehrere neue Tore werden nacheinander in der Reihenfolge der Karten angesagt.
 - **FR-E24**: In der Eltern-Ansicht MUSS ein neues Tor das Gerät einmal kurz vibrieren lassen (etwa 0,2 Sekunden), wo der Browser Vibration anbietet; sonst geschieht nichts. Höchstens eine Vibration je Meldung.
