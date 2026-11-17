@@ -134,7 +134,7 @@ Atti hat das 2:1 nach dem Spiel in die Elterngruppe geteilt. Am Abend korrigiert
 
 **Erinnerung an neues Teilen (US3)**
 
-- **FR-C20**: Das Spiel MUSS sich merken, dass sein Ergebnis über "Ergebnis teilen" geteilt wurde (geteilt oder in die Zwischenablage kopiert; nicht bei Abbruch und nicht über "Zwischenstand teilen").
+- **FR-C20**: Das Spiel MUSS sich merken, dass sein Ergebnis über "Ergebnis teilen" geteilt wurde (geteilt oder in die Zwischenablage kopiert; nicht bei Abbruch und nicht über "Zwischenstand teilen"). Nachtrag 17.11.2026: Seit Spec 020 FR-E18, FR-E19 zählt "Stand als Text" nach dem Schlusspfiff als "Ergebnis teilen", vor dem Schlusspfiff (Zwischenstand) nicht.
 - **FR-C21**: Ändert eine Korrektur an einem beendeten, schon geteilten Spiel den Teilen-Text, MUSS im Spielbildschirm bzw. in den Spieldetails die Leiste "Korrigiert. Ergebnis neu teilen?" mit "Teilen" erscheinen, gestaltet wie die Leiste "Rückgängig". Sie verschwindet nach 10 Sekunden, beim Verlassen des Bildschirms oder nach "Teilen".
 - **FR-C22**: "Teilen" in der Leiste MUSS wie "Ergebnis teilen" den aktuellen Text teilen.
 
