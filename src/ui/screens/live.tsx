@@ -40,7 +40,7 @@ import type { LiveOverviewWatch } from '../../platform/live-watch';
 import type { ShareResult } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { CoupleDialog } from '../components/couple-dialog';
-import { LiveStartSheet } from '../components/live-start';
+import { LiveStartSheet, SHARE_MSG } from '../components/live-start';
 import { PasteLink } from '../components/paste-link';
 import { Sheet } from '../components/sheet';
 import { navigate } from '../router';
@@ -54,13 +54,6 @@ import { navigate } from '../router';
 type View = 'main' | 'form' | 'paste';
 /** Geprüfter Link, der auf Bestätigung wartet; Titel aus der geprüften Konfiguration. */
 type Pending = VerifiedLink;
-
-const SHARE_MSG: Record<ShareResult, string> = {
-  shared: '',
-  copied: 'Link kopiert. Füge ihn in WhatsApp ein.',
-  cancelled: '',
-  failed: 'Teilen hat nicht geklappt.',
-};
 
 /** Spec 020 FR-E14 (R-E8): "Für Trainer" ist nach dem Start der App zu und bleibt offen, solange die App läuft. */
 let trainerOpen = false;
