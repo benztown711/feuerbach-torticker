@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { getColor } from '../../domain/jersey-colors';
 import { addableTeams } from '../../domain/live-manage';
@@ -38,13 +39,15 @@ import type { LiveOverviewWatch } from '../../platform/live-watch';
 import type { ShareResult } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { CoupleDialog } from '../components/couple-dialog';
+import { LiveStartSheet } from '../components/live-start';
 import { PasteLink } from '../components/paste-link';
 import { Sheet } from '../components/sheet';
 import { navigate } from '../router';
 
 /**
- * Spec 006: "Mehr" → "Live-Spieltag": leer, anlegen, Übersicht mit Verwalten (US5), Lead-Ansicht, Link einfügen,
- * Hinweis "neu ausgestellt".
+ * Spec 006: "Mehr" → "Live für Eltern" (bis Spec 020 "Live-Spieltag"): leer, anlegen, Übersicht mit Verwalten (US5),
+ * Lead-Ansicht, Link einfügen, Hinweis "neu ausgestellt". Spec 020 US2: oben ein Hauptknopf "Link für Eltern teilen",
+ * alles Weitere eingeklappt unter "Für Trainer".
  */
 
 type View = 'main' | 'form' | 'paste';
@@ -57,6 +60,47 @@ const SHARE_MSG: Record<ShareResult, string> = {
   cancelled: '',
   failed: 'Teilen hat nicht geklappt.',
 };
+
+/** Spec 020 FR-E14 (R-E8): "Für Trainer" ist nach dem Start der App zu und bleibt offen, solange die App läuft. */
+let trainerOpen = false;
+
+function TrainerSection({ children }: { children: ComponentChildren }) {
+  const [open, setOpen] = useState(trainerOpen);
+  return (
+    <>
+      <button
+        type="button"
+        class="live__trainer-toggle"
+        data-testid="live-trainer-toggle"
+        aria-expanded={open}
+        aria-controls="live-trainer"
+        onClick={() => {
+          trainerOpen = !open;
+          setOpen(!open);
+        }}
+      >
+        <span>Für Trainer</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="icon live__trainer-chev">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div id="live-trainer" class="live__trainer" data-testid="live-trainer">
+          {children}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** FR-E13, FR-E16: einziger Hauptknopf der Seite. */
+function ShareViewer({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" class="btn btn--primary live__main" data-testid="btn-share-viewer" onClick={onClick}>
+      Link für Eltern teilen
+    </button>
+  );
+}
 
 function Mark({ color }: { color: string }) {
   return <span class="team__mark" style={{ background: getColor(color)?.value }} aria-hidden="true" />;
@@ -135,6 +179,8 @@ export function LiveScreen() {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [busy, setBusy] = useState(false);
   const [reissued, setReissued] = useState(false);
+  /** Spec 020 FR-E15: Blatt "Eltern live zuschauen lassen" ohne Live-Spieltag. */
+  const [quick, setQuick] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -187,7 +233,7 @@ export function LiveScreen() {
 
   return (
     <main class="page">
-      <Topbar title={view === 'form' ? 'Live-Spieltag anlegen' : 'Live-Spieltag'} onBack={back} />
+      <Topbar title={view === 'form' ? 'Live-Spieltag anlegen' : 'Live für Eltern'} onBack={back} />
       {view === 'form' && (
         <LiveForm
           settings={settings}
@@ -202,10 +248,9 @@ export function LiveScreen() {
       {view === 'main' && !live && (
         <div class="form live" data-testid="live-empty">
           {settings?.liveView && <DashboardButton label={`Dashboard „${settings.liveView.title}“ ansehen`} />}
-          <p class="live__lead">
-            Eltern verfolgen eure Spiele live auf einem Dashboard. Die Handys der Trainergruppe senden die Spiele, die
-            sie erfassen, automatisch.
-          </p>
+          <p class="live__lead">Eltern sehen eure Spiele live: Stand, Minute und Tore, ohne App und ohne Konto.</p>
+          {/* Spec 020 FR-E15: Hauptknopf öffnet das Blatt mit "Link einfügen" und "Neu starten". */}
+          <ShareViewer onClick={() => setQuick(true)} />
           <div class="live__box card">
             <span class="t-label card__title">WAS DAS HANDY VERLÄSST</span>
             <p class="live__text">
@@ -213,22 +258,38 @@ export function LiveScreen() {
               Kader, Karten und Lesezeichen bleiben auf dem Handy.
             </p>
           </div>
-          {/* Spec 012 FR-S05: Einfügen zuerst; Anlegen nur einmal für alle Mannschaften. */}
-          <button type="button" class="btn btn--primary" data-testid="btn-paste-link" onClick={() => setView('paste')}>
-            Trainer-Link einfügen
-          </button>
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="btn-live-create"
-            onClick={() => setView('form')}
-          >
-            Live-Spieltag anlegen
-          </button>
-          <p class="field__help" data-testid="live-create-hint">
-            Nur einmal für alle Mannschaften. Gibt es schon einen, füge den Trainer-Link ein.
-          </p>
+          <TrainerSection>
+            {/* Spec 012 FR-S05: Einfügen zuerst; Anlegen nur einmal für alle Mannschaften. */}
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="btn-paste-link"
+              onClick={() => setView('paste')}
+            >
+              Trainer-Link einfügen
+            </button>
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="btn-live-create"
+              onClick={() => setView('form')}
+            >
+              Live-Spieltag anlegen
+            </button>
+            <p class="field__help" data-testid="live-create-hint">
+              Nur einmal für alle Mannschaften. Gibt es schon einen, füge den Trainer-Link ein.
+            </p>
+          </TrainerSection>
         </div>
+      )}
+      {quick && (
+        <LiveStartSheet
+          settings={settings}
+          game={null}
+          onGameLive={() => undefined}
+          onSettings={setSettings}
+          onClose={() => setQuick(false)}
+        />
       )}
       {view === 'main' && live && isRetired(live) && (
         <Retired live={live} onPaste={() => setView('paste')} onDialog={setDialog} />
@@ -245,7 +306,7 @@ export function LiveScreen() {
         />
       )}
       {view === 'main' && live && !isRetired(live) && !isOrganizer(live) && (
-        <LeadInfo live={live} onPaste={() => setView('paste')} onDialog={setDialog} />
+        <LeadInfo live={live} onShare={share} onPaste={() => setView('paste')} onDialog={setDialog} />
       )}
       {live && dialog?.kind === 'squads' && (
         <SquadShareSheet
@@ -290,7 +351,7 @@ export function LiveScreen() {
       {dialog?.kind === 'reissue' && (
         <Confirm
           title="Alle Links neu ausstellen?"
-          text="Der alte Zuschauer-Link und der alte Trainer-Link zeigen danach keine neuen Stände mehr. Du schickst die neuen Links wieder an die Elterngruppe und an eure Trainergruppe. Nur nötig, wenn ein Link in falsche Hände geraten ist oder jemand die Trainergruppe verlässt."
+          text="Der alte Link für Eltern und der alte Trainer-Link zeigen danach keine neuen Stände mehr. Du schickst die neuen Links wieder an die Elterngruppe und an eure Trainergruppe. Nur nötig, wenn ein Link in falsche Hände geraten ist oder jemand die Trainergruppe verlässt."
           yesLabel="Neu ausstellen"
           onNo={() => setDialog(null)}
           onYes={() => void run(reissueLive, 'Neue Links ausgestellt.').then((ok) => ok && setReissued(true))}
@@ -298,11 +359,11 @@ export function LiveScreen() {
       )}
       {live && dialog?.kind === 'end' && (
         <Confirm
-          title="Kopplung beenden?"
+          title="Live beenden?"
           text={`Dieses Handy sendet dann nichts mehr an „${titleOf(live)}“. Die Spiele bleiben auf dem Handy.`}
           yesLabel="Beenden"
           onNo={() => setDialog(null)}
-          onYes={() => void run(endCoupling, 'Kopplung beendet. Dieses Handy sendet nichts mehr.')}
+          onYes={() => void run(endCoupling, 'Live beendet. Dieses Handy sendet nichts mehr.')}
         />
       )}
       {msg && (
@@ -421,7 +482,7 @@ function LiveForm({
         {tried && check.errors.teams && <p class="field__error">{check.errors.teams}</p>}
       </div>
       <p class="field__help">
-        Danach teilst du zwei Links: den Zuschauer-Link für die Eltern und den Trainer-Link für eure Trainergruppe.
+        Danach teilst du zwei Links: den Link für Eltern und den Trainer-Link für eure Trainergruppe.
       </p>
       {failed && (
         <p class="field__error" role="alert">
@@ -568,123 +629,110 @@ function Overview({
         <div class="live__notice" role="status" data-testid="live-reissued">
           <strong>Neue Links ausgestellt</strong>
           <span>
-            Die alten Links zeigen nichts Neues mehr. Schick jetzt beide neuen Links: den Zuschauer-Link an die
+            Die alten Links zeigen nichts Neues mehr. Schick jetzt beide neuen Links: den Link für Eltern an die
             Elterngruppe, den Trainer-Link an eure Trainergruppe.
           </span>
         </div>
       )}
-      <section class="field card">
-        <span class="t-label card__title">ZUSCHAUER</span>
-        <p class="live__text">Für die Elterngruppe. Gilt die ganze Saison, nur lesen.</p>
-        <button
-          type="button"
-          class="btn btn--primary"
-          data-testid="btn-share-viewer"
-          onClick={() => void onShare(shareViewerLink(live))}
-        >
-          Zuschauer-Link teilen
-        </button>
-      </section>
-      <section class="field card">
-        <span class="t-label card__title">TRAINER</span>
-        <p class="live__text">
-          Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
-          Live-Spieltag verwalten.
-        </p>
-        <button
-          type="button"
-          class="btn btn--primary"
-          data-testid="btn-share-trainer"
-          onClick={() =>
-            offer.some((q) => !q.shared) ? onDialog({ kind: 'squads' }) : void onShare(shareTrainerLink(live))
-          }
-        >
-          Trainer-Link teilen
-        </button>
-      </section>
-      <section class="field card">
-        <span class="t-label card__title">MANNSCHAFTEN</span>
-        <ul class="live__rows">
-          {live.teams.map((t) => (
-            <li key={t.key} class="live__row" data-testid={`live-team-row-${t.key}`}>
-              <Mark color={t.homeColor} />
-              <span class="live__row-text">
-                <strong>{shortTeamName(t.name)}</strong>
-                {sent && (
-                  <span class="live__row-sub" data-testid={`live-team-sent-${t.key}`}>
-                    {sent(t.key)}
-                  </span>
-                )}
-              </span>
-              {live.teams.length > 1 && (
-                <button
-                  type="button"
-                  class="link-btn live__row-action"
-                  data-testid={`btn-team-remove-${t.key}`}
-                  aria-label={`${shortTeamName(t.name)} entfernen`}
-                  onClick={() => onDialog({ kind: 'remove', key: t.key, name: shortTeamName(t.name) })}
-                >
-                  Entfernen
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-        {canAdd && (
+      <p class="live__lead" data-testid="live-lead">
+        Eltern sehen Stand, Minute und Tore live, ohne App. Der Link gilt die ganze Saison.
+      </p>
+      <ShareViewer onClick={() => void onShare(shareViewerLink(live))} />
+      <DashboardButton />
+      <TrainerSection>
+        <section class="field card">
+          <span class="t-label card__title">TRAINER</span>
+          <p class="live__text">
+            Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
+            Live-Spieltag verwalten.
+          </p>
           <button
             type="button"
             class="btn btn--secondary"
-            data-testid="btn-team-add"
-            onClick={() => onDialog({ kind: 'add' })}
+            data-testid="btn-share-trainer"
+            onClick={() =>
+              offer.some((q) => !q.shared) ? onDialog({ kind: 'squads' }) : void onShare(shareTrainerLink(live))
+            }
           >
-            Mannschaft hinzufügen
+            Trainer-Link teilen
           </button>
-        )}
-        <p class="field__help">
-          Jedes Trainer-Handy sendet automatisch die Spiele, die es erfasst. „Zuletzt gesendet“ zählt für alle
-          Trainer-Handys zusammen.
-        </p>
-      </section>
-      <PlanCard live={live} />
-      <DashboardButton />
-      <section class="field card">
-        <span class="t-label card__title">VERWALTEN</span>
-        <ul class="live__rows">
-          <li>
+        </section>
+        <section class="field card">
+          <span class="t-label card__title">MANNSCHAFTEN</span>
+          <ul class="live__rows">
+            {live.teams.map((t) => (
+              <li key={t.key} class="live__row" data-testid={`live-team-row-${t.key}`}>
+                <Mark color={t.homeColor} />
+                <span class="live__row-text">
+                  <strong>{shortTeamName(t.name)}</strong>
+                  {sent && (
+                    <span class="live__row-sub" data-testid={`live-team-sent-${t.key}`}>
+                      {sent(t.key)}
+                    </span>
+                  )}
+                </span>
+                {live.teams.length > 1 && (
+                  <button
+                    type="button"
+                    class="link-btn live__row-action"
+                    data-testid={`btn-team-remove-${t.key}`}
+                    aria-label={`${shortTeamName(t.name)} entfernen`}
+                    onClick={() => onDialog({ kind: 'remove', key: t.key, name: shortTeamName(t.name) })}
+                  >
+                    Entfernen
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {canAdd && (
             <button
               type="button"
-              class="live__action"
-              data-testid="btn-live-title"
-              onClick={() => onDialog({ kind: 'title' })}
+              class="btn btn--secondary"
+              data-testid="btn-team-add"
+              onClick={() => onDialog({ kind: 'add' })}
             >
-              Titel ändern
+              Mannschaft hinzufügen
             </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              class="live__action live__action--danger"
-              data-testid="btn-live-reissue"
-              onClick={() => onDialog({ kind: 'reissue' })}
-            >
-              Alle Links neu ausstellen …
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              class="live__action live__action--danger"
-              data-testid="btn-live-end"
-              onClick={() => onDialog({ kind: 'end' })}
-            >
-              Kopplung beenden …
-            </button>
-          </li>
-        </ul>
-      </section>
-      <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
-        Link einfügen
-      </button>
+          )}
+          <p class="field__help">
+            Jedes Trainer-Handy sendet automatisch die Spiele, die es erfasst. „Zuletzt gesendet“ zählt für alle
+            Trainer-Handys zusammen.
+          </p>
+        </section>
+        <PlanCard live={live} />
+        <section class="field card">
+          <span class="t-label card__title">VERWALTEN</span>
+          <ul class="live__rows">
+            <li>
+              <button
+                type="button"
+                class="live__action"
+                data-testid="btn-live-title"
+                onClick={() => onDialog({ kind: 'title' })}
+              >
+                Titel ändern
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="live__action live__action--danger"
+                data-testid="btn-live-reissue"
+                onClick={() => onDialog({ kind: 'reissue' })}
+              >
+                Alle Links neu ausstellen …
+              </button>
+            </li>
+            <li>
+              <EndButton onDialog={onDialog} />
+            </li>
+          </ul>
+        </section>
+        <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
+          Link einfügen
+        </button>
+      </TrainerSection>
     </div>
   );
 }
@@ -697,23 +745,27 @@ function EndButton({ onDialog }: { onDialog: (d: Dialog) => void }) {
       data-testid="btn-live-end"
       onClick={() => onDialog({ kind: 'end' })}
     >
-      Kopplung beenden …
+      Live beenden …
     </button>
   );
 }
 
+/** FR-E16: Lead-Handy der ersten Version (ohne Trainer-Link). */
 function LeadInfo({
   live,
+  onShare,
   onPaste,
   onDialog,
 }: {
   live: LiveSpieltag;
+  onShare: (p: Promise<ShareResult>) => Promise<void>;
   onPaste: () => void;
   onDialog: (d: Dialog) => void;
 }) {
   const sending = live.teams.filter((t) => t.sends);
   return (
     <div class="form live">
+      <ShareViewer onClick={() => void onShare(shareViewerLink(live))} />
       <div class="live__box card" data-testid="live-lead-info">
         <span class="t-label card__title">DIESES HANDY SENDET LIVE</span>
         <strong class="live__teams">{sending.map((t) => shortTeamName(t.name)).join(', ')}</strong>
@@ -725,10 +777,12 @@ function LeadInfo({
       </p>
       <p class="live__text">Mit dem Trainer-Link eurer Trainergruppe sendet dieses Handy für alle Mannschaften.</p>
       <DashboardButton />
-      <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
-        Link einfügen
-      </button>
-      <EndButton onDialog={onDialog} />
+      <TrainerSection>
+        <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
+          Link einfügen
+        </button>
+        <EndButton onDialog={onDialog} />
+      </TrainerSection>
     </div>
   );
 }
@@ -855,8 +909,8 @@ function AddSheet({
         </div>
       </div>
       <p class="field__help">
-        Zuschauer-Link und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Mannschaft, sobald sie
-        das nächste Mal Stände empfangen, z. B. beim Anlegen eines Spiels.
+        Link für Eltern und Trainer-Link bleiben gleich. Die anderen Trainer-Handys übernehmen die Mannschaft, sobald
+        sie das nächste Mal Stände empfangen, z. B. beim Anlegen eines Spiels.
       </p>
       <button
         type="button"

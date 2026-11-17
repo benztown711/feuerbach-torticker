@@ -2842,6 +2842,41 @@ body:has(.page:not(.dash, .lead-link)) {
   font-weight: 700;
 }
 
+/* US2 FR-E13 bis FR-E16: einziger Hauptknopf oben auf "Live für Eltern". */
+.live__main {
+  min-height: 64px;
+}
+
+/* FR-E14 (R-E8): Kopfzeile "Für Trainer" als Knopf, darunter der aufgeklappte Bereich. */
+.live__trainer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 64px;
+  margin-top: var(--space-2);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.live__trainer-toggle[aria-expanded='true'] .live__trainer-chev {
+  transform: rotate(180deg);
+}
+
+.live__trainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 /* FR-E11: kurze Statuszeile nach dem Teilen (Startbildschirm, Blatt). */
 .live-start__msg {
   margin: 0;
