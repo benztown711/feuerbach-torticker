@@ -109,6 +109,20 @@ test.describe('019 US2 Spielstand auf einen Blick', () => {
     expect(sw).toBeLessThanOrEqual(375);
   });
 
+  test('019 US2-S7 langer Gegnername rechts: zwei Zeilen und sichtbares "…"', async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 659 });
+    await startGame(page, { opponent: 'SpVgg Musterstadt-Großdorf II' });
+    expect(await lineCount(page.getByTestId('team-away'))).toBe(2);
+    await expectOneRow(page);
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    await expect(page.locator('.scoreboard')).toHaveScreenshot('anzeigetafel-langer-name.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
   test('019 US2-S6 Elfmeterschießen: Anzeigetafel mit dem Stand nach regulärer Spielzeit bleibt oben', async ({
     page,
   }) => {
