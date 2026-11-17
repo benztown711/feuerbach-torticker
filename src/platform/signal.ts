@@ -116,14 +116,18 @@ function rewind(el: HTMLAudioElement): void {
   }
 }
 
-/** Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). */
-export function unlockAudio(): void {
+/**
+ * Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). Erfüllt sich, sobald
+ * feststeht, ob der Ton frei ist (`audioReady()`), damit ein Hinweis wie "Ton aus · tippen" sofort verschwinden kann.
+ */
+export function unlockAudio(): Promise<void> {
   setPlaybackSession();
   if (keepAliveWanted) startKeepAlive();
   const el = element();
   el.muted = true;
   rewind(el);
-  el.play()
+  return el
+    .play()
     .then(() => {
       el.pause();
       rewind(el);

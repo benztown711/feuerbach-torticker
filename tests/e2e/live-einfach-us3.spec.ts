@@ -364,3 +364,20 @@ test('020 US3-S11 FR-E23 Ansage auch bei offener Eltern-Hilfe', async ({ page, r
   // Der Ansagebereich liegt nicht in einem verborgenen Teil der Seite, sonst schweigt der Screenreader.
   expect(await announce(v).evaluate((el) => el.closest('[hidden], [aria-hidden="true"]') === null)).toBe(true);
 });
+
+test('020 US3-S12 FR-E26 "Ton aus · tippen" verschwindet sofort nach dem Freischalten', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const { v } = await open(page, recorded, relay, newDevice);
+  await sound(v).click();
+  await v.reload();
+  await expect(v.getByTestId('dash-sound-locked')).toHaveText('Ton aus · tippen');
+  // Uhr anhalten: kein Sekundentakt, der die Seite ohnehin neu zeichnet
+  await v.clock.pauseAt(await v.evaluate(() => Date.now() + 1000));
+  await v.getByTestId('dash-title').click();
+  await expect(v.getByTestId('dash-sound-locked')).toHaveCount(0);
+  await expect(sound(v)).toHaveAttribute('aria-checked', 'true');
+});

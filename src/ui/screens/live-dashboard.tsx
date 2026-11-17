@@ -488,7 +488,8 @@ export function Dashboard({
   };
   // FR-E26: Jede Berührung schaltet einen gesperrten Ton frei (iOS braucht dafür eine Berührung).
   const unlock = (): void => {
-    if (soundOn && !audioReady()) unlockAudio();
+    // Danach neu zeichnen, damit "Ton aus · tippen" sofort verschwindet (nicht erst mit dem nächsten Sekundentakt).
+    if (soundOn && !audioReady()) void unlockAudio().then(() => refresh((n) => n + 1));
   };
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const teamsKey = v.teams.join('|');
