@@ -723,10 +723,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Auf- und Zuklappen, und „Vergangene Spiele“ mit Endstand. Ganz unten findest du „Letzte Spiele“ mit den früheren Ergebnissen. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
+      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Ein laufendes Spiel zeigt, wann es zuletzt aktualisiert wurde. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Aufklappen, und „Vergangene Spiele“ mit Endstand. Ganz unten stehen „Letzte Spiele“ mit früheren Ergebnissen. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
     keywords:
       'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse letzte spiele',
-    sources: ['006 US3', '012 US5', '015 US3', '015 US7', '007 US3'],
+    sources: ['006 US3', '012 US5', '015 US3', '015 US7', '007 US3', '020 US4'],
     parents: true,
     related: ['eltern-home', 'letzte-spiele', 'keine-verbindung'],
   },
@@ -772,11 +772,46 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Was bedeutet „Keine Verbindung“?',
     answer:
-      'Dein Handy hat gerade kein Netz. Du siehst den letzten bekannten Stand. Sobald das Netz zurück ist, aktualisiert sich die Seite von selbst; du musst nichts tun.',
-    keywords: 'keine verbindung netz offline alt stand aktualisieren',
-    sources: ['006 US3'],
+      'Dein Handy hat gerade kein Netz. Du siehst den letzten bekannten Stand. Sobald das Netz zurück ist, aktualisiert sich die Seite von selbst; du musst nichts tun. Sonst steht oben „Aktualisiert sich automatisch“.',
+    keywords: 'keine verbindung netz offline alt stand aktualisieren automatisch',
+    sources: ['006 US3', '020 US4'],
     parents: true,
-    related: ['eltern-dashboard'],
+    related: ['eltern-dashboard', 'keine-meldung'],
+  },
+  {
+    id: 'tor-hinweis',
+    topic: 'live',
+    title: 'Merke ich, wenn ein Tor fällt?',
+    answer:
+      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest. Steht daneben „Ton aus · tippen“, tippe einmal auf die Seite. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
+    keywords:
+      'tor ton vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren voiceover screenreader pfiff',
+    sources: ['020 US3'],
+    parents: true,
+    related: ['eltern-dashboard', 'keine-meldung'],
+  },
+  {
+    id: 'keine-meldung',
+    topic: 'live',
+    title: 'Was bedeutet „keine Meldung vom Spielfeld“?',
+    answer:
+      '„vor 2 Min aktualisiert“ zeigt, wie frisch der Stand ist. Steht dort „Seit 7 Min keine Meldung vom Spielfeld“, hat das Handy am Spielfeld nichts gesendet (Funkloch, leerer Akku, App zu). Die Minute läuft weiter, der Stand kann aber veraltet sein. In der Halbzeit und nach dem Spiel gibt es keine Warnung.',
+    keywords: 'keine meldung spielfeld veraltet aktualisiert funkloch akku alt stand warnung minuten frisch',
+    sources: ['020 US4'],
+    parents: true,
+    related: ['keine-verbindung', 'eltern-dashboard'],
+  },
+  {
+    id: 'selbst-trainieren',
+    topic: 'live',
+    title: 'Ich trainiere selbst. Wo finde ich den Torticker?',
+    answer:
+      'Tippe auf „Torticker öffnen“. Auf dem Startbildschirm findest du „Neues Spiel“ oder „Link einfügen“ für einen Trainer-Link. Für den Spielfeldrand legst du den Torticker von dort auf den Home-Bildschirm.',
+    keywords: 'trainer selbst trainieren torticker öffnen app startbildschirm neues spiel eltern coach',
+    sources: ['020 US5'],
+    parents: true,
+    open: { label: 'Torticker', path: '/' },
+    related: ['eltern-home'],
   },
 
   // Einstellungen und Sicherung
