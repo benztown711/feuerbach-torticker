@@ -98,6 +98,8 @@ Leos Mutter tickert zum ersten Mal und öffnet "Mehr" → "Live für Eltern". Ob
 
 ### User Story 3 - Tor merken bei offener Seite (Priority: P1)
 
+**Status**: umgesetzt in Paket C (17.11.2026), Review C offen.
+
 Max' Oma hat den Link für Eltern auf dem Tablet offen, die Tante im Büro in einem Tab neben ihrer Arbeit. Fällt ein Tor, zeigt der Tab "Tor! Feuerbach E1 3:1", das Android-Handy vibriert kurz, und wer "Ton bei Toren" eingeschaltet hat, hört den Signalton. VoiceOver sagt "Tor für Feuerbach E1, 3 zu 1, Tom".
 
 **Why this priority**: Zuschauer verpassen Tore, weil die Seite nur kurz hervorhebt. Push-Benachrichtigungen kommen diese Saison nicht; das hier wirkt sofort und ohne Dienst.
@@ -120,6 +122,8 @@ Max' Oma hat den Link für Eltern auf dem Tablet offen, die Tante im Büro in ei
 
 ### User Story 4 - Ehrlicher Live-Status je Spiel (Priority: P1)
 
+**Status**: umgesetzt in Paket C (17.11.2026), Review C offen.
+
 Pauls Opa sieht auf der Karte von E1 "37' · vor 1 Min aktualisiert" und weiß, dass der Stand frisch ist. Als der Akku am Spielfeld leer ist, steht nach fünf Minuten "Seit 5 Min keine Meldung vom Spielfeld"; er wartet, statt den Stand für den Endstand zu halten. Oben steht nur "Aktualisiert sich automatisch", nicht mehr dauernd "Live · Stand 10:49 Uhr".
 
 **Why this priority**: Falsches Vertrauen in einen veralteten Stand war der zweite große Befund bei den Zuschauern. Die Warnung muss ohne Aufklappen und ohne Symbolkenntnis verständlich sein.
@@ -139,6 +143,8 @@ Pauls Opa sieht auf der Karte von E1 "37' · vor 1 Min aktualisiert" und weiß, 
 ---
 
 ### User Story 5 - Eltern-Ansicht ohne Ausgang in die Trainer-App (Priority: P2)
+
+**Status**: umgesetzt in Paket C (17.11.2026), Review C offen.
 
 Toms Mutter scrollt in der Eltern-Ansicht nach unten. Dort steht nur noch "Aktualisiert sich von selbst."; einen Link in den Torticker, der sie auf "Neues Spiel" führt, gibt es nicht mehr. Ihr Mann, der selbst die F-Jugend trainiert, findet in der Hilfe der Eltern-Ansicht "Ich trainiere selbst. Wo finde ich den Torticker?" und kommt mit "Torticker öffnen" zum Startbildschirm.
 
