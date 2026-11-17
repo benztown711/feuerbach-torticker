@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { chipLabel, seedRoster } from './helpers';
-import { createLive } from './live-helpers';
+import { createLive, openTrainerSection } from './live-helpers';
 import { settle, shareTrainerWithSquads, squadTabs, twoSquads } from './paket-helpers';
 
 /**
@@ -14,6 +14,7 @@ test.use({ serviceWorkers: 'block' });
 /** Trainer-Link im Torticker einfügen und die Kopplungsfrage zeigen (ohne zu bestätigen). */
 async function paste(b: Page, url: string): Promise<void> {
   await b.goto('./#/live-spieltag');
+  await openTrainerSection(b);
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill(`Hier der Link:\n${url}\n`);
   await b.getByTestId('paste-link-apply').click();

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures';
 import { seedRoster } from './helpers';
+import { openTrainerSection } from './live-helpers';
 import type { FakeRelay } from './relay';
 
 /** Spec 016: Hilfen für das Trainer-Paket (geteilte Kader). Fiktive Namen. */
@@ -39,6 +40,7 @@ export async function teamSquad(page: Page, index: number, squad: string): Promi
 /** "Trainer-Link teilen" mit der Frage "Kader mit den Trainern teilen?"; `off` = abgewählte Kader. */
 export async function shareTrainerWithSquads(page: Page, off: string[] = []): Promise<void> {
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   await page.getByTestId('btn-share-trainer').click();
   const sheet = page.getByTestId('squad-share-sheet');
   await expect(sheet).toBeVisible();

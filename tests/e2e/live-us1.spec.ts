@@ -1,6 +1,14 @@
 import { expect, test } from './fixtures';
 import { addTeam, readStored, startGame } from './helpers';
-import { asPath, createLive, firstManifest, linkData, recordedOf, recordManifests } from './live-helpers';
+import {
+  asPath,
+  createLive,
+  firstManifest,
+  linkData,
+  openTrainerSection,
+  recordedOf,
+  recordManifests,
+} from './live-helpers';
 
 /** Spec 006 US1: Live-Spieltag anlegen und Trainergruppe koppeln (ein Trainer-Link für alle). */
 
@@ -16,6 +24,8 @@ test('006 US1-S1 Live-Spieltag mit E1 und E2 anlegen, Zuschauer- und Trainer-Lin
   await page.goto('./#/mehr');
   await page.getByTestId('more-live').click();
   await expect(page.getByTestId('live-empty')).toContainText('Was das Handy verlässt'.toUpperCase());
+  // Spec 020 FR-E15: "Live-Spieltag anlegen" steht unter "Für Trainer".
+  await openTrainerSection(page);
   await page.getByTestId('btn-live-create').click();
   await expect(page.getByTestId('input-live-title')).toHaveValue('Unser Spieltag');
   await page.getByTestId('live-team-chip-E3').click();
@@ -54,6 +64,7 @@ test('006 US1-S2 US1-S3 US1-S7 Trainer-Link auf einem zweiten Handy einfügen; M
   const b = await newDevice();
   await b.goto('./#/live-spieltag');
   await expect(b.getByTestId('live-empty')).toBeVisible();
+  await openTrainerSection(b);
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill(`Unser Trainer-Link:\n${links.trainer}\n\nDanke!`);
   await b.getByTestId('paste-link-apply').click();
@@ -96,6 +107,7 @@ test('006 US1-S2 Abbrechen koppelt nicht; ungültige und veränderte Links werde
   const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
   const b = await newDevice();
   await b.goto('./#/live-spieltag');
+  await openTrainerSection(b);
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill('irgendein Text');
   await b.getByTestId('paste-link-apply').click();

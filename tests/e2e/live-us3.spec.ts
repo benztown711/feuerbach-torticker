@@ -49,6 +49,8 @@ test('006 US1-S5 Zuschauer-Link im Torticker zeigt nur das Dashboard, auch einge
 
   const w = await newDevice();
   await w.goto('./#/live-spieltag');
+  // Spec 020 FR-E15: "Trainer-Link einfügen" steht unter "Für Trainer".
+  await w.getByTestId('live-trainer-toggle').click();
   await w.getByTestId('btn-paste-link').click();
   await w.getByTestId('paste-link-input').fill(`Hier zuschauen: ${links.viewer}`);
   await w.getByTestId('paste-link-apply').click();

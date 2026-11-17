@@ -1,7 +1,16 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes, forward, MIN } from './helpers';
-import { asPath, createLive, liveSnap, MATCHDAY, onMatchday, pasteLink, sendAs } from './live-helpers';
+import {
+  asPath,
+  createLive,
+  liveSnap,
+  MATCHDAY,
+  onMatchday,
+  openTrainerSection,
+  pasteLink,
+  sendAs,
+} from './live-helpers';
 import { addGame, openPlan, sync } from './plan-helpers';
 
 /**
@@ -116,6 +125,7 @@ test('007 US2-S3 FR-N12 neu ausgestellt: alte Trainer-Handys und Dashboards erfa
   await sendAs(relay, old.trainer, liveSnap({ team: 'E1', now: MATCHDAY, clock: [['kickoff', 5, 1]] }));
 
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   await page.getByTestId('btn-live-reissue').click();
   await confirmYes(page);
   await expect(page.getByTestId('live-reissued')).toBeVisible();

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes, readStored } from './helpers';
-import { asPath, createLive, onMatchday, pasteLink } from './live-helpers';
+import { asPath, createLive, onMatchday, openTrainerSection, pasteLink } from './live-helpers';
 
 /** Spec 012 US1: Trainer-Handy koppeln ohne Suchen (Startbildschirm, Trainer-Link-Seite, Live-Spieltag). */
 
@@ -122,12 +122,16 @@ test('012 US1-S5 neu ausgestellt: Startbildschirm zeigt wieder die Karte mit Hin
   await expect(b.getByTestId('start-follow')).toHaveCount(0);
 });
 
-test('012 US1-S6 Live-Spieltag ohne Kopplung: Trainer-Link einfügen ist der Hauptknopf', async ({ page }) => {
+test('012 US1-S6 Live-Spieltag ohne Kopplung: Trainer-Link einfügen vor Live-Spieltag anlegen', async ({ page }) => {
   await page.goto('./#/live-spieltag');
+  // Geändert durch Spec 020 FR-E15: Hauptknopf ist "Link für Eltern teilen"; Einfügen und Anlegen stehen in dieser
+  // Reihenfolge unter "Für Trainer".
+  await expect(page.getByTestId('btn-share-viewer')).toHaveClass(/btn--primary/);
+  await openTrainerSection(page);
   const paste = page.getByTestId('btn-paste-link');
   const create = page.getByTestId('btn-live-create');
   await expect(paste).toHaveText('Trainer-Link einfügen');
-  await expect(paste).toHaveClass(/btn--primary/);
+  await expect(paste).toHaveClass(/btn--secondary/);
   await expect(create).toHaveClass(/btn--secondary/);
   const [pasteBox, createBox] = [await paste.boundingBox(), await create.boundingBox()];
   expect(pasteBox!.y).toBeLessThan(createBox!.y);
