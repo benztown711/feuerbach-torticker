@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { MIN, SEC, acceptDraw, confirmYes, ensureTeam, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, acceptDraw, confirmYes, ensureTeam, forward, seedRoster, shareAsText, startGame } from './helpers';
 import { createLive, latestState } from './live-helpers';
 
 /** Spec 017: Spiel korrigieren (Tore in den Spieldetails, Trikots ändern, Erinnerung an neues Teilen). */
@@ -419,10 +419,7 @@ async function quickGame(page: Page, o: { interim?: boolean } = {}): Promise<voi
   await startGame(page, { opponent: 'TSV Musterstadt', sections: 1, minutes: 12 });
   await forward(page, MIN + 30 * SEC);
   await ownGoal(page, '9 Max');
-  if (o.interim) {
-    await page.getByTestId('btn-menu').click();
-    await page.getByTestId('menu-share-interim').click();
-  }
+  if (o.interim) await shareAsText(page);
   await forward(page, 11 * MIN);
   await whistle(page);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');

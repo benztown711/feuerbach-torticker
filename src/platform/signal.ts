@@ -116,14 +116,18 @@ function rewind(el: HTMLAudioElement): void {
   }
 }
 
-/** Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). */
-export function unlockAudio(): void {
+/**
+ * Muss aus einem Tap-Handler aufgerufen werden (Anpfiff, jede weitere Berührung im Spiel). Erfüllt sich, sobald
+ * feststeht, ob der Ton frei ist (`audioReady()`), damit ein Hinweis wie "Ton aus · tippen" sofort verschwinden kann.
+ */
+export function unlockAudio(): Promise<void> {
   setPlaybackSession();
   if (keepAliveWanted) startKeepAlive();
   const el = element();
   el.muted = true;
   rewind(el);
-  el.play()
+  return el
+    .play()
     .then(() => {
       el.pause();
       rewind(el);
@@ -154,6 +158,35 @@ export function playSignal(): void {
       unlocked = false;
     });
   if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300]);
+}
+
+/**
+ * Spec 020 FR-E25: Signalton bei einem Tor in der Eltern-Ansicht, einmal und ohne das Vibrationsmuster von
+ * `playSignal()` (das ist für das Abschnittsende gedacht, R-E4). Aus einer Berührung heraus schaltet das Abspielen
+ * den Ton auch frei.
+ */
+export function playGoalSignal(): Promise<void> {
+  setPlaybackSession();
+  const el = element();
+  el.muted = false;
+  rewind(el);
+  return el.play().then(
+    () => {
+      unlocked = true;
+    },
+    () => {
+      unlocked = false;
+    },
+  );
+}
+
+/** Spec 020 FR-E24: einmal kurz (etwa 0,2 Sekunden) vibrieren, wo der Browser es anbietet (nicht Safari auf dem iPhone). */
+export function vibrateShort(): void {
+  try {
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(200);
+  } catch {
+    /* Vibration verweigert: ignorieren */
+  }
 }
 
 /** "Ton testen" (FR-039): innerhalb einer Berührung sofort hörbar abspielen. */

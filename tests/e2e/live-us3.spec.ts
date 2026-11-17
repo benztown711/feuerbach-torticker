@@ -49,6 +49,8 @@ test('006 US1-S5 Zuschauer-Link im Torticker zeigt nur das Dashboard, auch einge
 
   const w = await newDevice();
   await w.goto('./#/live-spieltag');
+  // Spec 020 FR-E15: "Trainer-Link einfügen" steht unter "Für Trainer".
+  await w.getByTestId('live-trainer-toggle').click();
   await w.getByTestId('btn-paste-link').click();
   await w.getByTestId('paste-link-input').fill(`Hier zuschauen: ${links.viewer}`);
   await w.getByTestId('paste-link-apply').click();
@@ -207,7 +209,7 @@ test('006 US3-S6 Verbindung weg: "Keine Verbindung · Stand von", danach von sel
   await expect(v.getByTestId('dash-score-E1')).toHaveText('0:1');
 });
 
-test('006 US3-S7 FR-L15 seit 7 Minuten keine Meldung: Hinweis, Minute läuft weiter', async ({
+test('006 US3-S7 FR-L15 FR-E31 seit 7 Minuten keine Meldung: Hinweis, Minute läuft weiter', async ({
   page,
   recorded,
   relay,
@@ -220,9 +222,12 @@ test('006 US3-S7 FR-L15 seit 7 Minuten keine Meldung: Hinweis, Minute läuft wei
   await expect(v.getByTestId('dash-phase-E1')).toHaveText("3'");
   await later(v, relay, 7 * MIN + 10_000);
   await expect(v.getByTestId('dash-phase-E1')).toHaveText("10'");
-  await expect(v.getByLabel('Letzte Meldung vor 7 Minuten')).toBeVisible();
+  // Spec 020 FR-E31: der Hinweis steht in Klartext schon auf der zugeklappten Karte (ersetzt "Letzte Meldung vor 7 Min")
+  await expect(v.getByTestId('dash-stale-E1')).toBeVisible();
+  await expect(v.getByTestId('dash-stale-E1')).toContainText('Seit 7 Min keine Meldung vom Spielfeld');
   await v.getByTestId('dash-toggle-E1').click();
-  await expect(v.getByTestId('dash-stale-E1')).toContainText('Letzte Meldung vor 7 Min');
+  await expect(v.getByTestId('dash-details-E1')).toBeVisible();
+  await expect(v.getByTestId('dash-stale-E1')).toHaveCount(1);
 });
 
 test('006 US3-S8 beendetes Spiel bleibt mit "Ende" unter dem laufenden, aufgeklappt mit Datum', async ({
@@ -351,8 +356,10 @@ test('006 R-L6 Start ohne eigene Daten öffnet das gemerkte Dashboard', async ({
   await v.goto('./');
   await expect(v.getByTestId('dashboard')).toBeVisible();
   expect(v.url()).toContain('#/live/');
-  // "Zum Torticker" führt zum Start, ohne erneut umzuleiten.
-  await v.getByRole('link', { name: 'Zum Torticker' }).click();
+  // Spec 020 FR-E41: statt "Zum Torticker" führt "Torticker öffnen" in der Eltern-Hilfe zum Start, ohne erneut umzuleiten.
+  await v.getByTestId('viewer-nav-help').click();
+  await v.getByTestId('help-row-selbst-trainieren').click();
+  await v.getByTestId('help-open').click();
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
   await v.clock.runFor(2_000);
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
@@ -395,9 +402,9 @@ test('006 US3-S11 FR-L16 "Zum Home-Bildschirm" legt das Dashboard ab, nicht den 
   await expect(home.getByTestId('dashboard')).toBeVisible();
   await expect(home.getByTestId('btn-new-game')).toHaveCount(0);
 
-  // "Zum Torticker": wieder das Manifest der App (Chrome liest es neu).
-  await v.getByTestId('viewer-nav-dash').click();
-  await v.getByRole('link', { name: 'Zum Torticker' }).click();
+  // "Torticker öffnen" (Spec 020 FR-E41): wieder das Manifest der App (Chrome liest es neu).
+  await v.getByTestId('help-row-selbst-trainieren').click();
+  await v.getByTestId('help-open').click();
   await expect(v.getByTestId('btn-new-game')).toBeVisible();
   await expect.poll(() => manifestOf(v)).toBe('/feuerbach-torticker/manifest.webmanifest');
 });

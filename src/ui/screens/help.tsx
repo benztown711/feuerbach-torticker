@@ -95,7 +95,8 @@ function Entry({ entry, base, mode, pool }: { entry: HelpEntry; base: string; mo
           ))}
         </ol>
       )}
-      {entry.open && mode === 'app' && (
+      {/* Spec 020 FR-E41: in der Eltern-Hilfe nur Einträge für Eltern mit Ziel ("Torticker öffnen"). */}
+      {entry.open && (mode === 'app' || entry.parents) && (
         <a class="btn btn--secondary help-entry__open" href={`#${entry.open.path}`} data-testid="help-open">
           {entry.open.label} öffnen
         </a>

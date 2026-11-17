@@ -485,8 +485,8 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
           )}
           {settings.live && isRetired(settings.live) && (
             <p class="field__help" data-testid="new-live-retired">
-              „{titleOf(settings.live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link unter „Mehr“ →
-              „Live-Spieltag“ ein, um wieder live zu senden.
+              „{titleOf(settings.live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link unter „Mehr“ → „Live für
+              Eltern“ ein, um wieder live zu senden.
             </p>
           )}
           {settings.teams.length === 0 && (

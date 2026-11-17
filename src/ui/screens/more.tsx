@@ -11,8 +11,8 @@ export function MoreScreen() {
     {
       href: '#/live-spieltag',
       testId: 'more-live',
-      title: 'Live-Spieltag',
-      text: 'Dashboard für Eltern, Trainer-Link',
+      title: 'Live für Eltern',
+      text: 'Eltern zuschauen lassen, Trainer-Link, Spielplan',
     },
     { href: '#/hilfe', testId: 'more-help', title: 'Hilfe', text: 'Suchen, Anleitungen, Tipps' },
   ];

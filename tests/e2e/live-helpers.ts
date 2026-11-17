@@ -26,7 +26,17 @@ export const recordedOf = (p: Page) => (): Promise<Recorded> =>
 export const asPath = (url: string): string => `./${url.slice(url.indexOf('#'))}`;
 
 /**
- * Legt die Mannschaften an, dann über "Mehr" → "Live-Spieltag" einen Live-Spieltag mit allen Mannschaften
+ * Spec 020 R-E8: klappt auf "Live für Eltern" den Bereich "Für Trainer" auf, wenn es ihn gibt und er zu ist;
+ * sonst nichts (z. B. neu ausgestellt).
+ */
+export async function openTrainerSection(page: Page): Promise<void> {
+  await expect(page.locator('main.page .live').first()).toBeVisible();
+  const toggle = page.getByTestId('live-trainer-toggle');
+  if ((await toggle.count()) > 0 && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+}
+
+/**
+ * Legt die Mannschaften an, dann über "Mehr" → "Live für Eltern" einen Live-Spieltag mit allen Mannschaften
  * außer `without`. Teilt Zuschauer- und Trainer-Link und liefert sie. Das Handy ist danach Trainer-Handy.
  */
 export async function createLive(
@@ -38,6 +48,7 @@ export async function createLive(
   for (const t of o.teams) await ensureTeam(page, `Sportvg Feuerbach ${t}`);
   await page.goto('./#/mehr');
   await page.getByTestId('more-live').click();
+  await openTrainerSection(page);
   await page.getByTestId('btn-live-create').click();
   if (o.title !== undefined) await page.getByTestId('input-live-title').fill(o.title);
   for (const t of o.without ?? []) await page.getByTestId(`live-team-chip-${t}`).click();
@@ -45,6 +56,7 @@ export async function createLive(
   await expect(page.getByTestId('live-overview')).toBeVisible();
   const before = (await recorded()).shares.length;
   await page.getByTestId('btn-share-viewer').click();
+  await openTrainerSection(page);
   await page.getByTestId('btn-share-trainer').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(before + 2);
   const [viewer, trainer] = (await recorded()).shares.slice(before);
@@ -54,6 +66,7 @@ export async function createLive(
 /** Fügt einen Trainer- oder Lead-Link im Torticker ein und bestätigt die Kopplung. */
 export async function pasteLink(page: Page, url: string, text = 'Hier der Link:'): Promise<void> {
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   await page.getByTestId('btn-paste-link').click();
   await page.getByTestId('paste-link-input').fill(`${text}\n${url}\n`);
   await page.getByTestId('paste-link-apply').click();
@@ -458,3 +471,27 @@ export async function recordManifests(p: Page): Promise<void> {
 }
 export const firstManifest = async (p: Page) =>
   unpack(p, (await p.evaluate(() => (window as unknown as { __manifests: string[] }).__manifests))[0] ?? '');
+
+/* ---------- Spec 020 Paket C: Tore mit Torschütze für die Torhinweise ---------- */
+
+/**
+ * E1 in Minute 37 wie `e1At37` (2:1), dazu weitere Tore. `now` ist die Sendezeit; wer später sendet, gibt
+ * `minutesLater` an, damit die Minute zur Zeit passt (die Anpfiffe liegen relativ zu `now`).
+ */
+export function e1WithGoals(extra: GoalSpec[] = [], now = MATCHDAY, minutesLater = 0): Json {
+  return liveSnap({
+    team: 'E1',
+    now,
+    clock: [
+      ['kickoff', 50 + minutesLater, 1],
+      ['sectionEnd', 25 + minutesLater, 1],
+      ['kickoff', 11.2 + minutesLater, 2],
+    ],
+    goals: [
+      { side: 'own', minute: 6, who: 'Max' },
+      { side: 'opp', minute: 12 },
+      { side: 'own', minute: 31, section: 2, who: 'Ben', penalty: true },
+      ...extra,
+    ],
+  });
+}

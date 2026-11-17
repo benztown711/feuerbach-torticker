@@ -180,7 +180,7 @@ Eltern, die das Dashboard auf dem Home-Bildschirm haben, bekommen bei Anpfiff, T
 - Der Gratis-Plan von Cloudflare (Workers mit Durable Objects, SQLite-Speicher) reicht für das Mengengerüst und rechnet nichts ab; Grenzen und Rechnung in research.md R-N1. Das Konto gehört Atti.
 - Eine `…workers.dev`-Adresse genügt; eine eigene Domain ist nicht nötig.
 - Die Dashboards rechnen weiter selbst (Tageslogik, Karten, Minute); der Dienst ordnet nur und hält vor.
-- Push (US4) wird erst nach Teil 1 spezifiziert.
+- Push (US4) wird erst nach Teil 1 spezifiziert. Nachtrag 17.11.2026 (Atti, Spec 020): Web Push kommt diese Saison nicht. Ersatz bei offener Seite: Tab-Titel, Ansage, Vibration und "Ton bei Toren" in der Eltern-Ansicht (Spec 020 US3).
 
 ## Offene Fragen
 

@@ -54,7 +54,7 @@ Diese Anforderungen ersetzen in Spec 001 die Klangbeschreibung aus FR-036 ("drei
   Jeder Ton MUSS im Browser erzeugt werden (keine Audiodatei, offline), höchstens etwa 2,5 s dauern, mit kurzer Stille vorweg beginnen (iOS verschluckt sonst den Anfang) und voll ausgesteuert sein. Der bisherige Ton (drei harte Pieptöne) entfällt.
 - **FR-K02**: Die Einstellungen MÜSSEN einen Abschnitt "SIGNALTON" mit den drei Tönen als Auswahlliste zeigen (je Name und eine Zeile Beschreibung). Antippen MUSS den Ton auswählen, sofort speichern und ihn sofort abspielen (Hörprobe, schaltet den Ton zugleich frei).
 - **FR-K03**: Vorgabe ist der Pfiff. Fehlt ein gespeicherter Signalton oder ist er unbekannt, MUSS der Pfiff gelten.
-- **FR-K04**: Das Signal bei 00:00 und zu jeder vollen Nachspielminute (Spec 001 FR-007) MUSS den gewählten Ton spielen; ein Wechsel gilt ab dem nächsten Signal.
+- **FR-K04**: Das Signal bei 00:00 und zu jeder vollen Nachspielminute (Spec 001 FR-007) MUSS den gewählten Ton spielen; ein Wechsel gilt ab dem nächsten Signal. Nachtrag 17.11.2026, ergänzt durch Spec 020 FR-E25: Derselbe gewählte Ton spielt in der Eltern-Ansicht bei jedem neuen Tor, wenn dort "Ton bei Toren" eingeschaltet ist (ohne das Vibrationsmuster des Signals).
 - **FR-K05**: "Ton testen" bei "Neues Spiel" (Spec 001 FR-039) MUSS den gewählten Ton spielen; der Hinweis darunter MUSS den Namen des gewählten Tons und den Weg zur Änderung nennen ("Signalton: Pfiff, änderbar unter „Mehr“ → „Einstellungen“.").
 
 ### Key Entities

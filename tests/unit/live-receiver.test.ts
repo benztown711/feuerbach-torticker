@@ -506,3 +506,42 @@ describe('006 US6-S6 FR-L22 auf den ersten Live-Stand warten', () => {
     expect(w.done()).toBe(true);
   });
 });
+
+describe('020 US3-S10 FR-E21 erster Stand vom Dienst geladen (Basis für den Torhinweis)', () => {
+  it('erst nach "hello" und den darin nachgelieferten Meldungen; der gemerkte Stand zählt nicht', async () => {
+    let release: () => void = () => undefined;
+    const stored = memoryStore({
+      [KEY]: JSON.stringify({ games: [], liveAt: T0, seq: 3 }),
+    });
+    const s = setup({
+      storage: stored,
+      open: (_v, text) =>
+        new Promise((res) => {
+          release = () => res(JSON.parse(text) as OpenedMessage);
+        }),
+    });
+    expect(s.r.get().loaded).toBe(false);
+    // Ohne Netz bleibt es beim gemerkten Stand
+    s.relay().onState?.('offline');
+    await flush();
+    expect(s.r.get().loaded).toBe(false);
+    // "hello" mit einer nachgelieferten Meldung: geladen erst, wenn sie geprüft ist
+    s.relay().onServerTime?.(T0 / 1000);
+    s.relay().onMessage({
+      seq: 4,
+      time: T0 / 1000,
+      message: JSON.stringify({ content: snap(), cert: null, config }),
+    });
+    await flush();
+    expect(s.r.get().loaded).toBe(false);
+    release();
+    await vi.waitFor(() => expect(s.r.get().loaded).toBe(true));
+    expect(s.r.get().board.games).toHaveLength(1);
+    // Nach einer Verbindungslücke bleibt es geladen
+    s.relay().onState?.('offline');
+    s.relay().onServerTime?.(T0 / 1000 + 60);
+    await flush();
+    expect(s.r.get().loaded).toBe(true);
+    s.r.stop();
+  });
+});

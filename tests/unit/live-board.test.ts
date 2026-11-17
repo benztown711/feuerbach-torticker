@@ -12,6 +12,7 @@ import {
   emptyBoard,
   formatClockTime,
   formatDay,
+  freshnessText,
   lastSentAt,
   otherGames,
   planSection,
@@ -259,14 +260,16 @@ describe('006 FR-L12 FR-L14 Karten', () => {
       goal('opp', 40, { penalty: true, section: 2 }),
     ];
     const c = one(snap({ clock: kicked(), goals }), T0 + min(45));
+    const O = { team: 'TSV Musterstadt' };
+    const F = { team: 'Feuerbach E1' };
     expect(c.goals).toEqual([
-      { side: 'opp', minute: "40'", score: '4:3', who: 'TSV Musterstadt (Elfmeter)' },
-      { side: 'own', minute: "33'", score: '4:2', who: 'Feuerbach E1' },
-      { side: 'own', minute: "30'", score: '3:2', who: 'Eigentor' },
-      { side: 'opp', minute: "27'", score: '2:2', who: 'Nr. 9 (Gegner)' },
-      { side: 'own', minute: "25+1'", score: '2:1', who: 'Ben (Elfmeter)' },
-      { side: 'opp', minute: "12'", score: '1:1', who: 'TSV Musterstadt' },
-      { side: 'own', minute: "6'", score: '1:0', who: 'Max' },
+      { side: 'opp', minute: "40'", score: '4:3', who: 'TSV Musterstadt (Elfmeter)', ...O, scorer: null },
+      { side: 'own', minute: "33'", score: '4:2', who: 'Feuerbach E1', ...F, scorer: null },
+      { side: 'own', minute: "30'", score: '3:2', who: 'Eigentor', ...F, scorer: 'Eigentor' },
+      { side: 'opp', minute: "27'", score: '2:2', who: 'Nr. 9 (Gegner)', ...O, scorer: 'Nr. 9' },
+      { side: 'own', minute: "25+1'", score: '2:1', who: 'Ben (Elfmeter)', ...F, scorer: 'Ben' },
+      { side: 'opp', minute: "12'", score: '1:1', who: 'TSV Musterstadt', ...O, scorer: null },
+      { side: 'own', minute: "6'", score: '1:0', who: 'Max', ...F, scorer: 'Max' },
     ]);
   });
 
@@ -323,12 +326,15 @@ describe('006 FR-L12 FR-L14 Karten', () => {
     expect(c.today).toBe(true);
   });
 
-  it('US3-S7 FR-L15: "Letzte Meldung vor n Min" erst nach mehr als 5 Minuten und nur bei laufendem Spiel', () => {
+  it('US3-S7 FR-E31 FR-E30: Alter der Meldung bei laufendem Spiel, ab 5 Minuten "silent" (Spec 020, ersetzt FR-L15)', () => {
     const b = put(emptyBoard(), snap({ clock: kicked(), sentAt: T0 + min(10) }));
-    expect(view(b, T0 + min(15)).cards[0]!.staleMinutes).toBeNull();
-    expect(view(b, T0 + min(17) + 5000).cards[0]!.staleMinutes).toBe(7);
+    expect(view(b, T0 + min(10) + 30_000).cards[0]!.freshness).toEqual({ kind: 'fresh' });
+    expect(view(b, T0 + min(11)).cards[0]!.freshness).toEqual({ kind: 'age', minutes: 1 });
+    expect(view(b, T0 + min(14) + 59_000).cards[0]!.freshness).toEqual({ kind: 'age', minutes: 4 });
+    expect(view(b, T0 + min(15)).cards[0]!.freshness).toEqual({ kind: 'silent', minutes: 5 });
+    expect(view(b, T0 + min(17) + 5000).cards[0]!.freshness).toEqual({ kind: 'silent', minutes: 7 });
     const ended = put(emptyBoard(), snap({ clock: fullTime, sentAt: T0 + min(56) }));
-    expect(view(ended, T0 + min(90)).cards[0]!.staleMinutes).toBeNull();
+    expect(view(ended, T0 + min(90)).cards[0]!.freshness).toBeNull();
   });
 });
 
@@ -1139,5 +1145,68 @@ describe('018 US2 Spiel übernehmen vom Startbildschirm', () => {
     const ended = put(emptyBoard(), snap({ team: 'E2', gameId: 'aus', clock: fullTime, sentAt: T0 + min(56) }));
     expect(takeoverOffers(ended, ['E2'], [], T0 + min(57), TZ)).toEqual([]);
     expect(takeoverOffers(b, ['E2'], [], T0 + DAY, TZ)).toEqual([]);
+  });
+});
+
+describe('020 US4 FR-E30 bis FR-E32 Aktualität je Zustand der Karte', () => {
+  const silent = (s: LiveGameSnapshot, mins: number) =>
+    one({ ...s, sentAt: T0 + min(20) }, T0 + min(20) + min(mins)).freshness;
+
+  it('020 US4-S3 laufend, Uhr angehalten und Elfmeterschießen zeigen Alter bzw. Warnung', () => {
+    const paused: Clock = [...kicked(), ['pause', T0 + min(5), 1]];
+    expect(silent(snap({ clock: paused }), 7)).toEqual({ kind: 'silent', minutes: 7 });
+    expect(silent(snap({ clock: paused }), 2)).toEqual({ kind: 'age', minutes: 2 });
+    const shootout = snap({
+      clock: fullTime,
+      shootout: { first: 'own', done: false, shots: [['own', true, null]] },
+    });
+    expect(silent(shootout, 6)).toEqual({ kind: 'silent', minutes: 6 });
+    expect(silent(snap({ clock: kicked() }), 0)).toEqual({ kind: 'fresh' });
+  });
+
+  it('020 US4-S4 Halbzeit, Pause und vor der Verlängerung: weder Alter noch Warnung', () => {
+    expect(silent(snap({ clock: atHalf }), 12)).toBeNull();
+    expect(silent(snap({ clock: atHalf, schema: { sections: 3, sectionMinutes: 10 } }), 12)).toBeNull();
+    const beforeExtra: Clock = [...fullTime.slice(0, 3), ['sectionEnd', T0 + min(55), 2]];
+    expect(silent(snap({ clock: beforeExtra, schema: { sections: 2, sectionMinutes: 25 } }), 12)).toBeNull();
+  });
+
+  it('020 US4-S5 nicht angepfiffen, beendet, Spiel vom Vortag und Planspiel: kein Alter', () => {
+    expect(silent(snap({ clock: [] }), 12)).toBeNull();
+    expect(silent(snap({ clock: fullTime }), 12)).toBeNull();
+    const old = one(snap({ clock: kicked(), sentAt: T0 + min(20) }), T0 + DAY + min(20));
+    expect(old.freshness).toBeNull();
+    const b = planned(pe());
+    expect(card(b)?.group).toBe('planned');
+    expect(card(b)?.freshness).toBeNull();
+  });
+
+  it('020 US4-S1 US4-S2 US4-S3 Texte in Klartext', () => {
+    expect(freshnessText({ kind: 'fresh' })).toBe('gerade aktualisiert');
+    expect(freshnessText({ kind: 'age', minutes: 3 })).toBe('vor 3 Min aktualisiert');
+    expect(freshnessText({ kind: 'silent', minutes: 7 })).toBe('Seit 7 Min keine Meldung vom Spielfeld');
+  });
+});
+
+describe('020 US3 FR-E23 Tore der Karte nennen Mannschaft und Torschützen', () => {
+  it('team und scorer: eigene Tore, Gegner, Eigentor, ohne Namen', () => {
+    const s = snap({
+      clock: kicked(),
+      goals: [
+        goal('own', 3, { who: 'Tom' }),
+        goal('opp', 5, { who: 'Nr. 7' }),
+        goal('opp', 6),
+        goal('own', 8, { ownGoal: true }),
+        goal('own', 9),
+      ],
+    });
+    const lines = one(s, T0 + min(10)).goals;
+    expect(lines.map((g) => [g.team, g.scorer])).toEqual([
+      ['Feuerbach E1', null],
+      ['Feuerbach E1', 'Eigentor'],
+      ['TSV Musterstadt', null],
+      ['TSV Musterstadt', 'Nr. 7'],
+      ['Feuerbach E1', 'Tom'],
+    ]);
   });
 });

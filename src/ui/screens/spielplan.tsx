@@ -555,8 +555,8 @@ export function PlanScreen() {
         <div class="form">
           <section class="card" data-testid="plan-unavailable">
             <p class="live__text">
-              Den Spielplan gibt es auf Trainer-Handys mit Trainer-Link. Füge den Trainer-Link unter „Live-Spieltag“
-              ein.
+              Den Spielplan gibt es auf Trainer-Handys mit Trainer-Link. Füge den Trainer-Link unter „Live für Eltern“ →
+              „Für Trainer“ ein.
             </p>
           </section>
         </div>

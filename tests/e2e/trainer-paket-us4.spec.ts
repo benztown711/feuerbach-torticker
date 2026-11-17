@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { createLive, pasteLink } from './live-helpers';
+import { createLive, openTrainerSection, pasteLink } from './live-helpers';
 import { squadTabs } from './paket-helpers';
 
 /**
@@ -87,6 +87,7 @@ test('016 US4-S6 gekoppelt: Live-Zeile statt Karte; "Link einfügen" unter "Live
   await expect(b.getByTestId('start-follow')).toBeVisible();
   await expect(b.getByTestId('start-trainer-card')).toHaveCount(0);
   await b.goto('./#/live-spieltag');
+  await openTrainerSection(b);
   await b.getByTestId('btn-paste-link').click();
   await b.getByTestId('paste-link-input').fill(LIST);
   await b.getByTestId('paste-link-apply').click();

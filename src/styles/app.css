@@ -2820,6 +2820,71 @@ body:has(.page:not(.dash, .lead-link)) {
   color: var(--color-ink-muted);
 }
 
+/* Spec 020 Paket A */
+
+/* US1 FR-E06: Knöpfe im Blatt "Eltern live zuschauen lassen" mindestens 64 pt (Constitution I). */
+.live-start__btn {
+  min-height: 64px;
+}
+
+/* FR-E06: "Ein anderer Trainer hat schon einen Link?" zuerst, abgesetzt vom Hauptweg "Neu starten". */
+.live-start__alt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+}
+
+.live-start__done {
+  font-weight: 700;
+}
+
+/* US2 FR-E13 bis FR-E16: einziger Hauptknopf oben auf "Live für Eltern". */
+.live__main {
+  min-height: 64px;
+}
+
+/* FR-E14 (R-E8): Kopfzeile "Für Trainer" als Knopf, darunter der aufgeklappte Bereich. */
+.live__trainer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 64px;
+  margin-top: var(--space-2);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.live__trainer-toggle[aria-expanded='true'] .live__trainer-chev {
+  transform: rotate(180deg);
+}
+
+.live__trainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* FR-E11: kurze Statuszeile nach dem Teilen (Startbildschirm, Blatt). */
+.live-start__msg {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  line-height: 22px;
+}
+
 /* Spec 006 FR-L08: Kennzeichen "Live" im Spielbildschirm */
 .live-pill {
   display: inline-flex;
@@ -3256,17 +3321,6 @@ body:has(.page:not(.dash, .lead-link)) {
   font-size: 14px;
 }
 
-.dash-card__note {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-rot-hell);
-  color: var(--color-ink);
-  font-size: 13px;
-}
-
 .dash-goals {
   margin: 0;
   padding: 0;
@@ -3333,6 +3387,98 @@ body:has(.page:not(.dash, .lead-link)) {
 
 .dash__invalid {
   padding: var(--space-4);
+}
+
+/* Spec 020 Paket C: Aktualität der Karte, Schalter "Ton bei Toren" */
+.dash-card__fresh {
+  font-weight: 400;
+}
+
+/* Warnung ab 5 Minuten ohne Meldung: eigene Zeile unter der Minute, hervorgehoben wie die Statuszeile ohne Netz */
+.dash-card__warn {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dash-sound {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dash-sound__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-sound__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+/* Wie der Schalter in den Einstellungen, nur als Schmuck innerhalb der ganzen Zeile */
+.dash-sound__knob {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 32px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.dash-sound__knob::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-ink);
+  content: '';
+}
+
+.dash-sound__row[aria-checked='true'] .dash-sound__knob {
+  background: var(--color-ink);
+}
+
+.dash-sound__row[aria-checked='true'] .dash-sound__knob::after {
+  background: var(--color-surface);
+  transform: translateX(24px);
+}
+
+/* FR-E26: eigener Knopf, mindestens 44 pt hoch, schaltet den Ton frei */
+.dash-sound__locked {
+  display: block;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

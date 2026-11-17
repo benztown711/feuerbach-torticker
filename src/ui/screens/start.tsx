@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
-import { teamShortLabel } from '../../domain/history';
-import { isRetired, titleOf } from '../../domain/live-spieltag';
+import { isRetired } from '../../domain/live-spieltag';
 import type { Game, Settings } from '../../domain/types';
 import { findOpenGame, getSettings, listGames } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
 import type { PlanChoice } from '../../platform/live-setup';
 import { navigate, parseHash } from '../router';
-import { readClipboard } from '../clipboard';
 
 const base = import.meta.env.BASE_URL;
 
@@ -28,107 +26,7 @@ async function viewerToOpen(): Promise<string | null> {
   return viewerLinkPath(s.liveView);
 }
 
-type StartCoupleModule = typeof import('../components/start-couple');
-type StartOffersModule = typeof import('../components/start-offers');
-
-/**
- * Spec 012 FR-S01: Hinweis zum Koppeln. Spec 018: "E2 übernehmen" (US2) und "Spiele verfolgen" (US1) unter
- * "Neues Spiel"; ersetzt die Zeile "Live: …" (Spec 012 FR-S04).
- */
-function LiveStart({ settings, onChange }: { settings: Settings; onChange: (s: Settings) => void }) {
-  const [flow, setFlow] = useState<{ text: string | null; mod: StartCoupleModule } | null>(null);
-  const [msg, setMsg] = useState('');
-  const [offers, setOffers] = useState<StartOffersModule | null>(null);
-  const live = settings.live;
-  const coupled = !!live && !isRetired(live);
-  // Spec 018 US2: "E2 übernehmen" nachgeladen, nur auf gekoppelten Handys (Hauptbundle, R-L7).
-  useEffect(() => {
-    if (!coupled) return;
-    let alive = true;
-    void import('../components/start-offers').then((m) => alive && setOffers(m)).catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, [coupled]);
-
-  const onPaste = (): void => {
-    setMsg('');
-    // Erst lesen, dann nachladen: das Koppeln bleibt außerhalb des Hauptbundles (R-L7).
-    void Promise.all([readClipboard(), import('../components/start-couple')])
-      .then(([text, mod]) => setFlow({ text, mod }))
-      .catch(() => setMsg('Das hat nicht geklappt. Bitte erneut versuchen.'));
-  };
-
-  const active = !!live && !isRetired(live);
-  // Spec 018 FR-002: gekoppelt (nicht neu ausgestellt) oder ein Zuschauer-Link ist bekannt.
-  const follow = active ? live : !live ? settings.liveView : undefined;
-
-  return (
-    <>
-      {active && offers && <offers.StartOffers live={live} />}
-      {follow && (
-        <button
-          type="button"
-          class="start__opt"
-          data-testid="start-follow"
-          onClick={() => navigate('/live-spieltag/dashboard')}
-        >
-          <svg class="icon start__opt-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-          <span class="start__opt-text">
-            <strong>Spiele verfolgen</strong>
-            <span data-testid="start-follow-line">
-              {active
-                ? `${titleOf(live)} · ${live.teams.map((t) => teamShortLabel(t.name)).join(', ')}`
-                : settings.liveView?.title}
-            </span>
-          </span>
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon start__opt-chevron">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-      {!active && (
-        <section class="card start__trainer" data-testid="start-trainer-card">
-          <p class="start__trainer-text">
-            {live ? (
-              `„${titleOf(live)}“ wurde neu ausgestellt. Füge den neuen Trainer-Link ein.`
-            ) : (
-              <>
-                <strong>Trainer?</strong> Füge den Link aus der Trainergruppe ein.
-              </>
-            )}
-          </p>
-          <button type="button" class="btn btn--secondary" data-testid="btn-start-paste" onClick={onPaste}>
-            Link einfügen
-          </button>
-          {msg && (
-            <p class="field__error" role="status">
-              {msg}
-            </p>
-          )}
-        </section>
-      )}
-      {flow && (
-        <flow.mod.StartCouple
-          text={flow.text}
-          settings={settings}
-          onDone={(s) => {
-            setFlow(null);
-            onChange(s);
-          }}
-          onClose={() => setFlow(null)}
-          onError={() => {
-            setFlow(null);
-            setMsg('Koppeln hat nicht geklappt. Bitte erneut versuchen.');
-          }}
-        />
-      )}
-    </>
-  );
-}
+type StartLiveModule = typeof import('../components/live-start');
 
 /**
  * Spec 015 US6-S5 FR-P28: "Heute tickerst du" mit den eigenen Vormerkungen von heute; ein Tipp öffnet "Neues Spiel"
@@ -183,7 +81,10 @@ function TodayClaims({ settings }: { settings: Settings }) {
 export function StartScreen() {
   const [open, setOpen] = useState<Game | undefined>();
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [liveMod, setLiveMod] = useState<StartLiveModule | null>(null);
   useEffect(() => {
+    // Spec 012, 018, 020: Live-Teil nachgeladen (Hauptbundle, R-E10).
+    void import('../components/live-start').then(setLiveMod, () => undefined);
     void findOpenGame().then(setOpen);
     void getSettings().then(setSettings);
     if (redirectChecked) return;
@@ -226,7 +127,7 @@ export function StartScreen() {
         >
           Neues Spiel
         </button>
-        {settings && <LiveStart settings={settings} onChange={setSettings} />}
+        {settings && liveMod && <liveMod.StartLive settings={settings} open={open ?? null} onChange={setSettings} />}
       </div>
     </main>
   );

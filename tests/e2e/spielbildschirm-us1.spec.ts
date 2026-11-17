@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { MIN, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { MIN, SEC, confirmYes, forward, seedRoster, shareAsText, startGame } from './helpers';
 
 /** Spec 019 US1: Rückgängig sicher treffen (ein dunkles Band über den Tor-Knöpfen). */
 
@@ -151,8 +151,7 @@ test.describe('019 US1 Rückgängig sicher treffen', () => {
       Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
       Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } });
     });
-    await page.getByTestId('btn-menu').click();
-    await page.getByTestId('menu-share-interim').click();
+    await shareAsText(page);
     await expect(page.getByTestId('share-result')).toContainText('kopiert');
     await forward(page, 6 * SEC);
     await expect(page.getByTestId('share-result')).toHaveCount(0);

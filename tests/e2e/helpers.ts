@@ -120,6 +120,13 @@ export async function confirmYes(page: Page): Promise<void> {
   await expect(page.getByTestId('confirm-dialog')).toBeHidden();
 }
 
+/** Spec 020 FR-E18: im Spiel "…" → "Teilen" → "Stand als Text" (Zwischenstand, früher "Zwischenstand teilen"). */
+export async function shareAsText(page: Page): Promise<void> {
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-share').click();
+  await page.getByTestId('share-text').click();
+}
+
 /** Spult die (Fake-)Uhr vor; Timer laufen dabei an. */
 export async function forward(page: Page, ms: number): Promise<void> {
   await page.clock.fastForward(ms);

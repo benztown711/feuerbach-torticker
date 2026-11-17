@@ -1,5 +1,15 @@
 import { test, expect } from './fixtures';
-import { MIN, SEC, confirmYes, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
+import {
+  MIN,
+  SEC,
+  confirmYes,
+  forward,
+  newGame,
+  playFinishedGame,
+  seedRoster,
+  shareAsText,
+  startGame,
+} from './helpers';
 
 test.describe('US4 Ergebnis teilen (FR-011)', () => {
   test('US4-S1 005 US1-S1 Teilen-Menü mit Text nach contracts/share-text.md, auch direkt nach dem Schlusspfiff', async ({
@@ -72,14 +82,14 @@ test.describe('FR-042 Zwischenstand teilen', () => {
     await newGame(page, { opponent: 'TSV Musterstadt' });
     await page.getByTestId('btn-menu').click();
     await expect(page.getByTestId('game-menu')).toBeVisible();
-    await expect(page.getByTestId('menu-share-interim')).toHaveCount(0);
+    // Spec 020 FR-E18: "Teilen" statt "Zwischenstand teilen"
+    await expect(page.getByTestId('menu-share')).toHaveCount(0);
     await page.getByTestId('game-menu').getByRole('button', { name: 'Schließen' }).click();
     await page.getByTestId('btn-kickoff').click();
     await forward(page, 6 * MIN);
     await page.getByTestId('btn-goal-own').click();
     await forward(page, 11 * SEC);
-    await page.getByTestId('btn-menu').click();
-    await page.getByTestId('menu-share-interim').click();
+    await shareAsText(page);
     await expect.poll(async () => (await recorded()).shares.length).toBe(1);
     const lines = ((await recorded()).shares[0]?.text ?? '').split('\n');
     expect(lines.slice(0, 2)).toEqual(['*Sportvg Feuerbach 1:0 TSV Musterstadt*', "Zwischenstand 7'"]);

@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures';
-import { createLive } from './live-helpers';
+import { createLive, openTrainerSection } from './live-helpers';
 import { seedRoster } from './helpers';
 import { ROSTER, settle, shareTrainerWithSquads, squadTab, twoSquads, writes } from './paket-helpers';
 
@@ -19,6 +19,7 @@ test('016 US1-S1 US1-S2 Frage vor dem Teilen: alle angekreuzt; abgewählter Kade
   await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   await twoSquads(page);
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   const shares = (await recorded()).shares.length;
   await page.getByTestId('btn-share-trainer').click();
   const sheet = page.getByTestId('squad-share-sheet');

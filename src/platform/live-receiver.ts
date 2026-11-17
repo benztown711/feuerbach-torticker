@@ -36,6 +36,11 @@ export interface ReceiverState {
   skew: number;
   /** Lokale Zeit, zu der zuletzt eine Verbindung bestand ("Stand von", FR-L15). */
   liveAt: number | null;
+  /**
+   * Spec 020 FR-E21: Der erste Stand vom Dienst ist da (`hello` und alles darin Nachgelieferte geprüft). Bis dahin
+   * zeigt das Board den gemerkten Stand; was beim Öffnen nachkommt, ist kein neues Tor.
+   */
+  loaded: boolean;
 }
 
 type View = Pick<ViewerLink, 'topic' | 'viewKey' | 'orgPub'>;
@@ -76,7 +81,7 @@ export class LiveReceiver {
   ) {
     const saved = this.load();
     this.seq = saved.seq;
-    this.state = { board: saved.board, relay: 'connecting', skew: 0, liveAt: saved.liveAt };
+    this.state = { board: saved.board, relay: 'connecting', skew: 0, liveAt: saved.liveAt, loaded: false };
   }
 
   /**
@@ -153,6 +158,11 @@ export class LiveReceiver {
         this.lastActivity = this.deps.now();
         this.update({ skew: sec * 1000 - this.deps.now(), liveAt: this.deps.now() });
         this.wake();
+        // Die Meldungen aus `hello` kommen gleich danach im selben Durchlauf in die Kette (relay.ts).
+        if (!this.state.loaded)
+          void Promise.resolve()
+            .then(() => this.chain)
+            .then(() => !this.stopped && !this.state.loaded && this.update({ loaded: true }));
       },
       onAlive: () => this.update({ liveAt: this.deps.now() }),
       onState: (relay) => {

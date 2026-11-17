@@ -107,7 +107,8 @@ test('018 US2-S1 US2-S2 US2-S3 US2-S5 B übernimmt das laufende E2-Spiel vom Sta
   const order = await b
     .locator('.start__actions > *')
     .evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')));
-  expect(order).toEqual(['btn-new-game', 'start-take-E2', 'start-follow']);
+  // FR-001, ergänzt durch Spec 020 FR-E01: "Eltern live zuschauen lassen" nach "Spiele verfolgen".
+  expect(order).toEqual(['btn-new-game', 'start-take-E2', 'start-follow', 'start-live-quick']);
 
   // US2-S2: Rückfrage
   await take.click();

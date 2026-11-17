@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures';
-import { createLive, MATCHDAY, onMatchday, type LiveLinks } from './live-helpers';
+import { createLive, MATCHDAY, onMatchday, openTrainerSection, type LiveLinks } from './live-helpers';
 import type { FakeRelay } from './relay';
 import type { Recorded } from './fixtures';
 
@@ -34,6 +34,7 @@ export async function setupPlan(
 
 export async function openPlan(page: Page): Promise<void> {
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   await page.getByTestId('btn-plan').click();
   await expect(page.getByTestId('plan-screen')).toBeVisible();
 }

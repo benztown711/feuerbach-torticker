@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
 import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
-import { sampleDashboard } from './live-helpers';
+import { later, sampleDashboard } from './live-helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -76,8 +76,11 @@ for (const scheme of ['light', 'dark'] as const) {
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       for (const id of ['more-settings', 'more-help']) {
         await page.getByTestId('nav-more').click();
+        await expect(page.getByTestId(id)).toBeVisible();
         expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
         await page.getByTestId(id).click();
+        // Einstellungen und Hilfe werden nachgeladen: erst prüfen, wenn die Seite steht.
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       }
     });
@@ -118,6 +121,82 @@ test.describe('006 US3 Dashboard ohne axe-Verstöße', () => {
       await v.getByTestId('viewer-nav-help').click();
       await v.getByTestId('help-search').fill('teilen');
       await expect(v.getByTestId('help-count')).toBeVisible();
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+    });
+  }
+});
+
+test.describe('020 Paket A: Startbildschirm, Blätter und "Live für Eltern" ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Eltern live zuschauen lassen, Teilen und Live für Eltern ${scheme === 'light' ? 'hell' : 'dunkel'}`, async ({
+      page,
+      recorded,
+      relay,
+    }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const axe = async (): Promise<void> => {
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      };
+      // Mannschaft E1 und ein angelegtes Spiel (Startbildschirm mit "Spiel fortsetzen").
+      await newGame(page, { ownTeam: 'Sportvg Feuerbach E1' });
+      await page.goto('./');
+      await expect(page.getByTestId('start-live-quick')).toBeVisible();
+      await axe();
+      await page.getByTestId('start-live-quick').click();
+      await expect(page.getByTestId('live-start-sheet')).toBeVisible();
+      await axe();
+      await page.getByTestId('live-start-new').click();
+      await expect(page.getByTestId('live-start-done')).toBeVisible();
+      await axe();
+      await expect.poll(async () => (await recorded()).shares.length).toBe(1);
+      await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+
+      await page.goto('./#/live-spieltag');
+      await page.reload();
+      await expect(page.getByTestId('live-trainer-toggle')).toHaveAttribute('aria-expanded', 'false');
+      await axe();
+      await page.getByTestId('live-trainer-toggle').click();
+      await expect(page.getByTestId('live-trainer')).toBeVisible();
+      await axe();
+
+      await page.goto('./');
+      await page.getByTestId('btn-continue').click();
+      await page.getByTestId('btn-kickoff').click();
+      await page.getByTestId('btn-menu').click();
+      await expect(page.getByTestId('menu-live-quick')).toBeVisible();
+      await axe();
+      await page.getByTestId('menu-share').click();
+      await expect(page.getByTestId('share-sheet')).toBeVisible();
+      await axe();
+    });
+  }
+});
+
+test.describe('020 US3 US4 Eltern-Ansicht mit Schalter, Aktualität und Warnung ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Eltern-Ansicht ${scheme === 'light' ? 'hell' : 'dunkel'}: Schalter aus und an, "vor n Min", Warnung`, async ({
+      page,
+      recorded,
+      relay,
+      newDevice,
+    }) => {
+      const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
+      await expect(v.getByTestId('dash-fresh-E1')).toHaveText('gerade aktualisiert');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      await v.getByRole('switch', { name: 'Ton bei Toren' }).click();
+      await later(v, relay, 2 * MIN);
+      await expect(v.getByTestId('dash-fresh-E1')).toHaveText('vor 2 Min aktualisiert');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      await later(v, relay, 5 * MIN);
+      await expect(v.getByTestId('dash-stale-E1')).toHaveText('Seit 7 Min keine Meldung vom Spielfeld');
+      expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+      // Ton gesperrt nach Rückkehr aus dem Hintergrund: Hinweis neben dem Schalter
+      await v.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+      await expect(v.getByTestId('dash-sound-locked')).toBeVisible();
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
     });
   }

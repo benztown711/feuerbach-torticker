@@ -10,6 +10,7 @@ import {
   liveSnap,
   MATCHDAY,
   onMatchday,
+  openTrainerSection,
   openViewer,
   pasteLink,
   recordedOf,
@@ -36,6 +37,7 @@ async function currentLinks(page: Page): Promise<LiveLinks> {
   const rec = recordedOf(page);
   const before = (await rec()).shares.length;
   await page.getByTestId('btn-share-viewer').click();
+  await openTrainerSection(page);
   await page.getByTestId('btn-share-trainer').click();
   await expect.poll(async () => (await rec()).shares.length).toBe(before + 2);
   const [viewer, trainer] = (await rec()).shares.slice(before);
@@ -43,9 +45,11 @@ async function currentLinks(page: Page): Promise<LiveLinks> {
   return { viewer: url(viewer?.text), trainer: url(trainer?.text) };
 }
 
+/** "Live für Eltern" mit aufgeklapptem "Für Trainer" (Spec 020 FR-E14). */
 const openLive = async (page: Page) => {
   await page.goto('./#/live-spieltag');
   await expect(page.getByTestId('live-overview')).toBeVisible();
+  await openTrainerSection(page);
 };
 
 test('006 US5-S4 Titel ändern: das Dashboard zeigt den neuen Titel', async ({ page, recorded, relay, newDevice }) => {
@@ -130,7 +134,7 @@ test('006 US5 Übersicht: je Mannschaft "zuletzt gesendet"', async ({ page, reco
   await expect(page.getByTestId('live-team-sent-E2')).toHaveText('noch nichts gesendet');
 });
 
-test('006 US5-S2 Kopplung beenden: das Handy sendet nichts mehr, die Spiele bleiben', async ({
+test('006 US5-S2 Live beenden (bis Spec 020 "Kopplung beenden"): das Handy sendet nichts mehr, die Spiele bleiben', async ({
   page,
   recorded,
   relay,

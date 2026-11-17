@@ -25,9 +25,9 @@ test('010 US2-S6 FR-H16 Eltern-Leiste mit "Spieltag", "Teilen" und "Hilfe", auch
   await expect(v.getByTestId('viewer-nav-dash')).toHaveAttribute('aria-current', 'page');
   await expect(v.getByTestId('viewer-nav-share')).toHaveText('Teilen');
   await expect(v.getByTestId('viewer-nav-help')).toHaveText('Hilfe');
-  // Keine Leiste der App (Spec 006 US1-S5), "Zum Torticker" bleibt auf der Seite
+  // Keine Leiste der App (Spec 006 US1-S5); seit Spec 020 FR-E40 auch kein Link "Zum Torticker" mehr
   await expect(v.getByTestId('nav')).toHaveCount(0);
-  await expect(v.getByRole('link', { name: 'Zum Torticker' })).toBeVisible();
+  await expect(v.getByRole('link', { name: 'Zum Torticker' })).toHaveCount(0);
 });
 
 test('010 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück zum Spieltag ohne Neuladen', async ({
@@ -56,6 +56,9 @@ test('010 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück z
     'Wie lege ich den Spieltag auf den Home-Bildschirm?',
     'Wie teile ich den Spieltag mit Familie und Freunden?',
     'Was bedeutet „Keine Verbindung“?',
+    'Merke ich, wenn ein Tor fällt?',
+    'Was bedeutet „keine Meldung vom Spielfeld“?',
+    'Ich trainiere selbst. Wo finde ich den Torticker?',
     'Welche Daten verlassen mein Handy?',
   ]);
   // Gleiche Suche, nur über die Eltern-Einträge

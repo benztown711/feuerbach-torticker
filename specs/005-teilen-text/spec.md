@@ -66,7 +66,7 @@ Nach dem Schlusspfiff teilt der Trainer das Ergebnis in die Elterngruppe. Ergebn
 
 ### User Story 4 - Zwischenstand (Priority: P2)
 
-**Independent Test**: Spiel in der 37. Minute, "Zwischenstand teilen".
+**Independent Test**: Spiel in der 37. Minute, "Zwischenstand teilen". (Nachtrag 17.11.2026, geändert durch Spec 020 FR-E18: im Spiel "…" → "Teilen" → "Stand als Text".)
 
 **Acceptance Scenarios**:
 
