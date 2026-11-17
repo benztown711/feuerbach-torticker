@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { confirmYes, forward, MIN } from './helpers';
-import { asPath, createLive, liveSnap, MATCHDAY, onMatchday, pasteLink, sendAs } from './live-helpers';
-import { addGame, openPlan, sync } from './plan-helpers';
+import { asPath, createLive, liveSnap, MATCHDAY, onMatchday, pasteLink, planPayloads, sendAs } from './live-helpers';
+import { addGame, openPlan, pendingCount, sync } from './plan-helpers';
 
 /**
  * Spec 007 US2: Trainer-Handys bekommen Spielplan, Mannschaften und "neu ausgestellt" auch nach Tagen, ohne dass ein
@@ -39,8 +39,14 @@ test('007 US2-S1 Spielplan am Montag geändert, anderes Trainer-Handy öffnet am
   await at(page, relay, MONDAY);
   await openPlan(page);
   await addGame(page, { team: 'E1', date: '2026-11-14', time: '12:00', opponent: 'TSV Musterstadt' });
-  await sync(page);
-  await expect.poll(() => relay.statuses.length).toBeGreaterThan(0);
+  // Erst schließen, wenn der Plan beim Dienst liegt und das Handy ihn als gesendet gespeichert hat. Die Antwort auf das
+  // Einrichten zählt nicht: Sonst bricht das Schließen die noch laufende Sendung ab (CI 17.11.2026, iphone).
+  const sent = async () => {
+    await sync(page);
+    return (await planPayloads(relay, links.viewer)).length;
+  };
+  await expect.poll(sent).toBeGreaterThan(0);
+  await expect.poll(() => pendingCount(page)).toBe(0);
   const posts = relay.posts.length;
   await page.close();
 
