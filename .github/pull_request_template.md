@@ -16,7 +16,7 @@
 
 ## Design-Check
 
-<!-- Kurzfassung und "Meine Empfehlung" aus dem Skill design-check; behobene P0/P1, offene Empfehlungen. Oder: "entfällt, keine sichtbare Änderung" bzw. "nicht gelaufen: <Grund>". -->
+<!-- Kurzfassung und "Meine Empfehlung" aus dem Skill attila-design-check; behobene P0/P1, offene Empfehlungen. Oder: "entfällt, keine sichtbare Änderung" bzw. "nicht gelaufen: <Grund>". -->
 
 ## Checkliste
 
