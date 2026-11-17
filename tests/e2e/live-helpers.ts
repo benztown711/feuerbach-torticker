@@ -26,7 +26,17 @@ export const recordedOf = (p: Page) => (): Promise<Recorded> =>
 export const asPath = (url: string): string => `./${url.slice(url.indexOf('#'))}`;
 
 /**
- * Legt die Mannschaften an, dann über "Mehr" → "Live-Spieltag" einen Live-Spieltag mit allen Mannschaften
+ * Spec 020 R-E8: klappt auf "Live für Eltern" den Bereich "Für Trainer" auf, wenn es ihn gibt und er zu ist;
+ * sonst nichts (z. B. neu ausgestellt).
+ */
+export async function openTrainerSection(page: Page): Promise<void> {
+  await expect(page.locator('main.page .live').first()).toBeVisible();
+  const toggle = page.getByTestId('live-trainer-toggle');
+  if ((await toggle.count()) > 0 && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+}
+
+/**
+ * Legt die Mannschaften an, dann über "Mehr" → "Live für Eltern" einen Live-Spieltag mit allen Mannschaften
  * außer `without`. Teilt Zuschauer- und Trainer-Link und liefert sie. Das Handy ist danach Trainer-Handy.
  */
 export async function createLive(
@@ -38,6 +48,7 @@ export async function createLive(
   for (const t of o.teams) await ensureTeam(page, `Sportvg Feuerbach ${t}`);
   await page.goto('./#/mehr');
   await page.getByTestId('more-live').click();
+  await openTrainerSection(page);
   await page.getByTestId('btn-live-create').click();
   if (o.title !== undefined) await page.getByTestId('input-live-title').fill(o.title);
   for (const t of o.without ?? []) await page.getByTestId(`live-team-chip-${t}`).click();
@@ -45,6 +56,7 @@ export async function createLive(
   await expect(page.getByTestId('live-overview')).toBeVisible();
   const before = (await recorded()).shares.length;
   await page.getByTestId('btn-share-viewer').click();
+  await openTrainerSection(page);
   await page.getByTestId('btn-share-trainer').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(before + 2);
   const [viewer, trainer] = (await recorded()).shares.slice(before);
@@ -54,6 +66,7 @@ export async function createLive(
 /** Fügt einen Trainer- oder Lead-Link im Torticker ein und bestätigt die Kopplung. */
 export async function pasteLink(page: Page, url: string, text = 'Hier der Link:'): Promise<void> {
   await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
   await page.getByTestId('btn-paste-link').click();
   await page.getByTestId('paste-link-input').fill(`${text}\n${url}\n`);
   await page.getByTestId('paste-link-apply').click();
