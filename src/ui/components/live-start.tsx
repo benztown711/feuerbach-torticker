@@ -240,6 +240,16 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
   );
 }
 
+/** Symbol "live senden" (Linien-Icon, design/README.md). */
+export function LiveIcon() {
+  return (
+    <svg class="icon start__opt-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="2" />
+      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8" />
+    </svg>
+  );
+}
+
 /** Statuszeile, die nach einigen Sekunden verschwindet (FR-E11). */
 function useShortMsg(): [string, (text: string) => void] {
   const [msg, setMsg] = useState('');
@@ -351,10 +361,7 @@ export function StartLive({
             quickTap({ settings, game: open, onGameLive, onMsg: setQuickMsg, onStart: () => setSheet(true) })
           }
         >
-          <svg class="icon start__opt-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="2" />
-            <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8" />
-          </svg>
+          <LiveIcon />
           <span class="start__opt-text">
             <strong>Eltern live zuschauen lassen</strong>
             <span>Link für die Elterngruppe</span>

@@ -82,7 +82,7 @@ import type { GameWatch } from '../../platform/live-watch';
 
 const base = import.meta.env.BASE_URL;
 
-type LiveStartModule = typeof import('../components/live-start');
+type ShareSheetModule = typeof import('../components/share-sheet');
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
@@ -153,10 +153,14 @@ export function GameScreen({ id }: { id: string }) {
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
   useReshareTimer(reshareAt, () => setReshareAt(0));
-  /** Spec 020 US1: "Eltern live zuschauen lassen", vorab nachgeladen (R-E1, R-E10); Blatt ohne Live-Spieltag. */
-  const [quick, setQuick] = useState<LiveStartModule | null>(null);
+  /**
+   * Spec 020: "Eltern live zuschauen lassen" (US1) und Blatt "Teilen" (US2), vorab nachgeladen (R-E1, R-E10); Blatt
+   * "Eltern live zuschauen lassen" ohne Live-Spieltag.
+   */
+  const [quick, setQuick] = useState<ShareSheetModule | null>(null);
   const [quickSheet, setQuickSheet] = useState(false);
-  useEffect(() => void import('../components/live-start').then(setQuick, () => undefined), []);
+  const [shareSheet, setShareSheet] = useState(false);
+  useEffect(() => void import('../components/share-sheet').then(setQuick, () => undefined), []);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -749,6 +753,17 @@ export function GameScreen({ id }: { id: string }) {
 
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
 
+      {shareSheet && quick && settings && (
+        <quick.ShareSheet
+          settings={settings}
+          game={cur()}
+          onGameLive={update}
+          onMsg={showMsg}
+          onStart={() => setQuickSheet(true)}
+          onText={() => void doShareInterim()}
+          onClose={() => setShareSheet(false)}
+        />
+      )}
       {quickSheet && quick && settings && (
         <quick.LiveStartSheet
           settings={settings}
@@ -775,13 +790,15 @@ export function GameScreen({ id }: { id: string }) {
             <button
               type="button"
               class="btn btn--secondary"
-              data-testid="menu-share-interim"
+              data-testid="menu-share"
               onClick={() => {
                 setMenu(false);
-                void doShareInterim();
+                // Spec 020 FR-E18: Blatt "Teilen"; ohne nachgeladenes Modul wie bisher der Zwischenstand.
+                if (quick) setShareSheet(true);
+                else void doShareInterim();
               }}
             >
-              Zwischenstand teilen
+              Teilen
             </button>
           ) : null}
           {canAddLateGoal(game, now) && (
