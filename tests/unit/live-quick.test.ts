@@ -17,7 +17,10 @@ const deps = (): LiveDeps => ({
   newViewKey: () => B43,
   newSigningKey: async () => {
     n++;
-    return { pub: `${'C'.repeat(84)}${String(n % 100).padStart(2, '0')}A`, priv: { d: `d${n}`, x: `x${n}`, y: `y${n}` } };
+    return {
+      pub: `${'C'.repeat(84)}${String(n % 100).padStart(2, '0')}A`,
+      priv: { d: `d${n}`, x: `x${n}`, y: `y${n}` },
+    };
   },
   signData: async (priv: PrivateKeyParts, value: unknown): Promise<SignedData> => ({
     d: JSON.stringify(value),
@@ -72,8 +75,9 @@ const spieltag = (teams: Team[], all: Team[] = teams): Promise<LiveSpieltag> =>
 
 /** Lead-Handy der ersten Version: ohne Organisator-Schlüssel. */
 const lead = async (teams: Team[]): Promise<LiveSpieltag> => {
-  const { orgKey: _drop, ...rest } = await spieltag(teams);
-  return rest;
+  const live = await spieltag(teams);
+  delete live.orgKey;
+  return live;
 };
 
 describe('020 FR-E03 Sichtbarkeit', () => {
