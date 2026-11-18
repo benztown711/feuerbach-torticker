@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { MIN, ROSTER_21, SEC, forward, seedRoster, startGame } from './helpers';
+import { MIN, ROSTER_21, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
 
 /**
  * Spec 021 US2: Torschützen-Auswahl ohne Sperre. Die Schnellauswahl nach dem Tor dockt ohne Abdunkler über den
@@ -269,4 +269,91 @@ test('021 US2-S9 für Screenreader ein Dialog ohne Sperre; Tor-Knöpfe bleiben b
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('score')).toHaveText('1 : 1');
   await expect(dialog).toHaveCount(0);
+});
+
+/** Spec 021 R-W3: Anfragen an den nachgeladenen Teil mit Tor-Blättern und Auswahl (`goal-editor`). */
+const EDITOR_CHUNK = /\/assets\/goal-editor-[^/?]+\.js(\?.*)?$/;
+
+test.describe('021 R-W3 nachgeladene Auswahl', () => {
+  // Der Service Worker hielte den Teil bereit, an `page.route` vorbei.
+  test.use({ serviceWorkers: 'block' });
+
+  test('021 US2 FR-W10 R-W3 Teil noch nicht geladen: Tor zählt, Spielbildschirm bleibt sichtbar, Auswahl folgt', async ({
+    page,
+  }) => {
+    let release = (): void => undefined;
+    const gate = new Promise<void>((r) => (release = r));
+    await page.route(EDITOR_CHUNK, async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await seedRoster(page, ROSTER);
+    await startGame(page);
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('score')).toHaveText('1 : 0');
+    // Ohne geladenen Teil kein Andocken: Anzeigetafel, Uhr und Torliste bleiben sichtbar.
+    await expect(page.locator('main.game')).not.toHaveClass(/game--pick/);
+    for (const sel of ['.scoreboard', '.clock', '.controls', '.goal-list'])
+      await expect(page.locator(sel)).toBeVisible();
+    release();
+    const picker = page.getByTestId('scorer-picker');
+    await expect(picker).toBeVisible();
+    await expect(page.locator('main.game')).toHaveClass(/game--pick/);
+    await expectGoalsFree(page, picker);
+  });
+
+  test('021 US2 FR-W10 R-W3 Laden fehlgeschlagen: beim nächsten Bedarf erneut laden', async ({ page }) => {
+    let fail = true;
+    await page.route(EDITOR_CHUNK, (route) => (fail ? route.abort() : route.continue()));
+    await seedRoster(page, ROSTER);
+    await startGame(page);
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('score')).toHaveText('1 : 0');
+    await expect(page.locator('main.game')).not.toHaveClass(/game--pick/);
+    await expect(page.locator('.scoreboard')).toBeVisible();
+    await forward(page, 8 * SEC);
+    // Wieder Netz: das nächste Tor lädt den Teil erneut, die Auswahl erscheint.
+    fail = false;
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('score')).toHaveText('2 : 0');
+    await expect(page.getByTestId('scorer-picker')).toBeVisible();
+    await page.getByTestId('scorer-picker').getByRole('button', { name: '9 Ben', exact: true }).click();
+    await expect(rows(page).first().locator('.goal-row__team')).toHaveText('Ben');
+  });
+});
+
+test.describe('021 FR-W10 Elfmeterschießen', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  test('021 US2 FR-W10 Auswahl noch offen beim Elfmeterschießen: erscheint als Blatt statt zu verschwinden', async ({
+    page,
+  }) => {
+    let release = (): void => undefined;
+    const gate = new Promise<void>((r) => (release = r));
+    await page.route(EDITOR_CHUNK, async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await seedRoster(page, ROSTER);
+    await startGame(page, { sections: 1, minutes: 12 });
+    await forward(page, 2 * MIN);
+    await page.getByTestId('btn-goal-opp').click();
+    await forward(page, 11 * SEC);
+    // 1:1, die Auswahl ist gemerkt, der Teil kommt noch: Schlusspfiff und Elfmeterschießen.
+    await page.getByTestId('btn-goal-own').click();
+    await expect(page.getByTestId('score')).toHaveText('1 : 1');
+    await page.getByTestId('btn-section-end').click();
+    await confirmYes(page);
+    await page.getByTestId('draw-shootout').click();
+    await page.getByTestId('first-own').click();
+    await expect(page.getByTestId('section-label')).toHaveText('Elfmeterschießen');
+    release();
+    const picker = page.getByTestId('scorer-picker');
+    await expect(picker).toBeVisible();
+    await expect(picker).toHaveAttribute('aria-modal', 'true');
+    await expect(picker.getByTestId('scorer-skip')).toBeVisible();
+    await picker.getByRole('button', { name: '9 Ben', exact: true }).click();
+    await expect(picker).toHaveCount(0);
+    await expect(page.getByTestId('pen-score')).toBeVisible();
+  });
 });

@@ -18,6 +18,7 @@ import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { addGoalStep, type EditStep } from '../components/goal-steps';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { useGoalEditor } from '../components/goal-editor-load';
 import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow } from '../hooks';
@@ -63,9 +64,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [marksMsg, setMarksMsg] = useState('');
   /** Spec 017 R-C1: offenes Korrektur-Blatt. */
   const [edit, setEdit] = useState<EditStep | null>(null);
-  /** Spec 021 R-W3: Tor-Blätter nachgeladen, beim Öffnen vorgeladen. */
-  const [editor, setEditor] = useState<typeof import('../components/goal-editor') | null>(null);
-  useEffect(() => void import('../components/goal-editor').then(setEditor, () => undefined), []);
+  /** Spec 021 R-W3: Tor-Blätter nachgeladen, beim Öffnen vorgeladen, nach einem Fehler beim nächsten Tipp neu. */
+  const editor = useGoalEditor(edit);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
   /** Spec 022 FR-F13: Blatt "Gegner ändern", nachgeladen (Hauptbundle). */

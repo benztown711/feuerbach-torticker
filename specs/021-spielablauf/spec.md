@@ -42,6 +42,13 @@ Festlegungen des Agenten, wo die Entscheidungen eine Lücke lassen; Atti kann si
 - **Trikots aus dem beendeten Spiel**, auch mit Planspiel: Im Turnier spielt Feuerbach den ganzen Tag im selben Trikot; das Gegner-Trikot ist vorbelegt und wie immer änderbar.
 - **Aufgebot**: wie bisher das gemerkte Aufgebot der Mannschaft (Spec 004 FR-M06); nach einem Spiel ist das genau das Aufgebot dieses Spiels.
 
+### Session 2026-11-18 (Präzisierungen nach dem Code-Review)
+
+Befunde aus dem Code-Review und dem Design-Check der Umsetzung; Entscheidungen des Auftraggebers bzw. Festlegungen des Agenten.
+
+- **Auswahl erst, wenn sie da ist**: Die Schnellauswahl liegt in einem nachgeladenen Teil (research.md R-W3). Solange er nicht geladen ist, dockt nichts an: Der Spielbildschirm bleibt, wie er ist (Anzeigetafel, Uhr, Torliste sichtbar), das Tor zählt trotzdem; die Auswahl erscheint, sobald der Teil da ist (Countdown ab dem Tor). Schlägt das Laden fehl, lädt der nächste Bedarf (neues Tor, Tipp auf eine Torzeile, auch in den Spieldetails) ihn erneut.
+- **Elfmeterschießen**: Ist die Schnellauswahl noch offen, wenn das Elfmeterschießen beginnt (keine Tor-Knöpfe, an die sie andocken könnte), erscheint sie als Blatt mit Abdunkler, mit Countdown und "Ohne Torschütze (n s)", statt zu verschwinden.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - "Nächstes Spiel" nach dem Schlusspfiff (Priority: P1)
@@ -115,7 +122,8 @@ Toms Vater will in der Halbzeit den Torschützen nachtragen. In der Torliste hat
 - **Auswahl offen und Meldung im Band** (z. B. "Lesezeichen gesetzt" oder "Schon gezählt"): Das Band steht unter der Auswahl direkt über den Tor-Knöpfen; Meldungen und Auswahl überdecken sich nicht.
 - **Gegentor ohne Kader oder Feuerbach-Tor ohne Kader**: Es gibt keine Auswahl (wie bisher); nichts ändert sich.
 - **Uhr angehalten**: Die Auswahl kann dann nicht offen sein (sie verdeckt "Uhr anhalten" für ihre Dauer); "Tor eintragen und Uhr fortsetzen?" bleibt wie bisher (Spec 001 FR-021).
-- **Elfmeterschießen**: keine Tor-Knöpfe, keine Schnellauswahl (Spec 003); unverändert.
+- **Elfmeterschießen**: keine Tor-Knöpfe, keine neue Schnellauswahl (Spec 003). Ist die Auswahl des letzten Tores noch offen, wenn es beginnt, erscheint sie als Blatt mit Abdunkler und Countdown (FR-W10).
+- **Teil mit der Auswahl noch nicht geladen** (erster Start ohne Netz, langsames Netz): Das Tor zählt, der Spielbildschirm bleibt sichtbar; die Auswahl erscheint, sobald der Teil da ist. Schlägt das Laden fehl, versucht es der nächste Bedarf erneut (FR-W10).
 
 ## Requirements *(mandatory)*
 
@@ -132,7 +140,7 @@ Toms Vater will in der Halbzeit den Torschützen nachtragen. In der Torliste hat
 
 **Torschützen-Auswahl ohne Sperre (US2)**
 
-- **FR-W10**: Die Schnellauswahl direkt nach einem Feuerbach-Tor ("Wer hat getroffen?", Spec 001 FR-009, US3-S1, US3-S2) und ihr Folgeschritt "Vorlage von?" (Spec 009 FR-V02) MÜSSEN nicht-modal sein: kein Abdunkler, keine Sperre der übrigen Seite. Sie MÜSSEN den ganzen Bereich zwischen Kopfzeile und Tor-Knöpfen einnehmen, unten bündig über den Tor-Knöpfen. Anzeigetafel, Uhr, Uhr-Knöpfe, Ereignis-Zeile und Torliste MÜSSEN so lange unsichtbar und nicht antippbar sein (nichts halb Verdecktes, kein versehentlicher Tipp auf einen angeschnittenen Knopf). Kopfzeile und beide Tor-Knöpfe MÜSSEN vollständig sichtbar und bedienbar bleiben, auf jeder unterstützten Größe ab 375 × 667 pt.
+- **FR-W10**: Die Schnellauswahl direkt nach einem Feuerbach-Tor ("Wer hat getroffen?", Spec 001 FR-009, US3-S1, US3-S2) und ihr Folgeschritt "Vorlage von?" (Spec 009 FR-V02) MÜSSEN nicht-modal sein: kein Abdunkler, keine Sperre der übrigen Seite. Sie MÜSSEN den ganzen Bereich zwischen Kopfzeile und Tor-Knöpfen einnehmen, unten bündig über den Tor-Knöpfen. Anzeigetafel, Uhr, Uhr-Knöpfe, Ereignis-Zeile und Torliste MÜSSEN so lange unsichtbar und nicht antippbar sein (nichts halb Verdecktes, kein versehentlicher Tipp auf einen angeschnittenen Knopf). Kopfzeile und beide Tor-Knöpfe MÜSSEN vollständig sichtbar und bedienbar bleiben, auf jeder unterstützten Größe ab 375 × 667 pt. Angedockt wird erst, wenn der nachgeladene Teil mit der Auswahl da ist; bis dahin MUSS der Spielbildschirm unverändert sichtbar bleiben (das Tor zählt), und ein fehlgeschlagenes Laden MUSS beim nächsten Bedarf wiederholt werden (Präzisierung nach dem Code-Review). Im Elfmeterschießen MUSS eine noch offene Schnellauswahl als Blatt mit Abdunkler und Countdown erscheinen.
 - **FR-W11**: Ein Tipp auf einen Tor-Knopf bei offener Schnellauswahl MUSS das neue Tor sofort zählen (ein Tipp, Constitution I) und die Auswahl ohne Torschützen bzw. ohne Vorlage schließen. Ist das neue Tor ein Feuerbach-Tor und gibt es einen Kader, öffnet sich die Auswahl für das neue Tor (Countdown neu). Das vorige Tor bleibt ohne Torschützen bzw. Vorlage und lässt sich wie bisher nachtragen (Spec 017 FR-C01 ff., Spec 009 FR-V04). "Rückgängig" gilt danach dem neuen Tor (Spec 001 FR-008).
 - **FR-W12**: Die Doppeltipp-Sperre (Spec 001, 1,5 Sekunden je Mannschaft) MUSS bleiben: Ein zweiter Tipp auf denselben Knopf in dieser Zeit zählt nicht, zeigt "Schon gezählt" (Spec 019 FR-A04) und lässt die Auswahl offen.
 - **FR-W13**: Inhalt und Verhalten der Schnellauswahl MÜSSEN sonst bleiben: Titel, Untertitel, "Rückgängig" (solange das Tor zurückzunehmen ist), Aufgebot mit Nummer und Name, "Andere …", "Eigentor Gegner", "Ohne Torschütze (n s)" bzw. "Ohne Vorlage (n s)" mit Countdown, Auto-Schließen nach 8 bzw. 5 Sekunden, Reihenfolge der Namen (Spec 013 FR-K05). Reicht der Platz nicht, MUSS nur das Raster der Namen scrollen; Titel, "Rückgängig" und "Ohne Torschütze" bleiben sichtbar.

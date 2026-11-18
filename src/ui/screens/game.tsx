@@ -62,6 +62,7 @@ import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { addGoalStep, PICKER_MS, type EditStep } from '../components/goal-steps';
+import { useGoalEditor } from '../components/goal-editor-load';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
@@ -83,8 +84,6 @@ import type { GameWatch } from '../../platform/live-watch';
 const base = import.meta.env.BASE_URL;
 
 type ShareSheetModule = typeof import('../components/share-sheet');
-/** Spec 021 R-W3: Tor-Blätter und Auswahl nachgeladen, beim Öffnen des Spiels vorgeladen. */
-type EditorModule = typeof import('../components/goal-editor');
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
@@ -163,8 +162,8 @@ export function GameScreen({ id }: { id: string }) {
   const [quickSheet, setQuickSheet] = useState(false);
   const [shareSheet, setShareSheet] = useState(false);
   useEffect(() => void import('../components/share-sheet').then(setQuick, () => undefined), []);
-  const [editor, setEditor] = useState<EditorModule | null>(null);
-  useEffect(() => void import('../components/goal-editor').then(setEditor, () => undefined), []);
+  /** Spec 021 R-W3: Tor-Blätter und Auswahl nachgeladen, beim Öffnen vorgeladen, bei Fehler beim nächsten Schritt neu. */
+  const editor = useGoalEditor(edit);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -420,14 +419,19 @@ export function GameScreen({ id }: { id: string }) {
   };
   /** Torschützen- bzw. Vorlagen-Auswahl offen: ohne Rückgängig-Leiste (in der Schnellauswahl steht "Rückgängig"). */
   const pickerOpen = !!edit && (edit.kind === 'scorer' || edit.kind === 'assist') && !pickerExpired;
-  /** Spec 021 FR-W10: Schnellauswahl direkt nach dem Tor, angedockt über den Tor-Knöpfen. */
-  const docked = pickerOpen && quickUntil !== undefined;
+  /**
+   * Spec 021 FR-W10: Schnellauswahl direkt nach dem Tor, angedockt über den Tor-Knöpfen; erst wenn der Teil geladen
+   * ist (bis dahin bleibt der Spielbildschirm, wie er ist, R-W3). Im Elfmeterschießen gibt es keine Tor-Knöpfe:
+   * dort erscheint sie als Blatt.
+   */
+  const docked = !!editor && pickerOpen && quickUntil !== undefined && !shootoutActive;
   const roster = players ?? [];
   const flashing = now < flashUntil;
   /** Spec 017 R-C1: Tor-Blätter und Auswahl (nachgeladen, Spec 021 R-W3). */
-  const editorFor = (step: EditStep | null) =>
+  const editorFor = (step: EditStep | null, dock = false) =>
     editor && (
       <editor.GoalEditor
+        docked={dock}
         game={game}
         players={roster}
         settings={settings}
@@ -772,7 +776,7 @@ export function GameScreen({ id }: { id: string }) {
             {docked ? (
               // Spec 021 FR-W14: Auswahl über den Tor-Knöpfen, Meldungen darunter direkt über den Knöpfen.
               <div class="goal-dock">
-                {editorFor(edit)}
+                {editorFor(edit, true)}
                 {band}
               </div>
             ) : (

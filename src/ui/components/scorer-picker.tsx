@@ -15,6 +15,8 @@ interface Props {
   countdown?: number;
   /** Nur direkt nach dem Tor: Rückgängig bleibt erreichbar, solange die Auswahl offen ist. */
   onUndo?: () => void;
+  /** Spec 021 FR-W10: über den Tor-Knöpfen angedockt (ohne Abdunkler, nicht modal); sonst ein Blatt. */
+  docked?: boolean;
 }
 
 const TEXT = {
@@ -25,15 +27,24 @@ const TEXT = {
 /**
  * Schnellauswahl aus dem Aufgebot (US3, FR-009, FR-030): Torschütze mit "Andere …" und Eigentor, oder
  * (Spec 009 FR-V02, FR-V04) Vorlagengeber. Knöpfe zeigen Nummer und Name (FR-V09).
- * Spec 021 FR-W10, FR-W15: Mit Countdown (direkt nach dem Tor) ohne Abdunkler und nicht-modal; die Seite dockt sie
- * über den Tor-Knöpfen an. Ohne Countdown (Korrektur) ein Blatt mit Abdunkler wie bisher (FR-W16).
+ * Spec 021 FR-W10, FR-W15: Angedockt (direkt nach dem Tor) ohne Abdunkler und nicht-modal über den Tor-Knöpfen.
+ * Sonst ein Blatt mit Abdunkler wie bisher: Korrektur ohne Countdown (FR-W16) bzw. im Elfmeterschießen mit Countdown.
  */
-export function ScorerPicker({ kind = 'scorer', subtitle, squad, others, onPick, onClose, countdown, onUndo }: Props) {
+export function ScorerPicker({
+  kind = 'scorer',
+  subtitle,
+  squad,
+  others,
+  onPick,
+  onClose,
+  countdown,
+  onUndo,
+  docked = false,
+}: Props) {
   const [showOthers, setShowOthers] = useState(false);
   const shown = showOthers ? [...squad, ...others] : squad;
   const text = TEXT[kind];
   const titleId = `${kind}-title`;
-  const docked = countdown !== undefined;
   const panel = (
     <div
       class={docked ? 'sheet scorer scorer--dock' : 'sheet scorer'}
@@ -89,7 +100,7 @@ export function ScorerPicker({ kind = 'scorer', subtitle, squad, others, onPick,
           </button>
         )}
       </div>
-      {docked ? (
+      {countdown !== undefined ? (
         <button type="button" class="btn btn--quiet" data-testid={`${kind}-skip`} onClick={onClose}>
           {text.none} ({countdown} s)
         </button>

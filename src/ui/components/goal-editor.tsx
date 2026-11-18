@@ -58,9 +58,26 @@ interface Props {
   /** Nur Spielbildschirm: "Rückgängig" in der Schnellauswahl, solange das Tor noch zurückzunehmen ist. */
   undoGoalId?: string | undefined;
   onUndo?: (goalId: string) => void;
+  /**
+   * Spec 021 FR-W10: Die Seite dockt die Schnellauswahl über den Tor-Knöpfen an. Ohne Andocken (z. B. im
+   * Elfmeterschießen ohne Tor-Knöpfe) erscheint sie als Blatt mit Abdunkler, Countdown bleibt.
+   */
+  docked?: boolean;
 }
 
-export function GoalEditor({ game, players, settings, step, onStep, cur, update, now, undoGoalId, onUndo }: Props) {
+export function GoalEditor({
+  game,
+  players,
+  settings,
+  step,
+  onStep,
+  cur,
+  update,
+  now,
+  undoGoalId,
+  onUndo,
+  docked = false,
+}: Props) {
   if (!step) return null;
   const goalOf = (id: string) => game.goals.find((g) => g.id === id);
   const close = (): void => onStep(null);
@@ -242,6 +259,7 @@ export function GoalEditor({ game, players, settings, step, onStep, cur, update,
         others={otherPlayers(players, game.squad, sort).filter(notScorer)}
         onPick={pick}
         onClose={close}
+        docked={docked && until !== undefined}
         {...(until !== undefined
           ? {
               // `now` läuft im 250-ms-Takt bis zu einem Takt nach: nie mehr als 8 bzw. 5 s anzeigen.

@@ -86,3 +86,28 @@ test('021 US3-S2 langer Text wird vor dem Pfeil gekürzt; Pfeil ganz sichtbar (i
   expect(c.width).toBeGreaterThanOrEqual(12);
   expect(c.x + c.width).toBeLessThanOrEqual(list.x + list.width);
 });
+
+test.describe('021 R-W3 nachgeladenes Tor-Blatt', () => {
+  // Der Service Worker hielte den Teil bereit, an `page.route` vorbei.
+  test.use({ serviceWorkers: 'block' });
+
+  test('021 US3 R-W3 Spieldetails: Laden des Tor-Blatts fehlgeschlagen, der nächste Tipp auf die Torzeile lädt erneut', async ({
+    page,
+  }) => {
+    await startGame(page, { sections: 1, minutes: 12 });
+    await forward(page, 2 * MIN);
+    await page.getByTestId('btn-goal-own').click();
+    await forward(page, 11 * SEC);
+    const id = new URL(page.url()).hash.replace(/^#\/spiel\/([^/]+).*$/, '$1');
+    let fail = true;
+    await page.route(/\/assets\/goal-editor-[^/?]+\.js(\?.*)?$/, (route) => (fail ? route.abort() : route.continue()));
+    await page.goto(`./#/spiel/${id}/details`);
+    await page.reload();
+    const row = page.getByTestId('details-timeline').getByRole('button').first();
+    await expect(row).toBeVisible();
+    await page.clock.runFor(1_000);
+    fail = false;
+    await row.click();
+    await expect(page.getByTestId('goal-actions')).toBeVisible();
+  });
+});
