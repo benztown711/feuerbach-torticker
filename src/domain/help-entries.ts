@@ -59,13 +59,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     id: 'installieren',
     topic: 'start',
     title: 'Wie lege ich den Torticker auf den Home-Bildschirm?',
-    answer: 'Nur vom Home-Bildschirm aus bleiben deine Spiele dauerhaft auf dem Handy gespeichert.',
+    answer:
+      'Nur vom Home-Bildschirm aus bleiben deine Spiele dauerhaft auf dem Handy gespeichert. Solange du den Torticker im Browser nutzt, erinnert dich der Startbildschirm unter den Knöpfen daran („Torticker auf den Home-Bildschirm legen“). Mit „Später“ verschwindet der Hinweis bis morgen, mit „Verstanden“ unter „Mehr“, „Einstellungen“ ganz. Vom Home-Bildschirm aus erscheint er nie.',
     steps: [
       'iPhone: Link in Safari öffnen, auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.',
       'Android: Link in Chrome öffnen, Menü, dann „App installieren“.',
     ],
-    keywords: 'installieren app icon homescreen startbildschirm speichern safari chrome',
-    sources: ['001 FR-023'],
+    keywords: 'installieren app icon homescreen startbildschirm speichern safari chrome hinweis später verstanden',
+    sources: ['001 FR-023', '022 US1'],
     related: ['daten-weg', 'update'],
   },
   {

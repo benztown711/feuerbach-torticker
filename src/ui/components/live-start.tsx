@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { teamShortLabel } from '../../domain/history';
+import { installPlatform, installSteps, showInstallHint } from '../../domain/install-hint';
 import { quickAction, quickTeams, startHint, teamHint, type QuickAction } from '../../domain/live-quick';
 import { DEFAULT_LIVE_TITLE, isRetired, titleOf } from '../../domain/live-spieltag';
 import { setLive } from '../../domain/live-snapshot';
+import { todayKey } from '../../domain/plan';
 import type { Game, LiveSpieltag, Settings } from '../../domain/types';
 import { getGame, putGame } from '../../platform/db';
 import {
@@ -14,6 +16,7 @@ import {
   type PreparedLive,
 } from '../../platform/live-setup';
 import type { ShareResult } from '../../platform/share';
+import { isStandalone } from '../../platform/storage';
 import { readClipboard } from '../clipboard';
 import { navigate } from '../router';
 import { Sheet } from './sheet';
@@ -267,6 +270,58 @@ function useShortMsg(): [string, (text: string) => void] {
 
 type StartOffersModule = typeof import('./start-offers');
 
+/** Spec 022 R-F1: Kalendertag von "Später" nur auf diesem Gerät merken; ohne Browserspeicher gilt es bis zum Neuladen. */
+const INSTALL_LATER = 'torticker-install-later';
+
+function savedLater(): string | null {
+  try {
+    return window.localStorage.getItem(INSTALL_LATER);
+  } catch {
+    return null;
+  }
+}
+
+function saveLater(day: string): void {
+  try {
+    window.localStorage.setItem(INSTALL_LATER, day);
+  } catch {
+    // Speicher gesperrt: "Später" gilt nur bis zum Neuladen.
+  }
+}
+
+/**
+ * Spec 022 US1 (FR-F01 bis FR-F05): Hinweis zur Installation unter allen Aktionen des Startbildschirms, solange die App
+ * nicht vom Home-Bildschirm läuft. "Später" blendet ihn bis zum nächsten Kalendertag aus.
+ */
+export function InstallHint({ settings }: { settings: Settings }) {
+  const [laterDay, setLaterDay] = useState<string | null>(savedLater);
+  const today = todayKey(Date.now());
+  if (!showInstallHint({ standalone: isStandalone(), dismissedAt: settings.installHintDismissedAt, laterDay, today }))
+    return null;
+  return (
+    <section class="card start__install" aria-labelledby="start-install-title" data-testid="start-install-hint">
+      <h2 id="start-install-title" class="start__install-title">
+        Torticker auf den Home-Bildschirm legen
+      </h2>
+      <p class="start__install-text">Nur dann bleiben deine Spiele dauerhaft gespeichert.</p>
+      <p class="start__install-text" data-testid="start-install-how">
+        {installSteps(installPlatform(navigator.userAgent, navigator.maxTouchPoints))}
+      </p>
+      <button
+        type="button"
+        class="btn btn--quiet start__install-later"
+        data-testid="start-install-later"
+        onClick={() => {
+          saveLater(today);
+          setLaterDay(today);
+        }}
+      >
+        Später
+      </button>
+    </section>
+  );
+}
+
 /**
  * Live-Teil des Startbildschirms: Spec 018 "E2 übernehmen" (US2) und "Spiele verfolgen" (US1), Spec 020 FR-E01
  * "Eltern live zuschauen lassen", Spec 012 FR-S01 Karte "Trainer? …" mit "Link einfügen".
@@ -384,6 +439,7 @@ export function StartLive({
           )}
         </section>
       )}
+      <InstallHint settings={settings} />
       {flow && (
         <StartCouple
           text={flow.text}

@@ -3917,3 +3917,30 @@ button.plan__row {
 .squad-share__count {
   color: var(--color-ink-muted);
 }
+
+/* ---------- Spec 022 (Paket E): Erster Start und Feinschliff ---------- */
+
+/* US1 FR-F01, FR-F05: Hinweis zur Installation unter den Aktionen des Startbildschirms */
+.start__install {
+  gap: var(--space-1);
+}
+
+.start__install-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.start__install-text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.start__install-later {
+  align-self: flex-start;
+  min-height: 48px;
+  margin-top: var(--space-1);
+}
