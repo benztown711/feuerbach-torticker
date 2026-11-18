@@ -415,6 +415,12 @@ export function freshnessText(f: Freshness): string {
   return f.kind === 'age' ? `vor ${f.minutes} Min aktualisiert` : `Seit ${f.minutes} Min keine Meldung vom Spielfeld`;
 }
 
+/**
+ * Spec 020 FR-E64 (Nachbesserung 2026-11-18): Ohne eigene Verbindung sagt eine Karte nichts über das Spielfeld;
+ * dann genügt die Kopfzeile, und Alter bzw. Warnung entfallen.
+ */
+export const shownFreshness = (f: Freshness | null, offline: boolean): Freshness | null => (offline ? null : f);
+
 function infoOf(st: GameState, key: string, timeZone?: string): string {
   const e = st.entry;
   const s = e.snap;
