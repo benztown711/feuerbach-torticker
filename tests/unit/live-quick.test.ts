@@ -193,12 +193,12 @@ describe('020 FR-E07 Mannschaften für "Neu starten"', () => {
     expect(quickTeams([E3], game('Sportvg Feuerbach C1'))).toEqual(['t3']);
   });
 
-  it('020 US1-S5 Hinweis nennt die Mannschaften wie auf den Chips', () => {
-    expect(startHint([E1, E2], ['t1', 't2'])).toBe('Neu mit E1 und E2.');
-    expect(startHint([E1, E2, E3], ['t2'])).toBe('Neu mit E2.');
-    expect(startHint([E1, E2, E3], ['t1', 't2', 't3'])).toBe('Neu mit E1, E2 und E3.');
+  it('020 US1-S5 022 US4-S1 Hinweis "Mit …" nennt die Mannschaften wie auf den Chips', () => {
+    expect(startHint([E1, E2], ['t1', 't2'])).toBe('Mit E1 und E2.');
+    expect(startHint([E1, E2, E3], ['t2'])).toBe('Mit E2.');
+    expect(startHint([E1, E2, E3], ['t1', 't2', 't3'])).toBe('Mit E1, E2 und E3.');
     const twice = [E1, { ...E1, id: 't9' }];
     expect(liveTeamOptions(twice).map((o) => o.key)).toEqual(['E1', 'E1 (2)']);
-    expect(startHint(twice, ['t1', 't9'])).toBe('Neu mit E1 und E1 (2).');
+    expect(startHint(twice, ['t1', 't9'])).toBe('Mit E1 und E1 (2).');
   });
 });

@@ -54,12 +54,12 @@ export function quickTeams(teams: Team[], game: Game | null): string[] {
   return teams.slice(0, MAX_LIVE_TEAMS).map((t) => t.id);
 }
 
-/** FR-E06: "Neu mit E1 und E2." (Kurzformen wie auf den Chips). */
+/** FR-E06: "Mit E1 und E2." (Kurzformen wie auf den Chips; bis Spec 022 FR-F30 "Neu mit …"). */
 export function startHint(teams: Team[], ids: string[]): string {
   const keys = liveTeamOptions(teams)
     .filter((o) => ids.includes(o.team.id))
     .map((o) => o.key);
-  return `Neu mit ${joinList(keys)}.`;
+  return `Mit ${joinList(keys)}.`;
 }
 
 /** FR-E05: Hinweis zur Mannschaft des Spiels. */

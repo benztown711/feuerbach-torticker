@@ -27,7 +27,7 @@ export const PAIRS: Pair[] = [
     fg: 'on-rot',
     bg: 'rot-tief',
     min: 4.5,
-    where: 'Hinweis Halbzeit/Abpfiff, kleine Buttons, Hilfe: Fundstelle dunkel',
+    where: 'Hinweis Halbzeit/Abpfiff, kleine Buttons, Hilfe: Fundstelle dunkel, Schalter „Ton bei Toren“ an (Spec 022)',
   },
   { fg: 'ink', bg: 'rot-hell', min: 4.5, where: 'Hinweisboxen, Hilfe: Fundstelle hell' },
   { fg: 'ink-muted', bg: 'rot-hell', min: 4.5, where: 'Dashboard: hervorgehobene Karte (neues Tor)' },

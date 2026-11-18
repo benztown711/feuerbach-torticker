@@ -79,7 +79,7 @@ function TrainerSection({ children }: { children: ComponentChildren }) {
         </svg>
       </button>
       {open && (
-        <div id="live-trainer" class="live__trainer" data-testid="live-trainer">
+        <div id="live-trainer" class="live__trainer card" data-testid="live-trainer">
           {children}
         </div>
       )}
@@ -652,7 +652,7 @@ function Overview({
       <ShareViewer onClick={() => void onShare(shareViewerLink(live))} />
       <DashboardButton />
       <TrainerSection>
-        <section class="field card">
+        <section class="field card" data-testid="live-trainer-card">
           <span class="t-label card__title">TRAINER</span>
           <p class="live__text">
             Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
@@ -667,6 +667,10 @@ function Overview({
             }
           >
             Trainer-Link teilen
+          </button>
+          {/* Spec 022 FR-F35: "Link einfügen" gehört zu den Trainer-Links, nicht lose ans Ende des Bereichs. */}
+          <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
+            Link einfügen
           </button>
         </section>
         <section class="field card">
@@ -741,9 +745,6 @@ function Overview({
             </li>
           </ul>
         </section>
-        <button type="button" class="btn btn--secondary" data-testid="btn-paste-link" onClick={onPaste}>
-          Link einfügen
-        </button>
       </TrainerSection>
     </div>
   );

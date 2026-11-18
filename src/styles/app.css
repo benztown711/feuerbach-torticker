@@ -3443,6 +3443,7 @@ body:has(.page:not(.dash, .lead-link)) {
   border: 2px solid var(--color-ink);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
+  transition: background-color 0.15s;
 }
 
 .dash-sound__knob::after {
@@ -3453,14 +3454,18 @@ body:has(.page:not(.dash, .lead-link)) {
   height: 20px;
   background: var(--color-ink);
   content: '';
+  transition:
+    background-color 0.15s,
+    transform 0.15s;
 }
 
+/* Spec 022 FR-F32: "an" in Vereinsrot (wie der Hauptknopf), Schieber weiß */
 .dash-sound__row[aria-checked='true'] .dash-sound__knob {
-  background: var(--color-ink);
+  background: var(--color-rot-tief);
 }
 
 .dash-sound__row[aria-checked='true'] .dash-sound__knob::after {
-  background: var(--color-surface);
+  background: var(--color-on-rot);
   transform: translateX(24px);
 }
 
@@ -3483,7 +3488,9 @@ body:has(.page:not(.dash, .lead-link)) {
 
 @media (prefers-reduced-motion: reduce) {
   .dash-card,
-  .dash-card__chev {
+  .dash-card__chev,
+  .dash-sound__knob,
+  .dash-sound__knob::after {
     transition: none;
   }
 }
@@ -3971,4 +3978,36 @@ button.plan__row {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+/*
+ * US4 FR-F34: aufgeklapptes "Für Trainer" ist eine Fläche mit der Kopfzeile (kein Kasten je Abschnitt);
+ * die Abschnitte darin trennt nur eine Linie.
+ */
+.live__trainer-toggle[aria-expanded='true'] {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.live__trainer.card {
+  gap: var(--space-4);
+
+  /* hebt den Abstand des Formulars zur Kopfzeile auf: eine Fläche */
+  margin-top: calc(-1 * var(--space-4));
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.live__trainer.card > .card {
+  padding: var(--space-4) 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.live__trainer.card > .card:first-child {
+  padding-top: 0;
+  border-top: 0;
 }

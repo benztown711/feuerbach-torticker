@@ -170,8 +170,8 @@ test('020 US1-S5 Blatt ohne Live-Spieltag: Einfügen zuerst, dann "Neu starten";
   await expect(page.getByTestId('live-start-lead')).toHaveText('Eltern sehen Stand, Minute und Tore live, ohne App.');
   await expect(page.getByTestId('live-start-other')).toHaveText('Ein anderer Trainer hat schon einen Link?');
   await expect(page.getByTestId('live-start-paste')).toHaveText('Link einfügen');
-  await expect(page.getByTestId('live-start-teams')).toHaveText('Neu mit E1 und E2.');
-  await expect(page.getByTestId('live-start-new')).toHaveText('Neu starten');
+  await expect(page.getByTestId('live-start-teams')).toHaveText('Mit E1 und E2.');
+  await expect(page.getByTestId('live-start-new')).toHaveText('Live-Spieltag anlegen');
   await expect(page.getByTestId('live-start-new')).toHaveClass(/btn--primary/);
   await expect(page.getByTestId('live-start-data')).toHaveText(
     'Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten und Lesezeichen bleiben auf dem Handy.',
@@ -202,15 +202,15 @@ test('020 US1-S6 aus dem laufenden E2-Spiel neu starten: nur E2, Link geteilt, E
   await forward(page, 3 * MIN);
   await page.getByTestId('btn-goal-own').click();
   await openQuickFromMenu(page);
-  await expect(page.getByTestId('live-start-teams')).toHaveText('Neu mit E2.');
+  await expect(page.getByTestId('live-start-teams')).toHaveText('Mit E2.');
   await page.getByTestId('live-start-new').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(1);
   const viewer = await sharedLink(recorded);
   await expect.poll(() => liveKeys(page)).toEqual(['E2']);
   await expect(page.getByTestId('live-start-done')).toHaveText('Fertig. „Unser Spieltag“ ist live.');
-  await expect(page.getByTestId('live-start-trainer')).toHaveText(
-    'Den Trainer-Link für die anderen Trainer findest du unter „Mehr“ → „Live für Eltern“ → „Für Trainer“.',
-  );
+  // Spec 022 FR-F31: statt der Pfadbeschreibung der Zweitknopf "Trainer-Link teilen".
+  await expect(page.getByTestId('live-start-share-trainer')).toHaveText('Trainer-Link teilen');
+  await expect(page.getByTestId('live-start-sheet')).not.toContainText('findest du unter');
   await page.getByTestId('live-start-sheet').getByRole('button', { name: 'Schließen' }).click();
   await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
 
@@ -247,7 +247,7 @@ test('020 US1-S7 Startbildschirm ohne Spiel: alle Mannschaften, eine Mannschaft,
   await ensureTeam(one, team('E3'));
   await one.goto('./');
   await one.getByTestId('start-live-quick').click();
-  await expect(one.getByTestId('live-start-teams')).toHaveText('Neu mit E3.');
+  await expect(one.getByTestId('live-start-teams')).toHaveText('Mit E3.');
   await one.getByTestId('live-start-new').click();
   await expect.poll(() => liveKeys(one)).toEqual(['E3']);
 
@@ -255,7 +255,7 @@ test('020 US1-S7 Startbildschirm ohne Spiel: alle Mannschaften, eine Mannschaft,
   for (const t of ['E1', 'E2', 'E3', 'D1', 'D2', 'D3', 'F1']) await addTeam(seven, team(t));
   await seven.goto('./');
   await seven.getByTestId('start-live-quick').click();
-  await expect(seven.getByTestId('live-start-teams')).toHaveText('Neu mit E1, E2, E3, D1, D2 und D3.');
+  await expect(seven.getByTestId('live-start-teams')).toHaveText('Mit E1, E2, E3, D1, D2 und D3.');
   await seven.getByTestId('live-start-new').click();
   await expect.poll(() => liveKeys(seven)).toEqual(['E1', 'E2', 'E3', 'D1', 'D2', 'D3']);
 });
@@ -351,7 +351,7 @@ test('020 US1-S10 Browser lehnt das Teilen nach "Neu starten" ab: "Link für Elt
   await page.getByTestId('live-start-new').click();
   await expect(page.getByTestId('live-start-done')).toHaveText('Fertig. Jetzt den Link teilen.');
   await expect(page.getByTestId('live-start-msg')).toHaveText('Teilen hat nicht geklappt.');
-  await expect(page.getByTestId('live-start-trainer')).toBeVisible();
+  await expect(page.getByTestId('live-start-share-trainer')).toBeVisible();
   expect((await recorded()).shares).toEqual([]);
   await page.getByTestId('live-start-share').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(1);

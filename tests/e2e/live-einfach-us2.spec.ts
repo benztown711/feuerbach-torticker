@@ -132,8 +132,10 @@ test('020 US2-S2 US2-S3 Übersicht: ein Hauptknopf, "Für Trainer" eingeklappt, 
     expect(i, id).toBeGreaterThanOrEqual(0);
     return i;
   };
+  // Spec 022 FR-F35: "Link einfügen" steht in der Karte "TRAINER" direkt unter "Trainer-Link teilen".
   const sequence = [
     'btn-share-trainer',
+    'btn-paste-link',
     'live-team-row-E1',
     'live-team-row-E2',
     'btn-team-remove-E2',
@@ -142,7 +144,6 @@ test('020 US2-S2 US2-S3 Übersicht: ein Hauptknopf, "Für Trainer" eingeklappt, 
     'btn-live-title',
     'btn-live-reissue',
     'btn-live-end',
-    'btn-paste-link',
   ].map(at);
   expect(sequence).toEqual([...sequence].sort((a, b) => a - b));
   await expect(page.getByTestId('btn-share-trainer')).toHaveText('Trainer-Link teilen');
@@ -261,7 +262,7 @@ test('020 US2-S7 ohne Live-Spieltag: ein Hauptknopf öffnet das Blatt, unter "F�
 
   await share.click();
   await expect(page.getByTestId('live-start-sheet')).toBeVisible();
-  await expect(page.getByTestId('live-start-teams')).toHaveText('Neu mit E1.');
+  await expect(page.getByTestId('live-start-teams')).toHaveText('Mit E1.');
 });
 
 test('020 US2 Randfall: Lead-Handy der ersten Version mit einem Hauptknopf, "Live beenden …" unter "Für Trainer"', async ({
@@ -453,7 +454,7 @@ test('020 US2-S13 FR-E60 Spielmenü ohne "Eltern live zuschauen lassen": "Teilen
   await page.getByTestId('share-live').click();
   await expect(page.getByTestId('live-start-sheet')).toBeVisible();
   await expect(page.getByTestId('live-start-paste')).toHaveText('Link einfügen');
-  await expect(page.getByTestId('live-start-teams')).toHaveText('Neu mit E1.');
+  await expect(page.getByTestId('live-start-teams')).toHaveText('Mit E1.');
   await page.getByTestId('live-start-new').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(1);
   await expect(page.getByTestId('live-start-done')).toBeVisible();

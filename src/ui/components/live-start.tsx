@@ -12,6 +12,7 @@ import {
   createLive,
   prepareLive,
   sendGameNow,
+  shareTrainerLink,
   shareViewerLink,
   type PreparedLive,
 } from '../../platform/live-setup';
@@ -199,12 +200,17 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         >
           Link für Eltern teilen
         </button>
-        {status}
         {done.kind === 'started' && (
-          <p class="sheet__text sheet__text--muted" data-testid="live-start-trainer">
-            Den Trainer-Link für die anderen Trainer findest du unter „Mehr“ → „Live für Eltern“ → „Für Trainer“.
-          </p>
+          <button
+            type="button"
+            class="btn btn--secondary live-start__btn"
+            data-testid="live-start-share-trainer"
+            onClick={() => void shareTrainerLink(done.live).then((r) => setMsg(SHARE_MSG[r]))}
+          >
+            Trainer-Link teilen
+          </button>
         )}
+        {status}
       </Sheet>
     );
   }
@@ -232,7 +238,7 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         disabled={working}
         onClick={() => void start()}
       >
-        Neu starten
+        Live-Spieltag anlegen
       </button>
       <p class="sheet__text sheet__text--muted" data-testid="live-start-data">
         Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten

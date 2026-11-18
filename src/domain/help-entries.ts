@@ -545,9 +545,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie lasse ich Eltern live zuschauen?',
     answer:
-      'Tippe auf dem Startbildschirm auf „Eltern live zuschauen lassen“. Im laufenden Spiel geht es unter „…“ mit „Teilen“ und „Live-Link für Eltern“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Ohne eigene Mannschaft legst du sie zuerst in den Einstellungen an. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
+      'Tippe auf dem Startbildschirm auf „Eltern live zuschauen lassen“, im Spiel unter „…“ auf „Teilen“ und „Live-Link für Eltern“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link, und das Spiel geht live. Sonst tippst du auf „Live-Spieltag anlegen“ (Mannschaften wie unter „Mit …“) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Danach teilst du mit „Link für Eltern teilen“ den Link an die Elterngruppe (er gilt die ganze Saison) und mit „Trainer-Link teilen“ den für die anderen Trainer. Ohne eigene Mannschaft legst du zuerst eine an.',
     keywords: 'eltern zuschauen live link elterngruppe schicken senden schnell neu starten mitschauen verfolgen',
-    sources: ['020 US1', '020 US2'],
+    sources: ['020 US1', '020 US2', '022 US4'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'live-senden', 'trainer-link'],
   },
@@ -556,9 +556,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie richte ich einen Live-Spieltag ein?',
     answer:
-      'Das macht nur einer, einmal für alle Mannschaften. Am schnellsten: „Eltern live zuschauen lassen“, dann „Neu starten“. Titel und Mannschaften wählst du selbst unter „Mehr“, „Live für Eltern“ und „Für Trainer“ mit „Live-Spieltag anlegen“, bis zu sechs. Den Link für Eltern teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer; beim ersten Teilen fragt die App „Kader mit den Trainern teilen?“. Gibt es schon einen Live-Spieltag, tippst du auf „Trainer-Link einfügen“.',
+      'Das macht nur einer, einmal für alle Mannschaften. Am schnellsten: „Eltern live zuschauen lassen“, dann „Live-Spieltag anlegen“. Eigenen Titel und Mannschaften (bis zu sechs) wählst du unter „Mehr“, „Live für Eltern“, „Für Trainer“ mit „Live-Spieltag anlegen“. Den Link für Eltern teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer („Trainer-Link teilen“, gleich danach oder später unter „Für Trainer“; dort fragt die App „Kader mit den Trainern teilen?“). Gibt es schon einen Live-Spieltag, tippst du auf „Link einfügen“.',
     keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen kader teilen neu starten',
-    sources: ['006 US1', '012 US1', '016 US1', '020 US1'],
+    sources: ['006 US1', '012 US1', '016 US1', '020 US1', '022 US4'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['eltern-zuschauen', 'trainer-link', 'live-senden'],
   },
@@ -800,10 +800,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Merke ich, wenn ein Tor fällt?',
     answer:
-      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
+      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest, dann leuchtet er rot. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
     keywords:
       'tor ton vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren voiceover screenreader pfiff',
-    sources: ['020 US3'],
+    sources: ['020 US3', '022 US4'],
     parents: true,
     related: ['eltern-dashboard', 'keine-meldung'],
   },
