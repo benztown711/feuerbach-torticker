@@ -1157,9 +1157,10 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 /*
- * FR-W10, FR-W14 (R-W2): Schnellauswahl nach dem Tor ohne Abdunkler, unten an die Tor-Knöpfe angedockt. Sie legt
- * sich über Anzeigetafel, Uhr und Torliste, höchstens bis unter die Kopfzeile (48 pt): Spielhöhe wie `.game`, minus
- * Kopfzeile, minus Tor-Bereich (100 % = Höhe des Tor-Bereichs). Meldungen stehen darunter direkt über den Knöpfen.
+ * FR-W10, FR-W14 (R-W2): Schnellauswahl nach dem Tor ohne Abdunkler, unten an die Tor-Knöpfe angedockt. Sie nimmt
+ * immer den ganzen Bereich zwischen Kopfzeile (48 pt) und Tor-Bereich ein, damit nichts halb verdeckt hervorschaut:
+ * Spielhöhe wie `.game`, minus Kopfzeile und Abstand, minus Tor-Bereich (100 % = Höhe des Tor-Bereichs).
+ * Meldungen stehen darunter direkt über den Knöpfen.
  */
 .goal-dock {
   position: absolute;
@@ -1170,7 +1171,9 @@ body:has(.page:not(.dash, .lead-link)) {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--nav-h) - 48px - 100%);
+  height: calc(
+    100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--nav-h) - 48px - var(--space-2) - 100%
+  );
 }
 
 .goal-dock .band {
@@ -1178,8 +1181,8 @@ body:has(.page:not(.dash, .lead-link)) {
   margin: 0 var(--space-2);
 }
 
-/* Was die Auswahl nur halb überdeckt, ruht für ihre Dauer (unsichtbar, nicht antippbar); die Anzeigetafel bleibt. */
-.game--pick :is(.clock, .controls, .event-row, .goal-list) {
+/* Was unter der Auswahl liegt, ruht für ihre Dauer (auch für Screenreader); Kopfzeile, Blätter und Tor-Knöpfe nicht. */
+.game--pick :is(.live-others, .scoreboard, .clock, .controls, .event-row, .goal-list) {
   visibility: hidden;
 }
 
@@ -1637,13 +1640,18 @@ body:has(.page:not(.dash, .lead-link)) {
 
 /* Spec 021 FR-W14: ohne Abdunkler hebt der Rahmen in ink die Auswahl ab (wie Uhr-Knöpfe), keine Schatten. */
 .scorer--dock {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
   max-height: none;
   overflow: hidden;
   padding: var(--space-2);
   border: 2px solid var(--color-ink);
   border-radius: var(--radius-md);
+}
+
+/* "Ohne Torschütze" unten, nah an Daumen und Tor-Knöpfen. */
+.scorer--dock > .btn--quiet {
+  margin-top: auto;
 }
 
 /* Titel und Untertitel links, "Rückgängig" rechts daneben: eine Zeile weniger als im Blatt. */
