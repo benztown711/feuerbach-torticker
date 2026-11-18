@@ -89,11 +89,15 @@ test.describe('US1 Tor mit einem Tap erfassen', () => {
     await expect(page.getByTestId('score')).toHaveText('5 : 5');
   });
 
-  test('FR-021 nach dem Schlusspfiff sind die Tor-Knöpfe deaktiviert', async ({ page }) => {
+  // Geändert durch Spec 021 FR-W01: statt ausgegrauter Tor-Knöpfe steht dort "Nächstes Spiel".
+  test('FR-021 nach dem Schlusspfiff lassen sich keine Tore mehr erfassen', async ({ page }) => {
     await startGame(page, { sections: 1, minutes: 12 });
     await page.getByTestId('btn-section-end').click();
     await confirmYes(page);
-    await expect(page.getByTestId('btn-goal-own')).toBeDisabled();
+    await expect(page.getByTestId('btn-goal-own')).toHaveCount(0);
+    await expect(page.getByTestId('btn-goal-opp')).toHaveCount(0);
+    await expect(page.getByTestId('btn-next-game')).toBeVisible();
+    await expect(page.getByTestId('score')).toHaveText('0 : 0');
   });
 
   test('FR-022 Spieldetails zeigen Tore mit Minute und Uhrzeit sowie Uhr-Ereignisse', async ({ page }) => {

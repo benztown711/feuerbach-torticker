@@ -1,8 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
 import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
-import { later, sampleDashboard } from './live-helpers';
-import { openTrainerSection, openViewer } from './live-helpers';
+import { later, openTrainerSection, openViewer, sampleDashboard } from './live-helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -250,6 +249,41 @@ test.describe('022 Erster Start: Hinweis, Neues Spiel, Blatt, Schalter und Für 
       await v.getByTestId('dash-sound').click();
       await expect(v.getByTestId('dash-sound')).toHaveAttribute('aria-checked', 'true');
       await axe(v);
+    });
+  }
+});
+
+test.describe('021 Spielablauf: Schnellauswahl, Torliste mit Pfeil und "Nächstes Spiel" ohne axe-Verstöße', () => {
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Schnellauswahl, Vorlage, Endzustand und vorbelegtes "Neues Spiel" ${scheme === 'light' ? 'hell' : 'dunkel'}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const axe = async (): Promise<void> => {
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      };
+      await seedRoster(page, '7 Max\n9 Ben\n10 Tom');
+      await page.goto('./#/einstellungen');
+      await page.getByTestId('feature-assists').click();
+      await expect(page.getByTestId('feature-assists')).toHaveAttribute('aria-checked', 'true');
+      await startGame(page, { sections: 1, minutes: 12 });
+      await forward(page, MIN);
+      await page.getByTestId('btn-goal-own').click();
+      await expect(page.getByRole('dialog', { name: 'Wer hat getroffen?' })).toBeVisible();
+      await axe();
+      await page.getByTestId('scorer-picker').getByRole('button', { name: '7 Max', exact: true }).click();
+      await expect(page.getByRole('dialog', { name: 'Vorlage von?' })).toBeVisible();
+      await axe();
+      await page.getByTestId('assist-skip').click();
+      await expect(page.locator('.goal-row__chev')).toHaveCount(1);
+      await axe();
+      await page.getByTestId('btn-section-end').click();
+      await page.getByTestId('confirm-yes').click();
+      await expect(page.getByTestId('btn-next-game')).toBeVisible();
+      await axe();
+      await page.getByTestId('btn-next-game').click();
+      await expect(page.getByTestId('input-opponent')).toBeFocused();
+      await axe();
     });
   }
 });

@@ -728,6 +728,13 @@ body:has(.page:not(.dash, .lead-link)) {
   white-space: nowrap;
 }
 
+/* Spec 021 FR-W20: Pfeil am rechten Rand; der Text davor kürzt mit "…". */
+.goal-row__chev {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--color-ink-muted);
+}
+
 .goal-row--mark .goal-row__score {
   display: flex;
   align-self: center;
@@ -1124,6 +1131,59 @@ body:has(.page:not(.dash, .lead-link)) {
   .signal-flash {
     animation: none;
   }
+}
+
+/* ---------- Spec 021: Spielablauf am Spieltag ---------- */
+
+/* FR-W01: nach dem Schlusspfiff nur "Nächstes Spiel"; die Torliste bekommt den Platz der Tor-Knöpfe. */
+.goal-zone--done {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.next-game {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+/* Hauptknopf wie außerhalb des Spiels (design/README.md): Tor-Knöpfe, mit denen er verwechselt würde, gibt es nicht mehr. */
+.next-game__btn {
+  width: 100%;
+  min-height: 72px;
+  border-color: var(--color-rot-tief);
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/*
+ * FR-W10, FR-W14 (R-W2): Schnellauswahl nach dem Tor ohne Abdunkler, unten an die Tor-Knöpfe angedockt. Sie nimmt
+ * immer den ganzen Bereich zwischen Kopfzeile (48 pt) und Tor-Bereich ein, damit nichts halb verdeckt hervorschaut:
+ * Spielhöhe wie `.game`, minus Kopfzeile und Abstand, minus Tor-Bereich (100 % = Höhe des Tor-Bereichs).
+ * Meldungen stehen darunter direkt über den Knöpfen.
+ */
+.goal-dock {
+  position: absolute;
+  right: var(--space-2);
+  bottom: 100%;
+  left: var(--space-2);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: calc(
+    100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--nav-h) - 48px - var(--space-2) - 100%
+  );
+}
+
+.goal-dock .band {
+  position: static;
+  margin: 0 var(--space-2);
+}
+
+/* Was unter der Auswahl liegt, ruht für ihre Dauer (auch für Screenreader); Kopfzeile, Blätter und Tor-Knöpfe nicht. */
+.game--pick :is(.live-others, .scoreboard, .clock, .controls, .event-row, .goal-list) {
+  visibility: hidden;
 }
 
 /* ---------- Overlays: Abfrage und Aktionsblatt ---------- */
@@ -1576,6 +1636,42 @@ body:has(.page:not(.dash, .lead-link)) {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* Spec 021 FR-W14: ohne Abdunkler hebt der Rahmen in ink die Auswahl ab (wie Uhr-Knöpfe), keine Schatten. */
+.scorer--dock {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  padding: var(--space-2);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
+}
+
+/* "Ohne Torschütze" unten, nah an Daumen und Tor-Knöpfen. */
+.scorer--dock > .btn--quiet {
+  margin-top: auto;
+}
+
+/* Titel und Untertitel links, "Rückgängig" rechts daneben: eine Zeile weniger als im Blatt. */
+.scorer--dock .scorer__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.scorer--dock .scorer__head .btn {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+}
+
+/* Spec 021 FR-W13: Reicht der Platz nicht, scrollt nur das Raster; fünf Spalten, damit 16 Kinder meist ohne Scrollen passen. */
+.scorer--dock .scorer__grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* ---------- Navigationsleiste unten (FR-037) ---------- */

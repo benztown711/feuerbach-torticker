@@ -16,7 +16,7 @@ import { trashGames } from '../../platform/trash';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
-import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
+import { addGoalStep, type EditStep } from '../components/goal-steps';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
@@ -63,6 +63,9 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [marksMsg, setMarksMsg] = useState('');
   /** Spec 017 R-C1: offenes Korrektur-Blatt. */
   const [edit, setEdit] = useState<EditStep | null>(null);
+  /** Spec 021 R-W3: Tor-Blätter nachgeladen, beim Öffnen vorgeladen. */
+  const [editor, setEditor] = useState<typeof import('../components/goal-editor') | null>(null);
+  useEffect(() => void import('../components/goal-editor').then(setEditor, () => undefined), []);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
   /** Spec 022 FR-F13: Blatt "Gegner ändern", nachgeladen (Hauptbundle). */
@@ -389,16 +392,18 @@ export function GameDetailsScreen({ id }: { id: string }) {
         />
       )}
 
-      <GoalEditor
-        game={game}
-        players={players}
-        settings={settings}
-        step={edit}
-        onStep={setEdit}
-        cur={cur}
-        update={update}
-        now={now}
-      />
+      {editor && (
+        <editor.GoalEditor
+          game={game}
+          players={players}
+          settings={settings}
+          step={edit}
+          onStep={setEdit}
+          cur={cur}
+          update={update}
+          now={now}
+        />
+      )}
 
       {askDelete && (
         <Confirm

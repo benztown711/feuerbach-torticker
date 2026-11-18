@@ -1,4 +1,4 @@
-import { addGoalAt, defaultOption, minuteOptions, setGoalMinute } from '../../domain/corrections';
+import { addGoalAt, minuteOptions, setGoalMinute } from '../../domain/corrections';
 import { formatTime } from '../../domain/format';
 import {
   canHaveAssist,
@@ -16,34 +16,10 @@ import { activePlayers, otherPlayers, squadPlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import type { Game, Player, Scorer, Settings, Side } from '../../domain/types';
 import { Confirm } from './confirm';
+import { ASSIST_MS, PICKER_MS, type EditStep } from './goal-steps';
 import { ScorerPicker } from './scorer-picker';
 import { Sheet } from './sheet';
 import { TeamMark } from './team-mark';
-
-/**
- * Spec 017 R-C1: Korrektur-Blätter für Tore, gemeinsam für Spielbildschirm und Spieldetails (Spec 001, 009, 012).
- * Immer höchstens ein Schritt offen; die Seite hält ihn und speichert über `update`.
- */
-export type EditStep =
-  | { kind: 'goal'; goalId: string }
-  | { kind: 'remove'; goalId: string }
-  /** `until`: Schnellauswahl direkt nach dem Tor mit Countdown (US3-S2, Spec 009 FR-V02); fehlt = Korrektur. */
-  | { kind: 'scorer'; goalId: string; until?: number }
-  | { kind: 'assist'; goalId: string; until?: number }
-  | { kind: 'text'; goalId: string; value: string }
-  | { kind: 'minute'; goalId: string; label: string }
-  | { kind: 'add'; side: Side; label: string };
-
-/** US3-S2: Schnellauswahl schließt nach 8 s ohne Torschützen. */
-export const PICKER_MS = 8_000;
-/** Spec 009 FR-V02: Folgeschritt "Vorlage von?" schließt nach 5 s ohne Vorlage. */
-export const ASSIST_MS = 5_000;
-
-/** Spec 012 FR-S10, FR-S11: "Tor nachtragen" mit vorgewählter letzter gespielter Minute, vor dem Anpfiff null. */
-export function addGoalStep(game: Game, now: number): EditStep | null {
-  const d = defaultOption(game, now);
-  return d ? { kind: 'add', side: 'own', label: d.label } : null;
-}
 
 /** Spec 012 FR-S11: Auswahl der gespielten Minuten (Wert = Bezeichnung wie "25+1'"). */
 function MinuteSelect(p: { id: string; options: { label: string }[]; value: string; onChange: (v: string) => void }) {
@@ -256,8 +232,8 @@ export function GoalEditor({ game, players, settings, step, onStep, cur, update,
     };
     return (
       <ScorerPicker
-        // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
-        key={step.kind}
+        // Neuer Schritt oder neues Tor (Spec 021 FR-W11), neuer Zustand ("Andere …" wieder zu).
+        key={`${step.kind}-${goal.id}`}
         kind={step.kind}
         subtitle={`Tor in Minute ${formatMinute(goal.minute, goal.stoppage)}${
           step.kind === 'assist' ? ` · ${scorerLabel(goal, players)}` : ''

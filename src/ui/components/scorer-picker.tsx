@@ -25,84 +25,91 @@ const TEXT = {
 /**
  * Schnellauswahl aus dem Aufgebot (US3, FR-009, FR-030): Torschütze mit "Andere …" und Eigentor, oder
  * (Spec 009 FR-V02, FR-V04) Vorlagengeber. Knöpfe zeigen Nummer und Name (FR-V09).
+ * Spec 021 FR-W10, FR-W15: Mit Countdown (direkt nach dem Tor) ohne Abdunkler und nicht-modal; die Seite dockt sie
+ * über den Tor-Knöpfen an. Ohne Countdown (Korrektur) ein Blatt mit Abdunkler wie bisher (FR-W16).
  */
 export function ScorerPicker({ kind = 'scorer', subtitle, squad, others, onPick, onClose, countdown, onUndo }: Props) {
   const [showOthers, setShowOthers] = useState(false);
   const shown = showOthers ? [...squad, ...others] : squad;
   const text = TEXT[kind];
   const titleId = `${kind}-title`;
+  const docked = countdown !== undefined;
+  const panel = (
+    <div
+      class={docked ? 'sheet scorer scorer--dock' : 'sheet scorer'}
+      role="dialog"
+      aria-modal={docked ? undefined : 'true'}
+      aria-labelledby={titleId}
+      data-testid={`${kind}-picker`}
+    >
+      <div class="scorer__head">
+        <h2 id={titleId} class="sheet__title">
+          {text.title}
+        </h2>
+        <span class="sheet__subtitle">{subtitle}</span>
+        {onUndo && (
+          <button type="button" class="btn btn--secondary btn--small" data-testid="btn-undo" onClick={onUndo}>
+            Rückgängig
+          </button>
+        )}
+      </div>
+      <div class="scorer__grid">
+        {shown.map((p) => (
+          <button
+            type="button"
+            key={p.id}
+            class="scorer__option"
+            data-testid={`${kind}-option-${p.id}`}
+            onClick={() => onPick({ kind: 'player', playerId: p.id })}
+          >
+            {/* Sichtbarer Text = zugänglicher Name "7 Max" (Leerzeichen trennt die Zeilen). */}
+            {p.number !== null && <span class="scorer__number">{p.number}</span>}
+            {p.number !== null && ' '}
+            <span class="scorer__name">{p.name}</span>
+          </button>
+        ))}
+        {others.length > 0 && !showOthers && (
+          <button
+            type="button"
+            class="scorer__option scorer__option--more"
+            data-testid={`${kind}-others`}
+            onClick={() => setShowOthers(true)}
+          >
+            Andere …
+          </button>
+        )}
+        {kind === 'scorer' && (
+          <button
+            type="button"
+            class="scorer__option scorer__option--quiet"
+            data-testid="scorer-own-goal"
+            onClick={() => onPick({ kind: 'ownGoal' })}
+          >
+            Eigentor Gegner
+          </button>
+        )}
+      </div>
+      {docked ? (
+        <button type="button" class="btn btn--quiet" data-testid={`${kind}-skip`} onClick={onClose}>
+          {text.none} ({countdown} s)
+        </button>
+      ) : (
+        <div class="button-row">
+          <button type="button" class="btn btn--secondary" data-testid={`${kind}-clear`} onClick={() => onPick(null)}>
+            {text.none}
+          </button>
+          <button type="button" class="btn btn--quiet" onClick={onClose}>
+            Abbrechen
+          </button>
+        </div>
+      )}
+    </div>
+  );
+  if (docked) return panel;
   return (
     <div class="overlay overlay--bottom">
       <div class="overlay__backdrop" onClick={onClose} />
-      <div
-        class="sheet scorer"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        data-testid={`${kind}-picker`}
-      >
-        <div class="scorer__head">
-          <h2 id={titleId} class="sheet__title">
-            {text.title}
-          </h2>
-          <span class="sheet__subtitle">{subtitle}</span>
-          {onUndo && (
-            <button type="button" class="btn btn--secondary btn--small" data-testid="btn-undo" onClick={onUndo}>
-              Rückgängig
-            </button>
-          )}
-        </div>
-        <div class="scorer__grid">
-          {shown.map((p) => (
-            <button
-              type="button"
-              key={p.id}
-              class="scorer__option"
-              data-testid={`${kind}-option-${p.id}`}
-              onClick={() => onPick({ kind: 'player', playerId: p.id })}
-            >
-              {/* Sichtbarer Text = zugänglicher Name "7 Max" (Leerzeichen trennt die Zeilen). */}
-              {p.number !== null && <span class="scorer__number">{p.number}</span>}
-              {p.number !== null && ' '}
-              <span class="scorer__name">{p.name}</span>
-            </button>
-          ))}
-          {others.length > 0 && !showOthers && (
-            <button
-              type="button"
-              class="scorer__option scorer__option--more"
-              data-testid={`${kind}-others`}
-              onClick={() => setShowOthers(true)}
-            >
-              Andere …
-            </button>
-          )}
-          {kind === 'scorer' && (
-            <button
-              type="button"
-              class="scorer__option scorer__option--quiet"
-              data-testid="scorer-own-goal"
-              onClick={() => onPick({ kind: 'ownGoal' })}
-            >
-              Eigentor Gegner
-            </button>
-          )}
-        </div>
-        {countdown !== undefined ? (
-          <button type="button" class="btn btn--quiet" data-testid={`${kind}-skip`} onClick={onClose}>
-            {text.none} ({countdown} s)
-          </button>
-        ) : (
-          <div class="button-row">
-            <button type="button" class="btn btn--secondary" data-testid={`${kind}-clear`} onClick={() => onPick(null)}>
-              {text.none}
-            </button>
-            <button type="button" class="btn btn--quiet" onClick={onClose}>
-              Abbrechen
-            </button>
-          </div>
-        )}
-      </div>
+      {panel}
     </div>
   );
 }
