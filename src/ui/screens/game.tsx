@@ -61,7 +61,7 @@ import { ClockDisplay } from '../components/clock-display';
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
-import { addGoalStep, GoalEditor, PICKER_MS, type EditStep } from '../components/goal-editor';
+import { addGoalStep, PICKER_MS, type EditStep } from '../components/goal-steps';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
@@ -83,6 +83,8 @@ import type { GameWatch } from '../../platform/live-watch';
 const base = import.meta.env.BASE_URL;
 
 type ShareSheetModule = typeof import('../components/share-sheet');
+/** Spec 021 R-W3: Tor-Blätter und Auswahl nachgeladen, beim Öffnen des Spiels vorgeladen. */
+type EditorModule = typeof import('../components/goal-editor');
 const UNDO_MS = 10_000;
 const FLASH_MS = 3_000;
 const HINT_MS = 1_500;
@@ -161,6 +163,8 @@ export function GameScreen({ id }: { id: string }) {
   const [quickSheet, setQuickSheet] = useState(false);
   const [shareSheet, setShareSheet] = useState(false);
   useEffect(() => void import('../components/share-sheet').then(setQuick, () => undefined), []);
+  const [editor, setEditor] = useState<EditorModule | null>(null);
+  useEffect(() => void import('../components/goal-editor').then(setEditor, () => undefined), []);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -1257,19 +1261,21 @@ export function GameScreen({ id }: { id: string }) {
         />
       )}
 
-      <GoalEditor
-        game={game}
-        players={roster}
-        settings={settings}
-        // Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage.
-        step={ask && edit?.kind === 'goal' ? null : edit}
-        onStep={setEdit}
-        cur={cur}
-        update={update}
-        now={now}
-        undoGoalId={undoGoalObj?.id}
-        onUndo={doUndo}
-      />
+      {editor && (
+        <editor.GoalEditor
+          game={game}
+          players={roster}
+          settings={settings}
+          // Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage.
+          step={ask && edit?.kind === 'goal' ? null : edit}
+          onStep={setEdit}
+          cur={cur}
+          update={update}
+          now={now}
+          undoGoalId={undoGoalObj?.id}
+          onUndo={doUndo}
+        />
+      )}
 
       {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
         <div class="overlay overlay--center">
