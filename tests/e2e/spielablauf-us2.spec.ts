@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { MIN, ROSTER_21, SEC, confirmYes, forward, seedRoster, startGame } from './helpers';
+import { createLive, e3Ended, onMatchday, sendAs } from './live-helpers';
 
 /**
  * Spec 021 US2: Torschützen-Auswahl ohne Sperre. Die Schnellauswahl nach dem Tor dockt ohne Abdunkler über den
@@ -355,5 +356,44 @@ test.describe('021 FR-W10 Elfmeterschießen', () => {
     await picker.getByRole('button', { name: '9 Ben', exact: true }).click();
     await expect(picker).toHaveCount(0);
     await expect(page.getByTestId('pen-score')).toBeVisible();
+  });
+});
+
+test.describe('021 FR-W10 Auswahl mit Zusatzzeile unter der Kopfzeile', () => {
+  // Relay-Nachbau für die Zeile "andere Spiele" (Spec 006 US4).
+  test.use({ serviceWorkers: 'block' });
+
+  test('021 US2-S1 FR-W10 iPhone SE mit Zeile "andere Spiele" und Ereignis-Zeile: Auswahl füllt genau den Bereich, "…" bleibt frei', async ({
+    page,
+    recorded,
+    relay,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
+    onMatchday(relay);
+    await seedRoster(page, ROSTER);
+    await page.goto('./#/einstellungen');
+    for (const k of ['cards', 'subs', 'marks']) {
+      await page.getByTestId(`feature-${k}`).click();
+      await expect(page.getByTestId(`feature-${k}`)).toHaveAttribute('aria-checked', 'true');
+    }
+    await startGame(page, { ownTeam: 'Sportvg Feuerbach E1', opponent: 'TSV Musterstadt' });
+    await sendAs(relay, links.trainer, e3Ended());
+    await expect(page.getByTestId('live-other-E3')).toBeVisible();
+    await expect(page.getByTestId('event-row')).toBeVisible();
+    await page.getByTestId('btn-goal-own').click();
+    const picker = page.getByTestId('scorer-picker');
+    await expect(picker).toBeVisible();
+    await expectGoalsFree(page, picker);
+    const header = await box(page.locator('.game__header'));
+    const dock = await box(page.locator('.goal-dock'));
+    const goal = await box(page.getByTestId('btn-goal-own'));
+    // Zwischen Kopfzeile und Tor-Knöpfen, ohne Überlappung und ohne Lücke (Abstand höchstens 8 pt + Rundung).
+    expect(dock.y).toBeGreaterThanOrEqual(header.y + header.height - 0.5);
+    expect(dock.y - (header.y + header.height)).toBeLessThanOrEqual(9);
+    expect(dock.y + dock.height).toBeLessThanOrEqual(goal.y + 0.5);
+    expect(goal.y - (dock.y + dock.height)).toBeLessThanOrEqual(9);
+    await page.getByTestId('btn-menu').click();
+    await expect(page.getByTestId('game-menu')).toBeVisible();
   });
 });

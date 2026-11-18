@@ -1157,23 +1157,33 @@ body:has(.page:not(.dash, .lead-link)) {
 }
 
 /*
- * FR-W10, FR-W14 (R-W2): Schnellauswahl nach dem Tor ohne Abdunkler, unten an die Tor-Knöpfe angedockt. Sie nimmt
- * immer den ganzen Bereich zwischen Kopfzeile (48 pt) und Tor-Bereich ein, damit nichts halb verdeckt hervorschaut:
- * Spielhöhe wie `.game`, minus Kopfzeile und Abstand, minus Tor-Bereich (100 % = Höhe des Tor-Bereichs).
- * Meldungen stehen darunter direkt über den Knöpfen.
+ * FR-W10: alles zwischen Kopfzeile und Tor-Bereich (Zeile "andere Spiele", Anzeigetafel, Uhr, Knöpfe, Torliste) in
+ * einer Fläche. Sie verhält sich wie die Einzelteile vorher: wächst mit der Torliste, schrumpft nicht unter ihren
+ * Inhalt (der Tor-Bereich gibt nach, Spec 019 FR-A23). Im Elfmeterschießen ohne eigene Fläche.
+ */
+.game__body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.game__body--flat {
+  display: contents;
+}
+
+/*
+ * FR-W10, FR-W14 (R-W2): Schnellauswahl nach dem Tor ohne Abdunkler, unten an die Tor-Knöpfe angedockt. Sie füllt
+ * die Fläche zwischen Kopfzeile und Tor-Bereich genau, gleich welche Zeilen dort stehen, damit nichts halb verdeckt
+ * hervorschaut und die Kopfzeile frei bleibt. Meldungen stehen darunter direkt über den Knöpfen.
  */
 .goal-dock {
   position: absolute;
-  right: var(--space-2);
-  bottom: 100%;
-  left: var(--space-2);
+  inset: var(--space-2) var(--space-2) 0;
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  height: calc(
-    100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--nav-h) - 48px - var(--space-2) - 100%
-  );
 }
 
 .goal-dock .band {

@@ -630,187 +630,197 @@ export function GameScreen({ id }: { id: string }) {
           </svg>
         </button>
       </header>
-      {watch && <LiveOthers watch={watch} gameId={game.id} team={ownKey} now={now} />}
+      {/*
+        Spec 021 FR-W10: alles zwischen Kopfzeile und Tor-Bereich in einer Fläche; die Schnellauswahl füllt sie genau
+        (Flex statt fester Rechnung). Im Elfmeterschießen ohne eigene Fläche (Inhalt wie bisher direkt im Spiel).
+      */}
+      <div class={shootoutActive ? 'game__body game__body--flat' : 'game__body'}>
+        {watch && <LiveOthers watch={watch} gameId={game.id} team={ownKey} now={now} />}
 
-      <Scoreboard
-        homeName={buttonName(homeSide)}
-        awayName={buttonName(awaySide)}
-        homeColor={colorOf(homeSide)}
-        awayColor={colorOf(awaySide)}
-        score={`${ha.home} : ${ha.away}`}
-        onSwap={status === 'created' ? () => update(swapVenue(cur())) : undefined}
-      />
-      {shootoutActive && band && <div class="band-dock">{band}</div>}
-      {shootoutActive ? (
-        <ShootoutView
-          game={game}
-          players={roster}
-          sort={sort}
-          ownName={ownShort}
-          dark={dark}
-          onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
-          onUndo={() => update(undoShot(cur()))}
-          onEnd={() => setAsk({ kind: 'endShootout' })}
+        <Scoreboard
+          homeName={buttonName(homeSide)}
+          awayName={buttonName(awaySide)}
+          homeColor={colorOf(homeSide)}
+          awayColor={colorOf(awaySide)}
+          score={`${ha.home} : ${ha.away}`}
+          onSwap={status === 'created' ? () => update(swapVenue(cur())) : undefined}
         />
-      ) : (
-        <>
-          {game.shootout?.done &&
-            (() => {
-              const st = shootoutState(game);
-              const p = homeAway(game.venue, { own: st.own, opp: st.opp });
-              return (
-                <p class="shootout-result" data-testid="shootout-result">
-                  {p.home}:{p.away} i. E.
-                </p>
-              );
-            })()}
+        {shootoutActive && band && <div class="band-dock">{band}</div>}
+        {shootoutActive ? (
+          <ShootoutView
+            game={game}
+            players={roster}
+            sort={sort}
+            ownName={ownShort}
+            dark={dark}
+            onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
+            onUndo={() => update(undoShot(cur()))}
+            onEnd={() => setAsk({ kind: 'endShootout' })}
+          />
+        ) : (
+          <>
+            {game.shootout?.done &&
+              (() => {
+                const st = shootoutState(game);
+                const p = homeAway(game.venue, { own: st.own, opp: st.opp });
+                return (
+                  <p class="shootout-result" data-testid="shootout-result">
+                    {p.home}:{p.away} i. E.
+                  </p>
+                );
+              })()}
 
-          <ClockDisplay clock={clock} flash={flashing} />
+            <ClockDisplay clock={clock} flash={flashing} />
 
-          <section class="controls">
-            {(status === 'created' || status === 'break') && (
-              <button
-                type="button"
-                class="btn btn--primary controls__wide"
-                data-testid="btn-kickoff"
-                onClick={doKickoff}
-              >
-                {status === 'created' || clock.kickoffSection === null
-                  ? 'Anpfiff'
-                  : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
-              </button>
-            )}
-            {status === 'running' && (
-              <button
-                type="button"
-                class="btn btn--secondary"
-                data-testid="btn-pause"
-                onClick={() => setAsk({ kind: 'pause' })}
-              >
-                Uhr anhalten
-              </button>
-            )}
-            {status === 'paused' && (
-              <button
-                type="button"
-                class="btn btn--secondary"
-                data-testid="btn-resume"
-                onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
-              >
-                Uhr fortsetzen
-              </button>
-            )}
-            {goalsOpen && (
-              <button
-                type="button"
-                class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
-                data-testid="btn-section-end"
-                onClick={() => setAsk({ kind: 'end' })}
-              >
-                {endLabel}
-              </button>
-            )}
-            {status === 'finished' && (
-              <>
-                <button type="button" class="btn btn--secondary" onClick={() => navigate(`/spiel/${game.id}/details`)}>
-                  Spieldetails
-                </button>
-                <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
-                  Ergebnis teilen
-                </button>
-              </>
-            )}
-          </section>
-
-          {eventsOpen && settings && (
-            <section class="event-row" aria-label="Ereignisse erfassen" data-testid="event-row">
-              {settings.features.cards && (
+            <section class="controls">
+              {(status === 'created' || status === 'break') && (
                 <button
                   type="button"
-                  class="btn btn--quiet event-row__btn"
-                  data-testid="btn-event-card"
-                  onClick={() => {
-                    setEventAt(Date.now());
-                    setCardPick(true);
-                  }}
+                  class="btn btn--primary controls__wide"
+                  data-testid="btn-kickoff"
+                  onClick={doKickoff}
                 >
-                  <CardIcon size={18} />
-                  Karte
+                  {status === 'created' || clock.kickoffSection === null
+                    ? 'Anpfiff'
+                    : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
                 </button>
               )}
-              {settings.features.subs && (
+              {status === 'running' && (
                 <button
                   type="button"
-                  class="btn btn--quiet event-row__btn"
-                  data-testid="btn-event-sub"
-                  onClick={() => setSubDraft({ id: null, at: Date.now(), out: null, inn: null, others: false })}
+                  class="btn btn--secondary"
+                  data-testid="btn-pause"
+                  onClick={() => setAsk({ kind: 'pause' })}
                 >
-                  <SubIcon size={18} />
-                  Wechsel
+                  Uhr anhalten
                 </button>
               )}
-              {settings.features.marks && (
+              {status === 'paused' && (
                 <button
                   type="button"
-                  class="btn btn--quiet event-row__btn"
-                  data-testid="btn-event-mark"
-                  onClick={doMark}
+                  class="btn btn--secondary"
+                  data-testid="btn-resume"
+                  onClick={() => canAct(cur(), 'resume', Date.now()) && update(resumeClock(cur(), Date.now()))}
                 >
-                  <BookmarkIcon size={18} />
-                  Lesezeichen
+                  Uhr fortsetzen
                 </button>
+              )}
+              {goalsOpen && (
+                <button
+                  type="button"
+                  class={overtime ? 'btn btn--primary' : 'btn btn--secondary'}
+                  data-testid="btn-section-end"
+                  onClick={() => setAsk({ kind: 'end' })}
+                >
+                  {endLabel}
+                </button>
+              )}
+              {status === 'finished' && (
+                <>
+                  <button
+                    type="button"
+                    class="btn btn--secondary"
+                    onClick={() => navigate(`/spiel/${game.id}/details`)}
+                  >
+                    Spieldetails
+                  </button>
+                  <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
+                    Ergebnis teilen
+                  </button>
+                </>
               )}
             </section>
-          )}
 
-          <GoalList
-            game={game}
-
-            players={roster}
-            onOpen={(g) => setEdit({ kind: 'goal', goalId: g.id })}
-            events={allEvents}
-            onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
-          />
-
-          <div class={status === 'finished' ? 'goal-zone goal-zone--done' : 'goal-zone'}>
-            {docked ? (
-              // Spec 021 FR-W14: Auswahl über den Tor-Knöpfen, Meldungen darunter direkt über den Knöpfen.
-              <div class="goal-dock">
-                {editorFor(edit, true)}
-                {band}
-              </div>
-            ) : (
-              band
-            )}
-            {status === 'finished' ? (
-              // Spec 021 FR-W01: nach dem Schlusspfiff "Nächstes Spiel" statt ausgegrauter Tor-Knöpfe.
-              <div class="next-game">
-                <button
-                  type="button"
-                  class="btn next-game__btn"
-                  data-testid="btn-next-game"
-                  onClick={() => navigate(`/neu/nach/${game.id}`)}
-                >
-                  Nächstes Spiel
-                </button>
-              </div>
-            ) : (
-              <section class="goal-buttons" aria-label="Tore erfassen">
-                {[homeSide, awaySide].map((side) => (
-                  <GoalButton
-                    key={side}
-                    testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-                    team={buttonName(side)}
-                    colorId={colorOf(side)}
-                    dark={dark}
-                    disabled={!goalsOpen}
-                    onGoal={() => onGoal(side)}
-                  />
-                ))}
+            {eventsOpen && settings && (
+              <section class="event-row" aria-label="Ereignisse erfassen" data-testid="event-row">
+                {settings.features.cards && (
+                  <button
+                    type="button"
+                    class="btn btn--quiet event-row__btn"
+                    data-testid="btn-event-card"
+                    onClick={() => {
+                      setEventAt(Date.now());
+                      setCardPick(true);
+                    }}
+                  >
+                    <CardIcon size={18} />
+                    Karte
+                  </button>
+                )}
+                {settings.features.subs && (
+                  <button
+                    type="button"
+                    class="btn btn--quiet event-row__btn"
+                    data-testid="btn-event-sub"
+                    onClick={() => setSubDraft({ id: null, at: Date.now(), out: null, inn: null, others: false })}
+                  >
+                    <SubIcon size={18} />
+                    Wechsel
+                  </button>
+                )}
+                {settings.features.marks && (
+                  <button
+                    type="button"
+                    class="btn btn--quiet event-row__btn"
+                    data-testid="btn-event-mark"
+                    onClick={doMark}
+                  >
+                    <BookmarkIcon size={18} />
+                    Lesezeichen
+                  </button>
+                )}
               </section>
             )}
+
+            <GoalList
+              game={game}
+
+              players={roster}
+              onOpen={(g) => setEdit({ kind: 'goal', goalId: g.id })}
+              events={allEvents}
+              onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
+            />
+          </>
+        )}
+        {docked && (
+          // Spec 021 FR-W14: Auswahl über den Tor-Knöpfen, Meldungen darunter direkt über den Knöpfen.
+          <div class="goal-dock">
+            {editorFor(edit, true)}
+            {band}
           </div>
-        </>
+        )}
+      </div>
+      {!shootoutActive && (
+        <div class={status === 'finished' ? 'goal-zone goal-zone--done' : 'goal-zone'}>
+          {!docked && band}
+          {status === 'finished' ? (
+            // Spec 021 FR-W01: nach dem Schlusspfiff "Nächstes Spiel" statt ausgegrauter Tor-Knöpfe.
+            <div class="next-game">
+              <button
+                type="button"
+                class="btn next-game__btn"
+                data-testid="btn-next-game"
+                onClick={() => navigate(`/neu/nach/${game.id}`)}
+              >
+                Nächstes Spiel
+              </button>
+            </div>
+          ) : (
+            <section class="goal-buttons" aria-label="Tore erfassen">
+              {[homeSide, awaySide].map((side) => (
+                <GoalButton
+                  key={side}
+                  testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                  team={buttonName(side)}
+                  colorId={colorOf(side)}
+                  dark={dark}
+                  disabled={!goalsOpen}
+                  onGoal={() => onGoal(side)}
+                />
+              ))}
+            </section>
+          )}
+        </div>
       )}
 
       {flashing && <div class="signal-flash" data-testid="signal-flash" aria-hidden="true" />}
