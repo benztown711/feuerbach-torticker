@@ -1,5 +1,6 @@
 import palette from '../../design/trikot-farben.json' with { type: 'json' };
 import tokens from '../../design/tokens.json' with { type: 'json' };
+import { OPPONENT_FALLBACK } from './opponent';
 import { normalizeName } from './validation';
 import type { Settings } from './types';
 
@@ -56,8 +57,12 @@ export function defaultOppColor(settings: Settings, opponent: string, ownColor: 
   return ownColor === 'schwarz' ? 'weiss' : 'schwarz';
 }
 
-/** FR-031: Gegnerfarbe je Name merken; die eigene Farbe kommt aus der Mannschaft (Spec 004 FR-M03). */
+/**
+ * FR-031: Gegnerfarbe je Name merken; die eigene Farbe kommt aus der Mannschaft (Spec 004 FR-M03). Der Platzhalter
+ * "Gegner" für einen leeren Gegner (Spec 022 FR-F11) ist kein Name: Für ihn wird nichts gemerkt.
+ */
 export function rememberColors(settings: Settings, game: { oppColor: string; opponent: string }): Settings {
+  if (normalizeName(game.opponent) === normalizeName(OPPONENT_FALLBACK)) return settings;
   return { ...settings, opponentColors: { ...settings.opponentColors, [normalizeName(game.opponent)]: game.oppColor } };
 }
 

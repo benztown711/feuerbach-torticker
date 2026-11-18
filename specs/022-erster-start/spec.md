@@ -37,6 +37,10 @@ Festlegungen des Agenten, wo die Entscheidungen oben eine Lücke lassen. Sie fol
 - **"Trainer-Link teilen" im Fertig-Zustand ohne Kader-Frage.** Das Blatt teilt den Link sofort (ein Tipp, Teilen-Menü direkt). Die Frage "Kader mit den Trainern teilen?" (Spec 016 FR-B02) bleibt erreichbar: Sie erscheint beim nächsten "Trainer-Link teilen" unter „Mehr“ → „Live für Eltern“ → „Für Trainer“, solange Kader nicht geteilt sind. Es verlassen also keine Kader ohne bewusste Entscheidung das Handy.
 - **"Link einfügen" in "Für Trainer"** steht jetzt unter "Trainer-Link teilen" in der Karte "TRAINER" (beides gehört zu den Trainer-Links) und nicht mehr lose am Ende. Bei Lead-Handy der ersten Version (ohne Karte "TRAINER") bleibt er der erste Knopf im Bereich.
 
+### Session 2026-11-18 (Präzisierungen nach dem Code-Review)
+
+- **Keine gemerkte Farbe für "Gegner"**: "Gegner" ist der Platzhalter für einen leeren Gegner, kein Name. Beim Anlegen (und beim Ändern der Trikots) wird für ihn keine Gegnerfarbe gemerkt (Spec 001 FR-031); so bleibt auch nach dem Umbenennen über „Gegner ändern“ kein Eintrag "gegner" zurück, und das nächste Spiel ohne Gegner bekommt wieder die Standardfarbe.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Hinweis zur Installation auf dem Startbildschirm (Priority: P1)
@@ -128,7 +132,7 @@ Ein Trainer legt über "Eltern live zuschauen lassen" einen Live-Spieltag an: Da
 - **Browser ohne `localStorage`** (privates Surfen, blockiert): Der Hinweis erscheint bei jedem Start; "Später" gilt bis zum Neuladen.
 - **Kalendertag über Mitternacht**: Der Tag wird beim Anzeigen des Startbildschirms verglichen; wer über Mitternacht offen lässt, sieht ihn nach dem nächsten Wechsel zum Startbildschirm wieder.
 - **Gegner umbenennen bei geteiltem Ergebnis**: Die Leiste "Korrigiert. Ergebnis neu teilen?" erscheint wie bei jeder Korrektur, die den Teilen-Text ändert (Spec 017 FR-C21).
-- **Spiel "Gegner" und Mannschaftsfarbe**: Die Standardfarbe des Gegners richtet sich nach dem Namen (Spec 004); "Gegner" bekommt die Farbe wie ein leerer Name bisher.
+- **Spiel "Gegner" und Mannschaftsfarbe**: Die Standardfarbe des Gegners richtet sich nach dem Namen (Spec 004); "Gegner" bekommt die Farbe wie ein leerer Name bisher. Für "Gegner" wird keine Farbe gemerkt (FR-F11).
 - **Mehrere Spiele "Gegner"** am selben Tag: erlaubt, Verlauf und Historie zeigen sie nebeneinander mit Datum.
 - **Gegner leer und Spielplan-Eintrag gewählt**: Der Gegner kommt aus dem Plan (Spec 015 US2); nur ohne Eintrag gilt "Gegner".
 - **Trainer-Link teilen ohne Teilen-Menü**: wie "Link für Eltern teilen" (kopiert, Meldung).
@@ -150,7 +154,7 @@ Ein Trainer legt über "Eltern live zuschauen lassen" einen Live-Spieltag an: Da
 **Neues Spiel schneller (US2)**
 
 - **FR-F10**: "Weiter zum Anpfiff" MUSS unten am Rand des sichtbaren Bereichs angeheftet sein, über der Navigationsleiste (nicht von ihr verdeckt, `position: sticky`), und auf 390 × 844 und 375 × 667 pt ohne Scrollen vollständig sichtbar sein. Er DARF keinen Inhalt des Formulars verdecken, auch nicht beim Scrollen an das Ende.
-- **FR-F11**: Der Gegner MUSS optional sein. Das Feld MUSS den Platzhalter "Gegner (optional)" zeigen. Ist es leer (auch nur Leerzeichen), MUSS das Spiel den Gegnernamen "Gegner" erhalten (statt einer Fehlermeldung "Bitte den Gegner eintragen.", Spec 001 FR-001 geändert).
+- **FR-F11**: Der Gegner MUSS optional sein. Das Feld MUSS den Platzhalter "Gegner (optional)" zeigen. Ist es leer (auch nur Leerzeichen), MUSS das Spiel den Gegnernamen "Gegner" erhalten (statt einer Fehlermeldung "Bitte den Gegner eintragen.", Spec 001 FR-001 geändert). Für den Platzhalter "Gegner" DARF keine Gegnerfarbe gemerkt werden (Spec 001 FR-031), weder beim Anlegen noch beim Ändern der Trikots.
 - **FR-F12**: Die Vorschau "Begegnung" MUSS bei leerem Feld "Gegner" zeigen (wie bisher). Teilen-Text, Spielbildschirm, Historie und Dashboard MÜSSEN "Gegner" wie jeden anderen Namen behandeln.
 - **FR-F13**: Die Spieldetails MÜSSEN neben "Trikots ändern" den Knopf "Gegner ändern" zeigen. Er öffnet das Blatt "Gegner ändern" mit dem Feld Gegner (Vorgabe: der bisherige Name, höchstens 40 Zeichen) und dem Knopf "Übernehmen"; ein leerer Name wird "Gegner". Die Änderung wird sofort gespeichert wie jede Korrektur (Spec 017 FR-C05), der Live-Sender meldet sie (Spec 006 FR-L06) und das Ergebnis lässt sich neu teilen (Spec 017 FR-C21). Die Standardfarbe des Gegners und die gemerkte Farbe je Name ändern sich dadurch nicht.
 - **FR-F14**: Ist der Knopf aus einem anderen Grund gesperrt (z. B. fehlender Mannschaftsname, Zeitschema), MUSS eine Zeile direkt über dem Knopf den Grund in der Meldung der Prüfung nennen (`role="status"`), statt den Knopf stumm auszugrauen.

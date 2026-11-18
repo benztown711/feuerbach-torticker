@@ -59,6 +59,13 @@ describe('T090 FR-031 FR-032 Trikotfarben', () => {
     const again = rememberColors(next, { oppColor: 'weiss', opponent: 'TSV Musterstadt' });
     expect(again.opponentColors).toEqual({ 'sv beispiel': 'blau', 'tsv musterstadt': 'weiss' });
   });
+
+  it('022 FR-F11 FR-F13 für den Platzhalter "Gegner" (leerer Gegner) wird keine Farbe gemerkt', () => {
+    const s = rememberColors(defaultSettings(), { oppColor: 'blau', opponent: 'SV Beispiel' });
+    expect(rememberColors(s, { oppColor: 'gelb', opponent: 'Gegner' })).toBe(s);
+    expect(rememberColors(s, { oppColor: 'gelb', opponent: ' gegner ' })).toBe(s);
+    expect(s.opponentColors).toEqual({ 'sv beispiel': 'blau' });
+  });
 });
 
 describe('017 FR-C12 FR-C13 Trikots ändern', () => {
