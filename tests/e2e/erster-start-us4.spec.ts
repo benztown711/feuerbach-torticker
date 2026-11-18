@@ -45,6 +45,39 @@ test('022 US4-S1 Blatt: Hauptknopf "Live-Spieltag anlegen", darüber "Mit E1 und
   await expect(page.getByTestId('live-start-sheet')).not.toContainText('Neu mit');
 });
 
+test('022 FR-F41 Blatt auf 375 × 667: Reihenfolge Hauptweg, Datenschutz, Nebenweg, "Schließen"; alles ohne Scrollen', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await openSheet(page, ['E1', 'E2']);
+  const sheet = page.getByTestId('live-start-sheet');
+  const order = [
+    sheet.getByTestId('live-start-lead'),
+    sheet.getByTestId('live-start-teams'),
+    sheet.getByTestId('live-start-new'),
+    sheet.getByTestId('live-start-data'),
+    sheet.getByTestId('live-start-other'),
+    sheet.getByTestId('live-start-paste'),
+    sheet.getByRole('button', { name: 'Schließen' }),
+  ];
+  let prevBottom = 0;
+  for (const l of order) {
+    const b = (await l.boundingBox())!;
+    expect(b.y).toBeGreaterThanOrEqual(prevBottom - 1);
+    expect(b.y + b.height).toBeLessThanOrEqual(667);
+    prevBottom = b.y + b.height;
+  }
+  await expect(sheet.getByTestId('live-start-paste')).toHaveClass(/btn--secondary/);
+  expect((await sheet.getByTestId('live-start-paste').boundingBox())!.height).toBeGreaterThanOrEqual(64);
+  // Ohne Kasten: der Nebenweg hat keine eigene Fläche.
+  const box = await sheet
+    .locator('.live-start__alt')
+    .evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).paddingTop]);
+  expect(box).toEqual(['rgba(0, 0, 0, 0)', '0px']);
+  // Das Blatt selbst scrollt nicht.
+  expect(await sheet.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+});
+
 test('022 US4-S2 "Live-Spieltag anlegen" verhält sich wie bisher "Neu starten"', async ({ page, recorded, relay }) => {
   await openSheet(page, ['E1']);
   await page.getByTestId('live-start-new').click();
@@ -223,7 +256,7 @@ test('022 US4-S8 "Für Trainer" aufgeklappt: eine Fläche unter der Kopfzeile, k
   await expect(area).toHaveCount(0);
 });
 
-test('022 US4-S9 "Link einfügen" steht in der Karte "TRAINER" unter "Trainer-Link teilen", nicht lose am Ende', async ({
+test('022 US4-S9 "Link einfügen" steht im ersten Abschnitt unter "Trainer-Link teilen", nicht lose am Ende', async ({
   page,
   recorded,
   relay,
@@ -233,7 +266,8 @@ test('022 US4-S9 "Link einfügen" steht in der Karte "TRAINER" unter "Trainer-Li
   await page.goto('./#/live-spieltag');
   await openTrainerSection(page);
   const card = page.getByTestId('live-trainer-card');
-  await expect(card).toContainText('TRAINER');
+  // Geändert durch Nachbesserung 2026-11-18 (FR-F43): kein eigenes Label "TRAINER" mehr unter der Kopfzeile.
+  await expect(card).toContainText('Für eure Trainergruppe');
   const share = card.getByTestId('btn-share-trainer');
   const paste = card.getByTestId('btn-paste-link');
   await expect(paste).toHaveText('Link einfügen');
@@ -248,6 +282,27 @@ test('022 US4-S9 "Link einfügen" steht in der Karte "TRAINER" unter "Trainer-Li
   // und funktioniert wie bisher
   await paste.click();
   await expect(page.getByTestId('paste-link-input')).toBeVisible();
+});
+
+test('022 FR-F43 "Für Trainer" aufgeklappt: kein doppeltes Label "TRAINER" unter der Kopfzeile, die übrigen bleiben', async ({
+  page,
+  recorded,
+  relay,
+}) => {
+  await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+  await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
+  const area = page.getByTestId('live-trainer');
+  await expect(area).toBeVisible();
+  const labels = await area.locator('.t-label').allInnerTexts();
+  expect(labels).not.toContain('TRAINER');
+  expect(labels.slice(0, 3)).toEqual(['MANNSCHAFTEN', 'SPIELPLAN', 'VERWALTEN']);
+  // Der erste Abschnitt beginnt gleich mit dem Erklärtext unter der Kopfzeile "Für Trainer".
+  const first = page.getByTestId('live-trainer-card');
+  await expect(first).toBeVisible();
+  await expect(first.locator('.t-label')).toHaveCount(0);
+  await expect(first.getByTestId('btn-share-trainer')).toBeVisible();
 });
 
 test('022 US4-S10 ohne Live-Spieltag bleiben die Knöpfe unter "Für Trainer" wie in Spec 020', async ({ page }) => {

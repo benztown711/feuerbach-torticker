@@ -191,3 +191,32 @@ test('022 US2-S8 mit Fokus im Feld bleibt der Knopf erreichbar, Enter startet da
   await expect(page.getByTestId('btn-kickoff')).toBeVisible();
   await expect(page.getByTestId('team-away')).toHaveText('TSV Musterstadt');
 });
+
+test('022 FR-F46 FR-F47 Spieldetails auf 375 x 667: "Gegner ändern" und "Trikots ändern" >= 44 pt, Namen brechen nicht mitten im Namen um', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await openNew(page);
+  await page.getByTestId('input-opponent').fill('TSV Musterdorf Nord');
+  await page.getByTestId('btn-create').click();
+  await page.getByTestId('btn-kickoff').click();
+  await expect(page.getByTestId('btn-pause')).toBeVisible();
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-details').click();
+  for (const id of ['details-opponent', 'details-kits'])
+    expect((await page.getByTestId(id).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  // Jeder Mannschaftsname steht in einer Zeile; umbrochen wird nur zwischen den Mannschaften.
+  const teams = page.locator('.details__match .details__team');
+  await expect(teams).toHaveCount(2);
+  const card = (await page.getByTestId('details-score').boundingBox())!;
+  for (const t of await teams.all()) {
+    const b = (await t.boundingBox())!;
+    expect(b.height).toBeLessThan(30);
+    expect(b.x).toBeGreaterThanOrEqual(card.x);
+    expect(b.x + b.width).toBeLessThanOrEqual(card.x + card.width);
+    await expect(t).toHaveCSS('white-space', 'nowrap');
+  }
+  const [a, b] = [(await teams.nth(0).boundingBox())!, (await teams.nth(1).boundingBox())!];
+  // auf einer Zeile nebeneinander oder untereinander, nie ineinander
+  expect(b.y >= a.y + a.height - 1 || b.x >= a.x + a.width - 1).toBe(true);
+});

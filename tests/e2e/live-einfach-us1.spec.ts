@@ -153,7 +153,7 @@ test('020 US1-S4 Spiel auf "Nicht live senden": im Spiel teilen, und das Spiel g
   await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
 });
 
-test('020 US1-S5 Blatt ohne Live-Spieltag: Einfügen zuerst, dann "Neu starten"; Öffnen verbindet nicht', async ({
+test('020 US1-S5 Blatt ohne Live-Spieltag: Hauptweg "Live-Spieltag anlegen", darunter Einfügen; Öffnen verbindet nicht', async ({
   page,
   relay,
 }) => {
@@ -176,13 +176,14 @@ test('020 US1-S5 Blatt ohne Live-Spieltag: Einfügen zuerst, dann "Neu starten";
   await expect(page.getByTestId('live-start-data')).toHaveText(
     'Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten und Lesezeichen bleiben auf dem Handy.',
   );
+  // Geändert durch Nachbesserung 2026-11-18 (Spec 022 FR-F41): der Einfügen-Weg steht unter dem Hauptweg.
   expect(await ids(sheet)).toEqual([
     'live-start-lead',
-    'live-start-other',
-    'live-start-paste',
     'live-start-teams',
     'live-start-new',
     'live-start-data',
+    'live-start-other',
+    'live-start-paste',
   ]);
   for (const id of ['live-start-paste', 'live-start-new'])
     expect((await page.getByTestId(id).boundingBox())!.height).toBeGreaterThanOrEqual(64);

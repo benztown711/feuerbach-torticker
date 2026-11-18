@@ -593,7 +593,10 @@ export function GameScreen({ id }: { id: string }) {
   ) : null;
 
   return (
-    <main class={docked ? 'game game--pick' : 'game'} onPointerDown={reArmAudio}>
+    <main
+      class={docked ? 'game game--pick' : status === 'finished' && !shootoutActive ? 'game game--done' : 'game'}
+      onPointerDown={reArmAudio}
+    >
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>

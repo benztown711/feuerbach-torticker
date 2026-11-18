@@ -50,6 +50,32 @@ test('022 US1-S1 Hinweis im Browser unter allen Aktionen, mit Satz und "Später"
   expect((await page.getByTestId('start-install-later').boundingBox())!.height).toBeGreaterThanOrEqual(48);
 });
 
+test('022 FR-F44 FR-F45 iPhone SE: "Später" rechts neben der Überschrift, ohne Scrollen über der Navigationsleiste', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await ensureTeam(page, 'Sportvg Feuerbach E1');
+  await page.goto('./');
+  await expect(hint(page)).toBeVisible();
+  const later = page.getByTestId('start-install-later');
+  const title = (await page.locator('.start__install-title').boundingBox())!;
+  const l = (await later.boundingBox())!;
+  const nav = (await page.getByTestId('nav').boundingBox())!;
+  expect(l.height).toBeGreaterThanOrEqual(44);
+  expect(l.width).toBeGreaterThanOrEqual(44);
+  // rechts neben der Überschrift (gleiche Zeile, nicht darunter)
+  expect(l.x).toBeGreaterThanOrEqual(title.x + title.width - 1);
+  expect(l.y).toBeLessThan(title.y + title.height);
+  // ohne Scrollen: sichtbar und oberhalb der Navigationsleiste
+  expect(l.y).toBeGreaterThanOrEqual(0);
+  expect(l.y + l.height).toBeLessThanOrEqual(nav.y);
+  await expect(later).toBeInViewport({ ratio: 1 });
+  // "Home-Bildschirm" steht in einer Zeile, nicht mitten im Wort getrennt
+  const word = (await page.locator('.start__install-title .nowrap').boundingBox())!;
+  expect(word.height).toBeLessThan(30);
+  await expect(page.locator('.start__install-title .nowrap')).toHaveText('Home-Bildschirm');
+});
+
 test.describe('Anleitung nach Gerät', () => {
   test.describe('iPhone', () => {
     test.use({ userAgent: IOS });

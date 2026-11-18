@@ -221,14 +221,6 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
       <p class="sheet__text" data-testid="live-start-lead">
         Eltern sehen Stand, Minute und Tore live, ohne App.
       </p>
-      <div class="live-start__alt">
-        <p class="sheet__text" data-testid="live-start-other">
-          <strong>Ein anderer Trainer hat schon einen Link?</strong>
-        </p>
-        <button type="button" class="btn btn--secondary live-start__btn" data-testid="live-start-paste" onClick={paste}>
-          Link einfügen
-        </button>
-      </div>
       <p class="sheet__text" data-testid="live-start-teams">
         {startHint(settings.teams, ids)}
       </p>
@@ -245,6 +237,15 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten
         und Lesezeichen bleiben auf dem Handy.
       </p>
+      {/* Spec 022 FR-F41: Nebenweg unter dem Hauptweg, ohne Kasten, aber im selben Blatt ohne Scrollen sichtbar. */}
+      <div class="live-start__alt">
+        <p class="sheet__text" data-testid="live-start-other">
+          <strong>Ein anderer Trainer hat schon einen Link?</strong>
+        </p>
+        <button type="button" class="btn btn--secondary live-start__btn" data-testid="live-start-paste" onClick={paste}>
+          Link einfügen
+        </button>
+      </div>
       {status}
     </Sheet>
   );
@@ -307,24 +308,27 @@ export function InstallHint({ settings }: { settings: Settings }) {
     return null;
   return (
     <section class="card start__install" aria-labelledby="start-install-title" data-testid="start-install-hint">
-      <h2 id="start-install-title" class="start__install-title">
-        Torticker auf den Home-Bildschirm legen
-      </h2>
+      {/* Spec 022 FR-F44: "Später" rechts neben der Überschrift, damit er ohne Scrollen erreichbar ist. */}
+      <div class="start__install-head">
+        <h2 id="start-install-title" class="start__install-title">
+          Torticker auf den <span class="nowrap">Home-Bildschirm</span> legen
+        </h2>
+        <button
+          type="button"
+          class="btn btn--quiet start__install-later"
+          data-testid="start-install-later"
+          onClick={() => {
+            saveLater(today);
+            setLaterDay(today);
+          }}
+        >
+          Später
+        </button>
+      </div>
       <p class="start__install-text">Nur dann bleiben deine Spiele dauerhaft gespeichert.</p>
       <p class="start__install-text" data-testid="start-install-how">
         {installSteps(installPlatform(navigator.userAgent, navigator.maxTouchPoints))}
       </p>
-      <button
-        type="button"
-        class="btn btn--quiet start__install-later"
-        data-testid="start-install-later"
-        onClick={() => {
-          saveLater(today);
-          setLaterDay(today);
-        }}
-      >
-        Später
-      </button>
     </section>
   );
 }

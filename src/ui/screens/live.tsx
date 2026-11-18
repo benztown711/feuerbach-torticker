@@ -653,7 +653,6 @@ function Overview({
       <DashboardButton />
       <TrainerSection>
         <section class="field card" data-testid="live-trainer-card">
-          <span class="t-label card__title">TRAINER</span>
           <p class="live__text">
             Für eure Trainergruppe, nur dort teilen. Wer ihn einfügt, sendet die Spiele, die er erfasst, und darf den
             Live-Spieltag verwalten.

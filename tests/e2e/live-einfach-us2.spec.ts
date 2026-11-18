@@ -132,7 +132,7 @@ test('020 US2-S2 US2-S3 Übersicht: ein Hauptknopf, "Für Trainer" eingeklappt, 
     expect(i, id).toBeGreaterThanOrEqual(0);
     return i;
   };
-  // Spec 022 FR-F35: "Link einfügen" steht in der Karte "TRAINER" direkt unter "Trainer-Link teilen".
+  // Spec 022 FR-F35: "Link einfügen" steht im ersten Abschnitt direkt unter "Trainer-Link teilen".
   const sequence = [
     'btn-share-trainer',
     'btn-paste-link',

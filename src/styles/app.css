@@ -652,6 +652,11 @@ body:has(.page:not(.dash, .lead-link)) {
   background: var(--color-surface-alt);
 }
 
+/* Spec 021 FR-W34: Nach dem Schlusspfiff nur so hoch wie der Inhalt; der Rest bis "Nächstes Spiel" ist Seitenhintergrund. */
+.game--done .goal-list {
+  flex: 0 1 auto;
+}
+
 .goal-list__empty {
   margin: var(--space-2) var(--space-1);
   color: var(--color-ink-muted);
@@ -1380,6 +1385,22 @@ body:has(.page:not(.dash, .lead-link)) {
   vertical-align: -1px;
 }
 
+/* Spec 022 FR-F47: ein Mannschaftsname bricht nie mitten im Namen um; zu lange Namen enden mit "…". */
+.details__team {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: baseline;
+  max-width: 100%;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.details__team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .details__foot {
   display: flex;
   flex-wrap: wrap;
@@ -1636,6 +1657,17 @@ body:has(.page:not(.dash, .lead-link)) {
   line-height: 16px;
 }
 
+/* Spec 021 FR-W31: Fußzeile der Auswahl, zwei gleich große Knöpfe nebeneinander, beide mindestens 56 pt. */
+.scorer__foot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.scorer__foot--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .scorer__number {
   color: var(--color-ink-muted);
   font-size: 11px;
@@ -1659,8 +1691,8 @@ body:has(.page:not(.dash, .lead-link)) {
   border-radius: var(--radius-md);
 }
 
-/* "Ohne Torschütze" unten, nah an Daumen und Tor-Knöpfen. */
-.scorer--dock > .btn--quiet {
+/* "Ohne Torschütze" und "Eigentor Gegner" unten, nah an Daumen und Tor-Knöpfen (FR-W31). */
+.scorer--dock > .scorer__foot {
   margin-top: auto;
 }
 
@@ -2936,15 +2968,12 @@ body:has(.page:not(.dash, .lead-link)) {
   min-height: 64px;
 }
 
-/* FR-E06: "Ein anderer Trainer hat schon einen Link?" zuerst, abgesetzt vom Hauptweg "Live-Spieltag anlegen". */
+/* Spec 022 FR-F41 (geändert durch Nachbesserung 2026-11-18): "Ein anderer Trainer hat schon einen Link?" unter dem Hauptweg, ohne Kasten. */
 .live-start__alt {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
+  margin-top: var(--space-2);
 }
 
 .live-start__done {
@@ -4055,10 +4084,27 @@ button.plan__row {
   line-height: 22px;
 }
 
+/* Spec 022 FR-F44 (geändert durch Nachbesserung 2026-11-18): Überschrift links, "Später" rechts daneben. */
+.start__install-head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.start__install-head .start__install-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .start__install-later {
-  align-self: flex-start;
+  flex: none;
   min-height: 48px;
-  margin-top: var(--space-1);
+  padding: 0 var(--space-4);
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 /* US2 FR-F10: "Weiter zum Anpfiff" unten angeheftet, über der Navigationsleiste (Body-Rand = Höhe der Leiste) */

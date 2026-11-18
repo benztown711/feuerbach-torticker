@@ -128,7 +128,7 @@ Ein Trainer legt über "Eltern live zuschauen lassen" einen Live-Spieltag an: Da
 
 ### Edge Cases
 
-- **Hinweis auf kleinen Bildschirmen (375 × 667)**: Er steht unter den Aktionen und darf scrollen; der Startbildschirm hat keinen festen Bereich. "Später" bleibt ohne Scrollen erreichbar, sobald die Aktionen darüber stehen, mindestens 48 pt hoch.
+- **Hinweis auf kleinen Bildschirmen (375 × 667)**: Er steht unter den Aktionen und darf scrollen; der Startbildschirm hat keinen festen Bereich. "Später" bleibt ohne Scrollen erreichbar, sobald die Aktionen darüber stehen, mindestens 48 pt hoch. (geändert durch Nachbesserung 2026-11-18, FR-F44: "Später" steht rechts neben der Überschrift.)
 - **iPad im Desktop-Modus** meldet sich wie ein Mac (`MacIntel` mit Touch): Die App erkennt es als iPad (Anleitung für iOS).
 - **Browser ohne `localStorage`** (privates Surfen, blockiert): Der Hinweis erscheint bei jedem Start; "Später" gilt bis zum Neuladen.
 - **Kalendertag über Mitternacht**: Der Tag wird beim Anzeigen des Startbildschirms verglichen; wer über Mitternacht offen lässt, sieht ihn nach dem nächsten Wechsel zum Startbildschirm wieder.
@@ -148,7 +148,7 @@ Ein Trainer legt über "Eltern live zuschauen lassen" einen Live-Spieltag an: Da
 - **FR-F02**: Die Anleitung MUSS lauten: iPhone und iPad "In Safari auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.", Android "Im Browser-Menü (drei Punkte) „App installieren“ wählen.", sonst "Im Menü des Browsers „App installieren“ oder „Zum Home-Bildschirm“ wählen."
 - **FR-F03**: "Später" MUSS den Hinweis sofort ausblenden und für den Rest des Kalendertags (Ortszeit) ausblenden; am nächsten Tag MUSS er wieder erscheinen. Der Tag MUSS nur auf dem Gerät im Browserspeicher stehen (`localStorage`, Schlüssel `torticker-install-later`), nicht in der Sicherung, nicht im Live-Spieltag. Fehlt der Browserspeicher, gilt "Später" bis zum Neuladen.
 - **FR-F04**: Der Hinweis MUSS entfallen, wenn der Hinweis in den Einstellungen mit "Verstanden" weggeklickt wurde (`installHintDismissedAt`). "Später" DARF `installHintDismissedAt` nicht ändern.
-- **FR-F05**: Der Hinweis MUSS unter allen Hauptaktionen des Startbildschirms stehen (nach der Karte "Trainer? …"), DARF keine Aktion verdrängen oder die Reihenfolge ändern und DARF nicht in der Eltern-Ansicht und im Dashboard erscheinen. Der Knopf "Später" MUSS mindestens 48 pt hoch sein.
+- **FR-F05**: Der Hinweis MUSS unter allen Hauptaktionen des Startbildschirms stehen (nach der Karte "Trainer? …"), DARF keine Aktion verdrängen oder die Reihenfolge ändern und DARF nicht in der Eltern-Ansicht und im Dashboard erscheinen. Der Knopf "Später" MUSS mindestens 48 pt hoch sein. (geändert durch Nachbesserung 2026-11-18, FR-F44: Er steht rechts neben der Überschrift des Hinweises.)
 - **FR-F06**: Der Hinweis DARF keine Verbindung aufbauen (Netzwerk-Wächter) und wird nachgeladen, nicht im Hauptbundle (Hauptbundle < 60 KB gzip).
 - **FR-F07**: Der Hinweis unter "Mehr" → "Einstellungen" (Spec 001 FR-023, T074) MUSS unverändert bleiben.
 
@@ -184,6 +184,31 @@ Ein Trainer legt über "Eltern live zuschauen lassen" einen Live-Spieltag an: Da
 
 - **Hinweis "Später"**: Einstellung je Gerät und Browser (Kalendertag), nur auf dem Startbildschirm, nicht in der Sicherung, nicht übertragen.
 - Keine Änderung an Spiel, Mannschaft, Live-Spieltag oder Meldungsformat. Ein Spiel ohne Gegnernamen speichert den Namen "Gegner".
+
+## Nachbesserung Design-Check (2026-11-18, Welle 2)
+
+Vier Befunde aus dem Design-Check zu Welle 2 (drei P2/P3 zu 022, einer zu Spec 020), von Atti freigegeben (18.11.2026). FR-F40 ist bereits "Unverändert" vergeben; die neuen Anforderungen beginnen deshalb bei FR-F41. Mockup und Review B entfallen (kleine Änderungen), Prüfung in Review C über Screenshots.
+
+**Ausgangslage**: Im Blatt "Eltern live zuschauen lassen" stand der Nebenweg "Link einfügen" in einem Kasten vor dem Hauptweg und schob "Live-Spieltag anlegen" nach unten (P2). Unter "Für Trainer" wiederholte das Label "TRAINER" die Kopfzeile (P2). "Später" im Installationshinweis lag auf 375 × 667 pt am unteren Rand, "Home-Bildschirm" brach mitten im Wort um (P3). In den Spieldetails waren die Knöpfe "Gegner ändern" und "Trikots ändern" klein, und ein Mannschaftsname konnte mitten im Namen umbrechen (P3).
+
+- **FR-F41** (P2, ändert Spec 020 FR-E06 und Spec 012 FR-S05): Das Blatt "Eltern live zuschauen lassen" ohne Live-Spieltag MUSS in dieser Reihenfolge zeigen: Satz "Eltern sehen Stand, Minute und Tore live, ohne App.", Hinweis mit den Mannschaften ("Mit E1 und E2."), Hauptknopf "Live-Spieltag anlegen", den Datenschutz-Satz ("Dann gehen Mannschaften, Spielstand und Tore …"), danach den Nebenweg ohne Kasten (keine eigene Fläche, kein Innenabstand): der Satz "Ein anderer Trainer hat schon einen Link?" und der Zweitknopf "Link einfügen" (mindestens 64 pt), zuletzt "Schließen". Der Einfügen-Weg MUSS im selben Blatt auf 375 × 667 pt ohne Scrollen sichtbar sein. Verhalten beider Wege bleibt (Spec 020 FR-E07 bis FR-E10). Der Grundsatz "Einfügen zuerst" (Spec 012 FR-S05) gilt für dieses Blatt nicht mehr: Hauptweg zuerst, der Einfügen-Weg bleibt aber sichtbar.
+- **FR-F42**: Das Blatt DARF in diesem Zustand nicht scrollen müssen (Inhalt samt "Schließen" passt auf 375 × 667 pt).
+- **FR-F43** (P2): Im aufgeklappten "Für Trainer" auf "Live für Eltern" DARF der erste Abschnitt kein eigenes Label "TRAINER" mehr zeigen (es wiederholte die Kopfzeile "Für Trainer"). Er beginnt mit dem Erklärtext ("Für eure Trainergruppe, nur dort teilen. …") und enthält "Trainer-Link teilen" und "Link einfügen" (FR-F35 bleibt). "MANNSCHAFTEN", "SPIELPLAN" und "VERWALTEN" bleiben.
+- **FR-F44** (P3): Im Installationshinweis auf dem Startbildschirm MUSS "Später" rechts neben der Überschrift stehen (gleiche Zeile, `align-items: center`), nicht mehr unter der Anleitung. Die Trefferfläche ist mindestens 48 pt hoch (FR-F05) und mindestens 44 pt breit. Auf 375 × 667 pt MUSS "Später" ohne Scrollen sichtbar und oberhalb der Navigationsleiste sein.
+- **FR-F45** (P3): Der Text "Home-Bildschirm" in der Überschrift des Hinweises MUSS ohne Umbruch stehen (`white-space: nowrap`); umbrochen wird zwischen den Wörtern.
+- **FR-F46** (P3): In den Spieldetails MÜSSEN "Gegner ändern" und "Trikots ändern" (`details__kits`) eine Trefferfläche von mindestens 44 pt Höhe haben.
+- **FR-F47** (P3): In der Begegnungszeile der Spieldetails DARF ein Mannschaftsname nicht mitten im Namen umbrechen: Je Mannschaft ein Stück mit `white-space: nowrap` (Farbmarke, Name; hinter der Heimmannschaft der Doppelpunkt), Umbruch nur zwischen den Mannschaften. Ein Name, der breiter als die Karte ist, endet mit "…".
+
+**Akzeptanzszenarien** (Testkennungen in den E2E-Namen):
+
+1. **022 FR-F41** Given das Blatt ohne Live-Spieltag auf 375 × 667 pt, Then stehen Satz, "Mit E1 und E2.", "Live-Spieltag anlegen", der Datenschutz-Satz, "Ein anderer Trainer hat schon einen Link?", "Link einfügen" und "Schließen" in dieser Reihenfolge untereinander, alle ohne Scrollen sichtbar; "Link einfügen" ist ein Zweitknopf (mindestens 64 pt), der Nebenweg hat keine eigene Fläche.
+2. **022 FR-F43** Given "Live für Eltern" mit Live-Spieltag und aufgeklapptem "Für Trainer", Then gibt es kein Label "TRAINER"; die Labels darin lauten "MANNSCHAFTEN", "SPIELPLAN", "VERWALTEN"; "Trainer-Link teilen" und "Link einfügen" stehen im ersten Abschnitt.
+3. **022 FR-F44, FR-F45** Given der Startbildschirm im Browser auf 375 × 667 pt, Then steht "Später" (mindestens 44 × 44 pt) rechts neben der Überschrift, ohne Scrollen sichtbar und über der Navigationsleiste; "Home-Bildschirm" steht in einer Zeile.
+4. **022 FR-F46, FR-F47** Given die Spieldetails eines Spiels gegen "TSV Musterdorf Nord" auf 375 × 667 pt, Then sind "Gegner ändern" und "Trikots ändern" mindestens 44 pt hoch, jeder Mannschaftsname steht in einer Zeile innerhalb der Karte, und die beiden Mannschaften stehen nebeneinander oder untereinander, nie ineinander.
+
+**Hilfe**: keine Änderung. Die Einträge `eltern-zuschauen` und `live-anlegen` nennen die Wege bereits in der Reihenfolge "Live-Spieltag anlegen", dann "Link einfügen"; `installieren` nennt "Später" ohne Position; kein Eintrag nennt das Label "TRAINER".
+
+**Nachträge in anderen Specs**: Spec 020 FR-E06 und US1-S5 (Reihenfolge im Blatt) sowie Spec 012 FR-S05 ("Einfügen zuerst") tragen jeweils "geändert durch Nachbesserung 2026-11-18, Spec 022 FR-F41".
 
 ## Hilfe *(mandatory)*
 
