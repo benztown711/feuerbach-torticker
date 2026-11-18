@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test, type Recorded } from './fixtures';
 import { addTeam, confirmYes, ensureTeam, forward, MIN, newGame, readStored, startGame } from './helpers';
-import { asPath, createLive, latestState, openTrainerSection, pasteLink, recordedOf } from './live-helpers';
+import { asPath, createLive, latestState, onMatchday, openTrainerSection, pasteLink, recordedOf } from './live-helpers';
 import { RELAY_ORIGIN } from './relay';
 
 /**
@@ -35,10 +35,12 @@ const sharedLink = async (rec: () => Promise<Recorded>): Promise<string> => {
   return m[1];
 };
 
+/** Im Spiel: "…" → "Teilen" → "Live-Link für Eltern" (geändert durch Nachbesserung 2026-11-18, FR-E60). */
 async function openQuickFromMenu(page: Page): Promise<void> {
   await page.getByTestId('btn-menu').click();
   await expect(page.getByTestId('game-menu')).toBeVisible();
-  await page.getByTestId('menu-live-quick').click();
+  await page.getByTestId('menu-share').click();
+  await page.getByTestId('share-live').click();
 }
 
 test('020 US1-S1 Knopf nach "Neues Spiel" bzw. "Spiele verfolgen", mindestens 64 pt, kein Hauptknopf', async ({
@@ -55,7 +57,8 @@ test('020 US1-S1 Knopf nach "Neues Spiel" bzw. "Spiele verfolgen", mindestens 64
   expect((await btn.boundingBox())!.height).toBeGreaterThanOrEqual(64);
   let order = await startOrder(page);
   expect(order.indexOf('btn-new-game')).toBeLessThan(order.indexOf('start-live-quick'));
-  expect(order.indexOf('start-live-quick')).toBeLessThan(order.indexOf('start-trainer-card'));
+  // Nachbesserung 2026-11-18 (FR-E62): ein Einstieg, die Karte "Trainer? …" entfällt neben dem Knopf (S11).
+  expect(order).not.toContain('start-trainer-card');
 
   await createLive(page, recorded, { teams: ['E1'] });
   await expect.poll(() => relay.all().length).toBeGreaterThan(0);
@@ -93,6 +96,11 @@ test('020 US1-S2 fehlt ohne Mannschaften und bei neu ausgestelltem Live-Spieltag
   await b.getByTestId('btn-menu').click();
   await expect(b.getByTestId('game-menu')).toBeVisible();
   await expect(b.getByTestId('menu-live-quick')).toHaveCount(0);
+  // Auch "Live-Link für Eltern" im Blatt "Teilen" fehlt; "Stand als Text" bleibt.
+  await b.getByTestId('menu-share').click();
+  await expect(b.getByTestId('share-sheet')).toBeVisible();
+  await expect(b.getByTestId('share-live')).toHaveCount(0);
+  await expect(b.getByTestId('share-text')).toBeVisible();
 });
 
 test('020 US1-S3 gekoppelt: ein Tipp teilt den Link für die Eltern; ohne Teilen-Menü in die Zwischenablage', async ({
@@ -139,9 +147,10 @@ test('020 US1-S4 Spiel auf "Nicht live senden": im Spiel teilen, und das Spiel g
   await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
   await settle(page);
   await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBe('live');
-  // Erster Eintrag im Menü
+  // Erster Eintrag im Menü ist "Teilen"; "Eltern live zuschauen lassen" gibt es dort nicht mehr (FR-E60).
   await page.getByTestId('btn-menu').click();
-  expect((await ids(page.getByTestId('game-menu')))[0]).toBe('menu-live-quick');
+  expect((await ids(page.getByTestId('game-menu')))[0]).toBe('menu-share');
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
 });
 
 test('020 US1-S5 Blatt ohne Live-Spieltag: Einfügen zuerst, dann "Neu starten"; Öffnen verbindet nicht', async ({
@@ -369,4 +378,99 @@ test('020 US1 Randfall: "Neu starten" doppelt getippt ergibt genau einen Live-Sp
   await expect.poll(() => relay.all().length).toBeGreaterThan(0);
   expect(new Set(relay.all().map((m) => m.topic)).size).toBe(1);
   expect((await recorded()).shares.length).toBe(1);
+});
+
+/** Zwischenablage der Aufzeichnung (fixtures.ts) setzen. */
+const setClipboard = (p: Page, text: string): Promise<void> =>
+  p.evaluate((t) => {
+    (window as unknown as { __rec: Recorded }).__rec.clipboard = t;
+  }, text);
+
+test('020 US1-S11 FR-E62 ein Einstieg: Karte "Trainer? …" nur ohne Knopf bzw. bei neu ausgestellt, sonst "Link einfügen" im Blatt', async ({
+  page,
+  newDevice,
+}) => {
+  // Eigene Mannschaft, kein Live-Spieltag: Knopf da, Karte weg, "Link einfügen" im Blatt.
+  await ensureTeam(page, team('E1'));
+  await page.goto('./');
+  await expect(page.getByTestId('start-live-quick')).toBeVisible();
+  await expect(page.getByTestId('start-trainer-card')).toHaveCount(0);
+  await expect(page.getByTestId('btn-start-paste')).toHaveCount(0);
+  await page.getByTestId('start-live-quick').click();
+  await expect(page.getByTestId('live-start-paste')).toHaveText('Link einfügen');
+  await page.getByTestId('live-start-sheet').getByRole('button', { name: 'Schließen' }).click();
+
+  // Ohne eigene Mannschaft (Co-Trainer, Vertretung auf neuem Handy): Knopf verborgen, Karte bleibt.
+  const c = await newDevice();
+  await c.goto('./');
+  await expect(c.getByTestId('btn-new-game')).toBeVisible();
+  await expect(c.getByTestId('start-live-quick')).toHaveCount(0);
+  await expect(c.getByTestId('start-trainer-card')).toContainText('Trainer? Füge den Link aus der Trainergruppe ein.');
+  await expect(c.getByTestId('btn-start-paste')).toHaveText('Link einfügen');
+
+  // Neu ausgestellt: Knopf verborgen, Karte mit dem Satz zum Neu-Ausstellen (auch mit eigener Mannschaft).
+  const a = await newDevice();
+  const old = await createLive(a, recordedOf(a), { teams: ['E1', 'E2'] });
+  const b = await newDevice();
+  await ensureTeam(b, team('E1'));
+  await pasteLink(b, old.trainer);
+  await b.goto('./');
+  await expect(b.getByTestId('start-trainer-card')).toHaveCount(0);
+  await openTrainerSection(a);
+  await a.getByTestId('btn-live-reissue').click();
+  await confirmYes(a);
+  await b.goto('./#/live-spieltag');
+  await expect(b.getByTestId('live-retired')).toBeVisible();
+  await b.goto('./');
+  await expect(b.getByTestId('start-live-quick')).toHaveCount(0);
+  await expect(b.getByTestId('start-trainer-card')).toContainText('wurde neu ausgestellt');
+});
+
+test('020 US1-S12 FR-E63 "Link einfügen" im Blatt und auf der Karte erkennt dieselben Arten gleich', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2'] });
+  onMatchday(relay);
+  const LIST = 'Kader E3:\n4 Paul\n8 Maxi\n12 Leo\n';
+
+  // Zwei Handys, ein Weg je Handy: Blatt (mit Mannschaft) und Karte (ohne Mannschaft).
+  const viaSheet = await newDevice();
+  await ensureTeam(viaSheet, team('E3'));
+  const viaCard = await newDevice();
+  const paste = async (p: Page, sheet: boolean, text: string): Promise<void> => {
+    await p.goto('./');
+    await setClipboard(p, text);
+    if (sheet) {
+      await p.getByTestId('start-live-quick').click();
+      await p.getByTestId('live-start-paste').click();
+    } else await p.getByTestId('btn-start-paste').click();
+  };
+
+  for (const sheet of [true, false]) {
+    const p = sheet ? viaSheet : viaCard;
+    // Trainer-Link: Kopplungsfrage mit Hinweis auf die geteilten Kader, ohne Einfügefeld.
+    await paste(p, sheet, `Hier der Trainer-Link:\n${links.trainer}\n`);
+    await expect(p.getByTestId('couple-dialog')).toContainText('Geteilte Kader kommen automatisch mit.');
+    await expect(p.getByTestId('paste-link-input')).toHaveCount(0);
+    await p.getByTestId('couple-no').click();
+
+    // Kader-Liste (Trainer-Paket): Vorschau unter "Kader".
+    await paste(p, sheet, LIST);
+    await expect(p).toHaveURL(/#\/kader$/);
+    await expect(p.getByTestId('paste-target')).toHaveText('Ziel: Kader „E3“ (wird angelegt)');
+
+    // Nichts Brauchbares: Einfügefeld mit Hinweis.
+    await paste(p, sheet, 'Training am Dienstag fällt aus');
+    await expect(p.getByTestId('start-paste-sheet')).toBeVisible();
+    await expect(p.getByTestId('paste-link-error')).toHaveText('Link oder Kader-Liste aus der Trainergruppe einfügen.');
+
+    // Zuschauer-Link zuletzt: ohne eigene Mannschaft führt der Startbildschirm danach zum Dashboard (Spec 006 R-L6).
+    // Dashboard, ohne zu koppeln.
+    await paste(p, sheet, links.viewer);
+    await expect(p.getByTestId('dashboard')).toBeVisible();
+    await expect(p.getByTestId('couple-dialog')).toHaveCount(0);
+  }
 });
