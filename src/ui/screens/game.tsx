@@ -745,21 +745,35 @@ export function GameScreen({ id }: { id: string }) {
             onOpenEvent={(ev) => (ev.kind === 'mark' ? setMarkSheet(ev.id) : setEvSheet(ev.id))}
           />
 
-          <div class="goal-zone">
+          <div class={status === 'finished' ? 'goal-zone goal-zone--done' : 'goal-zone'}>
             {band}
-            <section class="goal-buttons" aria-label="Tore erfassen">
-              {[homeSide, awaySide].map((side) => (
-                <GoalButton
-                  key={side}
-                  testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
-                  team={buttonName(side)}
-                  colorId={colorOf(side)}
-                  dark={dark}
-                  disabled={!goalsOpen}
-                  onGoal={() => onGoal(side)}
-                />
-              ))}
-            </section>
+            {status === 'finished' ? (
+              // Spec 021 FR-W01: nach dem Schlusspfiff "Nächstes Spiel" statt ausgegrauter Tor-Knöpfe.
+              <div class="next-game">
+                <button
+                  type="button"
+                  class="btn next-game__btn"
+                  data-testid="btn-next-game"
+                  onClick={() => navigate(`/neu/nach/${game.id}`)}
+                >
+                  Nächstes Spiel
+                </button>
+              </div>
+            ) : (
+              <section class="goal-buttons" aria-label="Tore erfassen">
+                {[homeSide, awaySide].map((side) => (
+                  <GoalButton
+                    key={side}
+                    testId={side === 'own' ? 'btn-goal-own' : 'btn-goal-opp'}
+                    team={buttonName(side)}
+                    colorId={colorOf(side)}
+                    dark={dark}
+                    disabled={!goalsOpen}
+                    onGoal={() => onGoal(side)}
+                  />
+                ))}
+              </section>
+            )}
           </div>
         </>
       )}

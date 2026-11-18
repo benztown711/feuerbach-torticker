@@ -148,9 +148,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was zeigt der Spielbildschirm?',
     answer:
-      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
+      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe, nach dem Schlusspfiff steht dort „Nächstes Spiel“. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
     keywords: 'übersicht anzeigetafel spielstand uhr torliste knöpfe aufbau band meldung',
-    sources: ['019 US2', '019 US3'],
+    sources: ['019 US2', '019 US3', '021 US1'],
     related: ['tor', 'tor-entfernen', 'uhr-anhalten'],
   },
   {
@@ -228,10 +228,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie beende ich eine Halbzeit oder das Spiel?',
     answer:
-      'Am Ende einer Halbzeit tippst du auf „Pausenpfiff“, am Ende des Spiels auf „Schlusspfiff“. Beides fragt einmal nach, damit nichts aus Versehen passiert. Danach steht das Spiel in der Historie.',
+      'Am Ende einer Halbzeit tippst du auf „Pausenpfiff“, am Ende des Spiels auf „Schlusspfiff“. Beides fragt einmal nach, damit nichts aus Versehen passiert. Danach steht das Spiel in der Historie, und mit „Nächstes Spiel“ startest du gleich das nächste.',
     keywords: 'halbzeit ende abpfiff beenden schlusspfiff pausenpfiff',
-    sources: ['001 US2'],
-    related: ['nachspielzeit', 'ergebnis-teilen'],
+    sources: ['001 US2', '021 US1'],
+    related: ['nachspielzeit', 'ergebnis-teilen', 'naechstes-spiel'],
   },
   {
     id: 'nachspielzeit',
@@ -252,6 +252,21 @@ export const HELP_ENTRIES: HelpEntry[] = [
     keywords: 'heim gast auswärts tauschen seite vertauscht',
     sources: ['001 FR-035'],
     related: ['neues-spiel'],
+  },
+  {
+    id: 'naechstes-spiel',
+    topic: 'spiel',
+    title: 'Wie starte ich das nächste Spiel?',
+    answer:
+      'Nach dem Schlusspfiff steht unten „Nächstes Spiel“. Ein Tipp öffnet „Neues Spiel“ mit Mannschaft, Spielzeit, Heim/Gast, Trikots, Aufgebot und „Live aufs Dashboard“ wie im eben beendeten Spiel. Steht das nächste Spiel deiner Mannschaft heute im Spielplan, ist es schon gewählt. Ideal im Turnier: vom Schlusspfiff zum nächsten Anpfiff mit drei Tipps.',
+    steps: [
+      'Nach dem Schlusspfiff auf „Nächstes Spiel“ tippen.',
+      'Gegner eintragen, falls er noch fehlt.',
+      '„Weiter zum Anpfiff“ und im Spiel „Anpfiff“ antippen.',
+    ],
+    keywords: 'nächstes spiel turnier spieltag folgespiel weiter wieder neues spiel gleiche einstellungen schnell',
+    sources: ['021 US1'],
+    related: ['neues-spiel', 'spiel-aus-plan', 'pausenpfiff'],
   },
 
   // Torschützen und Ereignisse

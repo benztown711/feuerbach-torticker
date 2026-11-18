@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 
 export type Route =
   | { name: 'start' }
-  | { name: 'new'; plan?: string }
+  | { name: 'new'; plan?: string; after?: string }
   | { name: 'roster' }
   | { name: 'history' }
   | { name: 'more' }
@@ -23,6 +23,9 @@ export function parseHash(hash: string): Route {
   // Spec 015 US6-S5: "Neues Spiel" mit dem vorgemerkten Planspiel ausgewählt.
   const fromPlan = /^\/neu\/plan\/([A-Za-z0-9_-]{1,12})$/.exec(path);
   if (fromPlan?.[1]) return { name: 'new', plan: fromPlan[1] };
+  // Spec 021 US1: "Nächstes Spiel", vorbelegt aus dem beendeten Spiel.
+  const after = /^\/neu\/nach\/([A-Za-z0-9_-]{1,64})$/.exec(path);
+  if (after?.[1]) return { name: 'new', after: after[1] };
   if (path === '/kader') return { name: 'roster' };
   if (path === '/historie') return { name: 'history' };
   if (path === '/mehr') return { name: 'more' };

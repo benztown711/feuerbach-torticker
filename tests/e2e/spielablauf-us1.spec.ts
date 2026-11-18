@@ -13,7 +13,7 @@ import {
   seedRoster,
   startGame,
 } from './helpers';
-import { createLive, sendPlan } from './live-helpers';
+import { createLive, latestState, sendPlan } from './live-helpers';
 import { addGame, openPlan, row, setupPlan, sync } from './plan-helpers';
 
 /**
@@ -120,11 +120,19 @@ test('021 US1-S2 Vorbelegung aus dem beendeten Spiel, Gegner leer mit Fokus', as
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
 });
 
-test('021 US1-S3 "Live aufs Dashboard" wie im beendeten Spiel', async ({ page, recorded }) => {
-  await createLive(page, recorded, { teams: ['E1'] });
+test('021 US1-S3 "Live aufs Dashboard" wie im beendeten Spiel', async ({ page, recorded, relay }) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
   await newGame(page, { ownTeam: E1, sections: 1, minutes: 12 });
   await page.getByTestId('btn-kickoff').click();
   await finish(page);
+  // Das beendete Spiel wurde live gesendet.
+  const id = page.url().replace(/.*#\/spiel\//, '');
+  await expect
+    .poll(async () => {
+      await page.clock.runFor(3_000);
+      return !!(await latestState(relay, links.viewer, id));
+    })
+    .toBe(true);
   await next(page);
   const sw = page.getByTestId('new-live-switch');
   await expect(sw).toHaveAttribute('aria-checked', 'true');

@@ -66,7 +66,9 @@ test.describe('US2 Spiel anlegen und Uhr steuern', () => {
     await page.getByTestId('btn-section-end').click();
     await confirmYes(page);
     await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
-    await expect(page.getByTestId('btn-goal-opp')).toBeDisabled();
+    // Spec 021 FR-W01: keine Tor-Knöpfe mehr, sondern "Nächstes Spiel".
+    await expect(page.getByTestId('btn-goal-opp')).toHaveCount(0);
+    await expect(page.getByTestId('btn-next-game')).toBeVisible();
   });
 
   test('US2-S7 FR-010 SC-003 Neuladen stellt Spiel und Restzeit wieder her', async ({ page }) => {

@@ -1126,6 +1126,29 @@ body:has(.page:not(.dash, .lead-link)) {
   }
 }
 
+/* ---------- Spec 021: Spielablauf am Spieltag ---------- */
+
+/* FR-W01: nach dem Schlusspfiff nur "Nächstes Spiel"; die Torliste bekommt den Platz der Tor-Knöpfe. */
+.goal-zone--done {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.next-game {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+/* Hauptknopf wie außerhalb des Spiels (design/README.md): Tor-Knöpfe, mit denen er verwechselt würde, gibt es nicht mehr. */
+.next-game__btn {
+  width: 100%;
+  min-height: 72px;
+  border-color: var(--color-rot-tief);
+  background: var(--color-rot-tief);
+  color: var(--color-on-rot);
+  font-size: 20px;
+  font-weight: 700;
+}
+
 /* ---------- Overlays: Abfrage und Aktionsblatt ---------- */
 
 .overlay {

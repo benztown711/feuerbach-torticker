@@ -54,7 +54,9 @@ export function App() {
   return (
     <>
       {route.name === 'start' && <StartScreen />}
-      {route.name === 'new' && <NewGameScreen key={route.plan ?? ''} plan={route.plan} />}
+      {route.name === 'new' && (
+        <NewGameScreen key={route.plan ?? route.after ?? ''} plan={route.plan} after={route.after} />
+      )}
       {route.name === 'roster' && <Lazy load={loadRoster} props={{}} />}
       {route.name === 'history' && <HistoryScreen />}
       {route.name === 'more' && <MoreScreen />}
