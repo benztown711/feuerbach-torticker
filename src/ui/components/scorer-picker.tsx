@@ -89,6 +89,17 @@ export function ScorerPicker({
             Andere …
           </button>
         )}
+      </div>
+      {/* Spec 021 FR-W31: Fußzeile mit "Ohne Torschütze" und "Eigentor Gegner" nebeneinander, beide mindestens 56 pt. */}
+      <div class={kind === 'scorer' ? 'scorer__foot' : 'scorer__foot scorer__foot--single'}>
+        <button
+          type="button"
+          class="scorer__option scorer__option--quiet"
+          data-testid={countdown !== undefined ? `${kind}-skip` : `${kind}-clear`}
+          onClick={countdown !== undefined ? onClose : () => onPick(null)}
+        >
+          {countdown !== undefined ? `${text.none} (${countdown} s)` : text.none}
+        </button>
         {kind === 'scorer' && (
           <button
             type="button"
@@ -100,19 +111,10 @@ export function ScorerPicker({
           </button>
         )}
       </div>
-      {countdown !== undefined ? (
-        <button type="button" class="btn btn--quiet" data-testid={`${kind}-skip`} onClick={onClose}>
-          {text.none} ({countdown} s)
+      {countdown === undefined && (
+        <button type="button" class="btn btn--quiet" onClick={onClose}>
+          Abbrechen
         </button>
-      ) : (
-        <div class="button-row">
-          <button type="button" class="btn btn--secondary" data-testid={`${kind}-clear`} onClick={() => onPick(null)}>
-            {text.none}
-          </button>
-          <button type="button" class="btn btn--quiet" onClick={onClose}>
-            Abbrechen
-          </button>
-        </div>
       )}
     </div>
   );

@@ -250,6 +250,59 @@ test('021 US2-S7 iPhone SE mit 16 Kindern: Titel, Rückgängig und "Ohne Torsch�
   expect(s.sh).toBeLessThanOrEqual(s.ih);
 });
 
+test('021 US2-S10 Fußzeile: "Ohne Torschütze" und "Eigentor Gegner" nebeneinander, beide >= 56 pt, ohne Scrollen (375 × 667, 16 Kinder)', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await seedRoster(page, ROSTER_21.split('\n').slice(0, 16).join('\n'));
+  await startGame(page);
+  await page.getByTestId('btn-goal-own').click();
+  const picker = page.getByTestId('scorer-picker');
+  await expectGoalsFree(page, picker);
+  const p = await box(picker);
+  const skip = await box(picker.getByTestId('scorer-skip'));
+  const own = await box(picker.getByTestId('scorer-own-goal'));
+  for (const b of [skip, own]) {
+    expect(b.height).toBeGreaterThanOrEqual(56);
+    expect(b.y).toBeGreaterThanOrEqual(p.y - 1);
+    expect(b.y + b.height).toBeLessThanOrEqual(p.y + p.height + 1);
+  }
+  // Nebeneinander (gleiche Zeile), "Ohne Torschütze" links.
+  expect(Math.abs(skip.y - own.y)).toBeLessThanOrEqual(1);
+  expect(skip.x + skip.width).toBeLessThanOrEqual(own.x + 1);
+  // Der Eigentor-Knopf steht nicht mehr im Raster der Namen.
+  await expect(picker.locator('.scorer__grid [data-testid="scorer-own-goal"]')).toHaveCount(0);
+  // Gleiche Gestalt wie "Ohne Torschütze": Fläche und Rahmen aus denselben Tokens.
+  const style = (id: string) =>
+    picker.getByTestId(id).evaluate((el) => {
+      const c = getComputedStyle(el);
+      return [c.backgroundColor, c.borderTopColor, c.borderTopWidth, c.fontSize].join('|');
+    });
+  expect(await style('scorer-own-goal')).toBe(await style('scorer-skip'));
+  await picker.getByTestId('scorer-own-goal').click();
+  await expect(picker).toHaveCount(0);
+  await expect(rows(page).first().locator('.goal-row__team')).toHaveText('Eigentor');
+});
+
+test('021 US2-S10 Korrektur-Blatt: Fußzeile mit "Ohne Torschütze" und "Eigentor Gegner", darunter "Abbrechen"', async ({
+  page,
+}) => {
+  await seedRoster(page, ROSTER);
+  await startGame(page);
+  await page.getByTestId('btn-goal-own').click();
+  await page.getByTestId('scorer-skip').click();
+  await rows(page).first().click();
+  await page.getByTestId('goal-edit-scorer').click();
+  const picker = page.getByTestId('scorer-picker');
+  const clear = await box(picker.getByTestId('scorer-clear'));
+  const own = await box(picker.getByTestId('scorer-own-goal'));
+  const cancel = await box(picker.getByRole('button', { name: 'Abbrechen' }));
+  expect(Math.abs(clear.y - own.y)).toBeLessThanOrEqual(1);
+  expect(clear.height).toBeGreaterThanOrEqual(56);
+  expect(own.height).toBeGreaterThanOrEqual(56);
+  expect(cancel.y).toBeGreaterThanOrEqual(clear.y + clear.height - 1);
+});
+
 test('021 US2-S8 Korrektur "Torschütze ändern" bleibt ein Blatt mit Abdunkler und "Abbrechen"', async ({ page }) => {
   await seedRoster(page, ROSTER);
   await startGame(page);

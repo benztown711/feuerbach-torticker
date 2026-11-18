@@ -1636,6 +1636,17 @@ body:has(.page:not(.dash, .lead-link)) {
   line-height: 16px;
 }
 
+/* Spec 021 FR-W31: Fußzeile der Auswahl, zwei gleich große Knöpfe nebeneinander, beide mindestens 56 pt. */
+.scorer__foot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.scorer__foot--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .scorer__number {
   color: var(--color-ink-muted);
   font-size: 11px;
@@ -1659,8 +1670,8 @@ body:has(.page:not(.dash, .lead-link)) {
   border-radius: var(--radius-md);
 }
 
-/* "Ohne Torschütze" unten, nah an Daumen und Tor-Knöpfen. */
-.scorer--dock > .btn--quiet {
+/* "Ohne Torschütze" und "Eigentor Gegner" unten, nah an Daumen und Tor-Knöpfen (FR-W31). */
+.scorer--dock > .scorer__foot {
   margin-top: auto;
 }
 
