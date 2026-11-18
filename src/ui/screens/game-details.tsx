@@ -175,8 +175,15 @@ export function GameDetailsScreen({ id }: { id: string }) {
         <div class="details__line">
           <p class="details__match">
             {/* Spec 017 FR-C10: Trikotfarben beider Mannschaften. */}
-            <TeamMark colorId={homeColor} testId={`details-mark-${homeSide}`} /> {home} : {away}{' '}
-            <TeamMark colorId={awayColor} testId={`details-mark-${awaySide}`} />
+            {/* Spec 022 FR-F47: je Mannschaft ein Stück ohne Umbruch; umbrochen wird nur zwischen den Mannschaften. */}
+            <span class="details__team">
+              <TeamMark colorId={homeColor} testId={`details-mark-${homeSide}`} />
+              <span class="details__team-name">{home}</span> :
+            </span>{' '}
+            <span class="details__team">
+              <span class="details__team-name">{away}</span>
+              <TeamMark colorId={awayColor} testId={`details-mark-${awaySide}`} />
+            </span>
           </p>
           <p class="details__score">{`${ha.home}:${ha.away}`}</p>
         </div>

@@ -1385,6 +1385,22 @@ body:has(.page:not(.dash, .lead-link)) {
   vertical-align: -1px;
 }
 
+/* Spec 022 FR-F47: ein Mannschaftsname bricht nie mitten im Namen um; zu lange Namen enden mit "…". */
+.details__team {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: baseline;
+  max-width: 100%;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.details__team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .details__foot {
   display: flex;
   flex-wrap: wrap;
