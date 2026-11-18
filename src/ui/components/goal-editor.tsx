@@ -232,8 +232,8 @@ export function GoalEditor({ game, players, settings, step, onStep, cur, update,
     };
     return (
       <ScorerPicker
-        // Neuer Schritt, neuer Zustand ("Andere …" wieder zu).
-        key={step.kind}
+        // Neuer Schritt oder neues Tor (Spec 021 FR-W11), neuer Zustand ("Andere …" wieder zu).
+        key={`${step.kind}-${goal.id}`}
         kind={step.kind}
         subtitle={`Tor in Minute ${formatMinute(goal.minute, goal.stoppage)}${
           step.kind === 'assist' ? ` · ${scorerLabel(goal, players)}` : ''

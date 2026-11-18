@@ -81,6 +81,11 @@ for (const [w, h] of [
     const picker = page.getByTestId('scorer-picker');
     await expect(picker).toContainText('Wer hat getroffen?');
     await expectGoalsFree(page, picker);
+    // Halb Verdecktes ruht unsichtbar; der Spielstand bleibt sichtbar.
+    for (const sel of ['.clock', '.controls', '.goal-list']) await expect(page.locator(sel)).toBeHidden();
+    await expect(page.getByTestId('btn-pause')).toBeHidden();
+    await expect(page.getByTestId('score')).toBeVisible();
+    expect(await onTop(page.getByTestId('score'))).toBe(true);
     // Ohne Seiten-Scroll.
     const s = await page.evaluate(() => {
       const el = document.scrollingElement as HTMLElement;

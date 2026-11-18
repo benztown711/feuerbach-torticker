@@ -275,9 +275,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich die Auswahl mit deinem Aufgebot; tippe auf den Namen oder schließe sie. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
-    keywords: 'torschütze schütze spieler name nachtragen wer',
-    sources: ['001 US3', '017 US1'],
+      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
+    keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt',
+    sources: ['001 US3', '017 US1', '021 US2'],
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
@@ -285,9 +285,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie erfasse ich, wer das Tor vorgelegt hat?',
     answer:
-      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Vorlagen“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
+      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Vorlagen“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. Auch dabei bleiben die Tor-Knöpfe frei. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
     keywords: 'vorlage vorlagen assist vorgelegt pass zuspiel vorlagengeber',
-    sources: ['009 US1', '009 US4'],
+    sources: ['009 US1', '009 US4', '021 US2'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
     related: ['vorlage-aendern', 'torschuetze', 'vorlage-teilen'],
   },

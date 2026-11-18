@@ -322,8 +322,13 @@ export function GameScreen({ id }: { id: string }) {
     if (r.added && r.goal) {
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
-      if (side === 'own' && activePlayers(players ?? []).length > 0)
-        setEdit({ kind: 'scorer', goalId: r.goal.id, until: t + PICKER_MS });
+      // Spec 021 FR-W11: Das gezählte Tor schließt eine offene Schnellauswahl (ohne Torschützen bzw. Vorlage);
+      // bei einem Feuerbach-Tor mit Kader gilt die Auswahl dem neuen Tor.
+      setEdit(
+        side === 'own' && activePlayers(players ?? []).length > 0
+          ? { kind: 'scorer', goalId: r.goal.id, until: t + PICKER_MS }
+          : null,
+      );
     } else if (r.reason === 'double') {
       setHintUntil(t + HINT_MS);
     }
@@ -415,8 +420,26 @@ export function GameScreen({ id }: { id: string }) {
   };
   /** Torschützen- bzw. Vorlagen-Auswahl offen: ohne Rückgängig-Leiste (in der Schnellauswahl steht "Rückgängig"). */
   const pickerOpen = !!edit && (edit.kind === 'scorer' || edit.kind === 'assist') && !pickerExpired;
+  /** Spec 021 FR-W10: Schnellauswahl direkt nach dem Tor, angedockt über den Tor-Knöpfen. */
+  const docked = pickerOpen && quickUntil !== undefined;
   const roster = players ?? [];
   const flashing = now < flashUntil;
+  /** Spec 017 R-C1: Tor-Blätter und Auswahl (nachgeladen, Spec 021 R-W3). */
+  const editorFor = (step: EditStep | null) =>
+    editor && (
+      <editor.GoalEditor
+        game={game}
+        players={roster}
+        settings={settings}
+        step={step}
+        onStep={setEdit}
+        cur={cur}
+        update={update}
+        now={now}
+        undoGoalId={undoGoalObj?.id}
+        onUndo={doUndo}
+      />
+    );
 
   // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
   const range = goalsOpen ? clockShiftRange(game, now) : null;
@@ -566,7 +589,7 @@ export function GameScreen({ id }: { id: string }) {
   ) : null;
 
   return (
-    <main class="game" onPointerDown={reArmAudio}>
+    <main class={docked ? 'game game--pick' : 'game'} onPointerDown={reArmAudio}>
       <h1 class="visually-hidden">
         Spiel {teamName(homeSide)} gegen {teamName(awaySide)}
       </h1>
@@ -746,7 +769,15 @@ export function GameScreen({ id }: { id: string }) {
           />
 
           <div class={status === 'finished' ? 'goal-zone goal-zone--done' : 'goal-zone'}>
-            {band}
+            {docked ? (
+              // Spec 021 FR-W14: Auswahl über den Tor-Knöpfen, Meldungen darunter direkt über den Knöpfen.
+              <div class="goal-dock">
+                {editorFor(edit)}
+                {band}
+              </div>
+            ) : (
+              band
+            )}
             {status === 'finished' ? (
               // Spec 021 FR-W01: nach dem Schlusspfiff "Nächstes Spiel" statt ausgegrauter Tor-Knöpfe.
               <div class="next-game">
@@ -1275,21 +1306,8 @@ export function GameScreen({ id }: { id: string }) {
         />
       )}
 
-      {editor && (
-        <editor.GoalEditor
-          game={game}
-          players={roster}
-          settings={settings}
-          // Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage.
-          step={ask && edit?.kind === 'goal' ? null : edit}
-          onStep={setEdit}
-          cur={cur}
-          update={update}
-          now={now}
-          undoGoalId={undoGoalObj?.id}
-          onUndo={doUndo}
-        />
-      )}
+      {/* Wie bisher: das Tor-Blatt verschwindet hinter einer Rückfrage; die Schnellauswahl steht im Tor-Bereich. */}
+      {editorFor(docked || (ask && edit?.kind === 'goal') ? null : edit)}
 
       {needsDrawDecision(game) && !extraOpen && !firstAsk && !ask && (
         <div class="overlay overlay--center">

@@ -34,6 +34,7 @@ Bei Änderungen am Design System: Dateien hier aktualisieren und per Pull Reques
 | Hinweis "Halbzeit", "Abpfiff" | `rot-tief` | `on-rot` | kleine weiße Schrift nur auf `rot-tief` |
 | Restzeit unter 1 Minute | `surface` | `rot-text` | |
 | "Nächstes Spiel" nach dem Schlusspfiff (Spec 021) | `rot-tief` | `on-rot`, fett | steht an der Stelle der Tor-Knöpfe, siehe Abweichung unten |
+| Torschützen-Auswahl direkt nach dem Tor (Spec 021) | `card`, Rahmen 2px `ink`, `radius-md` | `ink` | ohne Abdunkler über den Tor-Knöpfen angedockt; der Rahmen hebt sie ab wie die Uhr-Knöpfe, keine Schatten |
 
 Der rote Balken mit `kopfzeile` (z. B. "TORTICKER") erscheint nur auf dem Startbildschirm. Auf dem Spielbildschirm gibt es keinen Balken, die Farbe kommt allein von den Trikotfarben.
 
