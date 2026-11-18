@@ -26,8 +26,9 @@ describe('022 US2-S4 FR-F11 opponentName', () => {
     expect(opponentName('  TSV  Musterstadt ')).toBe('TSV Musterstadt');
   });
 
-  it('höchstens 40 Zeichen', () => {
+  it('höchstens 40 Zeichen, nach dem Kürzen ohne Leerzeichen am Ende', () => {
     expect(opponentName('x'.repeat(50))).toBe('x'.repeat(40));
+    expect(opponentName(`${'x'.repeat(39)} y`)).toBe('x'.repeat(39));
   });
 });
 

@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { OPPONENT_FALLBACK } from '../../domain/opponent';
 import { Sheet } from './sheet';
 
 interface Props {
@@ -12,7 +13,8 @@ interface Props {
  * (`opponentName`, FR-F11); gespeichert wird in den Spieldetails wie jede Korrektur.
  */
 export function OpponentSheet({ name, onSave, onClose }: Props) {
-  const [value, setValue] = useState(name);
+  // Der Ersatzname "Gegner" steht als Platzhalter, nicht als Eintrag: wer nichts einträgt, behält ihn.
+  const [value, setValue] = useState(name === OPPONENT_FALLBACK ? '' : name);
   return (
     <Sheet title="Gegner ändern" subtitle="Gilt für dieses Spiel." testId="opponent-sheet" onClose={onClose}>
       <form

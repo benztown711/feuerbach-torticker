@@ -109,7 +109,9 @@ test('022 US2-S5 "Gegner ändern" in den Spieldetails: Name überall, leer heiß
   await page.getByTestId('details-opponent').click();
   const input = page.getByTestId('opponent-input');
   await expect(page.getByTestId('opponent-sheet')).toBeVisible();
-  await expect(input).toHaveValue('Gegner');
+  // der Ersatzname steht als Platzhalter, nicht als Eintrag
+  await expect(input).toHaveValue('');
+  await expect(input).toHaveAttribute('placeholder', 'Gegner (optional)');
   await expect(input).toHaveAttribute('maxlength', '40');
   await input.fill('FC Probestadt');
   await page.getByTestId('opponent-save').click();

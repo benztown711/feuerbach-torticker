@@ -7,7 +7,7 @@ const MAX = 40;
 
 /** Spec 022 FR-F11: getrimmt, ohne doppelte Leerzeichen, höchstens 40 Zeichen; leer heißt "Gegner". */
 export function opponentName(raw: string): string {
-  const name = raw.trim().replace(/\s+/g, ' ').slice(0, MAX);
+  const name = raw.trim().replace(/\s+/g, ' ').slice(0, MAX).trim();
   return name === '' ? OPPONENT_FALLBACK : name;
 }
 
