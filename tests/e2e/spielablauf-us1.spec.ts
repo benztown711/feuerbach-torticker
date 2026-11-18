@@ -377,3 +377,34 @@ test('021 US1-S8 iPhone SE: "Nächstes Spiel", Spieldetails und Ergebnis teilen 
   expect(band.y + band.height).toBeLessThanOrEqual(next.y + 1);
   expect(next.y - (band.y + band.height)).toBeLessThanOrEqual(16);
 });
+
+test('021 US1-S9 Endzustand: Torliste nur so hoch wie ihr Inhalt, der freie Raum ist Seitenhintergrund', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await playFinishedGame(page, ['own', 'opp']);
+  const list = page.getByTestId('goal-list');
+  const rows = page.locator('[data-testid^="goal-row-"]');
+  const n = await rows.count();
+  expect(n).toBeGreaterThanOrEqual(2);
+  const l = await box(list);
+  const last = await box(rows.nth(n - 1));
+  // Die Liste endet mit ihrer letzten Zeile (bis auf Rahmen und Innenabstand), nicht erst am Knopf.
+  expect(l.y + l.height - (last.y + last.height)).toBeLessThanOrEqual(8);
+  const next = await box(page.getByTestId('btn-next-game'));
+  const gap = next.y - (l.y + l.height);
+  expect(gap).toBeGreaterThan(48);
+  // An dieser Stelle liegt keine abgesetzte Fläche: nichts mit eigenem Hintergrund, nur der Seitenhintergrund.
+  const bg = await page.evaluate(
+    ([x, y]) => {
+      let el: Element | null = document.elementFromPoint(x as number, y as number);
+      while (el && getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)') el = el.parentElement;
+      return {
+        own: el ? getComputedStyle(el).backgroundColor : null,
+        page: getComputedStyle(document.body).backgroundColor,
+        inList: !!el && !!el.closest('[data-testid="goal-list"]'),
+      };
+    },
+    [l.x + l.width / 2, l.y + l.height + gap / 2],
+  );
+  expect(bg.inList).toBe(false);
+  expect(bg.own).toBe(bg.page);
+});

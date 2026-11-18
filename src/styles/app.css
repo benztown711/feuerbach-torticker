@@ -652,6 +652,11 @@ body:has(.page:not(.dash, .lead-link)) {
   background: var(--color-surface-alt);
 }
 
+/* Spec 021 FR-W34: Nach dem Schlusspfiff nur so hoch wie der Inhalt; der Rest bis "Nächstes Spiel" ist Seitenhintergrund. */
+.game--done .goal-list {
+  flex: 0 1 auto;
+}
+
 .goal-list__empty {
   margin: var(--space-2) var(--space-1);
   color: var(--color-ink-muted);
