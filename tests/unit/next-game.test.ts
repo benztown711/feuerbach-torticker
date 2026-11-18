@@ -33,7 +33,8 @@ const finished = (o: Partial<Game> = {}): Game => ({
 });
 
 describe('021 FR-W02 Vorbelegung "Nächstes Spiel" aus dem beendeten Spiel', () => {
-  it('übernimmt Mannschaft, Spielzeit ohne Verlängerung, Heim/Gast, Trikots und Live', () => {
+  it('übernimmt Mannschaft, Spielzeit ohne Verlängerung, Heim/Gast, eigenes Trikot und Live; kein Gegner-Trikot', () => {
+    // Präzisierung nach dem Code-Review: Das Gegner-Trikot folgt dem neuen Gegner (gemerkte Farbe bzw. Standard).
     expect(nextGameDraft(finished(), [E2, E1])).toEqual({
       teamId: 't1',
       venue: 'away',
@@ -41,7 +42,6 @@ describe('021 FR-W02 Vorbelegung "Nächstes Spiel" aus dem beendeten Spiel', () 
       minutes: 10,
       ownColor: 'schwarz',
       ownTouched: false,
-      oppColor: 'gelb',
       live: true,
     });
   });
@@ -50,12 +50,13 @@ describe('021 FR-W02 Vorbelegung "Nächstes Spiel" aus dem beendeten Spiel', () 
     expect(nextGameDraft(finished({ ownColor: 'weiss' }), [E1]).ownTouched).toBe(true);
   });
 
-  it('bei anderem Heim/Gast (Planspiel) zählt das Trikot dieser Seite', () => {
-    const d = nextGameDraft(finished({ ownColor: 'schwarz' }), [E1], 'home');
-    expect(d.venue).toBe('home');
-    expect(d.ownColor).toBe('schwarz');
-    expect(d.ownTouched).toBe(true);
-    expect(nextGameDraft(finished({ ownColor: 'rot' }), [E1], 'home').ownTouched).toBe(false);
+  it('bei anderem Heim/Gast (Planspiel) folgt das eigene Trikot Heim/Auswärts, auch nach abweichendem Trikot', () => {
+    for (const ownColor of ['schwarz', 'weiss', 'rot']) {
+      const d = nextGameDraft(finished({ ownColor }), [E1], 'home');
+      expect(d.venue).toBe('home');
+      expect(d.ownColor).toBe('rot');
+      expect(d.ownTouched).toBe(false);
+    }
   });
 
   it('"Nicht live senden" bleibt aus', () => {
@@ -65,7 +66,13 @@ describe('021 FR-W02 Vorbelegung "Nächstes Spiel" aus dem beendeten Spiel', () 
   it('Mannschaft nicht (mehr) unter "Meine Mannschaften": keine Mannschaft, Trikot bleibt wie gespielt', () => {
     const d = nextGameDraft(finished({ ownTeam: 'Sportvg Feuerbach D3' }), [E1]);
     expect(d.teamId).toBeNull();
+    expect(d.ownColor).toBe('schwarz');
     expect(d.ownTouched).toBe(true);
+  });
+
+  it('ohne Mannschaft und mit anderem Heim/Gast folgt das Trikot der gewählten Mannschaft (nicht geändert)', () => {
+    const d = nextGameDraft(finished({ ownTeam: 'Sportvg Feuerbach D3' }), [E1], 'home');
+    expect(d.ownTouched).toBe(false);
   });
 });
 

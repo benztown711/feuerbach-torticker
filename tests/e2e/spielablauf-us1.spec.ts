@@ -117,7 +117,9 @@ test('021 US1-S2 Vorbelegung aus dem beendeten Spiel, Gegner leer mit Fokus', as
   await expect(page.getByTestId('schema-minutes')).toHaveValue('12');
   await expect(page.getByTestId('matchup-away')).toHaveText('Feuerbach E1');
   await expect(page.getByTestId('kit-own-color')).toContainText('Weiß');
-  await expect(page.getByTestId('kit-opp-color')).toContainText('Gelb');
+  // Präzisierung nach dem Code-Review: Das Gegner-Trikot des beendeten Spiels wird nicht übernommen; ohne Gegner
+  // gilt der Standard (Feuerbach in Weiß: Schwarz).
+  await expect(page.getByTestId('kit-opp-color')).toContainText('Schwarz');
   await expect(page.getByTestId('kit-source')).toHaveText('Feuerbach-Trikot nur für dieses Spiel geändert.');
   await expect(pressed(page, '7 Max')).toHaveAttribute('aria-pressed', 'true');
   await expect(pressed(page, '3 Ben')).toHaveAttribute('aria-pressed', 'true');
@@ -125,9 +127,12 @@ test('021 US1-S2 Vorbelegung aus dem beendeten Spiel, Gegner leer mit Fokus', as
   await expect(page.getByTestId('input-opponent')).toHaveValue('');
   await expect(page.getByTestId('input-opponent')).toBeFocused();
 
-  // Gegner-Trikot bleibt vorbelegt, auch wenn ein Gegner eingetragen wird.
+  // Das Gegner-Trikot folgt dem eingetragenen Gegner: gemerkte Farbe (FC Probestadt in Gelb), sonst Standard.
   await page.getByTestId('input-opponent').fill('TSV Musterstadt');
+  await expect(page.getByTestId('kit-opp-color')).toContainText('Schwarz');
+  await page.getByTestId('input-opponent').fill('FC Probestadt');
   await expect(page.getByTestId('kit-opp-color')).toContainText('Gelb');
+  await expect(page.getByTestId('kit-own-color')).toContainText('Weiß');
   // Zurück: kein neues Spiel, das beendete bleibt.
   await page.goto(finishedUrl);
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
@@ -180,7 +185,7 @@ async function firstPlanGame(page: Page): Promise<void> {
   await finish(page);
 }
 
-test('021 US1-S4 nächstes Planspiel der Mannschaft von heute ist gewählt; Trikots aus dem beendeten Spiel', async ({
+test('021 US1-S4 nächstes Planspiel der Mannschaft von heute ist gewählt; Trikot folgt Heim/Auswärts', async ({
   page,
   recorded,
   relay,
@@ -216,9 +221,11 @@ test('021 US1-S4 nächstes Planspiel der Mannschaft von heute ist gewählt; Trik
   await expect(page.getByTestId('input-opponent')).toHaveValue('SV Beispielhausen');
   await expect(page.getByTestId('matchup-home')).toHaveText('SV Beispielhausen');
   await expect(page.getByTestId('matchup-away')).toHaveText('Feuerbach E1');
-  // Heimtrikot Rot aus dem beendeten Heimspiel bleibt, auch auswärts.
-  await expect(page.getByTestId('kit-own-color')).toContainText('Rot');
-  await expect(page.getByTestId('kit-source')).toHaveText('Feuerbach-Trikot nur für dieses Spiel geändert.');
+  // Präzisierung nach dem Code-Review: anderes Heim/Gast als im beendeten Heimspiel, also das Auswärtstrikot;
+  // das Gegner-Trikot folgt dem Gegner aus dem Plan (keine gemerkte Farbe: Standard).
+  await expect(page.getByTestId('kit-own-color')).toContainText('Schwarz');
+  await expect(page.getByTestId('kit-source')).toHaveText('Feuerbach-Trikot aus dem Auswärtstrikot.');
+  await expect(page.getByTestId('kit-opp-color')).toContainText('Weiß');
   await expect(page.getByTestId('schema-sections')).toHaveValue('1');
 
   await page.getByTestId('btn-create').click();

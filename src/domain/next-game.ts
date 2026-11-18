@@ -11,22 +11,26 @@ export interface NextGameDraft {
   ownColor: string;
   /** Weicht vom Heim- bzw. Auswärtstrikot ab: "Feuerbach-Trikot nur für dieses Spiel geändert" (Spec 004 FR-M03). */
   ownTouched: boolean;
-  oppColor: string;
   /** "Live aufs Dashboard": aus nur, wenn das beendete Spiel auf "Nicht live senden" stand. */
   live: boolean;
 }
 
-/** `venue`: Heim/Gast des neuen Spiels, falls ein Planspiel es vorgibt (FR-W03); sonst wie im beendeten Spiel. */
+/**
+ * `venue`: Heim/Gast des neuen Spiels, falls ein Planspiel es vorgibt (FR-W03); sonst wie im beendeten Spiel.
+ * Präzisierung nach dem Code-Review: Das eigene Trikot folgt Heim/Auswärts der Mannschaft; ein im beendeten Spiel
+ * bewusst abweichendes Trikot bleibt nur bei gleichem Heim/Gast. Das Gegner-Trikot gehört zum Gegner (gemerkte Farbe
+ * bzw. Standard, Spec 001 FR-031) und wird nicht übernommen.
+ */
 export function nextGameDraft(game: Game, teams: Team[], venue: Venue = game.venue): NextGameDraft {
   const team = teams.find((t) => t.name === game.ownTeam);
+  const kept = venue === game.venue && (!team || ownColorFor(team, venue) !== game.ownColor);
   return {
     teamId: team?.id ?? null,
     venue,
     sections: game.schema.sections,
     minutes: game.schema.sectionMinutes,
-    ownColor: game.ownColor,
-    ownTouched: !team || ownColorFor(team, venue) !== game.ownColor,
-    oppColor: game.oppColor,
+    ownColor: kept || !team ? game.ownColor : ownColorFor(team, venue),
+    ownTouched: kept,
     live: game.live !== false,
   };
 }

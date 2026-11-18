@@ -259,7 +259,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie starte ich das nächste Spiel?',
     answer:
-      'Nach dem Schlusspfiff steht unten „Nächstes Spiel“. Ein Tipp öffnet „Neues Spiel“ mit Mannschaft, Spielzeit, Heim/Gast, Trikots, Aufgebot und „Live aufs Dashboard“ wie im eben beendeten Spiel. Steht das nächste Spiel deiner Mannschaft heute im Spielplan, ist es schon gewählt. Ideal im Turnier: vom Schlusspfiff zum nächsten Anpfiff mit drei Tipps.',
+      'Nach dem Schlusspfiff steht unten „Nächstes Spiel“. Ein Tipp öffnet „Neues Spiel“ mit Mannschaft, Spielzeit, Heim/Gast, Feuerbach-Trikot, Aufgebot und „Live aufs Dashboard“ wie im eben beendeten Spiel. Steht das nächste Spiel deiner Mannschaft heute im Spielplan, ist es schon gewählt; spielt ihr dort auf der anderen Seite, gilt das Heim- bzw. Auswärtstrikot. Das Gegner-Trikot richtet sich wie immer nach dem Gegner. Ideal im Turnier: vom Schlusspfiff zum nächsten Anpfiff mit drei Tipps.',
     steps: [
       'Nach dem Schlusspfiff auf „Nächstes Spiel“ tippen.',
       'Gegner eintragen, falls er noch fehlt.',

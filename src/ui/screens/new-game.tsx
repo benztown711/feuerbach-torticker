@@ -153,7 +153,10 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
     setFromPlan(c);
   };
 
-  /** Spec 021 FR-W02: Trikots (und ohne Planspiel Heim/Gast, Spielzeit, Live) aus dem beendeten Spiel. */
+  /**
+   * Spec 021 FR-W02: eigenes Trikot (und ohne Planspiel Heim/Gast, Spielzeit, Live) aus dem beendeten Spiel. Das
+   * Gegner-Trikot folgt wie bei jedem neuen Spiel dem Gegner (gemerkte Farbe bzw. Standard, FR-031).
+   */
   const applyDraft = (d: NextGameDraft, all: boolean): void => {
     if (all) {
       setVenue(d.venue);
@@ -163,8 +166,6 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
     }
     setOwnColor(d.ownColor);
     setOwnTouched(d.ownTouched);
-    setOppColor(d.oppColor);
-    setOppTouched(true);
   };
 
   useEffect(() => {
