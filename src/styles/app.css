@@ -728,6 +728,13 @@ body:has(.page:not(.dash, .lead-link)) {
   white-space: nowrap;
 }
 
+/* Spec 021 FR-W20: Pfeil am rechten Rand; der Text davor kürzt mit "…". */
+.goal-row__chev {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--color-ink-muted);
+}
+
 .goal-row--mark .goal-row__score {
   display: flex;
   align-self: center;

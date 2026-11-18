@@ -148,9 +148,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was zeigt der Spielbildschirm?',
     answer:
-      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe, nach dem Schlusspfiff steht dort „Nächstes Spiel“. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
+      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste. Jede Zeile mit Pfeil rechts lässt sich antippen: ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe, nach dem Schlusspfiff steht dort „Nächstes Spiel“. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
     keywords: 'übersicht anzeigetafel spielstand uhr torliste knöpfe aufbau band meldung',
-    sources: ['019 US2', '019 US3', '021 US1'],
+    sources: ['019 US2', '019 US3', '021 US1', '021 US3'],
     related: ['tor', 'tor-entfernen', 'uhr-anhalten'],
   },
   {
@@ -275,9 +275,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
+      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
     keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt',
-    sources: ['001 US3', '017 US1', '021 US2'],
+    sources: ['001 US3', '017 US1', '021 US2', '021 US3'],
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
