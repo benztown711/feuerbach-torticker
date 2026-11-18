@@ -93,6 +93,13 @@ description: "Aufgaben für Spec 021 Spielablauf am Spieltag"
 - [ ] T045 Design-Check (Skill `attila-design-check`) der geänderten Bildschirme, P0/P1 beheben (Review C)
 - [ ] T046 Referenzbilder `spiel-*` aus dem CI-Lauf übernehmen, falls sie sich ändern
 
+## Phase 7: Nachbesserung Design-Check (2026-11-18, Welle 2)
+
+- [x] T050 [US2] E2E `tests/e2e/spielablauf-us2.spec.ts`: US2-S10 (Fußzeile angedockt mit 16 Kindern auf 375 × 667, Korrektur-Blatt), zuerst rot
+- [x] T051 [US2] `src/ui/components/scorer-picker.tsx`, `src/styles/app.css`: Fußzeile `scorer__foot` mit "Ohne Torschütze" und "Eigentor Gegner" (FR-W31 bis FR-W33)
+- [x] T052 [US1] E2E `tests/e2e/spielablauf-us1.spec.ts`: US1-S9 (Torliste im Endzustand nur so hoch wie der Inhalt), zuerst rot
+- [x] T053 [US1] `src/ui/screens/game.tsx`, `src/styles/app.css`: Klasse `game--done`, Torliste `flex: 0 1 auto` (FR-W34)
+
 ## Dependencies & Execution Order
 
 - T003 vor US1 und US2 (Bundle-Luft).
