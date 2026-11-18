@@ -210,6 +210,18 @@ test('021 US2-S6 Inhalt und Verhalten der Auswahl bleiben: Countdown, Rückgäng
   await expect(page.getByTestId('score')).toHaveText('1 : 0');
 });
 
+test('021 US2-S6 "Rückgängig" in der angedockten Auswahl mindestens 48 pt hoch (375 × 667)', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await seedRoster(page, ROSTER);
+  await startGame(page);
+  await page.getByTestId('btn-goal-own').click();
+  const picker = page.getByTestId('scorer-picker');
+  await expect(picker).toBeVisible();
+  const undo = await box(picker.getByTestId('btn-undo'));
+  expect(undo.height).toBeGreaterThanOrEqual(48);
+  await expectGoalsFree(page, picker);
+});
+
 test('021 US2-S7 iPhone SE mit 16 Kindern: Titel, Rückgängig und "Ohne Torschütze" sichtbar, alle Namen erreichbar', async ({
   page,
 }) => {
