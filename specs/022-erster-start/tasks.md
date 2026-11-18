@@ -57,12 +57,24 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 - [ ] T054 `/code-review`, `/security-review`; Design-Check (Skill `anthropic-skills:attila-design-check`), P0/P1 beheben; Screenshots iPhone 390 × 844 und 375 × 667 hell/dunkel an Atti
 - [ ] T055 Gerätetest iPhone (Safari) und Android: Installationshinweis, angehefteter Knopf mit offener Tastatur (R-F3), Ergebnis in `research.md` (Review C, Atti)
 
+## Phase 7: Nachbesserung Design-Check (2026-11-18, Welle 2)
+
+- [x] T060 [US4] E2E (zuerst rot): `tests/e2e/erster-start-us4.spec.ts` FR-F41 (Reihenfolge und Sichtbarkeit im Blatt auf 375 × 667) und FR-F43 (kein Label "TRAINER"); `tests/e2e/live-einfach-us1.spec.ts` US1-S5 angepasst
+- [x] T061 [US4] `src/ui/components/live-start.tsx`, `src/styles/app.css`: Nebenweg unter den Hauptweg, ohne Kasten (FR-F41, FR-F42); Spec 020 FR-E06 und Spec 012 FR-S05 mit Nachtrag
+- [x] T062 [US4] `src/ui/screens/live.tsx`: Label "TRAINER" entfällt (FR-F43)
+- [x] T063 [US1] E2E (zuerst rot): `tests/e2e/erster-start-us1.spec.ts` FR-F44, FR-F45 (375 × 667)
+- [x] T064 [US1] `src/ui/components/live-start.tsx`, `src/styles/app.css`: "Später" neben der Überschrift, "Home-Bildschirm" ohne Umbruch (FR-F44, FR-F45)
+- [x] T065 [US2] E2E (zuerst rot): `tests/e2e/erster-start-us2.spec.ts` FR-F46, FR-F47 (Spieldetails auf 375 × 667)
+- [x] T066 [US2] `src/ui/screens/game-details.tsx`, `src/styles/app.css`: Mannschaften ohne Umbruch im Namen, Knöpfe mindestens 44 pt (FR-F46, FR-F47)
+- [x] T067 Hilfe gegenprüfen: keine Änderung nötig (Wortlaut und Reihenfolge entsprechen schon der App)
+
 ## Geänderte bestehende Tests
 
 - `tests/e2e/startbildschirm.spec.ts`: Reihenfolge der Startaktionen endet mit `start-install-hint` (FR-F01).
 - `tests/e2e/us2-farben-namen.spec.ts`: "ohne Gegner geht es nicht weiter" wird zu "ohne Gegner mit Namen Gegner weiter" (FR-F10).
 - `tests/e2e/live-einfach-us1.spec.ts`: "Neu mit" zu "Mit", "Neu starten" zu "Live-Spieltag anlegen", Pfadtext zu Knopf `live-start-share-trainer` (FR-F30).
 - `tests/e2e/live-einfach-us2.spec.ts`: "Neu mit" zu "Mit", `btn-paste-link` direkt nach `btn-share-trainer` (FR-F32).
+- Nachbesserung 2026-11-18: `tests/e2e/live-einfach-us1.spec.ts` US1-S5 (Reihenfolge im Blatt, FR-F41), `tests/e2e/erster-start-us4.spec.ts` US4-S9 (Karte ohne Label "TRAINER", FR-F43), `tests/e2e/live-einfach-us2.spec.ts` nur Kommentar.
 - `tests/unit/live-quick.test.ts`: `startHint` liefert "Mit …" (FR-F30).
 
 ## Gemeinsam berührte Dateien (Konfliktkandidaten mit Paket B)
