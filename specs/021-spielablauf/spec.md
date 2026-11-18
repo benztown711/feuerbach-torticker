@@ -6,6 +6,8 @@
 
 **Status**: Entwurf, Umsetzung freigegeben. Entscheidungen von Atti vorab gesetzt (Nutzertest vom 17.11.2026, Freigabe 18.11.2026), daher keine Clarify-Fragen; die Entscheidungen stehen unter "Clarifications". Mockup/Review B: auf Wunsch von Atti übersprungen, Prüfung in Review C über Screenshots iPhone hell und dunkel (390 × 844 und 375 × 667). Parallel setzt Paket E Spec 022 "Erster Start" um (`new-game.tsx` Layout, Start, Einstellungen, Live); diese Spec ändert in "Neues Spiel" nur die Vorbelegung.
 
+**Status Umsetzung (18.11.2026)**: US1 bis US3 umgesetzt im Arbeitszweig von Paket B; `npm run check` grün, E2E im Profil `android` grün (außer den lokal abweichenden Dashboard-Referenzbildern). Offen: Design-Check (T045), Referenzbilder aus der CI (T046), Review C über Screenshots.
+
 **Input**: Nutzertest vom 17.11.2026 (Turnier-Trainer am Spielfeldrand: 5 Spiele × 10 Minuten, 2 bis 3 Minuten Wechselpause) und Atti (18.11.2026): drei Befunde zum Ablauf im Spiel umsetzen, nur bei echter Unsicherheit fragen.
 
 ## Ausgangslage
