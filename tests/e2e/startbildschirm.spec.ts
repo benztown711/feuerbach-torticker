@@ -75,7 +75,10 @@ test('018 US1-S4 US1-S5 US2-S10 nur Zuschauer-Link: Spiele verfolgen und Trainer
   await expect(b.getByTestId('dashboard')).toBeVisible();
   await b.goto('./');
   await expect(b.getByTestId('start-follow-line')).toHaveText('Unser Spieltag');
-  await expect(b.getByTestId('start-trainer-card')).toBeVisible();
+  // Geändert durch Spec 020 Nachbesserung FR-E62: B hat eine eigene Mannschaft, also führt der Knopf "Eltern live
+  // zuschauen lassen" zu "Link einfügen"; die Karte "Trainer? …" steht daneben nicht mehr.
+  await expect(b.getByTestId('start-trainer-card')).toHaveCount(0);
+  await expect(b.getByTestId('start-live-quick')).toBeVisible();
   await b.clock.runFor(3_000);
   await expect(b.locator('[data-testid^="start-take-"]')).toHaveCount(0);
   await b.getByTestId('start-follow').click();

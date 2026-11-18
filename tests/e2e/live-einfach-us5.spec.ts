@@ -23,7 +23,7 @@ test.use({ serviceWorkers: 'block' });
 
 const foot = (v: Page) => v.getByTestId('dash-foot').locator('p');
 
-test('020 US5-S1 FR-E40 Fußzeile mit Karten: nur "Tippe auf ein Spiel …" und "Aktualisiert sich von selbst."', async ({
+test('020 US5-S1 FR-E40 FR-E65 Fußzeile mit Karten: nur "Tippe auf ein Spiel …" (geändert durch Nachbesserung 2026-11-18)', async ({
   page,
   recorded,
   relay,
@@ -34,13 +34,13 @@ test('020 US5-S1 FR-E40 Fußzeile mit Karten: nur "Tippe auf ein Spiel …" und 
   await sendAs(relay, links.trainer, e1At37());
   const v = await openViewer(newDevice, relay, links);
   await expect(v.getByTestId('dash-score-E1')).toHaveText('2:1');
-  await expect(foot(v)).toHaveText(['Tippe auf ein Spiel für Tore und Details.', 'Aktualisiert sich von selbst.']);
+  await expect(foot(v)).toHaveText(['Tippe auf ein Spiel für Tore und Details.']);
   await expect(v.getByRole('link', { name: 'Zum Torticker' })).toHaveCount(0);
   await expect(v.getByText('Nur lesen.')).toHaveCount(0);
   await expect(v.getByTestId('dash-foot').getByRole('link')).toHaveCount(0);
 });
 
-test('020 US5-S2 FR-E40 ohne Spiel heute: nur "Aktualisiert sich von selbst."', async ({
+test('020 US5-S2 FR-E40 FR-E65 ohne Spiel: nur "Aktualisiert sich von selbst."', async ({
   page,
   recorded,
   relay,
@@ -164,4 +164,28 @@ test('020 US5-S6 FR-E42 Texte in der App: Hinweis bei neu ausgestelltem Live-Spi
   await expect(c.getByTestId('dashboard-none')).toContainText('Noch kein Live-Spieltag auf diesem Handy.');
   await c.getByRole('button', { name: 'Zu „Live für Eltern“' }).click();
   await expect(c).toHaveURL(/#\/live-spieltag$/);
+});
+
+test('020 US5-S7 FR-E65 Kopf- und Fußzeile sagen nicht dasselbe (Eltern-Ansicht und App)', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await createLive(page, recorded, { teams: ['E1'] });
+  onMatchday(relay);
+  await sendAs(relay, links.trainer, e1At37());
+  const v = await openViewer(newDevice, relay, links);
+  await expect(v.getByTestId('dash-score-E1')).toHaveText('2:1');
+  // Kopfzeile sagt es, die Fußzeile erklärt nur die Bedienung.
+  await expect(v.getByTestId('dash-status')).toHaveText('Aktualisiert sich automatisch');
+  await expect(foot(v)).toHaveText(['Tippe auf ein Spiel für Tore und Details.']);
+  await expect(v.getByText(/Aktualisiert sich/)).toHaveCount(1);
+
+  // In der App ebenso; ohne Karten steht der Satz nur in der Fußzeile der Eltern-Ansicht (S2).
+  await page.clock.setSystemTime(MATCHDAY);
+  await page.goto('./#/live-spieltag/dashboard');
+  await expect(page.getByTestId('dash-score-E1')).toHaveText('2:1');
+  await expect(foot(page)).toHaveText(['Tippe auf ein Spiel für Tore und Details.']);
+  await expect(page.getByText(/Aktualisiert sich/)).toHaveCount(1);
 });

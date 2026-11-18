@@ -208,6 +208,55 @@ test('020 US4-S7 Verbindung weg: hervorgehobener Hinweis wie bisher, danach wied
   await expect(status).toHaveText('Aktualisiert sich automatisch');
 });
 
+test('020 US4-S8 FR-E64 ohne eigene Verbindung keine Warnung und kein Alter auf den Karten, danach wieder', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await setup(page, recorded, relay, ['E1', 'E2']);
+  await sendAs(relay, links.trainer, e1At37());
+  await sendAs(
+    relay,
+    links.trainer,
+    liveSnap({
+      team: 'E2',
+      now: T,
+      clock: [
+        ['kickoff', 10, 1],
+        ['pause', 4, 1],
+      ],
+    }),
+  );
+  const v = await openViewer(newDevice, relay, links);
+  const status = v.getByTestId('dash-status');
+  await later(v, relay, 6 * MIN);
+  await expect(v.getByTestId('dash-stale-E1')).toBeVisible();
+  await expect(v.getByTestId('dash-stale-E2')).toBeVisible();
+
+  // Das Gerät verliert die Verbindung: die Kopfzeile genügt.
+  relay.fail = true;
+  await expect(status).toHaveAttribute('data-state', 'offline');
+  await expect(status).toContainText('Keine Verbindung');
+  for (const key of ['E1', 'E2']) {
+    await expect(v.getByTestId(`dash-stale-${key}`)).toHaveCount(0);
+    await expect(v.getByTestId(`dash-fresh-${key}`)).toHaveCount(0);
+    await expect(v.getByTestId(`dash-phaseline-${key}`)).not.toContainText('keine Meldung');
+    await expect(v.getByTestId(`dash-phaseline-${key}`)).not.toContainText('aktualisiert');
+    await expect(v.getByTestId(`dash-card-${key}`).locator('.dash-card__warn')).toHaveCount(0);
+  }
+  await expect(v.getByText('keine Meldung vom Spielfeld')).toHaveCount(0);
+  // Die Minute läuft weiter.
+  await expect(v.getByTestId('dash-phase-E1')).toHaveText(/^4\d'$/);
+
+  // Verbindung zurück: Warnung wie bisher.
+  relay.fail = false;
+  await v.clock.runFor(5 * SEC);
+  await expect(status).toHaveAttribute('data-state', 'live');
+  await expect(v.getByTestId('dash-stale-E1')).toBeVisible();
+  await expect(v.getByTestId('dash-stale-E2')).toBeVisible();
+});
+
 /** Zuschauer-Handy, dessen Verbindung beim Öffnen noch nicht steht (der Dienst antwortet verzögert). */
 async function openViewerSlow(newDevice: () => Promise<Page>, relay: FakeRelay, links: LiveLinks): Promise<Page> {
   relay.delayMs = 4_000;

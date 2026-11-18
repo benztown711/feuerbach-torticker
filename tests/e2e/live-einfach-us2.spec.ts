@@ -290,20 +290,23 @@ test('020 US2 Randfall: Lead-Handy der ersten Version mit einem Hauptknopf, "Liv
   expect(await lastText(rec)).toBe(`Unser Spieltag live verfolgen: ${links.viewer}`);
 });
 
-test('020 US2-S8 Spielmenü: "Eltern live zuschauen lassen", dann "Teilen"; kein "Zwischenstand teilen"', async ({
+test('020 US2-S8 Spielmenü: "Teilen" als erster Eintrag; kein "Zwischenstand teilen", kein "Eltern live zuschauen lassen"', async ({
   page,
 }) => {
   await ensureTeam(page, E1);
   await newGame(page, { ownTeam: E1 });
   await page.getByTestId('btn-menu').click();
-  await expect(page.getByTestId('menu-live-quick')).toBeVisible();
+  await expect(page.getByTestId('game-menu')).toBeVisible();
+  // Geändert durch Nachbesserung 2026-11-18 (FR-E60): kein "Eltern live zuschauen lassen" mehr im Menü.
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
   await expect(page.getByTestId('menu-share')).toHaveCount(0);
   await page.getByTestId('game-menu').getByRole('button', { name: 'Schließen' }).click();
 
   await page.getByTestId('btn-kickoff').click();
   await page.getByTestId('btn-menu').click();
   const menu = page.getByTestId('game-menu');
-  expect((await ids(menu)).slice(0, 2)).toEqual(['menu-live-quick', 'menu-share']);
+  expect((await ids(menu))[0]).toBe('menu-share');
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
   await expect(page.getByTestId('menu-share')).toHaveText('Teilen');
   await expect(page.getByTestId('menu-share-interim')).toHaveCount(0);
   await expect(menu).not.toContainText('Zwischenstand teilen');
@@ -335,7 +338,8 @@ test('020 US2-S8 Spielmenü: "Eltern live zuschauen lassen", dann "Teilen"; kein
   await expect(page.getByTestId('section-label')).toHaveText('Schlusspfiff');
   await acceptDraw(page);
   await page.getByTestId('btn-menu').click();
-  await expect(page.getByTestId('menu-live-quick')).toBeVisible();
+  await expect(page.getByTestId('game-menu')).toBeVisible();
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
   await expect(page.getByTestId('menu-share')).toHaveCount(0);
 });
 
@@ -422,4 +426,111 @@ test('020 US2-S12 ohne Mannschaft und ohne Live-Spieltag: Hinweis und "Zu den Ei
   await expect(page.getByTestId('btn-paste-link')).toHaveText('Trainer-Link einfügen');
   await settings.click();
   await expect(page).toHaveURL(/#\/einstellungen$/);
+});
+
+/** Spielmenü "…" eines laufenden Spiels öffnen (Spec 020 Nachbesserung 2026-11-18). */
+async function openMenu(page: Page): Promise<Locator> {
+  await page.getByTestId('btn-menu').click();
+  const menu = page.getByTestId('game-menu');
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+test('020 US2-S13 FR-E60 Spielmenü ohne "Eltern live zuschauen lassen": "Teilen" → "Live-Link für Eltern" macht alles', async ({
+  page,
+  recorded,
+  relay,
+}) => {
+  await ensureTeam(page, E1);
+  await startGame(page, { ownTeam: E1 });
+  const menu = await openMenu(page);
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
+  await expect(menu).not.toContainText('Eltern live zuschauen lassen');
+  expect((await ids(menu))[0]).toBe('menu-share');
+
+  // Ohne Live-Spieltag: Blatt "Eltern live zuschauen lassen", "Neu starten" legt an, teilt, das Spiel geht live.
+  await page.getByTestId('menu-share').click();
+  await page.getByTestId('share-live').click();
+  await expect(page.getByTestId('live-start-sheet')).toBeVisible();
+  await expect(page.getByTestId('live-start-paste')).toHaveText('Link einfügen');
+  await expect(page.getByTestId('live-start-teams')).toHaveText('Neu mit E1.');
+  await page.getByTestId('live-start-new').click();
+  await expect.poll(async () => (await recorded()).shares.length).toBe(1);
+  await expect(page.getByTestId('live-start-done')).toBeVisible();
+  await page.getByTestId('live-start-sheet').getByRole('button', { name: 'Schließen' }).click();
+  await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
+  await page.clock.runFor(6_000);
+  await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+
+  // Mit Live-Spieltag: teilt sofort; ein Spiel auf "Nicht live senden" geht wieder live.
+  await openMenu(page);
+  await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
+  await page.getByTestId('menu-live-toggle').click();
+  await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'off');
+  await openMenu(page);
+  await page.getByTestId('menu-share').click();
+  await page.getByTestId('share-live').click();
+  await expect.poll(async () => (await recorded()).shares.length).toBe(2);
+  await expect(page.getByTestId('live-pill')).toHaveAttribute('data-state', 'on');
+});
+
+test('020 US2-S14 FR-E61 "Nicht live senden" ist der letzte Eintrag und wie "Live beenden …" gestaltet', async ({
+  page,
+  recorded,
+  relay,
+}) => {
+  await createLive(page, recorded, { teams: ['E1'] });
+  await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+  await startGame(page, { ownTeam: E1 });
+  const menu = await openMenu(page);
+  const all = await ids(menu);
+  expect(all.at(-1)).toBe('menu-live-toggle');
+  expect(all.indexOf('menu-details')).toBeLessThan(all.indexOf('menu-live-toggle'));
+  const toggleBtn = page.getByTestId('menu-live-toggle');
+  await expect(toggleBtn).toHaveText('Nicht live senden');
+  // Gefahr-Gestaltung wie auf "Live für Eltern": dieselbe Schriftfarbe (rot-text) wie "Live beenden …".
+  const color = (l: Locator): Promise<string> => l.evaluate((e) => getComputedStyle(e).color);
+  const neutral = await color(page.getByTestId('menu-details'));
+  const danger = await color(toggleBtn);
+  expect(danger).not.toBe(neutral);
+  await page.getByTestId('game-menu').getByRole('button', { name: 'Schließen' }).click();
+  await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
+  expect(await color(page.getByTestId('btn-live-end'))).toBe(danger);
+  // "Live senden" bleibt neutral, ebenfalls am Ende.
+  await page.goto('./');
+  await page.getByTestId('btn-continue').click();
+  await openMenu(page);
+  await page.getByTestId('menu-live-toggle').click();
+  await openMenu(page);
+  const off = page.getByTestId('menu-live-toggle');
+  await expect(off).toHaveText('Live senden');
+  expect((await ids(page.getByTestId('game-menu'))).at(-1)).toBe('menu-live-toggle');
+  expect(await color(off)).toBe(neutral);
+});
+
+test('020 US2-S15 FR-E61 iPhone SE (375 × 667): "Schließen" im Spielmenü ohne Scrollen sichtbar', async ({
+  page,
+  recorded,
+  relay,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await createLive(page, recorded, { teams: ['E1'] });
+  await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+  await startGame(page, { ownTeam: E1 });
+  // Längster Zustand: laufendes Spiel mit "Tor nachtragen", "Uhr korrigieren" und "Nicht live senden".
+  await forward(page, 3 * MIN);
+  const menu = await openMenu(page);
+  await expect(page.getByTestId('menu-add-goal')).toBeVisible();
+  await expect(page.getByTestId('menu-fix-clock')).toBeVisible();
+  await expect(page.getByTestId('menu-live-toggle')).toBeVisible();
+  const close = menu.getByRole('button', { name: 'Schließen' });
+  await expect(close).toBeInViewport({ ratio: 1 });
+  const sheet = await menu.evaluate((e) => ({ scroll: e.scrollHeight, client: e.clientHeight }));
+  expect(sheet.scroll).toBeLessThanOrEqual(sheet.client);
+  for (const id of await ids(menu)) {
+    if (!id) continue;
+    // Die Einträge des Menüs behalten ihre Höhe (`.btn`, mindestens 48 pt wie bisher).
+    expect((await page.getByTestId(id).boundingBox())!.height).toBeGreaterThanOrEqual(48);
+  }
 });

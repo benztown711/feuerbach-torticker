@@ -17,6 +17,7 @@ import {
   otherGames,
   planSection,
   sentLabel,
+  shownFreshness,
   parseBoard,
   runningElsewhere,
   takeoverOffers,
@@ -1208,5 +1209,18 @@ describe('020 US3 FR-E23 Tore der Karte nennen Mannschaft und Torschützen', () 
       ['TSV Musterstadt', 'Nr. 7'],
       ['Feuerbach E1', 'Tom'],
     ]);
+  });
+});
+
+describe('020 US4-S8 FR-E64 ohne eigene Verbindung keine Aktualität auf den Karten', () => {
+  const states = [{ kind: 'fresh' }, { kind: 'age', minutes: 3 }, { kind: 'silent', minutes: 7 }] as const;
+
+  it('mit Verbindung bleibt alles, wie es ist; ohne Verbindung (offline) entfällt es', () => {
+    for (const f of states) {
+      expect(shownFreshness(f, false)).toEqual(f);
+      expect(shownFreshness(f, true)).toBeNull();
+    }
+    expect(shownFreshness(null, false)).toBeNull();
+    expect(shownFreshness(null, true)).toBeNull();
   });
 });

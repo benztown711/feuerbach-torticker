@@ -7,6 +7,7 @@ import {
   formatClockTime,
   formatDay,
   freshnessText,
+  shownFreshness,
   planSection,
   type BoardCard,
   type PlanRow,
@@ -81,11 +82,14 @@ function Card({
   card,
   open,
   flash,
+  offline,
   onToggle,
 }: {
   card: BoardCard;
   open: boolean;
   flash: boolean;
+  /** FR-E64: ohne eigene Verbindung keine Aktualität auf der Karte. */
+  offline: boolean;
   onToggle: () => void;
 }) {
   const k = card.key;
@@ -94,7 +98,7 @@ function Card({
   const [homeGoals, awayGoals] = planned ? ['', ''] : card.score.split(':');
   const cls = ['dash-card', card.live ? 'dash-card--live' : '', flash ? 'card--flash' : ''].filter(Boolean).join(' ');
   // Spec 020 FR-E30 bis FR-E32: Alter der letzten Meldung bzw. ab 5 Minuten die Warnung, nur bei laufendem Spiel.
-  const fresh = card.freshness;
+  const fresh = shownFreshness(card.freshness, offline);
   return (
     <article class={cls} data-testid={`dash-card-${k}`} data-game={card.gameId} data-plan={card.planId ?? undefined}>
       <button
@@ -605,6 +609,7 @@ export function Dashboard({
                 card={c}
                 open={open.has(c.key)}
                 flash={flash.has(c.gameId)}
+                offline={state.relay === 'offline'}
                 onToggle={() => toggle(c.key)}
               />
             ))}
@@ -622,9 +627,13 @@ export function Dashboard({
         <DashPlan section={plan} />
         <DashRecent recent={v.recent} />
         <footer class="dash__foot" data-testid="dash-foot">
-          {v.cards.length > 0 && <p>Tippe auf ein Spiel für Tore und Details.</p>}
-          {/* Spec 020 FR-E40: Eltern-Ansicht ohne Ausgang in die Trainer-App (Weg über die Eltern-Hilfe). */}
-          {parents && <p>Aktualisiert sich von selbst.</p>}
+          {/* Spec 020 FR-E65: die Kopfzeile sagt schon "Aktualisiert sich automatisch"; die Fußzeile wiederholt es nur ohne Spiele. */}
+          {v.cards.length > 0 ? (
+            <p>Tippe auf ein Spiel für Tore und Details.</p>
+          ) : (
+            /* Spec 020 FR-E40: Eltern-Ansicht ohne Ausgang in die Trainer-App (Weg über die Eltern-Hilfe). */
+            parents && <p>Aktualisiert sich von selbst.</p>
+          )}
         </footer>
       </main>
       {/* FR-E23: außerhalb von `main`, damit die Ansage auch bei offener Eltern-Hilfe (main verborgen) gelesen wird. */}

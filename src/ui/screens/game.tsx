@@ -154,7 +154,7 @@ export function GameScreen({ id }: { id: string }) {
   const [reshareAt, setReshareAt] = useState(0);
   useReshareTimer(reshareAt, () => setReshareAt(0));
   /**
-   * Spec 020: "Eltern live zuschauen lassen" (US1) und Blatt "Teilen" (US2), vorab nachgeladen (R-E1, R-E10); Blatt
+   * Spec 020: Blatt "Teilen" mit "Live-Link für Eltern" (US2, FR-E60), vorab nachgeladen (R-E1, R-E10); Blatt
    * "Eltern live zuschauen lassen" ohne Live-Spieltag.
    */
   const [quick, setQuick] = useState<ShareSheetModule | null>(null);
@@ -785,16 +785,6 @@ export function GameScreen({ id }: { id: string }) {
 
       {menu && (
         <Sheet title="Spiel" testId="game-menu" onClose={() => setMenu(false)}>
-          {quick && settings && (
-            <quick.MenuQuick
-              settings={settings}
-              game={cur()}
-              onGameLive={goLive}
-              onMsg={showMsg}
-              onStart={() => setQuickSheet(true)}
-              onClose={() => setMenu(false)}
-            />
-          )}
           {goalsOpen || status === 'break' ? (
             <button
               type="button"
@@ -873,10 +863,19 @@ export function GameScreen({ id }: { id: string }) {
           >
             Trikots ändern
           </button>
+          <button
+            type="button"
+            class="btn btn--secondary"
+            data-testid="menu-details"
+            onClick={() => navigate(`/spiel/${game.id}/details`)}
+          >
+            Spieldetails
+          </button>
+          {/* Spec 020 FR-E61: ganz unten; "Nicht live senden" in Gefahr-Farbe wie "Live beenden …". */}
           {liveStatus !== null && liveStatus !== 'handed' && (
             <button
               type="button"
-              class="btn btn--secondary"
+              class={game.live === false ? 'btn btn--secondary' : 'btn btn--secondary live__action--danger'}
               data-testid="menu-live-toggle"
               onClick={() => {
                 setMenu(false);
@@ -886,14 +885,6 @@ export function GameScreen({ id }: { id: string }) {
               {game.live === false ? 'Live senden' : 'Nicht live senden'}
             </button>
           )}
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="menu-details"
-            onClick={() => navigate(`/spiel/${game.id}/details`)}
-          >
-            Spieldetails
-          </button>
         </Sheet>
       )}
 

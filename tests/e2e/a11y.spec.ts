@@ -165,7 +165,8 @@ test.describe('020 Paket A: Startbildschirm, Blätter und "Live für Eltern" ohn
       await page.getByTestId('btn-continue').click();
       await page.getByTestId('btn-kickoff').click();
       await page.getByTestId('btn-menu').click();
-      await expect(page.getByTestId('menu-live-quick')).toBeVisible();
+      await expect(page.getByTestId('menu-share')).toBeVisible();
+      await expect(page.getByTestId('menu-live-quick')).toHaveCount(0);
       await axe();
       await page.getByTestId('menu-share').click();
       await expect(page.getByTestId('share-sheet')).toBeVisible();

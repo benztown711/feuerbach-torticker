@@ -265,24 +265,6 @@ function useShortMsg(): [string, (text: string) => void] {
   ];
 }
 
-/** FR-E02: erster Eintrag im Spielmenü "…". */
-export function MenuQuick(props: Omit<QuickHost, 'game'> & { game: Game; onClose: () => void }) {
-  if (quickAction(props.settings, props.game).kind === 'hidden') return null;
-  return (
-    <button
-      type="button"
-      class="btn btn--secondary"
-      data-testid="menu-live-quick"
-      onClick={() => {
-        props.onClose();
-        quickTap(props);
-      }}
-    >
-      Eltern live zuschauen lassen
-    </button>
-  );
-}
-
 type StartOffersModule = typeof import('./start-offers');
 
 /**
@@ -380,7 +362,8 @@ export function StartLive({
           {quickMsg}
         </p>
       )}
-      {!active && (
+      {/* Spec 020 FR-E62: ein Einstieg; neben dem Knopf steht "Link einfügen" im Blatt, die Karte nur ohne Knopf. */}
+      {!active && quick.kind === 'hidden' && (
         <section class="card start__trainer" data-testid="start-trainer-card">
           <p class="start__trainer-text">
             {live ? (

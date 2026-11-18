@@ -9,7 +9,7 @@ import { Sheet } from './sheet';
  */
 
 // Der Spielbildschirm lädt nur dieses Modul vorab; es bringt den Ablauf aus US1 mit.
-export { LiveStartSheet, MenuQuick } from './live-start';
+export { LiveStartSheet } from './live-start';
 
 type Props = QuickHost & {
   /** "Stand als Text": Zwischenstand teilen (Spec 001 FR-042). */
