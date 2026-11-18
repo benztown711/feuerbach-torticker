@@ -308,24 +308,27 @@ export function InstallHint({ settings }: { settings: Settings }) {
     return null;
   return (
     <section class="card start__install" aria-labelledby="start-install-title" data-testid="start-install-hint">
-      <h2 id="start-install-title" class="start__install-title">
-        Torticker auf den Home-Bildschirm legen
-      </h2>
+      {/* Spec 022 FR-F44: "Später" rechts neben der Überschrift, damit er ohne Scrollen erreichbar ist. */}
+      <div class="start__install-head">
+        <h2 id="start-install-title" class="start__install-title">
+          Torticker auf den <span class="nowrap">Home-Bildschirm</span> legen
+        </h2>
+        <button
+          type="button"
+          class="btn btn--quiet start__install-later"
+          data-testid="start-install-later"
+          onClick={() => {
+            saveLater(today);
+            setLaterDay(today);
+          }}
+        >
+          Später
+        </button>
+      </div>
       <p class="start__install-text">Nur dann bleiben deine Spiele dauerhaft gespeichert.</p>
       <p class="start__install-text" data-testid="start-install-how">
         {installSteps(installPlatform(navigator.userAgent, navigator.maxTouchPoints))}
       </p>
-      <button
-        type="button"
-        class="btn btn--quiet start__install-later"
-        data-testid="start-install-later"
-        onClick={() => {
-          saveLater(today);
-          setLaterDay(today);
-        }}
-      >
-        Später
-      </button>
     </section>
   );
 }

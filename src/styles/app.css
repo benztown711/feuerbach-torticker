@@ -4068,10 +4068,27 @@ button.plan__row {
   line-height: 22px;
 }
 
+/* Spec 022 FR-F44 (geändert durch Nachbesserung 2026-11-18): Überschrift links, "Später" rechts daneben. */
+.start__install-head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.start__install-head .start__install-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .start__install-later {
-  align-self: flex-start;
+  flex: none;
   min-height: 48px;
-  margin-top: var(--space-1);
+  padding: 0 var(--space-4);
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 /* US2 FR-F10: "Weiter zum Anpfiff" unten angeheftet, über der Navigationsleiste (Body-Rand = Höhe der Leiste) */
