@@ -25,8 +25,8 @@ import { StartCouple } from './start-couple';
 
 /**
  * Spec 020 US1 (nachgeladen, research.md R-E10): "Eltern live zuschauen lassen" auf dem Startbildschirm und im
- * Spielmenü, Blatt "Eltern live zuschauen lassen" ("Link einfügen", "Neu starten"). Dazu der übrige Live-Teil des
- * Startbildschirms (Spec 012, Spec 018), damit das Hauptbundle klein bleibt.
+ * Spielmenü, Blatt "Eltern live zuschauen lassen" ("Link einfügen", "Live-Spieltag anlegen"). Dazu der übrige
+ * Live-Teil des Startbildschirms (Spec 012, Spec 018), damit das Hauptbundle klein bleibt.
  */
 
 /** FR-E11: kurze Statuszeile bzw. Meldeband nach dem Teilen; Abbrechen zeigt nichts. */
@@ -111,7 +111,8 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
   const [msg, setMsg] = useState('');
   const [flow, setFlow] = useState<{ text: string | null } | null>(null);
 
-  // R-E1: Schlüssel schon beim Öffnen erzeugen (nur auf dem Handy, keine Verbindung), damit "Neu starten" schnell teilt.
+  // R-E1: Schlüssel schon beim Öffnen erzeugen (nur auf dem Handy, keine Verbindung), damit "Live-Spieltag anlegen"
+  // schnell teilt.
   useEffect(() => {
     let alive = true;
     void prepareLive(ids.length)

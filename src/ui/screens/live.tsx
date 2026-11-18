@@ -243,8 +243,8 @@ export function LiveScreen() {
         <div class="form live" data-testid="live-empty">
           {settings?.liveView && <DashboardButton label={`Dashboard „${settings.liveView.title}“ ansehen`} />}
           <p class="live__lead">Eltern sehen eure Spiele live: Stand, Minute und Tore, ohne App und ohne Konto.</p>
-          {/* Spec 020 FR-E15: Hauptknopf öffnet das Blatt mit "Link einfügen" und "Neu starten"; ohne eigene
-              Mannschaft (wie "Eltern live zuschauen lassen", FR-E03) zuerst in die Einstellungen. */}
+          {/* Spec 020 FR-E15: Hauptknopf öffnet das Blatt mit "Link einfügen" und "Live-Spieltag anlegen"; ohne
+              eigene Mannschaft (wie "Eltern live zuschauen lassen", FR-E03) zuerst in die Einstellungen. */}
           {quickAction(settings, null).kind === 'start' ? (
             <ShareViewer onClick={() => setQuick(true)} />
           ) : (

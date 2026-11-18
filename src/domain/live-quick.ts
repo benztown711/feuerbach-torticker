@@ -18,7 +18,7 @@ export type QuickTeam =
 export type QuickAction =
   /** FR-E03: kein Knopf. */
   | { kind: 'hidden' }
-  /** FR-E06: Blatt "Eltern live zuschauen lassen" mit "Link einfügen" und "Neu starten". */
+  /** FR-E06: Blatt "Eltern live zuschauen lassen" mit "Link einfügen" und "Live-Spieltag anlegen" (022 FR-F30). */
   | { kind: 'start' }
   /** FR-E04: sofort teilen; `makeLive` schaltet das Spiel wieder auf "Live senden". */
   | { kind: 'share'; makeLive: boolean; team: QuickTeam };
@@ -44,7 +44,7 @@ export function quickAction(settings: Settings, game: Game | null): QuickAction 
 }
 
 /**
- * FR-E07: Mannschaften für "Neu starten": die des aktuellen, nicht beendeten Spiels (falls unter "Meine
+ * FR-E07: Mannschaften für "Live-Spieltag anlegen": die des aktuellen, nicht beendeten Spiels (falls unter "Meine
  * Mannschaften"), sonst die einzige, sonst alle in der Reihenfolge von "Meine Mannschaften", höchstens sechs.
  */
 export function quickTeams(teams: Team[], game: Game | null): string[] {
