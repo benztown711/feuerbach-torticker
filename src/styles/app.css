@@ -2952,15 +2952,12 @@ body:has(.page:not(.dash, .lead-link)) {
   min-height: 64px;
 }
 
-/* FR-E06: "Ein anderer Trainer hat schon einen Link?" zuerst, abgesetzt vom Hauptweg "Live-Spieltag anlegen". */
+/* Spec 022 FR-F41 (geändert durch Nachbesserung 2026-11-18): "Ein anderer Trainer hat schon einen Link?" unter dem Hauptweg, ohne Kasten. */
 .live-start__alt {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
+  margin-top: var(--space-2);
 }
 
 .live-start__done {

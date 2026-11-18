@@ -221,14 +221,6 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
       <p class="sheet__text" data-testid="live-start-lead">
         Eltern sehen Stand, Minute und Tore live, ohne App.
       </p>
-      <div class="live-start__alt">
-        <p class="sheet__text" data-testid="live-start-other">
-          <strong>Ein anderer Trainer hat schon einen Link?</strong>
-        </p>
-        <button type="button" class="btn btn--secondary live-start__btn" data-testid="live-start-paste" onClick={paste}>
-          Link einfügen
-        </button>
-      </div>
       <p class="sheet__text" data-testid="live-start-teams">
         {startHint(settings.teams, ids)}
       </p>
@@ -245,6 +237,15 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten
         und Lesezeichen bleiben auf dem Handy.
       </p>
+      {/* Spec 022 FR-F41: Nebenweg unter dem Hauptweg, ohne Kasten, aber im selben Blatt ohne Scrollen sichtbar. */}
+      <div class="live-start__alt">
+        <p class="sheet__text" data-testid="live-start-other">
+          <strong>Ein anderer Trainer hat schon einen Link?</strong>
+        </p>
+        <button type="button" class="btn btn--secondary live-start__btn" data-testid="live-start-paste" onClick={paste}>
+          Link einfügen
+        </button>
+      </div>
       {status}
     </Sheet>
   );
