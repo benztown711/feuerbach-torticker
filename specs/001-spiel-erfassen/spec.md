@@ -138,7 +138,7 @@ Nach einem Feuerbach-Tor kann der Nutzer optional den Torschützen auswählen, e
 **Acceptance Scenarios**:
 
 1. **Given** ein gerade erfasstes Feuerbach-Tor, **When** der Nutzer in der Schnellauswahl "Max" antippt, **Then** zeigt die Torliste "12' Feuerbach, Max" (seit Spec 009 FR-V11 ohne Mannschaftsnamen: "12' Max").
-2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach 8 Sekunden ohne Torschützen.
+2. **Given** die Schnellauswahl ist offen, **When** der Nutzer nichts tut, **Then** schließt sie sich nach 8 Sekunden ohne Torschützen. (Geändert durch Spec 021 US2: Die Schnellauswahl ist nicht-modal und verdeckt die Tor-Knöpfe nicht; ein Tipp auf einen Tor-Knopf schließt sie ohne Torschützen und zählt das neue Tor.)
 3. **Given** ein Feuerbach-Tor ohne Torschützen, **When** der Nutzer es in der Torliste antippt, **Then** kann er einen Torschützen aus dem Kader wählen.
 4. **Given** ein Gegentor, **When** der Nutzer es in der Torliste antippt, **Then** kann er optional einen Torschützen als Freitext eintragen (Name oder Rückennummer, z. B. "Nr. 9"; das Feld zeigt diesen Hinweis als Platzhalter).
 5. **Given** ein Tor, **When** der Nutzer "Eigentor" wählt, **Then** wird es als Eigentor gekennzeichnet.
@@ -261,7 +261,7 @@ Ein Trainer fügt eine einfache Namensliste ein (z. B. aus SpielerPlus, WhatsApp
 - **FR-039**: Der Bildschirm "Neues Spiel" MUSS einen Knopf "Ton testen" bieten, der den gewählten Signalton (Spec 008 FR-K05) sofort abspielt (Lautstärke prüfen, Ton freischalten). Solange ein Spiel läuft oder angehalten ist, MUSS die App den Audio-Kanal mit einer stillen Tonspur offen halten, damit iOS ihn nicht stilllegt.
 - **FR-008**: Jedes Tor MUSS sofort rückgängig gemacht (Undo-Leiste, 10 s) und jederzeit über die Torliste entfernt (mit Bestätigung), wiederhergestellt oder bearbeitet werden können. Entfernte Tore zählen nicht, bleiben durchgestrichen sichtbar und erscheinen nicht im geteilten Text.
 - **FR-034**: Die Torliste auf dem Spielbildschirm MUSS alle Tore zeigen (neuestes oben) und in sich scrollbar sein.
-- **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze aus dem Kader gewählt werden können, zusätzlich "Eigentor Gegner". Für Gegentore KANN optional ein Torschütze als Freitext eingetragen werden.
+- **FR-009**: Für Feuerbach-Tore MUSS optional ein Torschütze aus dem Kader gewählt werden können, zusätzlich "Eigentor Gegner". Für Gegentore KANN optional ein Torschütze als Freitext eingetragen werden. Die Schnellauswahl direkt nach dem Tor ist seit Spec 021 (FR-W10 bis FR-W15) nicht-modal über den Tor-Knöpfen angedockt.
 - **FR-010**: Der Spielzustand MUSS nach jeder Änderung lokal persistiert werden und einen App-Neustart überstehen.
 - **FR-022**: Beendete Spiele MÜSSEN dauerhaft lokal in einer Historie gespeichert bleiben, bis der Nutzer sie löscht. Gespeichert werden Datum, Uhrzeit von Anpfiff, Abschnittsenden, Pausen und Abpfiff sowie für jedes Tor Spielminute und Uhrzeit.
 - **FR-023**: Die App MUSS beim Browser dauerhaften Speicher anfordern und, wenn sie nicht vom Home-Bildschirm läuft, auf die Installation hinweisen.
