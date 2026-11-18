@@ -39,6 +39,7 @@ TypeScript, Preact, Vitest, Playwright wie in `specs/001-spiel-erfassen/plan.md`
 
 | Datei | Änderung |
 |---|---|
+| `src/domain/opponent.ts` (neu) | `OPPONENT_FALLBACK`, `opponentName(raw)`, `setOpponent(game, raw)` (FR-F11, FR-F13) |
 | `src/domain/install-hint.ts` (neu) | `installPlatform(ua, touchPoints)`, `installSteps(platform)`, `showInstallHint({standalone, dismissedAt, laterDay, today})` (R-F1, R-F2) |
 | `src/domain/live-quick.ts` | `startHint`: "Mit E1 und E2." (FR-F30) |
 | `src/domain/help-entries.ts` | sieben Einträge (Spec "Hilfe") |
@@ -48,7 +49,8 @@ TypeScript, Preact, Vitest, Playwright wie in `specs/001-spiel-erfassen/plan.md`
 | Datei | Änderung |
 |---|---|
 | `src/ui/components/live-start.tsx` | `InstallHint` (US1) unter allen Aktionen von `StartLive`; Karte "Trainer? …" mit Zusatzsatz (US3); Blatt: Knopf "Live-Spieltag anlegen", Fertig-Zustand mit "Trainer-Link teilen" (US4) |
-| `src/ui/screens/new-game.tsx` | Gegner optional (`opponent.trim() || 'Gegner'` vor der Prüfung), Platzhalter, Grund-Zeile, angehefteter Knopf (US2) |
+| `src/ui/screens/new-game.tsx` | Gegner optional (`opponentName` vor der Prüfung), Platzhalter, Grund-Zeile, angehefteter Knopf (US2) |
+| `src/ui/screens/game-details.tsx`, `src/ui/components/opponent-sheet.tsx` (neu, nachgeladen) | "Gegner ändern" neben "Trikots ändern" (US2, FR-F13) |
 | `src/ui/screens/settings.tsx` | Titel "Torvorlagen (Assists)" (US3) |
 | `src/ui/screens/live-dashboard.tsx` | keine Codeänderung; Schalter nur per CSS (US4) |
 | `src/ui/screens/live.tsx` | "Link einfügen" in der Karte "TRAINER" (US4); Bereich "Für Trainer" als eine Fläche (CSS) |
@@ -59,6 +61,7 @@ TypeScript, Preact, Vitest, Playwright wie in `specs/001-spiel-erfassen/plan.md`
 
 | Datei | Inhalt |
 |---|---|
+| `tests/unit/opponent.test.ts` (neu) | Name, Fallback, Änderung (100 % Branch) |
 | `tests/unit/install-hint.test.ts` (neu) | Plattform, Anleitung, Sichtbarkeit (100 % Branch) |
 | `tests/unit/live-quick.test.ts` | `startHint` "Mit …" |
 | `tests/e2e/erster-start-us1.spec.ts` bis `-us4.spec.ts` (neu) | je Akzeptanzszenario ein Test mit ID im Namen |
@@ -67,4 +70,4 @@ TypeScript, Preact, Vitest, Playwright wie in `specs/001-spiel-erfassen/plan.md`
 
 ## Konfliktkandidaten mit Paket B (Spec 021)
 
-`src/ui/screens/new-game.tsx` (Paket B: Vorbelegung des Gegners; Paket E: Gegnerfeld, Knopf), `src/domain/help-entries.ts` (Paket B im Block Spiel; Paket E in Start, Spiel erfassen, Ereignisse und Live), `src/styles/app.css` (je ein eigener, markierter Block am Dateiende), `tests/e2e/a11y.spec.ts` (je ein eigener describe-Block am Ende). `game.tsx`, `scorer-picker.tsx`, `goal-list.tsx` fasst Paket E nicht an.
+`src/ui/screens/new-game.tsx` (Paket B: Vorbelegung des Gegners; Paket E: Gegnerfeld, Knopf), `src/domain/help-entries.ts` (Paket B im Block Spiel; Paket E in Start, Spiel erfassen, Ereignisse und Live), `src/ui/screens/game-details.tsx` (nur "Gegner ändern"), `src/styles/app.css` (je ein eigener, markierter Block am Dateiende), `tests/e2e/a11y.spec.ts` (je ein eigener describe-Block am Ende). `game.tsx`, `scorer-picker.tsx`, `goal-list.tsx` fasst Paket E nicht an.

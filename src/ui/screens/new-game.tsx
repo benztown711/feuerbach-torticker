@@ -3,6 +3,7 @@ import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
 import { startPrivate } from '../../domain/live-snapshot';
+import { opponentName } from '../../domain/opponent';
 import { isRetired, liveTeamFor, titleOf } from '../../domain/live-spieltag';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
@@ -272,7 +273,8 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
   );
   const input = {
     ownTeam: team.name,
-    opponent,
+    // Spec 022 FR-F11: ohne Eintrag heißt der Gegner "Gegner".
+    opponent: opponentName(opponent),
     venue,
     schema: { sections, sectionMinutes: minutes },
     ownColor,
@@ -288,7 +290,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
     today: choices.today.filter((c) => teamOf(c)),
     later: choices.later.filter((c) => teamOf(c)),
   };
-  const oppLabel = opponent.trim() || 'Gegner';
+  const oppLabel = opponentName(opponent);
   const sides =
     venue === 'home'
       ? [
@@ -510,7 +512,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
               value={opponent}
               maxLength={40}
               autocomplete="off"
-              placeholder="z. B. TSV Musterstadt"
+              placeholder="Gegner (optional)"
               onInput={(e) => setOpponent(e.currentTarget.value)}
             />
           </div>
@@ -710,15 +712,23 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
           )}
         </section>
 
-        <button
-          type="submit"
-          class="btn btn--primary btn--large"
-          data-testid="btn-create"
-          disabled={!check.ok || busy}
-          aria-busy={busy}
-        >
-          Weiter zum Anpfiff
-        </button>
+        {/* Spec 022 FR-F10, FR-F14: unten angeheftet, ein gesperrter Knopf nennt seinen Grund. */}
+        <div class="form__bar" data-testid="create-bar">
+          {!check.ok && (
+            <p class="field__error" role="status" data-testid="create-reason">
+              {Object.values(check.errors)[0]}
+            </p>
+          )}
+          <button
+            type="submit"
+            class="btn btn--primary btn--large"
+            data-testid="btn-create"
+            disabled={!check.ok || busy}
+            aria-busy={busy}
+          >
+            Weiter zum Anpfiff
+          </button>
+        </div>
       </form>
       {running && (
         <div class="overlay overlay--bottom">

@@ -25,7 +25,8 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 **Independent Test**: "Neues Spiel" auf 390 × 844 und 375 × 667: Knopf sichtbar, ohne Gegner bedienbar, Gegner heißt "Gegner".
 
 - [ ] T020 [P] [US2] E2E `tests/e2e/erster-start-us2.spec.ts` (US2-S1 bis US2-S8), rot
-- [ ] T021 [US2] `src/ui/screens/new-game.tsx`: Gegner optional, Platzhalter "Gegner (optional)", Grund-Zeile, angehefteter Knopf; CSS-Block
+- [ ] T020a [P] [US2] Unit-Test `tests/unit/opponent.test.ts` (`opponentName`, `setOpponent`, 100 % Branch), rot
+- [ ] T021 [US2] `src/domain/opponent.ts`, `src/ui/screens/new-game.tsx`: Gegner optional, Platzhalter "Gegner (optional)", Grund-Zeile, angehefteter Knopf; `game-details.tsx` und `opponent-sheet.tsx`: "Gegner ändern"; CSS-Block
 - [ ] T022 [US2] Hilfe: `neues-spiel` (Quelle 022 US2)
 - [ ] T023 [US2] Bestehende Tests anpassen (Gegner leer = erlaubt statt gesperrt), siehe "Geänderte bestehende Tests"
 

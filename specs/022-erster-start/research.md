@@ -21,6 +21,12 @@
 - **Tastatur**: Auf Android (Chromium) verkleinert sich der Layout-Viewport, der Knopf rückt über die Tastatur. Auf iOS Safari bleibt der Layout-Viewport und die Tastatur legt sich darüber; der Knopf liegt dann unter der Tastatur, "Enter" im Feld startet das Spiel (Formularabschluss bestand schon). Das ist mit dem Gerätetest in Review C zu bestätigen.
 - **Alternatives considered**: `position: fixed` mit gemessener Höhe als Seitenrand (Messung, Sprünge); Navigationsleiste ausblenden (andere Seiten haben sie, Konsistenz).
 
+## R-F3a Gegnername nachträglich ändern
+
+- **Decision**: Neuer Knopf "Gegner ändern" in den Spieldetails neben "Trikots ändern"; kleines Blatt (`opponent-sheet.tsx`, nachgeladen, damit das Hauptbundle nicht wächst) mit Feld und "Übernehmen"; Logik in `src/domain/opponent.ts` (`setOpponent`), Speichern über dasselbe `update` wie alle Korrekturen (Live-Sender, "Korrigiert. Ergebnis neu teilen?").
+- **Rationale**: Der Auftrag setzte voraus, der Gegner lasse sich „wie bisher über Spiel korrigieren“ ändern. Im Code und in Spec 017 gibt es das nicht (nur Tore, Trikots, Heim/Gast). Ohne Weg wäre "Gegner" nach dem Anlegen endgültig, und Gegner optional machte den Torticker für den Teilen-Text schlechter. Das Spielmenü gehört Paket B (`game.tsx`), deshalb liegt der Weg in den Spieldetails (auch aus dem Spielmenü über "Spieldetails" erreichbar).
+- **Alternatives considered**: Eintrag im Spielmenü (Konflikt mit Paket B, Folgeaufgabe möglich); Gegner im Spiel nicht änderbar lassen (Befund bleibt).
+
 ## R-F4 Schalter "Ton bei Toren" in Rot
 
 - **Decision**: Fläche im Zustand "an" `rot-tief` (wie der Hauptknopf außerhalb des Spiels, `design/README.md`), Schieber `on-rot`, Rahmen `ink` bleibt. Kontrastpaar `on-rot` auf `rot-tief` (4,5:1) steht schon in der Matrix und deckt den Schieber ab; hell und dunkel sind gleich, weil Markenflächen sich nicht ändern. Die Beschreibung des Paars nennt jetzt auch den Schalter. Übergang `transform` und `background` 0,15 s, bei `prefers-reduced-motion: reduce` keiner.
