@@ -378,7 +378,9 @@ test('021 US1-S8 iPhone SE: "Nächstes Spiel", Spieldetails und Ergebnis teilen 
   expect(next.y - (band.y + band.height)).toBeLessThanOrEqual(16);
 });
 
-test('021 US1-S9 Endzustand: Torliste nur so hoch wie ihr Inhalt, der freie Raum ist Seitenhintergrund', async ({ page }) => {
+test('021 US1-S9 Endzustand: Torliste nur so hoch wie ihr Inhalt, der freie Raum ist Seitenhintergrund', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await playFinishedGame(page, ['own', 'opp']);
   const list = page.getByTestId('goal-list');
