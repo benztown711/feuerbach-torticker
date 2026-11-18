@@ -129,13 +129,13 @@ Die Hinweise "geändert durch Spec 020" in den Specs 001, 005, 006, 007, 008, 01
 
 Vier P2-Befunde (FR-E60 bis FR-E66), Atti hat freigegeben. Test zuerst (rot), kleine Commits `fix(020)`/`test(020)`/`docs(020)`. Hauptbundle hat kaum Luft (59,6 KB von 60 KB): Code in `live-start.tsx`, `share-sheet.tsx`, `live-dashboard.tsx` (nachgeladen).
 
-- [ ] T050 [P] [US1] [US2] Spielmenü (FR-E60, FR-E61): E2E "020 US2-S13" (kein `menu-live-quick`; "Teilen" → "Live-Link für Eltern" mit vollem Verhalten, Blatt ohne Live-Spieltag), "020 US2-S14" (`menu-live-toggle` letzter Eintrag, Gefahr-Farbe `rot-text`, "Live senden" neutral), "020 US2-S15" (375 × 667: "Schließen" im Blatt sichtbar ohne Scrollen); `live-einfach-us1` (S2, S4, S9, Reihenfolge) und `live-einfach-us2` (S8) auf den Weg über "Teilen" umstellen; `src/ui/screens/game.tsx`, `src/ui/components/live-start.tsx` (`MenuQuick` entfällt), `src/ui/components/share-sheet.tsx`
-- [ ] T051 [P] [US1] Startbildschirm (FR-E62, FR-E63): E2E "020 US1-S11" (Karte weg mit Knopf, "Link einfügen" im Blatt; Karte bleibt ohne Mannschaft und bei neu ausgestellt), "020 US1-S12" (Blatt erkennt Trainer-Link, Zuschauer-Link, Kader-Liste, Einfügefeld wie die Karte); `startbildschirm.spec.ts` (018 US2) und `live-einfach-us1` S1 anpassen; `src/ui/components/live-start.tsx` (`StartLive`)
-- [ ] T052 [P] [US4] Offline (FR-E64): Unit `tests/unit/live-board.test.ts` (`shownFreshness`), E2E "020 US4-S8"; `src/domain/live-board.ts`, `src/ui/screens/live-dashboard.tsx`
-- [ ] T053 [P] [US5] Fußzeile (FR-E65): E2E "020 US5-S7"; `live-einfach-us5` S1, S2, S5 und `hilfe-eltern` anpassen; `src/ui/screens/live-dashboard.tsx`
-- [ ] T054 Hilfe (FR-E66): `eltern-zuschauen`, `live-senden`, `trainer-link`, `kader-liste`, `selbst-trainieren`, `keine-verbindung`, `keine-meldung` (`src/domain/help-entries.ts`); Hilfe-Abdeckung grün
-- [ ] T055 Specs 006, 012, 016, 018, 019 mit Nachtrag (erledigt mit der Spec)
-- [ ] T056 `npm run check`; gezielte E2E; `npm run e2e:changed`; volle Suite; Referenzbilder `dashboard-*` später aus der CI
+- [x] T050 [P] [US1] [US2] Spielmenü (FR-E60, FR-E61): E2E "020 US2-S13" (kein `menu-live-quick`; "Teilen" → "Live-Link für Eltern" mit vollem Verhalten, Blatt ohne Live-Spieltag), "020 US2-S14" (`menu-live-toggle` letzter Eintrag, Gefahr-Farbe `rot-text`, "Live senden" neutral), "020 US2-S15" (375 × 667: "Schließen" im Blatt sichtbar ohne Scrollen); `live-einfach-us1` (S2, S4, S9, Reihenfolge) und `live-einfach-us2` (S8) auf den Weg über "Teilen" umstellen; `src/ui/screens/game.tsx`, `src/ui/components/live-start.tsx` (`MenuQuick` entfällt), `src/ui/components/share-sheet.tsx`
+- [x] T051 [P] [US1] Startbildschirm (FR-E62, FR-E63): E2E "020 US1-S11" (Karte weg mit Knopf, "Link einfügen" im Blatt; Karte bleibt ohne Mannschaft und bei neu ausgestellt), "020 US1-S12" (Blatt erkennt Trainer-Link, Zuschauer-Link, Kader-Liste, Einfügefeld wie die Karte); `startbildschirm.spec.ts` (018 US2) und `live-einfach-us1` S1 anpassen; `src/ui/components/live-start.tsx` (`StartLive`)
+- [x] T052 [P] [US4] Offline (FR-E64): Unit `tests/unit/live-board.test.ts` (`shownFreshness`), E2E "020 US4-S8"; `src/domain/live-board.ts`, `src/ui/screens/live-dashboard.tsx`
+- [x] T053 [P] [US5] Fußzeile (FR-E65): E2E "020 US5-S7"; `live-einfach-us5` S1, S2, S5 und `hilfe-eltern` anpassen; `src/ui/screens/live-dashboard.tsx`
+- [x] T054 Hilfe (FR-E66): `eltern-zuschauen`, `live-senden`, `trainer-link`, `kader-liste`, `selbst-trainieren`, `keine-verbindung`, `keine-meldung` (`src/domain/help-entries.ts`); Hilfe-Abdeckung grün
+- [x] T055 Specs 006, 012, 016, 018, 019 mit Nachtrag (erledigt mit der Spec)
+- [x] T056 `npm run check`; gezielte E2E; `npm run e2e:changed`; volle Suite; Referenzbilder `dashboard-*` später aus der CI
 
 ## Dependencies
 

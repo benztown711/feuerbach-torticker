@@ -466,7 +466,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie übernehme ich eine Spielerliste aus WhatsApp?',
     answer:
-      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein; „Link einfügen“ auf dem Startbildschirm erkennt sie auch. Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. „Kader teilen“ schickt den Kader an Kollegen; Kürzel wie „Max Mü.“ bleiben erhalten. Steht in der ersten Zeile ein Kadername wie „Kader E3:“, kommen die Kinder in diesen Kader; fehlt er, legt die App ihn an. Trainer mit Trainer-Link brauchen das nicht: Geteilte Kader kommen von selbst an.',
+      'Kopiere die Liste in WhatsApp. Unter „Kader“ tippst du auf „Liste einfügen“ und setzt sie ein; „Link einfügen“ auf dem Startbildschirm erkennt sie auch (mit eigener Mannschaft im Blatt von „Eltern live zuschauen lassen“). Die App erkennt Namen und Nummern und zeigt vor dem Übernehmen, was ihr auffällt. „Kader teilen“ schickt den Kader an Kollegen; Kürzel wie „Max Mü.“ bleiben erhalten. Steht in der ersten Zeile ein Kadername wie „Kader E3:“, kommen die Kinder in diesen Kader; fehlt er, legt die App ihn an. Trainer mit Trainer-Link brauchen das nicht: Geteilte Kader kommen von selbst an.',
     keywords:
       'liste einfügen import whatsapp kopieren kader teilen kollegen kürzel abkürzung kadername e3 link einfügen',
     sources: ['001 US7', '015 FR-P23', '016 US4'],
@@ -544,9 +544,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie lasse ich Eltern live zuschauen?',
     answer:
-      'Tippe auf dem Startbildschirm oder im Spiel unter „…“ auf „Eltern live zuschauen lassen“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Ohne eigene Mannschaft legst du sie zuerst in den Einstellungen an. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
+      'Tippe auf dem Startbildschirm auf „Eltern live zuschauen lassen“. Im laufenden Spiel geht es unter „…“ mit „Teilen“ und „Live-Link für Eltern“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Ohne eigene Mannschaft legst du sie zuerst in den Einstellungen an. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
     keywords: 'eltern zuschauen live link elterngruppe schicken senden schnell neu starten mitschauen verfolgen',
-    sources: ['020 US1'],
+    sources: ['020 US1', '020 US2'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'live-senden', 'trainer-link'],
   },
@@ -566,7 +566,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Ohne Symbol geht „Koppeln und loslegen“ auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“. Danach steht auf dem Startbildschirm „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Das geht auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“ (mit Mannschaft unter „Eltern live zuschauen lassen“). Danach steht dort „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
     keywords:
       'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
     sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1'],
@@ -589,9 +589,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Woran sehe ich, dass mein Spiel live gesendet wird?',
     answer:
-      'Oben im Spiel steht „Live“. Ohne Netz steht dort „Wartet auf Netz“; Tore zählen trotzdem sofort und werden nachgeschickt. Soll ein Spiel nicht gesendet werden, zum Beispiel ein Testspiel, tippst du auf „…“ und „Nicht live senden“. „Eltern live zuschauen lassen“ schaltet ein Spiel, das auf „Nicht live senden“ steht, wieder ein.',
+      'Oben im Spiel steht „Live“. Ohne Netz steht dort „Wartet auf Netz“; Tore zählen trotzdem sofort und werden nachgeschickt. Soll ein Spiel nicht gesendet werden, zum Beispiel ein Testspiel, tippst du auf „…“ und „Nicht live senden“. „Nicht live senden“ steht ganz unten im Menü. „Teilen“ und „Live-Link für Eltern“ schaltet ein Spiel, das auf „Nicht live senden“ steht, wieder ein.',
     keywords: 'live senden netz funkloch wartet nicht live testspiel',
-    sources: ['006 US2', '020 US1'],
+    sources: ['006 US2', '020 US1', '020 US2'],
     related: ['live-anlegen', 'trainer-link'],
   },
   {
@@ -784,7 +784,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Was bedeutet „Keine Verbindung“?',
     answer:
-      'Dein Handy hat gerade kein Netz. Du siehst den letzten bekannten Stand. Sobald das Netz zurück ist, aktualisiert sich die Seite von selbst; du musst nichts tun. Sonst steht oben „Aktualisiert sich automatisch“.',
+      'Dein Handy hat gerade kein Netz. Du siehst den letzten bekannten Stand. Sobald das Netz zurück ist, aktualisiert sich die Seite von selbst; du musst nichts tun. Solange das Netz fehlt, zeigen die Spiele keine eigene Warnung. Sonst steht oben „Aktualisiert sich automatisch“.',
     keywords: 'keine verbindung netz offline alt stand aktualisieren automatisch',
     sources: ['006 US3', '020 US4'],
     parents: true,
@@ -807,7 +807,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Was bedeutet „keine Meldung vom Spielfeld“?',
     answer:
-      '„vor 2 Min aktualisiert“ zeigt, wie frisch der Stand ist. Steht dort „Seit 7 Min keine Meldung vom Spielfeld“, hat das Handy am Spielfeld nichts gesendet (Funkloch, leerer Akku, App zu). Die Minute läuft weiter, der Stand kann aber veraltet sein. In der Halbzeit und nach dem Spiel gibt es keine Warnung.',
+      '„vor 2 Min aktualisiert“ zeigt, wie frisch der Stand ist. Steht dort „Seit 7 Min keine Meldung vom Spielfeld“, hat das Handy am Spielfeld nichts gesendet (Funkloch, leerer Akku, App zu). Die Minute läuft weiter, der Stand kann aber veraltet sein. In der Halbzeit und nach dem Spiel gibt es keine Warnung. Hat dein Handy selbst kein Netz („Keine Verbindung“), steht sie nicht dort, sondern oben.',
     keywords: 'keine meldung spielfeld veraltet aktualisiert funkloch akku alt stand warnung minuten frisch',
     sources: ['020 US4'],
     parents: true,
@@ -818,7 +818,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Ich trainiere selbst. Wo finde ich den Torticker?',
     answer:
-      'Tippe auf „Torticker öffnen“. Auf dem Startbildschirm findest du „Neues Spiel“ oder „Link einfügen“ für einen Trainer-Link. Für den Spielfeldrand legst du den Torticker von dort auf den Home-Bildschirm.',
+      'Tippe auf „Torticker öffnen“. Auf dem Startbildschirm findest du „Neues Spiel“ oder „Link einfügen“ für einen Trainer-Link (mit eigener Mannschaft unter „Eltern live zuschauen lassen“). Für den Spielfeldrand legst du den Torticker von dort auf den Home-Bildschirm.',
     keywords: 'trainer selbst trainieren torticker öffnen app startbildschirm neues spiel eltern coach',
     sources: ['020 US5'],
     parents: true,
