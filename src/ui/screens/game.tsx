@@ -724,7 +724,13 @@ export function GameScreen({ id }: { id: string }) {
                   >
                     Spieldetails
                   </button>
-                  <button type="button" class="btn btn--primary" data-testid="btn-share" onClick={() => void doShare()}>
+                  {/* Spec 021 FR-W01: eine Hauptaktion je Seite ("Nächstes Spiel"); teilen bleibt ein Tipp. */}
+                  <button
+                    type="button"
+                    class="btn btn--secondary"
+                    data-testid="btn-share"
+                    onClick={() => void doShare()}
+                  >
                     Ergebnis teilen
                   </button>
                 </>

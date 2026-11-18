@@ -71,6 +71,19 @@ test('021 US1-S1 nach dem Schlusspfiff "Nächstes Spiel" statt der Tor-Knöpfe; 
   await expect(page.locator('.controls').getByRole('button', { name: 'Spieldetails' })).toBeVisible();
 });
 
+test('021 US1-S1 FR-W01 eine Hauptaktion: "Ergebnis teilen" im Endzustand als Zweitknopf wie "Spieldetails"', async ({
+  page,
+}) => {
+  await playFinishedGame(page, ['own']);
+  const share = page.getByTestId('btn-share');
+  await expect(share).toHaveClass(/\bbtn--secondary\b/);
+  await expect(share).not.toHaveClass(/\bbtn--primary\b/);
+  // Nur "Nächstes Spiel" ist gefüllt; "Ergebnis teilen" sieht aus wie "Spieldetails".
+  const details = page.locator('.controls').getByRole('button', { name: 'Spieldetails' });
+  const bg = await details.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await expect(share).toHaveCSS('background-color', bg);
+});
+
 test('021 US1-S2 Vorbelegung aus dem beendeten Spiel, Gegner leer mit Fokus', async ({ page }) => {
   await ensureTeam(page, E1);
   await ensureTeam(page, E2);
