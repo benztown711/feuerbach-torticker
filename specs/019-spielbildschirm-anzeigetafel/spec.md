@@ -131,7 +131,7 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 
 **Unverändert**
 
-- **FR-A30**: Verhalten, Texte und Abläufe des Spielbildschirms MÜSSEN ansonsten gleich bleiben: Tor-Knöpfe (FR-016, FR-031, FR-032), Doppeltipp-Sperre, 10 Sekunden Rückgängig (FR-008), Torschützen-Auswahl, Ereignis-Zeile (Spec 003 FR-E09), "…"-Menü, Navigationsleiste (FR-037). Nachtrag 17.11.2026: Das "…"-Menü ändert Spec 020 (FR-E02: "Eltern live zuschauen lassen" als erster Eintrag; FR-E18: "Teilen" statt "Zwischenstand teilen"); "Ergebnis teilen" teilt weiter direkt (FR-E19, Präzisierung 2026-11-17). Größen nach FR-A20 bleiben.
+- **FR-A30**: Verhalten, Texte und Abläufe des Spielbildschirms MÜSSEN ansonsten gleich bleiben: Tor-Knöpfe (FR-016, FR-031, FR-032), Doppeltipp-Sperre, 10 Sekunden Rückgängig (FR-008), Torschützen-Auswahl, Ereignis-Zeile (Spec 003 FR-E09), "…"-Menü, Navigationsleiste (FR-037). Nachtrag 17.11.2026: Das "…"-Menü ändert Spec 020 (FR-E02: "Eltern live zuschauen lassen" als erster Eintrag; FR-E18: "Teilen" statt "Zwischenstand teilen"); "Ergebnis teilen" teilt weiter direkt (FR-E19, Präzisierung 2026-11-17). Größen nach FR-A20 bleiben. Nachtrag 18.11.2026, geändert durch Spec 020 Nachbesserung FR-E60, FR-E61: Das Spielmenü "…" hat keinen Eintrag "Eltern live zuschauen lassen" mehr; "Teilen" ist der erste Eintrag, "Nicht live senden" bzw. "Live senden" der letzte (Gefahr-Gestaltung), und "Schließen" ist auf 375 × 667 pt ohne Scrollen sichtbar.
 
 ### Key Entities
 
