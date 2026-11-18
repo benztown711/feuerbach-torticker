@@ -271,9 +271,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie erfasse ich, wer das Tor vorgelegt hat?',
     answer:
-      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Vorlagen“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
+      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Torvorlagen (Assists)“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
     keywords: 'vorlage vorlagen assist vorgelegt pass zuspiel vorlagengeber',
-    sources: ['009 US1', '009 US4'],
+    sources: ['009 US1', '009 US4', '022 US3'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
     related: ['vorlage-aendern', 'torschuetze', 'vorlage-teilen'],
   },
@@ -567,10 +567,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Das geht auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“ (mit Mannschaft unter „Eltern live zuschauen lassen“). Danach steht dort „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Das geht auch gleich im Browser. Danach steht auf dem Startbildschirm „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit. Hat er den Torticker schon auf dem Home-Bildschirm, fügt er den Link dort ein:',
+    steps: [
+      'Den Link schickt dir der Trainer, z. B. per WhatsApp: lange drücken, Kopieren, hier einfügen.',
+      'Auf dem Startbildschirm „Link einfügen“ tippen (mit Mannschaft unter „Eltern live zuschauen lassen“, sonst auf der Karte „Trainer?“).',
+    ],
     keywords:
       'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
-    sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1'],
+    sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1', '022 US3'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'trainer-kader', 'live-senden'],
   },

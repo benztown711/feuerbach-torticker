@@ -429,6 +429,10 @@ export function StartLive({
               </>
             )}
           </p>
+          {/* Spec 022 FR-F20: woher der Link kommt und wie man ihn einfügt. */}
+          <p class="start__trainer-text" data-testid="start-trainer-how">
+            Den Link schickt dir der Trainer, z. B. per WhatsApp: lange drücken, Kopieren, hier einfügen.
+          </p>
           <button type="button" class="btn btn--secondary" data-testid="btn-start-paste" onClick={onPaste}>
             Link einfügen
           </button>

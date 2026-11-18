@@ -42,7 +42,11 @@ const FEATURE_SWITCHES: { key: keyof EventFeatures; title: string; help: string 
     help: 'Nur für dich, z. B. Szenen für die Veo-Kamera merken. Erscheinen nie im geteilten Text.',
   },
   /** Spec 009 FR-V01. */
-  { key: 'assists', title: 'Vorlagen', help: 'Nach dem Torschützen fragen, wer vorgelegt hat. Nur eigene Tore.' },
+  {
+    key: 'assists',
+    title: 'Torvorlagen (Assists)',
+    help: 'Nach dem Torschützen fragen, wer vorgelegt hat. Nur eigene Tore.',
+  },
 ];
 
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
