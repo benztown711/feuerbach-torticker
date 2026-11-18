@@ -55,11 +55,14 @@ test.describe('US2 Trikotfarben, Mannschaftsname und Tauschen', () => {
     await expect(page.getByTestId('score')).toHaveText('1 : 0');
   });
 
-  test('FR-001 ohne Gegner geht es nicht weiter', async ({ page }) => {
+  // Spec 022 FR-F11 (ändert FR-001): Der Gegner ist optional, ohne Eintrag heißt er "Gegner" (erster-start-us2.spec.ts).
+  test('FR-001 ohne Gegner geht es mit dem Namen "Gegner" weiter', async ({ page }) => {
     await page.goto('./');
     await page.getByTestId('btn-new-game').click();
     await page.getByTestId('input-opponent').fill('');
-    await expect(page.getByTestId('btn-create')).toBeDisabled();
+    await expect(page.getByTestId('btn-create')).toBeEnabled();
+    await page.getByTestId('btn-create').click();
+    await expect(page.getByTestId('team-away')).toHaveText('Gegner');
   });
 
   test('FR-016 der Spielbildschirm nutzt Textknöpfe ohne Symbole', async ({ page }) => {

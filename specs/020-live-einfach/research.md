@@ -76,3 +76,7 @@ Nummern R-E1 bis R-E10. Grundlagen des Live-Spieltags stehen in `specs/006-live-
 
 - **Decision**: Hauptbundle unter 60 KB gzip. Im Hauptbundle nur der Knopf auf dem Startbildschirm und der Menüeintrag; Blatt "Eltern live zuschauen lassen", Ablauf und Blatt "Teilen" liegen in nachgeladenen Modulen (`src/ui/components/live-start.tsx`, `src/ui/components/share-sheet.tsx`), wie `start-couple.tsx` (R-L7). Schalter, Titel und Ansage gehören zum Dashboard, das schon nachgeladen wird.
 - **Parallelarbeit**: Paket A und Paket C ändern getrennte Dateien; gemeinsam sind nur `src/domain/help-entries.ts`, `src/styles/app.css`, `tests/e2e/live-helpers.ts`, `tests/e2e/live-us3.spec.ts` (verschiedene Tests), `tests/e2e/a11y.spec.ts` (je ein neuer Test) und `specs/020-live-einfach/` (tasks.md, Abschnitt "Gemeinsam berührte Dateien"). Jedes Paket legt nur Tests seiner eigenen User Stories an, damit die Hilfe-Abdeckung (Spec 010 FR-H21) in jedem PR für sich aufgeht. Konfliktarme Regeln: Paket A fügt Hilfe-Einträge am Anfang des Themas "Live-Spieltag" ein, Paket C nach `keine-verbindung`; CSS je Paket in einem eigenen, mit Kommentar markierten Block; Helfer von Paket A stehen bei `createLive`, die von Paket C am Dateiende.
+
+## Gerätetest (T043)
+
+Gerätetest 18.11.2026 durch Atti am iPhone: Live starten, Link teilen (Safari, direkt nach Neu starten), Eltern-Ansicht, Tor: bestanden.

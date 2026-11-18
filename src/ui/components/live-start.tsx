@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { teamShortLabel } from '../../domain/history';
+import { installPlatform, installSteps, showInstallHint } from '../../domain/install-hint';
 import { quickAction, quickTeams, startHint, teamHint, type QuickAction } from '../../domain/live-quick';
 import { DEFAULT_LIVE_TITLE, isRetired, titleOf } from '../../domain/live-spieltag';
 import { setLive } from '../../domain/live-snapshot';
+import { todayKey } from '../../domain/plan';
 import type { Game, LiveSpieltag, Settings } from '../../domain/types';
 import { getGame, putGame } from '../../platform/db';
 import {
@@ -10,10 +12,12 @@ import {
   createLive,
   prepareLive,
   sendGameNow,
+  shareTrainerLink,
   shareViewerLink,
   type PreparedLive,
 } from '../../platform/live-setup';
 import type { ShareResult } from '../../platform/share';
+import { isStandalone } from '../../platform/storage';
 import { readClipboard } from '../clipboard';
 import { navigate } from '../router';
 import { Sheet } from './sheet';
@@ -21,8 +25,8 @@ import { StartCouple } from './start-couple';
 
 /**
  * Spec 020 US1 (nachgeladen, research.md R-E10): "Eltern live zuschauen lassen" auf dem Startbildschirm und im
- * Spielmenü, Blatt "Eltern live zuschauen lassen" ("Link einfügen", "Neu starten"). Dazu der übrige Live-Teil des
- * Startbildschirms (Spec 012, Spec 018), damit das Hauptbundle klein bleibt.
+ * Spielmenü, Blatt "Eltern live zuschauen lassen" ("Link einfügen", "Live-Spieltag anlegen"). Dazu der übrige
+ * Live-Teil des Startbildschirms (Spec 012, Spec 018), damit das Hauptbundle klein bleibt.
  */
 
 /** FR-E11: kurze Statuszeile bzw. Meldeband nach dem Teilen; Abbrechen zeigt nichts. */
@@ -107,7 +111,8 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
   const [msg, setMsg] = useState('');
   const [flow, setFlow] = useState<{ text: string | null } | null>(null);
 
-  // R-E1: Schlüssel schon beim Öffnen erzeugen (nur auf dem Handy, keine Verbindung), damit "Neu starten" schnell teilt.
+  // R-E1: Schlüssel schon beim Öffnen erzeugen (nur auf dem Handy, keine Verbindung), damit "Live-Spieltag anlegen"
+  // schnell teilt.
   useEffect(() => {
     let alive = true;
     void prepareLive(ids.length)
@@ -196,12 +201,17 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         >
           Link für Eltern teilen
         </button>
-        {status}
         {done.kind === 'started' && (
-          <p class="sheet__text sheet__text--muted" data-testid="live-start-trainer">
-            Den Trainer-Link für die anderen Trainer findest du unter „Mehr“ → „Live für Eltern“ → „Für Trainer“.
-          </p>
+          <button
+            type="button"
+            class="btn btn--secondary live-start__btn"
+            data-testid="live-start-share-trainer"
+            onClick={() => void shareTrainerLink(done.live).then((r) => setMsg(SHARE_MSG[r]))}
+          >
+            Trainer-Link teilen
+          </button>
         )}
+        {status}
       </Sheet>
     );
   }
@@ -229,7 +239,7 @@ export function LiveStartSheet({ settings, game, onGameLive, onSettings, onClose
         disabled={working}
         onClick={() => void start()}
       >
-        Neu starten
+        Live-Spieltag anlegen
       </button>
       <p class="sheet__text sheet__text--muted" data-testid="live-start-data">
         Dann gehen Mannschaften, Spielstand und Tore mit Vornamen verschlüsselt an den Dienst des Vereins. Kader, Karten
@@ -266,6 +276,58 @@ function useShortMsg(): [string, (text: string) => void] {
 }
 
 type StartOffersModule = typeof import('./start-offers');
+
+/** Spec 022 R-F1: Kalendertag von "Später" nur auf diesem Gerät merken; ohne Browserspeicher gilt es bis zum Neuladen. */
+const INSTALL_LATER = 'torticker-install-later';
+
+function savedLater(): string | null {
+  try {
+    return window.localStorage.getItem(INSTALL_LATER);
+  } catch {
+    return null;
+  }
+}
+
+function saveLater(day: string): void {
+  try {
+    window.localStorage.setItem(INSTALL_LATER, day);
+  } catch {
+    // Speicher gesperrt: "Später" gilt nur bis zum Neuladen.
+  }
+}
+
+/**
+ * Spec 022 US1 (FR-F01 bis FR-F05): Hinweis zur Installation unter allen Aktionen des Startbildschirms, solange die App
+ * nicht vom Home-Bildschirm läuft. "Später" blendet ihn bis zum nächsten Kalendertag aus.
+ */
+export function InstallHint({ settings }: { settings: Settings }) {
+  const [laterDay, setLaterDay] = useState<string | null>(savedLater);
+  const today = todayKey(Date.now());
+  if (!showInstallHint({ standalone: isStandalone(), dismissedAt: settings.installHintDismissedAt, laterDay, today }))
+    return null;
+  return (
+    <section class="card start__install" aria-labelledby="start-install-title" data-testid="start-install-hint">
+      <h2 id="start-install-title" class="start__install-title">
+        Torticker auf den Home-Bildschirm legen
+      </h2>
+      <p class="start__install-text">Nur dann bleiben deine Spiele dauerhaft gespeichert.</p>
+      <p class="start__install-text" data-testid="start-install-how">
+        {installSteps(installPlatform(navigator.userAgent, navigator.maxTouchPoints))}
+      </p>
+      <button
+        type="button"
+        class="btn btn--quiet start__install-later"
+        data-testid="start-install-later"
+        onClick={() => {
+          saveLater(today);
+          setLaterDay(today);
+        }}
+      >
+        Später
+      </button>
+    </section>
+  );
+}
 
 /**
  * Live-Teil des Startbildschirms: Spec 018 "E2 übernehmen" (US2) und "Spiele verfolgen" (US1), Spec 020 FR-E01
@@ -374,6 +436,10 @@ export function StartLive({
               </>
             )}
           </p>
+          {/* Spec 022 FR-F20: woher der Link kommt und wie man ihn einfügt. */}
+          <p class="start__trainer-text" data-testid="start-trainer-how">
+            Den Link schickt dir der Trainer, z. B. per WhatsApp: lange drücken, Kopieren, hier einfügen.
+          </p>
           <button type="button" class="btn btn--secondary" data-testid="btn-start-paste" onClick={onPaste}>
             Link einfügen
           </button>
@@ -384,6 +450,7 @@ export function StartLive({
           )}
         </section>
       )}
+      <InstallHint settings={settings} />
       {flow && (
         <StartCouple
           text={flow.text}

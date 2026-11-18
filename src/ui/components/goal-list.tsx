@@ -17,6 +17,15 @@ interface Props {
 
 type Item = { at: number; row: GoalRow; ev?: undefined } | { at: number; ev: GameEvent; row?: undefined };
 
+/** Spec 021 FR-W20: Pfeil am Zeilenende zeigt, dass sich die Zeile antippen lässt (für Screenreader verborgen). */
+function Chevron() {
+  return (
+    <svg class="icon goal-row__chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 function EventRow({
   game,
   ev,
@@ -46,6 +55,7 @@ function EventRow({
       <span class="goal-row__score">{icon}</span>
       <span class="goal-row__team">{text}</span>
       {ev.kind === 'mark' && <span class="goal-row__tag goal-row__tag--private">nur für dich</span>}
+      {onOpen && <Chevron />}
     </button>
   );
 }
@@ -81,6 +91,7 @@ export function GoalList({ game, players, onOpen, events = [], onOpenEvent }: Pr
             {/* Spec 009 FR-V11: mit Torschütze ohne Mannschaftsnamen, z. B. "Max (Vorlage: Ben)". */}
             <span class="goal-row__team">{goalWho(game, it.row.goal, players)}</span>
             {it.row.removed && <span class="goal-row__tag">entfernt</span>}
+            <Chevron />
           </button>
         ),
       )}

@@ -3,16 +3,18 @@ import { createGame } from '../../domain/game';
 import { teamShortLabel } from '../../domain/history';
 import { defaultOppColor, getColor, rememberColors } from '../../domain/jersey-colors';
 import { startPrivate } from '../../domain/live-snapshot';
+import { opponentName } from '../../domain/opponent';
 import { isRetired, liveTeamFor, titleOf } from '../../domain/live-spieltag';
+import { nextGameDraft, nextPlanChoice, type NextGameDraft } from '../../domain/next-game';
 import { visiblePlayers } from '../../domain/roster';
 import { defaultSettings } from '../../domain/settings';
 import { signalSoundName } from '../../domain/signal-sound';
 import { hasSquads, squadName, squadOfTeam, squadSplit, squadsOf } from '../../domain/squads';
 import { currentTeam, findTeam, ownColorFor, recordTeamUse, schemaFor, squadFor } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
-import type { Settings, Team, Venue } from '../../domain/types';
+import type { Game, Settings, Team, Venue } from '../../domain/types';
 import { validateNewGame } from '../../domain/validation';
-import { getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
+import { getGame, getPlayers, getSettings, listGames, putGame, putSettings } from '../../platform/db';
 import { onLiveSettings, onPlanChanged } from '../../platform/live-events';
 import type { PlanChoice } from '../../platform/live-setup';
 import type { LiveWatch, RunningGame } from '../../platform/live-watch';
@@ -81,7 +83,7 @@ function Mark({ colorId }: { colorId: string }) {
 const otherClaim = (c: PlanChoice | null): string | null =>
   !c || c.claim === '' || c.claim === 'du' ? null : c.claim === 'vergeben' ? 'Ein anderer Trainer' : c.claim;
 
-export function NewGameScreen({ plan }: { plan?: string } = {}) {
+export function NewGameScreen({ plan, after }: { plan?: string; after?: string } = {}) {
   const dark = useDarkTheme();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [teamId, setTeamId] = useState('');
@@ -117,6 +119,11 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
   const [claimAsk, setClaimAsk] = useState(false);
   /** US6-S5: vom Startbildschirm ("Heute tickerst du") vorgegebenes Planspiel, einmal auswählen. */
   const autoPick = useRef(plan ?? null);
+  /** Spec 021 US1: beendetes Spiel hinter "Nächstes Spiel"; bis das Planspiel geprüft ist. */
+  const prev = useRef<Game | null>(null);
+  /** Spec 021 FR-W04: Fokus auf den Gegner steht noch aus (einmal, wenn die Vorbelegung samt Planspiel steht). */
+  const focusOpp = useRef(false);
+  const [draftReady, setDraftReady] = useState(false);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -148,14 +155,48 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
     setFromPlan(c);
   };
 
+  /**
+   * Spec 021 FR-W02: eigenes Trikot (und ohne Planspiel Heim/Gast, Spielzeit, Live) aus dem beendeten Spiel. Das
+   * Gegner-Trikot folgt wie bei jedem neuen Spiel dem Gegner (gemerkte Farbe bzw. Standard, FR-031).
+   */
+  const applyDraft = (d: NextGameDraft, all: boolean): void => {
+    if (all) {
+      setVenue(d.venue);
+      setSections(d.sections);
+      setMinutes(d.minutes);
+      setLiveOn(d.live);
+    }
+    setOwnColor(d.ownColor);
+    setOwnTouched(d.ownTouched);
+  };
+
   useEffect(() => {
-    void getSettings().then((s) => {
+    void Promise.all([getSettings(), after ? getGame(after) : undefined]).then(([s, g]) => {
       setSettings(s);
-      applyTeam(s, currentTeam(s));
+      const d = g ? nextGameDraft(g, s.teams) : null;
+      applyTeam(s, s.teams.find((t) => t.id === d?.teamId) ?? currentTeam(s));
+      if (g && d) {
+        prev.current = g;
+        focusOpp.current = true;
+        applyDraft(d, true);
+        // Ohne Spielplan (kein Live-Spieltag mit Plan) steht die Vorbelegung jetzt schon fest.
+        if (!s.live?.orgKey) {
+          prev.current = null;
+          setDraftReady(true);
+        }
+      }
       // Spec 008 FR-K05: "Ton testen" spielt den gewählten Ton.
       setSignalSound(s.signalSound);
     });
   }, []);
+
+  // Spec 021 FR-W04: einmal, sobald die Vorbelegung samt Planspiel steht, und nur bei leerem Gegner (kommt er aus dem
+  // Spielplan, verdeckte die Tastatur sonst die angeheftete Leiste mit "Weiter zum Anpfiff").
+  useEffect(() => {
+    if (!draftReady || !focusOpp.current) return;
+    focusOpp.current = false;
+    if (opponent === '') document.getElementById('opponent')?.focus();
+  }, [draftReady, opponent]);
 
   const team = settings ? findTeam(settings, teamId) : null;
 
@@ -201,7 +242,12 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
           // neuen Stand nehmen (US6-S6: eine inzwischen eingegangene Vormerkung zählt).
           setFromPlan((f) => (f ? ([...c.today, ...c.later].find((x) => x.entry.id === f.entry.id) ?? null) : null));
         })
-        .catch(() => undefined);
+        .catch(() => {
+          // Spielplan nicht lesbar: "Nächstes Spiel" ohne Planspiel.
+          if (!alive || !prev.current) return;
+          prev.current = null;
+          setDraftReady(true);
+        });
     load();
     const off = onPlanChanged(load);
     return () => {
@@ -216,6 +262,18 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
     const c = [...choices.today, ...choices.later].find((x) => x.entry.id === autoPick.current);
     autoPick.current = null;
     if (c) pickWith(settings, c);
+  }, [choices, settings]);
+
+  // Spec 021 FR-W03: nach "Nächstes Spiel" das nächste offene Planspiel der Mannschaft von heute, Trikots bleiben.
+  useEffect(() => {
+    const g = prev.current;
+    if (!g || !choices || !settings) return;
+    prev.current = null;
+    setDraftReady(true);
+    const c = nextPlanChoice(choices.today, liveTeamFor(g.ownTeam, settings.live)?.key);
+    if (!c || !teamOfChoice(settings, c)) return;
+    pickWith(settings, c);
+    applyDraft(nextGameDraft(g, settings.teams, c.entry.venue), false);
   }, [choices, settings]);
 
   // FR-M03: eigenes Trikot folgt Heim/Auswärts, solange es nicht von Hand geändert wurde.
@@ -272,7 +330,8 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
   );
   const input = {
     ownTeam: team.name,
-    opponent,
+    // Spec 022 FR-F11: ohne Eintrag heißt der Gegner "Gegner".
+    opponent: opponentName(opponent),
     venue,
     schema: { sections, sectionMinutes: minutes },
     ownColor,
@@ -288,7 +347,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
     today: choices.today.filter((c) => teamOf(c)),
     later: choices.later.filter((c) => teamOf(c)),
   };
-  const oppLabel = opponent.trim() || 'Gegner';
+  const oppLabel = opponentName(opponent);
   const sides =
     venue === 'home'
       ? [
@@ -510,7 +569,7 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
               value={opponent}
               maxLength={40}
               autocomplete="off"
-              placeholder="z. B. TSV Musterstadt"
+              placeholder="Gegner (optional)"
               onInput={(e) => setOpponent(e.currentTarget.value)}
             />
           </div>
@@ -710,15 +769,23 @@ export function NewGameScreen({ plan }: { plan?: string } = {}) {
           )}
         </section>
 
-        <button
-          type="submit"
-          class="btn btn--primary btn--large"
-          data-testid="btn-create"
-          disabled={!check.ok || busy}
-          aria-busy={busy}
-        >
-          Weiter zum Anpfiff
-        </button>
+        {/* Spec 022 FR-F10, FR-F14: unten angeheftet, ein gesperrter Knopf nennt seinen Grund. */}
+        <div class="form__bar" data-testid="create-bar">
+          {!check.ok && (
+            <p class="field__error" role="status" data-testid="create-reason">
+              {Object.values(check.errors)[0]}
+            </p>
+          )}
+          <button
+            type="submit"
+            class="btn btn--primary btn--large"
+            data-testid="btn-create"
+            disabled={!check.ok || busy}
+            aria-busy={busy}
+          >
+            Weiter zum Anpfiff
+          </button>
+        </div>
       </form>
       {running && (
         <div class="overlay overlay--bottom">

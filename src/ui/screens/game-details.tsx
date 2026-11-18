@@ -6,6 +6,7 @@ import { shootoutState } from '../../domain/cup';
 import { cardText, marksText, personLabel, subText } from '../../domain/events';
 import { goalWho, homeAway, score } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
+import { setOpponent } from '../../domain/opponent';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
 import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { shortTeamName } from '../../domain/team-name';
@@ -15,8 +16,9 @@ import { trashGames } from '../../platform/trash';
 import { shareText } from '../../platform/share';
 import { Confirm } from '../components/confirm';
 import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
-import { addGoalStep, GoalEditor, type EditStep } from '../components/goal-editor';
+import { addGoalStep, type EditStep } from '../components/goal-steps';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
+import { useGoalEditor } from '../components/goal-editor-load';
 import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow } from '../hooks';
@@ -62,8 +64,13 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [marksMsg, setMarksMsg] = useState('');
   /** Spec 017 R-C1: offenes Korrektur-Blatt. */
   const [edit, setEdit] = useState<EditStep | null>(null);
+  /** Spec 021 R-W3: Tor-Blätter nachgeladen, beim Öffnen vorgeladen, nach einem Fehler beim nächsten Tipp neu. */
+  const editor = useGoalEditor(edit);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
+  /** Spec 022 FR-F13: Blatt "Gegner ändern", nachgeladen (Hauptbundle). */
+  const [opponentOpen, setOpponentOpen] = useState(false);
+  const [opponentMod, setOpponentMod] = useState<typeof import('../components/opponent-sheet') | null>(null);
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
   const [reshareAt, setReshareAt] = useState(0);
   const dark = useDarkTheme();
@@ -96,6 +103,10 @@ export function GameDetailsScreen({ id }: { id: string }) {
     if (before && needsReshare(before, g, players)) setReshareAt(Date.now());
   };
   const cur = (): Game => gameRef.current ?? game;
+  const openOpponent = (): void => {
+    setOpponentOpen(true);
+    void import('../components/opponent-sheet').then(setOpponentMod, () => setOpponentOpen(false));
+  };
 
   const ha = homeAway(game.venue, score(game));
   const [home, away] = game.venue === 'home' ? [game.ownTeam, game.opponent] : [game.opponent, game.ownTeam];
@@ -171,14 +182,20 @@ export function GameDetailsScreen({ id }: { id: string }) {
         </div>
         <div class="details__foot">
           {summary && <p class="details__meta">{summary}</p>}
-          <button
-            type="button"
-            class="link-btn details__kits"
-            data-testid="details-kits"
-            onClick={() => setKitsOpen(true)}
-          >
-            Trikots ändern
-          </button>
+          <span class="details__fixes">
+            {/* Spec 022 FR-F13: der Name ist änderbar, vor allem ein leer gelassener ("Gegner"). */}
+            <button type="button" class="link-btn details__kits" data-testid="details-opponent" onClick={openOpponent}>
+              Gegner ändern
+            </button>
+            <button
+              type="button"
+              class="link-btn details__kits"
+              data-testid="details-kits"
+              onClick={() => setKitsOpen(true)}
+            >
+              Trikots ändern
+            </button>
+          </span>
         </div>
       </section>
 
@@ -352,6 +369,17 @@ export function GameDetailsScreen({ id }: { id: string }) {
         onHide={() => setReshareAt(0)}
       />
 
+      {opponentOpen && opponentMod && (
+        <opponentMod.OpponentSheet
+          name={game.opponent}
+          onSave={(name) => {
+            update(setOpponent(cur(), name));
+            setOpponentOpen(false);
+          }}
+          onClose={() => setOpponentOpen(false)}
+        />
+      )}
+
       {kitsOpen && (
         <KitsSheet
           game={game}
@@ -364,16 +392,18 @@ export function GameDetailsScreen({ id }: { id: string }) {
         />
       )}
 
-      <GoalEditor
-        game={game}
-        players={players}
-        settings={settings}
-        step={edit}
-        onStep={setEdit}
-        cur={cur}
-        update={update}
-        now={now}
-      />
+      {editor && (
+        <editor.GoalEditor
+          game={game}
+          players={players}
+          settings={settings}
+          step={edit}
+          onStep={setEdit}
+          cur={cur}
+          update={update}
+          now={now}
+        />
+      )}
 
       {askDelete && (
         <Confirm

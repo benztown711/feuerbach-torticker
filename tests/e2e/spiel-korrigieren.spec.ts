@@ -521,7 +521,8 @@ test.describe('017 US3 Erinnerung an neues Teilen', () => {
     await openKits(page);
     await pick(page, 'own', 'gelb');
     await page.getByTestId('kits-save').click();
-    await expect(page.getByTestId('btn-goal-own')).toHaveCSS('background-color', GELB);
+    // Spec 021 FR-W01: nach dem Schlusspfiff gibt es keine Tor-Knöpfe mehr; die Farbmarke der Anzeigetafel zeigt das Trikot.
+    await expect(page.locator('.scoreboard__home .team__mark')).toHaveCSS('background-color', GELB);
     await expect(bar(page)).toHaveCount(0);
     await openKits(page);
     await pick(page, 'opp', 'blau');

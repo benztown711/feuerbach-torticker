@@ -18,7 +18,7 @@ export type QuickTeam =
 export type QuickAction =
   /** FR-E03: kein Knopf. */
   | { kind: 'hidden' }
-  /** FR-E06: Blatt "Eltern live zuschauen lassen" mit "Link einfügen" und "Neu starten". */
+  /** FR-E06: Blatt "Eltern live zuschauen lassen" mit "Link einfügen" und "Live-Spieltag anlegen" (022 FR-F30). */
   | { kind: 'start' }
   /** FR-E04: sofort teilen; `makeLive` schaltet das Spiel wieder auf "Live senden". */
   | { kind: 'share'; makeLive: boolean; team: QuickTeam };
@@ -44,7 +44,7 @@ export function quickAction(settings: Settings, game: Game | null): QuickAction 
 }
 
 /**
- * FR-E07: Mannschaften für "Neu starten": die des aktuellen, nicht beendeten Spiels (falls unter "Meine
+ * FR-E07: Mannschaften für "Live-Spieltag anlegen": die des aktuellen, nicht beendeten Spiels (falls unter "Meine
  * Mannschaften"), sonst die einzige, sonst alle in der Reihenfolge von "Meine Mannschaften", höchstens sechs.
  */
 export function quickTeams(teams: Team[], game: Game | null): string[] {
@@ -54,12 +54,12 @@ export function quickTeams(teams: Team[], game: Game | null): string[] {
   return teams.slice(0, MAX_LIVE_TEAMS).map((t) => t.id);
 }
 
-/** FR-E06: "Neu mit E1 und E2." (Kurzformen wie auf den Chips). */
+/** FR-E06: "Mit E1 und E2." (Kurzformen wie auf den Chips; bis Spec 022 FR-F30 "Neu mit …"). */
 export function startHint(teams: Team[], ids: string[]): string {
   const keys = liveTeamOptions(teams)
     .filter((o) => ids.includes(o.team.id))
     .map((o) => o.key);
-  return `Neu mit ${joinList(keys)}.`;
+  return `Mit ${joinList(keys)}.`;
 }
 
 /** FR-E05: Hinweis zur Mannschaft des Spiels. */

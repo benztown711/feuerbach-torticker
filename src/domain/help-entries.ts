@@ -59,13 +59,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     id: 'installieren',
     topic: 'start',
     title: 'Wie lege ich den Torticker auf den Home-Bildschirm?',
-    answer: 'Nur vom Home-Bildschirm aus bleiben deine Spiele dauerhaft auf dem Handy gespeichert.',
+    answer:
+      'Nur vom Home-Bildschirm aus bleiben deine Spiele dauerhaft auf dem Handy gespeichert. Solange du den Torticker im Browser nutzt, erinnert dich der Startbildschirm unter den Knöpfen daran („Torticker auf den Home-Bildschirm legen“). Mit „Später“ verschwindet der Hinweis bis morgen, mit „Verstanden“ unter „Mehr“, „Einstellungen“ ganz. Vom Home-Bildschirm aus erscheint er nie.',
     steps: [
       'iPhone: Link in Safari öffnen, auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.',
       'Android: Link in Chrome öffnen, Menü, dann „App installieren“.',
     ],
-    keywords: 'installieren app icon homescreen startbildschirm speichern safari chrome',
-    sources: ['001 FR-023'],
+    keywords: 'installieren app icon homescreen startbildschirm speichern safari chrome hinweis später verstanden',
+    sources: ['001 FR-023', '022 US1'],
     related: ['daten-weg', 'update'],
   },
   {
@@ -115,15 +116,15 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie lege ich ein Spiel an?',
     answer:
-      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; meist trägst du nur den Gegner ein. Steht das Spiel im Spielplan, tippst du es oben unter „Aus dem Spielplan“ an. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
+      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; den Gegner trägst du ein, wenn du ihn kennst („Gegner (optional)“); ohne Eintrag heißt er „Gegner“ und lässt sich in den Spieldetails mit „Gegner ändern“ nachtragen. Steht das Spiel im Spielplan, tippst du es oben unter „Aus dem Spielplan“ an. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
     steps: [
       '„Neues Spiel“ antippen.',
-      'Gegner eintragen, bei Bedarf Spielzeit, Trikots und Aufgebot ändern.',
-      '„Weiter zum Anpfiff“ antippen.',
+      'Gegner eintragen (oder leer lassen), bei Bedarf Spielzeit, Trikots und Aufgebot ändern.',
+      '„Weiter zum Anpfiff“ antippen; der Knopf steht unten angeheftet.',
       'Im Spielbildschirm auf „Anpfiff“ tippen.',
     ],
     keywords: 'anlegen starten beginnen gegner spielzeit minuten anpfiff',
-    sources: ['001 US2', '004 US3', '011 US1', '011 US4', '015 US2'],
+    sources: ['001 US2', '004 US3', '011 US1', '011 US4', '015 US2', '022 US2'],
     open: { label: 'Neues Spiel', path: '/neu' },
     related: ['tor', 'aufgebot', 'spiel-aus-plan'],
   },
@@ -148,9 +149,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was zeigt der Spielbildschirm?',
     answer:
-      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste, ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
+      'Oben steht die Anzeigetafel: links und rechts die beiden Mannschaften mit ihrer Trikotfarbe, in der Mitte groß der Spielstand. Darunter die Uhr mit „Restzeit“ und die Knöpfe „Uhr anhalten“ und „Pausenpfiff“. Dann folgt die Torliste mit dem neuesten Tor oben; mehr Einträge scrollst du in der Liste. Jede Zeile mit Pfeil rechts lässt sich antippen: ein Tipp auf ein Tor öffnet zum Beispiel „Tor entfernen“ und „Minute ändern“. Unten sind die großen Tor-Knöpfe, nach dem Schlusspfiff steht dort „Nächstes Spiel“. Meldungen wie „Rückgängig“ erscheinen im dunklen Band direkt darüber.',
     keywords: 'übersicht anzeigetafel spielstand uhr torliste knöpfe aufbau band meldung',
-    sources: ['019 US2', '019 US3'],
+    sources: ['019 US2', '019 US3', '021 US1', '021 US3'],
     related: ['tor', 'tor-entfernen', 'uhr-anhalten'],
   },
   {
@@ -228,10 +229,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie beende ich eine Halbzeit oder das Spiel?',
     answer:
-      'Am Ende einer Halbzeit tippst du auf „Pausenpfiff“, am Ende des Spiels auf „Schlusspfiff“. Beides fragt einmal nach, damit nichts aus Versehen passiert. Danach steht das Spiel in der Historie.',
+      'Am Ende einer Halbzeit tippst du auf „Pausenpfiff“, am Ende des Spiels auf „Schlusspfiff“. Beides fragt einmal nach, damit nichts aus Versehen passiert. Danach steht das Spiel in der Historie, und mit „Nächstes Spiel“ startest du gleich das nächste.',
     keywords: 'halbzeit ende abpfiff beenden schlusspfiff pausenpfiff',
-    sources: ['001 US2'],
-    related: ['nachspielzeit', 'ergebnis-teilen'],
+    sources: ['001 US2', '021 US1'],
+    related: ['nachspielzeit', 'ergebnis-teilen', 'naechstes-spiel'],
   },
   {
     id: 'nachspielzeit',
@@ -253,6 +254,21 @@ export const HELP_ENTRIES: HelpEntry[] = [
     sources: ['001 FR-035'],
     related: ['neues-spiel'],
   },
+  {
+    id: 'naechstes-spiel',
+    topic: 'spiel',
+    title: 'Wie starte ich das nächste Spiel?',
+    answer:
+      'Nach dem Schlusspfiff steht unten „Nächstes Spiel“. Ein Tipp öffnet „Neues Spiel“ mit Mannschaft, Spielzeit, Heim/Gast, Feuerbach-Trikot, Aufgebot und „Live aufs Dashboard“ wie im eben beendeten Spiel. Steht das nächste Spiel deiner Mannschaft heute im Spielplan, ist es schon gewählt; spielt ihr dort auf der anderen Seite, gilt das Heim- bzw. Auswärtstrikot. Das Gegner-Trikot richtet sich wie immer nach dem Gegner. Ideal im Turnier: vom Schlusspfiff zum nächsten Anpfiff mit drei Tipps.',
+    steps: [
+      'Nach dem Schlusspfiff auf „Nächstes Spiel“ tippen.',
+      'Gegner eintragen, falls er noch fehlt.',
+      '„Weiter zum Anpfiff“ und im Spiel „Anpfiff“ antippen.',
+    ],
+    keywords: 'nächstes spiel turnier spieltag folgespiel weiter wieder neues spiel gleiche einstellungen schnell',
+    sources: ['021 US1'],
+    related: ['neues-spiel', 'spiel-aus-plan', 'pausenpfiff'],
+  },
 
   // Torschützen und Ereignisse
   {
@@ -260,9 +276,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich die Auswahl mit deinem Aufgebot; tippe auf den Namen oder schließe sie. Später tippst du das Tor in der Torliste oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
-    keywords: 'torschütze schütze spieler name nachtragen wer',
-    sources: ['001 US3', '017 US1'],
+      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
+    keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt',
+    sources: ['001 US3', '017 US1', '021 US2', '021 US3'],
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
@@ -270,9 +286,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie erfasse ich, wer das Tor vorgelegt hat?',
     answer:
-      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Vorlagen“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
+      'Schalte in den Einstellungen unter „Im Spiel erfassen“ die „Torvorlagen (Assists)“ ein. Wählst du nach einem Tor den Torschützen, fragt die App „Vorlage von?“: Tipp auf den Namen, „Ohne Vorlage“ oder einfach warten, nach 5 Sekunden schließt das Fenster. Auch dabei bleiben die Tor-Knöpfe frei. In Torliste und Spieldetails steht dann zum Beispiel „Max (Vorlage: Ben)“, nur mit Vornamen.',
     keywords: 'vorlage vorlagen assist vorgelegt pass zuspiel vorlagengeber',
-    sources: ['009 US1', '009 US4'],
+    sources: ['009 US1', '009 US4', '021 US2', '022 US3'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
     related: ['vorlage-aendern', 'torschuetze', 'vorlage-teilen'],
   },
@@ -502,9 +518,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'historie',
     title: 'Wie korrigiere ich ein Spiel nach dem Schlusspfiff?',
     answer:
-      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“. Das geht ohne Frist; Stand, Teilen-Text und Dashboard folgen, und war das Ergebnis schon geteilt, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
+      'Öffne das Spiel unter „Historie“. In den Spieldetails tippst du im Spielverlauf auf ein Tor und änderst wie im Spiel Torschütze, Vorlage oder Minute oder wählst „Tor entfernen“. Ein vergessenes Tor trägst du mit „Tor nachtragen“ nach, die Farben änderst du mit „Trikots ändern“, den Namen des Gegners mit „Gegner ändern“. Das geht ohne Frist; Stand, Teilen-Text und Dashboard folgen, und war das Ergebnis schon geteilt, erinnert die Leiste „Korrigiert. Ergebnis neu teilen?“. Korrigieren kann nur das Handy, das das Spiel erfasst hat.',
     keywords: 'korrigieren korrektur nachträglich ändern falsch später historie spieldetails torschütze minute vorlage',
-    sources: ['017 US1', '017 US2', '017 US3'],
+    sources: ['017 US1', '017 US2', '017 US3', '022 US2'],
     open: { label: 'Historie', path: '/historie' },
     related: ['torschuetze', 'tor-minute', 'trikots'],
   },
@@ -544,9 +560,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie lasse ich Eltern live zuschauen?',
     answer:
-      'Tippe auf dem Startbildschirm auf „Eltern live zuschauen lassen“. Im laufenden Spiel geht es unter „…“ mit „Teilen“ und „Live-Link für Eltern“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link für die Eltern, und das Spiel geht live. Sonst tippst du auf „Neu starten“ (mit der Mannschaft des Spiels, ohne Spiel mit deinen Mannschaften) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Ohne eigene Mannschaft legst du sie zuerst in den Einstellungen an. Den Link schickst du an die Elterngruppe; er gilt die ganze Saison.',
+      'Tippe auf dem Startbildschirm auf „Eltern live zuschauen lassen“, im Spiel unter „…“ auf „Teilen“ und „Live-Link für Eltern“. Gibt es schon einen Live-Spieltag, öffnet sich gleich das Teilen-Menü mit dem Link, und das Spiel geht live. Sonst tippst du auf „Live-Spieltag anlegen“ (Mannschaften wie unter „Mit …“) oder, wenn ein anderer Trainer schon einen Link hat, auf „Link einfügen“. Danach teilst du mit „Link für Eltern teilen“ den Link an die Elterngruppe (er gilt die ganze Saison) und mit „Trainer-Link teilen“ den für die anderen Trainer. Ohne eigene Mannschaft legst du zuerst eine an.',
     keywords: 'eltern zuschauen live link elterngruppe schicken senden schnell neu starten mitschauen verfolgen',
-    sources: ['020 US1', '020 US2'],
+    sources: ['020 US1', '020 US2', '022 US4'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'live-senden', 'trainer-link'],
   },
@@ -555,9 +571,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie richte ich einen Live-Spieltag ein?',
     answer:
-      'Das macht nur einer, einmal für alle Mannschaften. Am schnellsten: „Eltern live zuschauen lassen“, dann „Neu starten“. Titel und Mannschaften wählst du selbst unter „Mehr“, „Live für Eltern“ und „Für Trainer“ mit „Live-Spieltag anlegen“, bis zu sechs. Den Link für Eltern teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer; beim ersten Teilen fragt die App „Kader mit den Trainern teilen?“. Gibt es schon einen Live-Spieltag, tippst du auf „Trainer-Link einfügen“.',
+      'Das macht nur einer, einmal für alle Mannschaften. Am schnellsten: „Eltern live zuschauen lassen“, dann „Live-Spieltag anlegen“. Eigenen Titel und Mannschaften (bis zu sechs) wählst du unter „Mehr“, „Live für Eltern“, „Für Trainer“ mit „Live-Spieltag anlegen“. Den Link für Eltern teilst du in der Elterngruppe; er gilt die ganze Saison. Den Trainer-Link bekommen die anderen Trainer („Trainer-Link teilen“, gleich danach oder später unter „Für Trainer“; dort fragt die App „Kader mit den Trainern teilen?“). Gibt es schon einen Live-Spieltag, tippst du auf „Link einfügen“.',
     keywords: 'live dashboard eltern zuschauer link spieltag einrichten anlegen kader teilen neu starten',
-    sources: ['006 US1', '012 US1', '016 US1', '020 US1'],
+    sources: ['006 US1', '012 US1', '016 US1', '020 US1', '022 US4'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['eltern-zuschauen', 'trainer-link', 'live-senden'],
   },
@@ -566,10 +582,14 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie kopple ich das Handy eines Trainers?',
     answer:
-      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Das geht auch gleich im Browser. Hat er den Torticker schon auf dem Home-Bildschirm, kopiert er den Link und tippt dort auf dem Startbildschirm auf „Link einfügen“ (mit Mannschaft unter „Eltern live zuschauen lassen“). Danach steht dort „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit.',
+      'Der Trainer tippt in der Trainergruppe auf den Trainer-Link. Für den Spielfeldrand tippt er auf der Seite unten auf „Teilen“ und „Zum Home-Bildschirm“; das neue Symbol öffnet den Trainer-Link, dort „Koppeln und loslegen“. Das geht auch gleich im Browser. Danach steht auf dem Startbildschirm „Spiele verfolgen“ mit dem Titel des Live-Spieltags, und sein Handy sendet die Spiele, die es erfasst. Geteilte Kader kommen automatisch mit. Hat er den Torticker schon auf dem Home-Bildschirm, fügt er den Link dort ein:',
+    steps: [
+      'Den Link schickt dir der Trainer, z. B. per WhatsApp: lange drücken, Kopieren, hier einfügen.',
+      'Auf dem Startbildschirm „Link einfügen“ tippen (mit Mannschaft unter „Eltern live zuschauen lassen“, sonst auf der Karte „Trainer?“).',
+    ],
     keywords:
       'trainer link koppeln kollege handy einfügen zwischenablage startknopf home-bildschirm symbol whatsapp link einfügen',
-    sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1'],
+    sources: ['006 US1', '012 US1', '016 US2', '016 US4', '018 US1', '022 US3'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['live-anlegen', 'trainer-kader', 'live-senden'],
   },
@@ -795,10 +815,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Merke ich, wenn ein Tor fällt?',
     answer:
-      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
+      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest, dann leuchtet er rot. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
     keywords:
       'tor ton vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren voiceover screenreader pfiff',
-    sources: ['020 US3'],
+    sources: ['020 US3', '022 US4'],
     parents: true,
     related: ['eltern-dashboard', 'keine-meldung'],
   },

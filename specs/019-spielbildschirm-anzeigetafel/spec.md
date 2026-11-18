@@ -91,7 +91,7 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 
 ### Edge Cases
 
-- Band und Tor-Auswahl: Öffnet sich nach einem Tor die Torschützen-Auswahl, bleibt das Band wie bisher verborgen und erscheint nach dem Schließen, solange die 10 Sekunden laufen.
+- Band und Tor-Auswahl: Öffnet sich nach einem Tor die Torschützen-Auswahl, bleibt das Band wie bisher verborgen und erscheint nach dem Schließen, solange die 10 Sekunden laufen. Nachtrag Spec 021 (FR-W14): Andere Meldungen und Hinweise ("Schon gezählt") stehen bei offener Auswahl unter ihr direkt über den Tor-Knöpfen.
 - Band über der Torliste: Das Band legt sich über den unteren Teil der Torliste; es verdeckt nie Tor-Knöpfe, Uhr-Knöpfe oder die Ereignis-Zeile. Nach 10 Sekunden ist die Liste wieder ganz sichtbar.
 - Zwei Meldungen gleichzeitig (z. B. Tor eben gezählt, dann Lesezeichen): Es gilt die bisherige Rangfolge (Tor vor Lesezeichen vor Karte/Wechsel vor "neu teilen"); kurze Hinweise erscheinen als zweite Zeile im aktuellen Band oder, ohne Band, allein im Meldeplatz.
 - Lesezeichen mit zwei Knöpfen ("Kommentar", "Rückgängig"): Der Text darf auf zwei Zeilen umbrechen; beide Knöpfe bleiben mindestens 64 pt hoch.
@@ -126,12 +126,12 @@ Der Trainer hält das Handy in einer Hand. "Uhr anhalten" und "Pausenpfiff" sind
 - **FR-A20**: Alle Knöpfe in der Zeile unter der Uhr ("Anpfiff …", "Uhr anhalten", "Uhr fortsetzen", "Pausenpfiff", "Abpfiff", "Spieldetails", "Ergebnis teilen") MÜSSEN mindestens 64 pt hoch und mindestens 64 pt breit sein (Constitution I).
 - **FR-A21**: Jede Zeile der Torliste auf dem Spielbildschirm MUSS mindestens 48 pt hoch sein.
 - **FR-A22**: Der Griff zum Aufklappen der Torliste MUSS entfallen (ersetzt die Klärung "Griff klappt die Torliste über die Uhr-Knöpfe auf" zu Spec 003 FR-E06). Uhr-Knöpfe und Ereignis-Zeile sind immer sichtbar; die Torliste scrollt in sich (FR-034).
-- **FR-A23**: Die Tor-Knöpfe MÜSSEN den übrigen Platz nutzen, bis höchstens etwa ein Drittel der Bildschirmhöhe, mindestens 150 pt hoch; Abstand zwischen Heim und Gast 12 pt. Vorrang hat FR-A24.
+- **FR-A23**: Die Tor-Knöpfe MÜSSEN den übrigen Platz nutzen, bis höchstens etwa ein Drittel der Bildschirmhöhe, mindestens 150 pt hoch; Abstand zwischen Heim und Gast 12 pt. Vorrang hat FR-A24. Nachtrag Spec 021 (FR-W01): Nach dem Schlusspfiff steht an ihrer Stelle "Nächstes Spiel".
 - **FR-A24**: Auf 375 × 667 pt (iPhone SE) MUSS der Spielbildschirm in jedem Zustand ohne Seiten-Scroll bedienbar sein (FR-033) und die Torliste mindestens zwei Zeilen vollständig zeigen, auch wenn alle drei Ereignis-Schalter an sind.
 
 **Unverändert**
 
-- **FR-A30**: Verhalten, Texte und Abläufe des Spielbildschirms MÜSSEN ansonsten gleich bleiben: Tor-Knöpfe (FR-016, FR-031, FR-032), Doppeltipp-Sperre, 10 Sekunden Rückgängig (FR-008), Torschützen-Auswahl, Ereignis-Zeile (Spec 003 FR-E09), "…"-Menü, Navigationsleiste (FR-037). Nachtrag 17.11.2026: Das "…"-Menü ändert Spec 020 (FR-E02: "Eltern live zuschauen lassen" als erster Eintrag; FR-E18: "Teilen" statt "Zwischenstand teilen"); "Ergebnis teilen" teilt weiter direkt (FR-E19, Präzisierung 2026-11-17). Größen nach FR-A20 bleiben. Nachtrag 18.11.2026, geändert durch Spec 020 Nachbesserung FR-E60, FR-E61: Das Spielmenü "…" hat keinen Eintrag "Eltern live zuschauen lassen" mehr; "Teilen" ist der erste Eintrag, "Nicht live senden" bzw. "Live senden" der letzte (Gefahr-Gestaltung), und "Schließen" ist auf 375 × 667 pt ohne Scrollen sichtbar.
+- **FR-A30**: Verhalten, Texte und Abläufe des Spielbildschirms MÜSSEN ansonsten gleich bleiben: Tor-Knöpfe (FR-016, FR-031, FR-032), Doppeltipp-Sperre, 10 Sekunden Rückgängig (FR-008), Torschützen-Auswahl, Ereignis-Zeile (Spec 003 FR-E09), "…"-Menü, Navigationsleiste (FR-037). Nachtrag 17.11.2026: Das "…"-Menü ändert Spec 020 (FR-E02: "Eltern live zuschauen lassen" als erster Eintrag; FR-E18: "Teilen" statt "Zwischenstand teilen"); "Ergebnis teilen" teilt weiter direkt (FR-E19, Präzisierung 2026-11-17). Größen nach FR-A20 bleiben. Nachtrag 18.11.2026, geändert durch Spec 020 Nachbesserung FR-E60, FR-E61: Das Spielmenü "…" hat keinen Eintrag "Eltern live zuschauen lassen" mehr; "Teilen" ist der erste Eintrag, "Nicht live senden" bzw. "Live senden" der letzte (Gefahr-Gestaltung), und "Schließen" ist auf 375 × 667 pt ohne Scrollen sichtbar. Nachtrag 18.11.2026, geändert durch Spec 021: Die Torschützen-Auswahl nach dem Tor ist nicht-modal über den Tor-Knöpfen angedockt (FR-W10 bis FR-W15), nach dem Schlusspfiff ersetzt "Nächstes Spiel" die Tor-Knöpfe (FR-W01), Torzeilen zeigen einen Pfeil (FR-W20).
 
 ### Key Entities
 

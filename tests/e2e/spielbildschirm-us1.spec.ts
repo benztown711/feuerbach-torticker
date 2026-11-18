@@ -27,10 +27,13 @@ async function enable(page: Page, ...keys: ('cards' | 'subs' | 'marks')[]): Prom
   }
 }
 
-/** Band liegt direkt über den Tor-Knöpfen, über die Inhaltsbreite, und verdeckt weder Tor- noch Uhr-Knöpfe. */
-async function expectAboveGoals(page: Page, band: Locator): Promise<void> {
+/**
+ * Band liegt direkt über den Tor-Knöpfen, über die Inhaltsbreite, und verdeckt weder Tor- noch Uhr-Knöpfe.
+ * Nach dem Schlusspfiff steht an Stelle der Tor-Knöpfe "Nächstes Spiel" (Spec 021 FR-W01).
+ */
+async function expectAboveGoals(page: Page, band: Locator, below = page.getByTestId('btn-goal-own')): Promise<void> {
   const b = await box(band);
-  const goal = await box(page.getByTestId('btn-goal-own'));
+  const goal = await box(below);
   const vw = page.viewportSize()?.width ?? 0;
   expect(b.y + b.height).toBeLessThanOrEqual(goal.y + 1);
   expect(goal.y - (b.y + b.height)).toBeLessThanOrEqual(16);
@@ -131,7 +134,7 @@ test.describe('019 US1 Rückgängig sicher treffen', () => {
     const bar = page.getByTestId('reshare-bar');
     await expect(bar).toContainText('Korrigiert. Ergebnis neu teilen?');
     await expect(bar).toHaveClass(/\bband\b/);
-    await expectAboveGoals(page, bar);
+    await expectAboveGoals(page, bar, page.getByTestId('btn-next-game'));
     expect((await box(page.getByTestId('reshare-share'))).height).toBeGreaterThanOrEqual(64);
   });
 

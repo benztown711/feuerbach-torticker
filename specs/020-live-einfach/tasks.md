@@ -123,7 +123,7 @@ Die Hinweise "geändert durch Spec 020" in den Specs 001, 005, 006, 007, 008, 01
 - [x] T040 [C] `tests/e2e/a11y.spec.ts`: neuer `test` für die Eltern-Ansicht mit Schalter, Aktualität und Warnung (axe ohne Verstöße)
 - [x] T041 [A] [C] Hilfe gegenprüfen: alle Einträge des Pakets aus spec.md "Hilfe" vorhanden, Bezeichnungen wörtlich wie in der App, keine Verweise auf "Zwischenstand teilen", "Kopplung beenden" oder "Zum Torticker" mehr (Constitution IX, Pflicht)
 - [x] T042 [A] [C] `/code-review`, `/security-review`; Design-Check (Skill `anthropic-skills:attila-design-check`, Ziel: Paket A Startbildschirm, Spielmenü, Blätter, "Live für Eltern"; Paket C Dashboard hell/dunkel), P0/P1 beheben; Screenshots iPhone hell/dunkel an Atti; Status in spec.md
-- [ ] T043 [A] [C] Gerätetest iPhone und Android: Teilen direkt nach "Neu starten" (R-E1), "Ton bei Toren" nach Rückkehr aus dem Hintergrund, Vibration auf Android, Tab-Titel am Rechner; Ergebnis in research.md
+- [x] T043 [A] [C] Gerätetest iPhone und Android: Teilen direkt nach "Neu starten" (R-E1), "Ton bei Toren" nach Rückkehr aus dem Hintergrund, Vibration auf Android, Tab-Titel am Rechner; Ergebnis in research.md (Gerätetest 18.11.2026 durch Atti am iPhone: bestanden, siehe research.md "Gerätetest")
 
 ## Nachbesserung Design-Check (2026-11-18)
 

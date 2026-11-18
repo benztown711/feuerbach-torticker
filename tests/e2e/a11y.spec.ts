@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures';
 import { MIN, forward, newGame, playFinishedGame, seedRoster, startGame } from './helpers';
-import { later, sampleDashboard } from './live-helpers';
+import { later, openTrainerSection, openViewer, sampleDashboard } from './live-helpers';
 
 for (const scheme of ['light', 'dark'] as const) {
   test.describe(`Barrierefreiheit (${scheme === 'light' ? 'hell' : 'dunkel'})`, () => {
@@ -199,6 +199,91 @@ test.describe('020 US3 US4 Eltern-Ansicht mit Schalter, Aktualität und Warnung 
       await v.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
       await expect(v.getByTestId('dash-sound-locked')).toBeVisible();
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
+    });
+  }
+});
+
+test.describe('022 Erster Start: Hinweis, Neues Spiel, Blatt, Schalter und Für Trainer ohne axe-Verstöße', () => {
+  // Relay-Nachbau braucht blockierte Service Worker (fixtures.ts).
+  test.use({ serviceWorkers: 'block' });
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Erster Start ${scheme === 'light' ? 'hell' : 'dunkel'}`, async ({ page, recorded, relay, newDevice }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const axe = async (p = page): Promise<void> => {
+        expect((await new AxeBuilder({ page: p }).analyze()).violations).toEqual([]);
+      };
+      // US1: Startbildschirm mit Installationshinweis
+      await newGame(page, { ownTeam: 'Sportvg Feuerbach E1' });
+      await page.goto('./');
+      await expect(page.getByTestId('start-install-hint')).toBeVisible();
+      await axe();
+      // US2: Neues Spiel mit angeheftetem Knopf; "Gegner ändern" in den Spieldetails
+      await page.getByTestId('btn-new-game').click();
+      await expect(page.getByTestId('create-bar')).toBeVisible();
+      await axe();
+      await page.getByTestId('btn-create').click();
+      await page.getByTestId('btn-kickoff').click();
+      await page.getByTestId('btn-menu').click();
+      await page.getByTestId('menu-details').click();
+      await page.getByTestId('details-opponent').click();
+      await expect(page.getByTestId('opponent-sheet')).toBeVisible();
+      await axe();
+      // US4: Blatt "Eltern live zuschauen lassen" in beiden Zuständen
+      await page.goto('./');
+      await page.getByTestId('start-live-quick').click();
+      await expect(page.getByTestId('live-start-sheet')).toBeVisible();
+      await axe();
+      await page.getByTestId('live-start-new').click();
+      await expect(page.getByTestId('live-start-share-trainer')).toBeVisible();
+      await axe();
+      await expect.poll(() => relay.all().length).toBeGreaterThan(0);
+      // US4: "Live für Eltern" mit aufgeklapptem "Für Trainer" als eine Fläche
+      await page.goto('./#/live-spieltag');
+      await openTrainerSection(page);
+      await expect(page.getByTestId('live-trainer')).toBeVisible();
+      await axe();
+      // US4: Eltern-Ansicht mit Schalter an (rot)
+      const viewerLink = /(https?:\/\/\S+#\/live\/[A-Za-z0-9_-]+)$/.exec((await recorded()).shares[0]?.text ?? '')?.[1];
+      expect(viewerLink).toBeTruthy();
+      const v = await openViewer(newDevice, relay, { viewer: viewerLink!, trainer: '' }, scheme);
+      await v.getByTestId('dash-sound').click();
+      await expect(v.getByTestId('dash-sound')).toHaveAttribute('aria-checked', 'true');
+      await axe(v);
+    });
+  }
+});
+
+test.describe('021 Spielablauf: Schnellauswahl, Torliste mit Pfeil und "Nächstes Spiel" ohne axe-Verstöße', () => {
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Schnellauswahl, Vorlage, Endzustand und vorbelegtes "Neues Spiel" ${scheme === 'light' ? 'hell' : 'dunkel'}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const axe = async (): Promise<void> => {
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      };
+      await seedRoster(page, '7 Max\n9 Ben\n10 Tom');
+      await page.goto('./#/einstellungen');
+      await page.getByTestId('feature-assists').click();
+      await expect(page.getByTestId('feature-assists')).toHaveAttribute('aria-checked', 'true');
+      await startGame(page, { sections: 1, minutes: 12 });
+      await forward(page, MIN);
+      await page.getByTestId('btn-goal-own').click();
+      await expect(page.getByRole('dialog', { name: 'Wer hat getroffen?' })).toBeVisible();
+      await axe();
+      await page.getByTestId('scorer-picker').getByRole('button', { name: '7 Max', exact: true }).click();
+      await expect(page.getByRole('dialog', { name: 'Vorlage von?' })).toBeVisible();
+      await axe();
+      await page.getByTestId('assist-skip').click();
+      await expect(page.locator('.goal-row__chev')).toHaveCount(1);
+      await axe();
+      await page.getByTestId('btn-section-end').click();
+      await page.getByTestId('confirm-yes').click();
+      await expect(page.getByTestId('btn-next-game')).toBeVisible();
+      await axe();
+      await page.getByTestId('btn-next-game').click();
+      await expect(page.getByTestId('input-opponent')).toBeFocused();
+      await axe();
     });
   }
 });
