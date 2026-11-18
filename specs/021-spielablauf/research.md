@@ -39,4 +39,4 @@ Das Hauptbundle lag vor dieser Spec bei 59,6 KB gzip (Budget 60 KB); `game.tsx` 
 
 ## R-W4: Fokus auf dem Gegner-Feld
 
-`focus()` nach dem Laden der Vorbelegung. Safari auf dem iPhone öffnet die Tastatur nur bei einer Berührung; der Fokus wirkt dort für Tastatur und VoiceOver, ein Tipp ins Feld öffnet die Tastatur. Chrome auf Android öffnet sie in der Regel. Kein Trick mit verstecktem Eingabefeld (fehleranfällig, Constitution VI).
+`focus()` einmal, sobald die Vorbelegung samt Planspiel feststeht (ohne Live-Spieltag mit Spielplan direkt nach dem Laden, sonst nach der Prüfung der Planspiele), und nur bei leerem Gegner-Feld (Nachtrag nach dem Code-Review: vorher lief der Effekt bei jedem Rendern und fokussierte schon vor dem Planspiel, sodass die Tastatur die angeheftete Leiste verdeckte, obwohl der Gegner aus dem Plan kam). Safari auf dem iPhone öffnet die Tastatur nur bei einer Berührung; der Fokus wirkt dort für Tastatur und VoiceOver, ein Tipp ins Feld öffnet die Tastatur. Chrome auf Android öffnet sie in der Regel. Kein Trick mit verstecktem Eingabefeld (fehleranfällig, Constitution VI).

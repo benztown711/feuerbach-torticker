@@ -219,6 +219,8 @@ test('021 US1-S4 nächstes Planspiel der Mannschaft von heute ist gewählt; Trik
   await expect(chosen).toContainText('SV Beispielhausen');
   await expect(page.getByTestId('plan-pick-hint')).toContainText('Aus dem Spielplan: Sa 07.11., 12:00');
   await expect(page.getByTestId('input-opponent')).toHaveValue('SV Beispielhausen');
+  // FR-W04 (Präzisierung): Gegner aus dem Plan, also kein Fokus (die Tastatur verdeckte die angeheftete Leiste).
+  await expect(page.getByTestId('input-opponent')).not.toBeFocused();
   await expect(page.getByTestId('matchup-home')).toHaveText('SV Beispielhausen');
   await expect(page.getByTestId('matchup-away')).toHaveText('Feuerbach E1');
   // Präzisierung nach dem Code-Review: anderes Heim/Gast als im beendeten Heimspiel, also das Auswärtstrikot;

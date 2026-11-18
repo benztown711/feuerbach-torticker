@@ -121,7 +121,9 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
   const autoPick = useRef(plan ?? null);
   /** Spec 021 US1: beendetes Spiel hinter "Nächstes Spiel"; bis das Planspiel geprüft ist. */
   const prev = useRef<Game | null>(null);
+  /** Spec 021 FR-W04: Fokus auf den Gegner steht noch aus (einmal, wenn die Vorbelegung samt Planspiel steht). */
   const focusOpp = useRef(false);
+  const [draftReady, setDraftReady] = useState(false);
   const [players] = usePlayers();
   const [squad, setSquad] = useState<string[]>([]);
 
@@ -177,19 +179,24 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
         prev.current = g;
         focusOpp.current = true;
         applyDraft(d, true);
+        // Ohne Spielplan (kein Live-Spieltag mit Plan) steht die Vorbelegung jetzt schon fest.
+        if (!s.live?.orgKey) {
+          prev.current = null;
+          setDraftReady(true);
+        }
       }
       // Spec 008 FR-K05: "Ton testen" spielt den gewählten Ton.
       setSignalSound(s.signalSound);
     });
   }, []);
 
-  // Spec 021 FR-W04: Fokus auf den Gegner, sobald das Formular steht.
+  // Spec 021 FR-W04: einmal, sobald die Vorbelegung samt Planspiel steht, und nur bei leerem Gegner (kommt er aus dem
+  // Spielplan, verdeckte die Tastatur sonst die angeheftete Leiste mit "Weiter zum Anpfiff").
   useEffect(() => {
-    const input = document.getElementById('opponent');
-    if (!focusOpp.current || !input) return;
+    if (!draftReady || !focusOpp.current) return;
     focusOpp.current = false;
-    input.focus();
-  });
+    if (opponent === '') document.getElementById('opponent')?.focus();
+  }, [draftReady, opponent]);
 
   const team = settings ? findTeam(settings, teamId) : null;
 
@@ -235,7 +242,12 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
           // neuen Stand nehmen (US6-S6: eine inzwischen eingegangene Vormerkung zählt).
           setFromPlan((f) => (f ? ([...c.today, ...c.later].find((x) => x.entry.id === f.entry.id) ?? null) : null));
         })
-        .catch(() => undefined);
+        .catch(() => {
+          // Spielplan nicht lesbar: "Nächstes Spiel" ohne Planspiel.
+          if (!alive || !prev.current) return;
+          prev.current = null;
+          setDraftReady(true);
+        });
     load();
     const off = onPlanChanged(load);
     return () => {
@@ -257,6 +269,7 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
     const g = prev.current;
     if (!g || !choices || !settings) return;
     prev.current = null;
+    setDraftReady(true);
     const c = nextPlanChoice(choices.today, liveTeamFor(g.ownTeam, settings.live)?.key);
     if (!c || !teamOfChoice(settings, c)) return;
     pickWith(settings, c);
