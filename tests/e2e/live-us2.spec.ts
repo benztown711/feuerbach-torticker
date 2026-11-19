@@ -173,8 +173,9 @@ test('014 US3-S7 nach "Rückgängig" bleibt das Spiel ohne Unterbrechung auf dem
   const links = await createLive(page, recorded, { teams: ['E1'] });
   await newGame(page, { ownTeam: E1 });
   await settle(page);
+  // Erst warten, bis das Spiel beim Dienst ist: Senden läuft in echter Zeit, nicht mit der vorgespulten Uhr.
+  await expect.poll(async () => (await latestState(relay, links.viewer))?.state).toBeDefined();
   const before = (await latestState(relay, links.viewer))?.state;
-  expect(before).toBeDefined();
   await page.getByTestId('nav-history').click();
   await page.getByTestId('history-list').locator('[data-testid^="history-item-"]').first().click();
   await page.getByTestId('btn-delete-game').click();

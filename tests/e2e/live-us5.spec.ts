@@ -175,8 +175,10 @@ test('006 US5-S3 alle Links neu ausstellen: neue Links, alte Handys und Dashboar
   // Der Hinweis auf dem alten Topic ("retired") verrät die neuen Links nicht.
   const fresh = linkData(links.trainer);
   const oldTopic = linkData(old.viewer).t as string;
-  const opened = await Promise.all(relay.messages(oldTopic).map((m) => decodeMessage(old.viewer, m.message)));
-  expect(opened.some((d) => d.config?.retired === true)).toBe(true);
+  const openedOld = () => Promise.all(relay.messages(oldTopic).map((m) => decodeMessage(old.viewer, m.message)));
+  // Der Hinweis geht im Hintergrund hinaus (nach "Neue Links ausgestellt"), also darauf warten.
+  await expect.poll(async () => (await openedOld()).some((d) => d.config?.retired === true)).toBe(true);
+  const opened = await openedOld();
   for (const d of opened) {
     for (const secret of [fresh.t, fresh.k, fresh.o, (fresh.q as { d: string }).d] as string[])
       expect(JSON.stringify(d)).not.toContain(secret);

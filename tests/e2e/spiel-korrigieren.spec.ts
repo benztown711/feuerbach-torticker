@@ -262,8 +262,13 @@ test.describe('017 US1 Tore in den Spieldetails korrigieren', () => {
     await page.getByTestId('btn-goal-opp').click();
     await forward(page, 11 * MIN);
     await whistle(page);
-    await settle(page);
-    await expect.poll(async () => (await latestState(relay, links.viewer, id))?.goals as unknown[]).toHaveLength(1);
+    // Anpfiff, Tor und Schlusspfiff gehen nacheinander hinaus; die Uhr in jedem Durchlauf weiterdrehen (siehe unten).
+    await expect
+      .poll(async () => {
+        await settle(page);
+        return (await latestState(relay, links.viewer, id))?.goals as unknown[];
+      })
+      .toHaveLength(1);
 
     // Abends: App neu gestartet, Gegentor entfernen, Tor für Feuerbach nachtragen.
     await page.goto('./#/historie');
@@ -280,10 +285,13 @@ test.describe('017 US1 Tore in den Spieldetails korrigieren', () => {
     await page.getByTestId('add-goal-minute').selectOption("3'");
     await page.getByTestId('add-goal-save').click();
     await expect(page.getByTestId('details-score')).toContainText('1:0');
-    await settle(page);
-    await settle(page);
+    // Zwei Änderungen, zwei Sendungen: Die zweite plant der Sender erst, wenn die erste beim Dienst ist (echte Zeit),
+    // und schickt sie nach dem Mindestabstand (vorgespulte Uhr). Ein festes Vorspulen davor reicht daher nicht.
     await expect
-      .poll(async () => ((await latestState(relay, links.viewer, id))?.goals as { side: string }[]).map((g) => g.side))
+      .poll(async () => {
+        await settle(page);
+        return ((await latestState(relay, links.viewer, id))?.goals as { side: string }[]).map((g) => g.side);
+      })
       .toEqual(['own']);
   });
 
