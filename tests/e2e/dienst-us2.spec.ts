@@ -31,7 +31,7 @@ const FRIDAY = MATCHDAY + 6 * DAY;
  * Handys darauf warten: Senden läuft in echter Zeit (Speicher, Signatur, Netz), nicht mit der vorgespulten Uhr. Ein
  * Zähler aller Antworten reicht nicht, denn das Anlegen des Live-Spieltags hat schon gesendet.
  */
-const accepted = (relay: FakeRelay, from: number, kind: 'plan' | 'cfg'): boolean =>
+const accepted = (relay: FakeRelay, from: number, kind: 'plan' | 'cfg' | 'game' | 'retire'): boolean =>
   relay.posts
     .slice(from)
     .some((p, i) => (JSON.parse(p) as { kind?: string }).kind === kind && relay.statuses[from + i] === 200);
@@ -109,6 +109,7 @@ test('007 US2-S2 E3 am Dienstag hinzugefügt, anderes Trainer-Handy sendet am Sa
 
   // Samstag: B hat seit Dienstag nichts empfangen.
   await at(b, relay, MATCHDAY);
+  const fromB = relay.posts.length;
   await b.goto('./#/neu');
   await b.clock.runFor(2_000);
   await b.getByTestId('team-chips').getByRole('button', { name: 'E3', exact: true }).click();
@@ -119,7 +120,8 @@ test('007 US2-S2 E3 am Dienstag hinzugefügt, anderes Trainer-Handy sendet am Sa
   await forward(b, 2 * MIN);
   await b.getByTestId('btn-goal-own').click();
   await b.clock.runFor(6_000);
-  await expect.poll(() => relay.statuses.filter((s) => s === 200).length).toBeGreaterThan(1);
+  // Ein E3-Spiel von B, nicht die Konfiguration von Dienstag (die zählte schon vorher als 200).
+  await expect.poll(() => accepted(relay, fromB, 'game')).toBe(true);
   expect(relay.statuses.every((s) => s === 200 || s === 204)).toBe(true);
 });
 
@@ -140,10 +142,12 @@ test('007 US2-S3 FR-N12 neu ausgestellt: alte Trainer-Handys und Dashboards erfa
 
   await page.goto('./#/live-spieltag');
   await openTrainerSection(page);
+  const sent = relay.posts.length;
   await page.getByTestId('btn-live-reissue').click();
   await confirmYes(page);
   await expect(page.getByTestId('live-reissued')).toBeVisible();
-  await expect.poll(() => relay.statuses.filter((s) => s === 200).length).toBeGreaterThan(1);
+  // Der Hinweis auf dem alten Topic geht im Hintergrund hinaus; ohne ihn erführe B nichts.
+  await expect.poll(() => accepted(relay, sent, 'retire')).toBe(true);
   await page.clock.runFor(10_000);
   await page.close();
 
