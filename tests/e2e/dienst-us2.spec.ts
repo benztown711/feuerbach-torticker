@@ -12,6 +12,7 @@ import {
   sendAs,
 } from './live-helpers';
 import { addGame, openPlan, sync } from './plan-helpers';
+import type { FakeRelay } from './relay';
 
 /**
  * Spec 007 US2: Trainer-Handys bekommen Spielplan, Mannschaften und "neu ausgestellt" auch nach Tagen, ohne dass ein
@@ -24,6 +25,16 @@ test.use({ serviceWorkers: 'block' });
 const DAY = 24 * 60 * MIN;
 const MONDAY = MATCHDAY + 2 * DAY;
 const FRIDAY = MATCHDAY + 6 * DAY;
+
+/**
+ * Hat der Dienst seit der `from`-ten Schreibanfrage eine Meldung dieser Art angenommen? Vor dem Schließen eines
+ * Handys darauf warten: Senden läuft in echter Zeit (Speicher, Signatur, Netz), nicht mit der vorgespulten Uhr. Ein
+ * Zähler aller Antworten reicht nicht, denn das Anlegen des Live-Spieltags hat schon gesendet.
+ */
+const accepted = (relay: FakeRelay, from: number, kind: 'plan' | 'cfg'): boolean =>
+  relay.posts
+    .slice(from)
+    .some((p, i) => (JSON.parse(p) as { kind?: string }).kind === kind && relay.statuses[from + i] === 200);
 
 /** Uhr des Handys und des Dienstes auf denselben Zeitpunkt stellen. */
 async function at(p: Page, relay: { offsetMs: number }, time: number): Promise<void> {
@@ -47,9 +58,10 @@ test('007 US2-S1 Spielplan am Montag geändert, anderes Trainer-Handy öffnet am
   // Montag: Atti trägt das Spiel für Samstag ein und schließt danach den Torticker.
   await at(page, relay, MONDAY);
   await openPlan(page);
+  const sent = relay.posts.length;
   await addGame(page, { team: 'E1', date: '2026-11-14', time: '12:00', opponent: 'TSV Musterstadt' });
   await sync(page);
-  await expect.poll(() => relay.statuses.length).toBeGreaterThan(0);
+  await expect.poll(() => accepted(relay, sent, 'plan')).toBe(true);
   const posts = relay.posts.length;
   await page.close();
 
@@ -86,11 +98,13 @@ test('007 US2-S2 E3 am Dienstag hinzugefügt, anderes Trainer-Handy sendet am Sa
   await pasteLink(b, links.trainer);
   await b.goto('./#/historie');
 
+  const sent = relay.posts.length;
   await page.getByTestId('btn-team-add').click();
   await page.getByTestId('team-add-chip-E3').click();
   await page.getByTestId('team-add-save').click();
   await expect(page.getByTestId('live-team-row-E3')).toBeVisible();
   await page.clock.runFor(2_000);
+  await expect.poll(() => accepted(relay, sent, 'cfg')).toBe(true);
   await page.close();
 
   // Samstag: B hat seit Dienstag nichts empfangen.
