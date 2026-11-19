@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.5.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.4.0...feuerbach-torticker-v0.5.0) (2026-11-19)
+
+
+### Neue Funktionen
+
+* **019:** Spielbildschirm mit Anzeigetafel und sicherem Rückgängig ([#86](https://github.com/benztown711/feuerbach-torticker/issues/86)) ([e195c67](https://github.com/benztown711/feuerbach-torticker/commit/e195c67211f20d0904271431fff9c51d2de4fe04))
+* **020:** Live einfacher für Trainer und Eltern (UX-Welle 1) ([#91](https://github.com/benztown711/feuerbach-torticker/issues/91)) ([6857462](https://github.com/benztown711/feuerbach-torticker/commit/6857462898db9c569533df768cb2def12ba03575))
+* **021,022:** UX-Welle 2, Spielablauf und erster Start ([#93](https://github.com/benztown711/feuerbach-torticker/issues/93)) ([b879b67](https://github.com/benztown711/feuerbach-torticker/commit/b879b67be6969672d902d26bfe0ad26cbb63083f))
+* **dashboard:** "Letzte Spiele" auf dem Dashboard (007 PR C, US3) ([#74](https://github.com/benztown711/feuerbach-torticker/issues/74)) ([f38e467](https://github.com/benztown711/feuerbach-torticker/commit/f38e46753771134891ce0024c7194e06733f1261))
+* **kader:** mehrere Kader E1/E2 und E3, Aushilfen unter "Weitere Kinder" (015 US5) ([#72](https://github.com/benztown711/feuerbach-torticker/issues/72)) ([017e22d](https://github.com/benztown711/feuerbach-torticker/commit/017e22da4c9c7829ccc34496c352c4a626956234))
+* **kader:** Trainer-Paket, geteilte Kader für alle Trainer-Handys und "Link einfügen" (016, B1, B2) ([#75](https://github.com/benztown711/feuerbach-torticker/issues/75)) ([f699588](https://github.com/benztown711/feuerbach-torticker/commit/f69958802d4ebfbb610449583a0086da028a1aa8))
+* **relay:** App spricht nur noch mit dem eigenen Dienst (007 PR B, US1, US2) ([#73](https://github.com/benztown711/feuerbach-torticker/issues/73)) ([fd6035a](https://github.com/benztown711/feuerbach-torticker/commit/fd6035ab47e21a7153ac06833f2d2d54cad66f03))
+* **relay:** eigener Vermittlungsdienst auf Cloudflare (007 PR A) ([#69](https://github.com/benztown711/feuerbach-torticker/issues/69)) ([33c16c5](https://github.com/benztown711/feuerbach-torticker/commit/33c16c5b469a213ca7d1d3486483163761afa6dc))
+* **spielplan:** Eltern sehen die nächsten Spiele und den Spielplan (015 US3, US7) ([#68](https://github.com/benztown711/feuerbach-torticker/issues/68)) ([71a574f](https://github.com/benztown711/feuerbach-torticker/commit/71a574f7e3405b076b87c3e967ac5bd2a02b3de7))
+* **spielplan:** Spiel vormerken "Ich tickere" (015 US6) ([#70](https://github.com/benztown711/feuerbach-torticker/issues/70)) ([821036f](https://github.com/benztown711/feuerbach-torticker/commit/821036fcb584c4a7017798b1ea047c6c97c911b4))
+* **spielplan:** Spielplan als Liste einfügen und teilen (015 US4) ([#66](https://github.com/benztown711/feuerbach-torticker/issues/66)) ([6205ef4](https://github.com/benztown711/feuerbach-torticker/commit/6205ef4a02dc08248e89172518e4b13cc594dc83))
+* **spielplan:** Spielplan pflegen und Spiel aus dem Plan anlegen (015 US1, US2) ([#63](https://github.com/benztown711/feuerbach-torticker/issues/63)) ([d7dcd87](https://github.com/benztown711/feuerbach-torticker/commit/d7dcd878a177c9526eb5cae8cb413a57cc190e5c))
+* **spiel:** Spiel korrigieren, Tore und Trikots auch nach dem Schlusspfiff (017) ([#83](https://github.com/benztown711/feuerbach-torticker/issues/83)) ([6f16e25](https://github.com/benztown711/feuerbach-torticker/commit/6f16e2564d7f5972d10067ba58694134690eebca))
+* **start:** E2 übernehmen und Spiele verfolgen auf dem Startbildschirm (018) ([#85](https://github.com/benztown711/feuerbach-torticker/issues/85)) ([c264bd3](https://github.com/benztown711/feuerbach-torticker/commit/c264bd3067768a6781729005f07c854825c57ced))
+
+
+### Fehlerbehebungen
+
+* **020:** Nachbesserung Design-Check, Menü und Start entdoppelt, Dashboard ruhiger ([#92](https://github.com/benztown711/feuerbach-torticker/issues/92)) ([9ce1f8a](https://github.com/benztown711/feuerbach-torticker/commit/9ce1f8ae35194a74c293bc7f164604e7bf85f805))
+* **021,022:** Nachbesserung Design-Check Welle 2 ([#94](https://github.com/benztown711/feuerbach-torticker/issues/94)) ([c916f22](https://github.com/benztown711/feuerbach-torticker/commit/c916f22711bc7fd1a6dc8b7075df2e9ee274533c))
+* **live:** am Vorabend angelegte Spiele erscheinen am Spieltag auf allen Dashboards (006) ([#65](https://github.com/benztown711/feuerbach-torticker/issues/65)) ([679d1d9](https://github.com/benztown711/feuerbach-torticker/commit/679d1d92dd96ed3b3f3c742f0df58950e67970d0))
+* **live:** Dashboard-Karten als Tabellenzeilen, Namen auch bei großer Schrift lesbar (006) ([#64](https://github.com/benztown711/feuerbach-torticker/issues/64)) ([b5f0564](https://github.com/benztown711/feuerbach-torticker/commit/b5f0564d8419136fd6aeeeb599f96a484dff6225))
+* **live:** Korrekturen an vorab angelegten Spielen kommen aufs Dashboard (017) ([#84](https://github.com/benztown711/feuerbach-torticker/issues/84)) ([ef74c2b](https://github.com/benztown711/feuerbach-torticker/commit/ef74c2bb9cdf1d220644e85e43a564dd3e15889b))
+* **live:** kurzer Trainer-Link, in WhatsApp antippbar, Symbol auf dem Home-Bildschirm koppelt (006) ([#62](https://github.com/benztown711/feuerbach-torticker/issues/62)) ([fa27bc9](https://github.com/benztown711/feuerbach-torticker/commit/fa27bc93a755baa3039707e254e372e10282bcd2))
+* **live:** Safari bekommt schon beim ersten Manifest den Zuschauer-Link ([#50](https://github.com/benztown711/feuerbach-torticker/issues/50)) ([e987a31](https://github.com/benztown711/feuerbach-torticker/commit/e987a3139f8729620dc5575fb258d1d756ba9ec4))
+* **test:** Spielplan- und Dienst-Tests unabhängig von Uhrzeit und Läufer-Tempo ([#76](https://github.com/benztown711/feuerbach-torticker/issues/76)) ([af08764](https://github.com/benztown711/feuerbach-torticker/commit/af087645a809e54a0ad67dc91930f86a710550ed))
+
+
+### Dokumentation
+
+* Cloudflare-Anleitung an neue Token-Oberfläche anpassen ([#71](https://github.com/benztown711/feuerbach-torticker/issues/71)) ([4e3adb4](https://github.com/benztown711/feuerbach-torticker/commit/4e3adb4dc6d60e3e59a9b3ed65129e1a39785d4e))
+* Design-Check (Impeccable) als Pflichtschritt der Selbstprüfung ([#77](https://github.com/benztown711/feuerbach-torticker/issues/77)) ([c622276](https://github.com/benztown711/feuerbach-torticker/commit/c6222765be0d359238e24b2b58589e8069154a7f))
+* **roadmap:** Hinweis zum Home-Bildschirm-Symbol für die Verteilung (A2) ([#60](https://github.com/benztown711/feuerbach-torticker/issues/60)) ([cce34eb](https://github.com/benztown711/feuerbach-torticker/commit/cce34ebbe9861195c2513f9823dc616c2de69b41))
+* **roadmap:** Review-Ergebnis und priorisierte Reihenfolge der nächsten Schritte ([#41](https://github.com/benztown711/feuerbach-torticker/issues/41)) ([d09e071](https://github.com/benztown711/feuerbach-torticker/commit/d09e0710ee88650479f5c5bcdcfd318aebfa1c94))
+* **roadmap:** Status nach Spec 012 bis 014 und Release 0.4.0 nachgezogen ([#56](https://github.com/benztown711/feuerbach-torticker/issues/56)) ([141ac76](https://github.com/benztown711/feuerbach-torticker/commit/141ac763d04eb11b5248d00e47e7243523468a83))
+* Skill design-check in attila-design-check umbenennen ([#88](https://github.com/benztown711/feuerbach-torticker/issues/88)) ([629198b](https://github.com/benztown711/feuerbach-torticker/commit/629198b1f6391dd6648f640d6fbc0b65a1a1f793))
+* **spec:** Gerätetest G-3 bestanden, Zuschauer-Link auf dem Home-Bildschirm (006) ([#59](https://github.com/benztown711/feuerbach-torticker/issues/59)) ([e2690b3](https://github.com/benztown711/feuerbach-torticker/commit/e2690b36bb7321b9fce57199258dfe72b8e9dafa))
+* **spec:** Gerätetest Live-Spieltag auf dem iPhone bestanden (006) ([#61](https://github.com/benztown711/feuerbach-torticker/issues/61)) ([d5649b3](https://github.com/benztown711/feuerbach-torticker/commit/d5649b3136fffcfc71b757cb1c4eac2bf1bd27d8))
+* **spec:** Spec 007 Teil 1 eigener Dienst auf Cloudflare, Constitution 3.0.0 ([#67](https://github.com/benztown711/feuerbach-torticker/issues/67)) ([1d185f5](https://github.com/benztown711/feuerbach-torticker/commit/1d185f59ddb7ce55fe27aa9437bc80784ac9b6b6))
+
 ## [0.4.0](https://github.com/benztown711/feuerbach-torticker/compare/feuerbach-torticker-v0.3.0...feuerbach-torticker-v0.4.0) (2026-11-06)
 
 
