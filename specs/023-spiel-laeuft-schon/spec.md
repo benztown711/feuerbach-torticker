@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-25
 
-**Status**: Entwurf. Klärung im Chat erledigt (25.11.2026). Review A offen.
+**Status**: Entwurf. Klärung im Chat erledigt (25.11.2026). Review A erledigt (25.11.2026, "Passt"). Review B offen. Mockup: https://claude.ai/artifact/T6uhaUepzaREv6b4QjPMkz
 
 **Input**: Atti (25.11.2026): "Man guckt sich um und niemand tickert. Das Spiel läuft schon und dann möchte man gerne anfangen. […] Mein Use Case: Man fängt während eines laufenden Spiels an zu tickern. Dann gibt es schon einen Spielstand, auf den man aufsetzt. […] Ich möchte die Uhrzeit anpassen können, entweder die verbleibende Spielzeit oder die wievielte Spielminute. Restlaufzeit ist einfacher. […] Muss man bei 7:4 elf Tore händisch eintickern, oder gibt es eine einfache Variante? Das wäre das i-Tüpfelchen."
 
