@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-25
 
-**Status**: Entwurf. Klärung im Chat erledigt (25.11.2026). Review A erledigt (25.11.2026, "Passt"). Review B offen. Mockup: https://claude.ai/artifact/T6uhaUepzaREv6b4QjPMkz
+**Status**: Klärung, Review A und Review B erledigt (25.11.2026, "Passt, setz es um"). Umsetzung in PR #98. Mockup: https://claude.ai/artifact/T6uhaUepzaREv6b4QjPMkz
 
 **Input**: Atti (25.11.2026): "Man guckt sich um und niemand tickert. Das Spiel läuft schon und dann möchte man gerne anfangen. […] Mein Use Case: Man fängt während eines laufenden Spiels an zu tickern. Dann gibt es schon einen Spielstand, auf den man aufsetzt. […] Ich möchte die Uhrzeit anpassen können, entweder die verbleibende Spielzeit oder die wievielte Spielminute. Restlaufzeit ist einfacher. […] Muss man bei 7:4 elf Tore händisch eintickern, oder gibt es eine einfache Variante? Das wäre das i-Tüpfelchen."
 
@@ -26,6 +26,7 @@ Gesichtet am 25.11.2026 im Code:
 - Q: "Uhr korrigieren" mit verbessern? → A: Ja: Restzeit direkt mit −5/−1/+1/+5; liegt der Anpfiff zu nah am vorigen Pfiff, rückt der bisherige Verlauf mit.
 
 - Review A (25.11.2026): "Passt".
+- Festlegung bei der Umsetzung (Screenshot iPhone SE): "Spiel läuft schon" steht neben statt unter "Anpfiff", sonst schieben zwei Knopfzeilen die Tor-Knöpfe unter die Navigation. Der Schalter in "Neues Spiel" steht in der Karte "Spielzeit".
 
 ### Session 2026-11-25 (Review B, Mockup)
 
@@ -50,7 +51,7 @@ Atti kommt im 3. Drittel an den Platz, niemand tickert. Er legt das Spiel an, ti
 
 **Acceptance Scenarios**:
 
-1. **Given** ein angelegtes Spiel vor dem ersten Anpfiff, **Then** steht unter "Anpfiff" der Zweitknopf "Spiel läuft schon".
+1. **Given** ein angelegtes Spiel vor dem ersten Anpfiff, **Then** steht neben "Anpfiff" der Zweitknopf "Spiel läuft schon" (beide mindestens 64 pt hoch, auf dem iPhone SE ohne Scrollen).
 2. **Given** "Spiel läuft schon" wird getippt, **Then** öffnet das Blatt "Spiel läuft schon" mit "Abschnitt" (Auswahl aller Abschnitte und der Pausen dazwischen, z. B. "1. Halbzeit", "Halbzeit", "2. Halbzeit"), "Restzeit" ("Noch 15 Min" mit "−5", "−1", "+1", "+5", darunter "= 1. Minute"), "Spielstand" (je Mannschaft "−" und "+") und "Übernehmen". Vorgewählt: erster Abschnitt, volle Restzeit, 0:0.
 3. **Given** "3. Drittel" und "Noch 7 Min" bei 3 × 15, **When** "Übernehmen" getippt wird, **Then** läuft die Uhr im 3. Drittel mit 07:00 Restzeit (Spielminute 39'), die Abschnitte davor gelten als gespielt, und "Pausenpfiff"/"Schlusspfiff", Signal bei 00:00, Nachspielzeit und Dashboard verhalten sich wie bei einem von Anfang an getickerten Spiel.
 4. **Given** die Restzeit, **Then** reicht sie von 0 bis zur Abschnittslänge; "−" bzw. "+" sind an den Grenzen nicht wählbar.
@@ -77,7 +78,7 @@ Es steht 7:4. Atti tippt im Blatt "Spiel läuft schon" bei Feuerbach siebenmal "
 2. **Given** Spielstand 7:4 übernommen, **Then** zählen sieben Feuerbach- und vier Gegentore sofort in Anzeigetafel, Spieldetails, Teilen-Text, Historie und Dashboard.
 3. **Given** Tore vor Tickerbeginn, **Then** stehen sie in Torliste, Spieldetails, Teilen-Text und Dashboard vor allen anderen Toren mit "vor Tickerbeginn" statt einer Minute, zuerst die Feuerbach-Tore, dann die Gegentore, mit fortlaufendem Stand (1:0 … 7:0, 7:1 … 7:4). Im Teilen-Text steht in der Minutenspalte "–".
 4. **Given** ein Tor vor Tickerbeginn wird angetippt, **Then** öffnet das Tor-Blatt wie bei jedem Tor ("Tor entfernen", "Torschütze ändern", "Minute ändern", mit Schalter "Vorlagen" "Vorlage ändern"); "Torschütze ändern" und "Vorlage ändern" wirken wie bei jedem Tor (Spec 017 FR-C02).
-5. **Given** "Minute ändern" bei einem Tor vor Tickerbeginn, **Then** bietet die Auswahl alle Minuten bis zum Tickerbeginn; nach "Übernehmen" ist es ein normales Tor mit dieser Minute an seiner Stelle im Verlauf.
+5. **Given** "Minute ändern" bei einem Tor vor Tickerbeginn, **Then** bietet die Auswahl alle gespielten Minuten (wie bei jedem Tor); nach "Übernehmen" ist es ein normales Tor mit dieser Minute an seiner Stelle im Verlauf.
 6. **Given** Einstieg in der 1. Halbzeit oder in der Halbzeitpause mit 2:1, **Then** ist der Halbzeitstand 2:1 plus Tore bis zum Pausenpfiff. **Given** Einstieg ab der 2. Halbzeit, **Then** gibt es keinen Halbzeitstand; der Teilen-Text lässt "Halbzeit x:y" weg.
 7. **Given** Spielstand 0:0, **Then** entstehen keine Tore vor Tickerbeginn.
 
@@ -119,8 +120,8 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 
 **Einstieg (US1)**
 
-- **FR-J01**: Der Spielbildschirm MUSS vor dem ersten Anpfiff unter "Anpfiff" den Zweitknopf "Spiel läuft schon" zeigen; nach dem ersten Anpfiff fehlt er.
-- **FR-J02**: "Neues Spiel" MUSS den Schalter "Spiel läuft schon" (Vorgabe aus) anbieten; eingeschaltet öffnet "Weiter zum Anpfiff" den Spielbildschirm mit dem Blatt "Spiel läuft schon".
+- **FR-J01**: Der Spielbildschirm MUSS vor dem ersten Anpfiff neben "Anpfiff" den Zweitknopf "Spiel läuft schon" zeigen; nach dem ersten Anpfiff fehlt er.
+- **FR-J02**: "Neues Spiel" MUSS in der Karte "Spielzeit" den Schalter "Spiel läuft schon" (Vorgabe aus) anbieten; eingeschaltet öffnet "Weiter zum Anpfiff" den Spielbildschirm mit dem Blatt "Spiel läuft schon".
 - **FR-J03**: Das Blatt "Spiel läuft schon" MUSS "Abschnitt" (alle regulären Abschnitte und die Pausen dazwischen), "Restzeit" (ganze Minuten, 0 bis Abschnittslänge, "−5", "−1", "+1", "+5", Anzeige "Noch N Min" und "= M. Minute"; fehlt bei gewählter Pause), "Spielstand" (US2) und "Übernehmen" enthalten.
 - **FR-J04**: "Übernehmen" MUSS den Verlauf bis jetzt aus Zeitstempeln zurückrechnen (Constitution V): Anpfiff des gewählten Abschnitts = jetzt minus gespielte Zeit; frühere Abschnitte mit voller Länge davor, je 5 Minuten Pause dazwischen. Bei gewählter Pause endet der vorige Abschnitt jetzt. Uhr, Signale, Pfiffe und Live-Meldung verhalten sich danach wie bei einem durchgehend getickerten Spiel.
 - **FR-J05**: Nach "Übernehmen" MUSS die Leiste "Rückgängig" erscheinen; sie stellt den Zustand vor dem Einstieg vollständig wieder her.
@@ -129,9 +130,9 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 **Spielstand (US2)**
 
 - **FR-J10**: "Spielstand" MUSS je Mannschaft 0 bis 30 Tore mit "−" und "+" erlauben.
-- **FR-J11**: "Übernehmen" MUSS je gezähltem Tor ein Tor "vor Tickerbeginn" anlegen (ohne Torschütze, ohne Minute, kein Elfmeter), zuerst die Feuerbach-Tore, dann die Gegentore. Beim Einstieg in der 1. Halbzeit bzw. in der Pause nach dem 1. Abschnitt gehören sie zum 1. Abschnitt, sonst zum Abschnitt vor dem gewählten.
+- **FR-J11**: "Übernehmen" MUSS je gezähltem Tor ein Tor "vor Tickerbeginn" anlegen (ohne Torschütze, ohne Minute, kein Elfmeter), zuerst die Feuerbach-Tore, dann die Gegentore. Sie gehören zum 1. Abschnitt (research.md R-J2); ihre Uhrzeit ist der zurückgerechnete erste Anpfiff, so stehen sie vor allen anderen Toren.
 - **FR-J12**: Tore vor Tickerbeginn MÜSSEN überall zählen und vor allen anderen Toren stehen, mit "vor Tickerbeginn" statt Minute (Teilen-Text: "–").
-- **FR-J13**: Tore vor Tickerbeginn MÜSSEN wie jedes Tor antippbar sein (Tor-Blatt, Spec 017 FR-C01). "Minute ändern" bietet die Minuten bis zum Tickerbeginn; danach ist es ein normales Tor.
+- **FR-J13**: Tore vor Tickerbeginn MÜSSEN wie jedes Tor antippbar sein (Tor-Blatt, Spec 017 FR-C01). "Minute ändern" bietet wie bei jedem Tor alle gespielten Minuten (Spec 012 FR-S11, research.md R-J3); danach ist es ein normales Tor.
 - **FR-J14**: Beim Einstieg ab dem 2. Abschnitt (Pause nach dem 1. Abschnitt ausgenommen) MUSS der Halbzeitstand leer bleiben.
 - **FR-J15**: Die Live-Meldung MUSS Tore vor Tickerbeginn kennzeichnen (optionales Feld, abwärtskompatibel); der Vermittlungsdienst bleibt unverändert.
 
