@@ -44,3 +44,11 @@ export function minuteFor(section: number, playedMs: number, schema: Schema): Mi
   const stoppage = Math.floor((played - sectionMs) / MINUTE_MS) + 1;
   return { minute, stoppage, label: formatMinute(minute, stoppage) };
 }
+
+/** "Spielzeit" bei einem Abschnitt, sonst "1. Halbzeit", "2. Drittel", "3. Viertel". */
+export function sectionLabel(section: number, sections: number): string {
+  if (section > sections) return `${section - sections}. Hälfte Verlängerung`;
+  if (sections === 1) return 'Spielzeit';
+  const unit = sections === 2 ? 'Halbzeit' : sections === 3 ? 'Drittel' : 'Viertel';
+  return `${section}. ${unit}`;
+}

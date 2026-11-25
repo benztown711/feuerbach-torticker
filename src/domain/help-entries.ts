@@ -116,7 +116,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie lege ich ein Spiel an?',
     answer:
-      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; den Gegner trägst du ein, wenn du ihn kennst („Gegner (optional)“); ohne Eintrag heißt er „Gegner“ und lässt sich in den Spieldetails mit „Gegner ändern“ nachtragen. Steht das Spiel im Spielplan, tippst du es oben unter „Aus dem Spielplan“ an. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“.',
+      'Auf der Startseite tippst du auf „Neues Spiel“. Deine Mannschaft, Trikots, Spielzeit und Aufgebot sind schon vorbelegt; den Gegner trägst du ein, wenn du ihn kennst („Gegner (optional)“); ohne Eintrag heißt er „Gegner“ und lässt sich in den Spieldetails mit „Gegner ändern“ nachtragen. Steht das Spiel im Spielplan, tippst du es oben unter „Aus dem Spielplan“ an. Gegner, Heim/Gast und Trikots stehen zusammen auf der Karte „Begegnung“. Die Uhr startet erst mit „Anpfiff“. Läuft das Spiel schon, schalte „Spiel läuft schon“ ein: Dann stellst du gleich Abschnitt, Restzeit und Spielstand ein.',
     steps: [
       '„Neues Spiel“ antippen.',
       'Gegner eintragen (oder leer lassen), bei Bedarf Spielzeit, Trikots und Aufgebot ändern.',
@@ -124,9 +124,25 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'Im Spielbildschirm auf „Anpfiff“ tippen.',
     ],
     keywords: 'anlegen starten beginnen gegner spielzeit minuten anpfiff',
-    sources: ['001 US2', '004 US3', '011 US1', '011 US4', '015 US2', '022 US2'],
+    sources: ['001 US2', '004 US3', '011 US1', '011 US4', '015 US2', '022 US2', '023 US1'],
     open: { label: 'Neues Spiel', path: '/neu' },
-    related: ['tor', 'aufgebot', 'spiel-aus-plan'],
+    related: ['tor', 'aufgebot', 'spiel-laeuft-schon'],
+  },
+  {
+    id: 'spiel-laeuft-schon',
+    topic: 'spiel',
+    title: 'Wie steige ich in ein laufendes Spiel ein?',
+    answer:
+      'Niemand tickert und das Spiel läuft schon? Lege das Spiel an und tippe im Spiel statt auf „Anpfiff“ auf „Spiel läuft schon“ (oder schalte es unter „Neues Spiel“ ein). Wähle den Abschnitt oder die Pause, stelle mit „−5“, „−1“, „+1“, „+5“ die Restzeit wie auf der Uhr am Platz ein und trage mit „+“ den Spielstand ein. Mit „Trikots ändern“ passt du die Farben an. Nach „Übernehmen“ läuft die Uhr ab dieser Restzeit, auch auf dem Dashboard. Die Tore stehen als „vor Tickerbeginn“ in der Torliste; tippe sie an, um Torschütze und Vorlage nachzutragen.',
+    steps: [
+      'Spiel anlegen, im Spiel auf „Spiel läuft schon“ tippen.',
+      'Abschnitt wählen, z. B. „3. Drittel“, oder die Pause.',
+      'Restzeit einstellen, z. B. „Noch 7 Min“.',
+      'Spielstand mit „+“ eintragen und „Übernehmen“ tippen.',
+    ],
+    keywords: 'zu spät später einsteigen läuft schon mitten im spiel restzeit spielstand übernehmen anfangen vergessen',
+    sources: ['023 US1', '023 US2'],
+    related: ['uhr-korrigieren', 'torschuetze', 'neues-spiel'],
   },
   {
     id: 'spiel-aus-plan',
@@ -209,10 +225,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was tue ich, wenn die Uhr falsch geht?',
     answer:
-      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „+1 Min“ oder „−1 Min“ die richtige Spielminute ein und tippe auf „Übernehmen“. Restzeit, Pfiff, die Minuten der Tore dieser Halbzeit und das Dashboard folgen.',
-    keywords: 'uhr falsch zu spät anpfiff vergessen minute stimmt nicht verstellen zeit korrigieren',
-    sources: ['012 US4'],
-    related: ['uhr-anhalten', 'tor-minute'],
+      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „−5“, „−1“, „+1“ oder „+5“ die Restzeit wie auf der Uhr am Platz ein („Noch 7 Min“) und tippe auf „Übernehmen“. Die Uhr läuft dann genau ab dieser Restzeit weiter. Pfiff, die Minuten der Tore dieses Abschnitts und das Dashboard folgen; frühere Tore behalten ihre Minute. Das geht auch direkt nach einem Pausenpfiff.',
+    keywords: 'uhr falsch zu spät anpfiff vergessen minute stimmt nicht verstellen zeit korrigieren restzeit',
+    sources: ['012 US4', '023 US3'],
+    related: ['uhr-anhalten', 'tor-minute', 'spiel-laeuft-schon'],
   },
   {
     id: 'uhr-anhalten',
@@ -276,9 +292,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“.',
-    keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt',
-    sources: ['001 US3', '017 US1', '021 US2', '021 US3'],
+      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“. Das gilt auch für Tore „vor Tickerbeginn“.',
+    keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt tickerbeginn',
+    sources: ['001 US3', '017 US1', '021 US2', '021 US3', '023 US2'],
     related: ['tor', 'elfmeter', 'kader'],
   },
   {
@@ -438,9 +454,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'kader',
     title: 'Wie ändere ich die Trikotfarben für ein Spiel?',
     answer:
-      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Später geht das im Spiel über „…“ und „Trikots ändern“ oder in den Spieldetails; erst „Übernehmen“ ändert die Farben. Eine neue Gegnerfarbe schlägt der Torticker beim nächsten Spiel gegen diesen Gegner vor.',
+      'Beim Anlegen des Spiels stehen unter „Trikots“ die Farben deiner Mannschaft und des Gegners. Mit „Ändern“ wählst du eine andere Farbe nur für dieses Spiel. Später geht das im Spiel über „…“ und „Trikots ändern“, beim Einstieg im Blatt „Spiel läuft schon“ oder in den Spieldetails; erst „Übernehmen“ ändert die Farben. Eine neue Gegnerfarbe schlägt der Torticker beim nächsten Spiel gegen diesen Gegner vor.',
     keywords: 'trikot farbe leibchen auswärtstrikot heimtrikot falsche farbe gegner ändern',
-    sources: ['004 US2', '017 US2'],
+    sources: ['004 US2', '017 US2', '023 US1'],
     open: { label: 'Neues Spiel', path: '/neu' },
     related: ['mannschaft', 'neues-spiel'],
   },

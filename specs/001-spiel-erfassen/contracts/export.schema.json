@@ -235,6 +235,10 @@
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 4
+                },
+                "entry": {
+                  "type": "boolean",
+                  "description": "Spec 023 R-J1: beim Einstieg ins laufende Spiel zurückgerechnet (optional)"
                 }
               }
             }
@@ -356,6 +360,10 @@
                   "minLength": 1,
                   "maxLength": 200,
                   "description": "Spec 009 FR-V10: Kaderspieler-ID des Vorlagengebers (optional, null = keine)"
+                },
+                "beforeTicker": {
+                  "type": "boolean",
+                  "description": "Spec 023 FR-J11: Tor vor Tickerbeginn, Minute unbekannt (optional)"
                 }
               }
             }

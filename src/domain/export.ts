@@ -89,8 +89,10 @@ const isScorer = (v: unknown): boolean => {
   return v.kind === 'ownGoal';
 };
 
+const optBool = (v: unknown): boolean => v === undefined || typeof v === 'boolean';
+
 const isEvent = (v: unknown): boolean =>
-  isObj(v) && oneOf(v.type, EVENT_TYPES) && isTime(v.at) && isInt(v.section, 1, 4);
+  isObj(v) && oneOf(v.type, EVENT_TYPES) && isTime(v.at) && isInt(v.section, 1, 4) && optBool(v.entry);
 
 const isGoal = (v: unknown): boolean =>
   isObj(v) &&
@@ -102,6 +104,7 @@ const isGoal = (v: unknown): boolean =>
   nullOr(v.stoppage, (x) => isInt(x, 1, BIG)) &&
   nullOr(v.deletedAt, isTime) &&
   (v.penalty === undefined || typeof v.penalty === 'boolean') &&
+  optBool(v.beforeTicker) &&
   (v.assist === undefined || nullOr(v.assist, (x) => isStr(x, 1, 200))) &&
   isScorer(v.scorer);
 

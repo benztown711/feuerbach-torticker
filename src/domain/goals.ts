@@ -174,7 +174,13 @@ export interface GoalRow {
   /** Stand nach diesem Tor aus Heimsicht, "" bei entfernten Toren. */
   score: string;
   removed: boolean;
+  /** Spec 023 FR-J12: Tor vor Tickerbeginn (Minute "–"). */
+  beforeTicker: boolean;
 }
+
+/** Spec 023 FR-J12: Minute eines Tores, "–" vor Tickerbeginn. */
+export const goalMinuteLabel = (goal: Goal): string =>
+  goal.beforeTicker ? '–' : formatMinute(goal.minute, goal.stoppage);
 
 /** FR-034: alle Tore, neuestes oben, mit laufendem Stand (Heim:Gast). */
 export function goalRows(game: Game): GoalRow[] {
@@ -185,9 +191,10 @@ export function goalRows(game: Game): GoalRow[] {
     const ha = homeAway(game.venue, running);
     return {
       goal,
-      label: formatMinute(goal.minute, goal.stoppage),
+      label: goalMinuteLabel(goal),
       score: removed ? '' : `${ha.home}:${ha.away}`,
       removed,
+      beforeTicker: goal.beforeTicker === true,
     };
   });
   return rows.reverse();

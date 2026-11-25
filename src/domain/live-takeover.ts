@@ -46,6 +46,8 @@ function person(side: Side, who: string | null, players: Player[]): EventPerson 
 function goalAt(g: LiveGoal, clock: ClockEvent[], s: LiveGameSnapshot, latest: number): number {
   const kickoff = clock.filter((e) => e.type === 'kickoff' && e.section === g.section).pop();
   if (!kickoff) return latest;
+  // Spec 023 R-J2: Tore vor Tickerbeginn stehen am Spielbeginn.
+  if (g.pre) return Math.min(latest, clock.find((e) => e.type === 'kickoff')!.at);
   const played =
     g.stoppage === null
       ? (g.minute - sectionOffset(s.schema, g.section) - 1) * MINUTE_MS
@@ -65,6 +67,7 @@ function goalOf(g: LiveGoal, at: number, players: Player[], id: string): Goal {
     scorer: g.side === 'own' && g.ownGoal ? { kind: 'ownGoal' } : who,
     deletedAt: null,
     penalty: g.penalty,
+    ...(g.pre ? { beforeTicker: true } : {}),
   };
 }
 

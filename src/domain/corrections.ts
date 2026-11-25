@@ -13,9 +13,6 @@ const MINUTE_MS = 60_000;
 /** FR-S15: Ein Pfiff lässt sich höchstens 10 Minuten lang zurücknehmen. */
 export const UNDO_WHISTLE_MS = 10 * MINUTE_MS;
 
-/** FR-S21: Ohne vorheriges Uhr-Ereignis lässt sich der Anpfiff höchstens 60 Minuten vorverlegen. */
-export const MAX_SHIFT_MINUTES = 60;
-
 const defaultId = (): string => globalThis.crypto.randomUUID();
 
 /** Laufstrecke der Uhr: von Anpfiff bzw. Fortsetzen bis Anhalten bzw. Pfiff; `to` null = läuft noch. */
@@ -197,9 +194,15 @@ export function addGoalAt(
 export function setGoalMinute(game: Game, goalId: string, option: MinuteOption, now: number): Game {
   const place = placeOf(game, option, now);
   if (!place || !game.goals.some((g) => g.id === goalId)) return game;
+  // Spec 023 R-J3: mit bekannter Minute ist es kein Tor vor Tickerbeginn mehr.
+  const placed = (g: Goal): Goal => {
+    const next: Goal = { ...g, ...place };
+    delete next.beforeTicker;
+    return next;
+  };
   return withGoals(
     game,
-    game.goals.map((g) => (g.id === goalId ? { ...g, ...place } : g)),
+    game.goals.map((g) => (g.id === goalId ? placed(g) : g)),
   );
 }
 
@@ -219,7 +222,8 @@ export function whistleKind(game: Game): WhistleKind | null {
 /** FR-S15: Pfiff ist das letzte Uhr-Ereignis, höchstens 10 Minuten alt und kein Elfmeterschießen begonnen. */
 export function canUndoWhistle(game: Game, now: number): boolean {
   const last = game.clockEvents.at(-1);
-  if (!last || whistleKind(game) === null || game.shootout) return false;
+  // Spec 023 R-J5: Pfiffe des Einstiegs nimmt "Rückgängig" zurück.
+  if (!last || whistleKind(game) === null || game.shootout || last.entry) return false;
   return now - last.at <= UNDO_WHISTLE_MS;
 }
 
@@ -249,55 +253,80 @@ export function undoWhistle(game: Game, now: number): Game {
   };
 }
 
-interface ShiftBase {
+interface RestBase {
   /** Index des letzten Anpfiffs in `clockEvents`. */
   index: number;
   kick: ClockEvent;
-  range: { min: number; max: number };
+  playedMs: number;
+  sectionMs: number;
+  /** Spätester Anpfiff: erste Unterbrechung, erstes Tor bzw. Ereignis des Abschnitts (ohne Tore vor Tickerbeginn), jetzt. */
+  latest: number;
 }
 
-function shiftBase(game: Game, now: number): ShiftBase | null {
+function restBase(game: Game, now: number): RestBase | null {
   const events = game.clockEvents;
   const kick = events.findLast((e) => e.type === 'kickoff');
-  const { status } = deriveClock(events, now, game.schema);
-  if (!kick || (status !== 'running' && status !== 'paused')) return null;
+  const clock = deriveClock(events, now, game.schema);
+  if (!kick || (clock.status !== 'running' && clock.status !== 'paused')) return null;
   const index = events.lastIndexOf(kick);
-  const prev = events[index - 1];
   const next = events[index + 1];
-  const inSection = [...game.goals, ...(game.events ?? [])].filter((x) => x.section === kick.section);
-  // Spätestens: erste Unterbrechung, erstes Tor oder Ereignis des Abschnitts, jetzt (gespielte Zeit nie negativ).
+  const inSection = [...game.goals.filter((g) => !g.beforeTicker), ...(game.events ?? [])].filter(
+    (x) => x.section === kick.section,
+  );
   const latest = Math.min(now, next?.at ?? now, ...inSection.map((x) => x.at));
-  // Frühestens: nach dem vorigen Uhr-Ereignis, ohne vorheriges höchstens 60 Minuten.
-  const max = prev ? Math.floor((kick.at - prev.at - 1) / MINUTE_MS) : MAX_SHIFT_MINUTES;
-  return {
-    index,
-    kick,
-    range: { min: 0 - Math.floor(Math.max(0, latest - kick.at) / MINUTE_MS), max: Math.max(0, max) },
-  };
+  return { index, kick, playedMs: clock.playedMs, sectionMs: clock.sectionMs, latest };
+}
+
+/** Restzeit in ganzen Minuten, die das Blatt "Uhr korrigieren" anbietet; negativ = Nachspielzeit. */
+export interface RestRange {
+  min: number;
+  max: number;
+  /** Gerundete aktuelle Restzeit (Vorauswahl). */
+  current: number;
 }
 
 /**
- * FR-S20, FR-S21: erlaubte Korrektur in ganzen Minuten ("+1 Min" erhöht die Spielminute), nur bei laufender
- * oder angehaltener Uhr; sonst null.
+ * Spec 023 FR-J20 bis FR-J22 (ersetzt Spec 012 FR-S20, FR-S21): erlaubte Restzeit bei laufender oder angehaltener
+ * Uhr. Vorstellen bis Restzeit 0 (bzw. bis zur aktuellen Nachspielzeit), Zurückstellen höchstens so weit, dass der
+ * Anpfiff nicht hinter `latest` rückt, und höchstens auf die Abschnittslänge. Ohne Spielraum oder Uhr: null.
  */
-export const clockShiftRange = (game: Game, now: number): { min: number; max: number } | null =>
-  shiftBase(game, now)?.range ?? null;
+export function restRange(game: Game, now: number): RestRange | null {
+  const b = restBase(game, now);
+  return b && rangeOf(b);
+}
+
+function rangeOf(b: RestBase): RestRange | null {
+  const minPlayed = b.playedMs - (b.latest - b.kick.at);
+  const max = Math.min(b.sectionMs / MINUTE_MS, Math.floor((b.sectionMs - minPlayed) / MINUTE_MS));
+  // "+ 0" macht aus -0 eine 0 (Restzeit knapp unter null).
+  const current = Math.min(max, Math.round((b.sectionMs - b.playedMs) / MINUTE_MS) + 0);
+  const min = Math.min(0, current);
+  return min === max ? null : { min, max, current };
+}
 
 /**
- * FR-S21 bis FR-S23: Uhr um `minutes` korrigieren, indem der Anpfiff des laufenden Abschnitts entsprechend
- * früher (bzw. später) gelegt wird. Minuten von Toren und Ereignissen dieses Abschnitts folgen aus ihrer
- * Uhrzeit; Signale dieses Abschnitts, die jetzt nicht mehr erreicht sind, werden wieder fällig.
- * Außerhalb der erlaubten Spanne: unverändert.
+ * Spec 023 FR-J21: Uhr so stellen, dass ab jetzt genau `rest` Minuten bleiben (Constitution V: nur der Anpfiff des
+ * laufenden Abschnitts verschiebt sich). Rückt der Anpfiff dabei vor das vorige Uhr-Ereignis, rücken alle früheren
+ * Uhr-Ereignisse, Tore und Ereignisse um denselben Betrag zurück; ihre Minuten bleiben. Minuten von Toren und
+ * Ereignissen dieses Abschnitts folgen aus ihrer Uhrzeit (FR-S22); nicht mehr erreichte Signale werden wieder
+ * fällig (FR-S23). Außerhalb der erlaubten Spanne: unverändert.
  */
-export function shiftClock(game: Game, minutes: number, now: number): Game {
-  const base = shiftBase(game, now);
-  if (!base || minutes < base.range.min || minutes > base.range.max) return game;
-  const { index, kick } = base;
+export function setRest(game: Game, rest: number, now: number): Game {
+  const b = restBase(game, now);
+  const range = b && rangeOf(b);
+  if (!b || !range || !Number.isInteger(rest) || rest < range.min || rest > range.max) return game;
+  const { index, kick } = b;
   const section = kick.section;
-  const clockEvents = game.clockEvents.map((e, i) => (i === index ? { ...e, at: e.at - minutes * MINUTE_MS } : e));
+  const newKick = kick.at + b.playedMs - (b.sectionMs - rest * MINUTE_MS);
+  const prev = game.clockEvents[index - 1];
+  const shift = prev !== undefined && newKick <= prev.at ? newKick - kick.at : 0;
+  const clockEvents = game.clockEvents.map((e, i) =>
+    i === index ? { ...e, at: newKick } : i < index ? { ...e, at: e.at + shift } : e,
+  );
   const runs = sectionRuns(clockEvents);
-  const restamp = <T extends Place>(x: T): T => {
-    if (x.section !== section) return x;
+  const place = <T extends Place & { beforeTicker?: boolean }>(x: T): T => {
+    if (x.at < kick.at) return { ...x, at: x.at + shift };
+    if (x.section !== section || x.beforeTicker) return x;
     const { minute, stoppage } = minuteFor(section, playedIn(runs, section, x.at), game.schema);
     return { ...x, minute, stoppage };
   };
@@ -305,8 +334,8 @@ export function shiftClock(game: Game, minutes: number, now: number): Game {
   return {
     ...game,
     clockEvents,
-    goals: game.goals.map(restamp),
-    ...(game.events ? { events: game.events.map(restamp) } : {}),
+    goals: game.goals.map(place),
+    ...(game.events ? { events: game.events.map(place) } : {}),
     signalledThresholds: game.signalledThresholds.filter(
       (key) => !key.startsWith(`${section}:`) || reached.includes(key),
     ),
