@@ -25,7 +25,13 @@ Gesichtet am 25.11.2026 im Code:
 - Q: Bisheriger Spielstand? → A: Spielstand mit +/− eingeben; die App legt die Tore als "vor Tickerbeginn" an. Sie zählen sofort, auch auf dem Dashboard. Durch Antippen lassen sich Torschütze und Vorlage nachtragen. Keine eigene Funktion zum Umsortieren (Atti: "können wir weglassen").
 - Q: "Uhr korrigieren" mit verbessern? → A: Ja: Restzeit direkt mit −5/−1/+1/+5; liegt der Anpfiff zu nah am vorigen Pfiff, rückt der bisherige Verlauf mit.
 
-- Folgerungen mit Empfehlung, in Review A zu bestätigen:
+- Review A (25.11.2026): "Passt".
+
+### Session 2026-11-25 (Review B, Mockup)
+
+- Atti: "Es wäre noch schön, wenn man beim Einstieg mit Spielstand die Trikotfarbe ändern könnte." → Im Blatt "Spiel läuft schon" steht neben "Spielstand" der Link "Trikots ändern"; er öffnet das bekannte Blatt "Trikots" (Spec 017 US2) und kehrt nach "Übernehmen" bzw. Schließen ins Blatt zurück. Wer am Platz einsteigt, sieht erst dort, in welchen Farben gespielt wird.
+
+- Folgerungen mit Empfehlung, in Review A bestätigt:
   - **Einstieg in einer Pause** ist wählbar ("Halbzeit" bzw. "Pause" zwischen zwei Abschnitten); dann gibt es keine Restzeit, der nächste Schritt ist wie gewohnt "Anpfiff 2. Halbzeit".
   - **Halbzeitstand**: Beim Einstieg in der 1. Halbzeit oder in der Halbzeitpause ist er bekannt (Tore vor Tickerbeginn gehören zur 1. Halbzeit). Beim Einstieg ab der 2. Halbzeit ist er unbekannt und entfällt im Teilen-Text.
   - **Minute nachtragen**: "Minute ändern" bleibt für Tore vor Tickerbeginn möglich; danach ist es ein normales Tor mit Minute und steht im Verlauf an seiner Stelle. So lässt sich die Reihenfolge nebenbei richtigstellen, ohne eigene Funktion.
@@ -53,6 +59,7 @@ Atti kommt im 3. Drittel an den Platz, niemand tickert. Er legt das Spiel an, ti
 7. **Given** "Neues Spiel" mit eingeschaltetem Schalter "Spiel läuft schon", **When** "Weiter zum Anpfiff" getippt wird, **Then** öffnet der Spielbildschirm mit dem Blatt "Spiel läuft schon". Der Schalter ist bei jedem neuen Spiel aus.
 8. **Given** ein Spiel aus dem Spielplan oder über "Nächstes Spiel" (Spec 021), **Then** gilt dasselbe (Knopf vor dem Anpfiff).
 9. **Given** das Spiel wurde schon angepfiffen, **Then** fehlt "Spiel läuft schon"; die Uhr stellt man über "Uhr korrigieren" (US3).
+10. **Given** das Blatt "Spiel läuft schon", **When** "Trikots ändern" getippt, beim Gegner Blau gewählt und "Übernehmen" getippt wird, **Then** steht wieder das Blatt "Spiel läuft schon" mit allen bisherigen Eingaben da, die Farbmarke des Gegners ist blau, und nach "Übernehmen" sind Tor-Knopf, Torliste und Dashboard blau. Die Gegnerfarbe wird wie in Spec 017 FR-C13 für diesen Gegner gemerkt. Schließen ohne "Übernehmen" ändert nichts.
 
 ---
 
@@ -117,6 +124,7 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 - **FR-J03**: Das Blatt "Spiel läuft schon" MUSS "Abschnitt" (alle regulären Abschnitte und die Pausen dazwischen), "Restzeit" (ganze Minuten, 0 bis Abschnittslänge, "−5", "−1", "+1", "+5", Anzeige "Noch N Min" und "= M. Minute"; fehlt bei gewählter Pause), "Spielstand" (US2) und "Übernehmen" enthalten.
 - **FR-J04**: "Übernehmen" MUSS den Verlauf bis jetzt aus Zeitstempeln zurückrechnen (Constitution V): Anpfiff des gewählten Abschnitts = jetzt minus gespielte Zeit; frühere Abschnitte mit voller Länge davor, je 5 Minuten Pause dazwischen. Bei gewählter Pause endet der vorige Abschnitt jetzt. Uhr, Signale, Pfiffe und Live-Meldung verhalten sich danach wie bei einem durchgehend getickerten Spiel.
 - **FR-J05**: Nach "Übernehmen" MUSS die Leiste "Rückgängig" erscheinen; sie stellt den Zustand vor dem Einstieg vollständig wieder her.
+- **FR-J06**: Das Blatt "Spiel läuft schon" MUSS bei "Spielstand" die Trikotfarben beider Mannschaften als Farbmarken und den Link "Trikots ändern" zeigen. Er öffnet das Blatt "Trikots" (Spec 017 FR-C11 bis FR-C13); danach kehrt die App mit allen Eingaben ins Blatt "Spiel läuft schon" zurück. Die neuen Farben gelten sofort (wie "Trikots ändern" im "…"-Menü) und bleiben auch bei "Rückgängig" des Einstiegs erhalten.
 
 **Spielstand (US2)**
 
@@ -143,9 +151,10 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 
 | Eintrag | Änderung | Quelle |
 |---|---|---|
-| `spiel-laeuft-schon` "Wie steige ich in ein laufendes Spiel ein?" | neu: "Spiel läuft schon" vor dem Anpfiff bzw. Schalter in "Neues Spiel"; Abschnitt, Restzeit, Spielstand; Tore "vor Tickerbeginn" antippen, um Torschütze und Vorlage nachzutragen | 023 US1, 023 US2 |
+| `spiel-laeuft-schon` "Wie steige ich in ein laufendes Spiel ein?" | neu: "Spiel läuft schon" vor dem Anpfiff bzw. Schalter in "Neues Spiel"; Abschnitt, Restzeit, Spielstand, "Trikots ändern"; Tore "vor Tickerbeginn" antippen, um Torschütze und Vorlage nachzutragen | 023 US1, 023 US2 |
 | `uhr-korrigieren` "Was tue ich, wenn die Uhr falsch geht?" | geändert: Restzeit mit "−5", "−1", "+1", "+5"; geht auch direkt nach einem Pfiff | 012 US4, 023 US3 |
 | `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: Schalter "Spiel läuft schon" | 001 US2, …, 023 US1 |
+| `trikots` "Wie ändere ich die Trikotfarben für ein Spiel?" | geändert: auch im Blatt "Spiel läuft schon" | 004 US2, 017 US2, 023 US1 |
 | `torschuetze` "Wie trage ich den Torschützen nach?" | geändert: auch bei Toren "vor Tickerbeginn" | 001 US3, 017 US1, 023 US2 |
 
 ## Success Criteria *(mandatory)*
