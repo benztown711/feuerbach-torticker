@@ -723,6 +723,13 @@ body:has(.page:not(.dash, .lead-link)) {
   font-weight: 700;
 }
 
+/* Spec 023 FR-J12: Tor vor Tickerbeginn ohne Minute. */
+.goal-row__pre {
+  flex-shrink: 0;
+  color: var(--color-ink-muted);
+  font-size: 12px;
+}
+
 /* Spec 003: Lesezeichen sind intern */
 .goal-row__tag--private {
   flex-shrink: 0;
@@ -1276,20 +1283,93 @@ body:has(.page:not(.dash, .lead-link)) {
   min-width: 0;
 }
 
-/* Spec 012 FR-S20: Uhr korrigieren mit großer Minute zwischen den Knöpfen. */
-.clock-fix {
+/* Spec 023 FR-J03, FR-J20: Blatt "Spiel läuft schon" und "Uhr korrigieren" mit Restzeit; passt aufs iPhone SE. */
+.late {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.late__label {
+  color: var(--color-rot-text);
+}
+
+.late__chips {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: var(--space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.late__chip {
+  min-height: 44px;
+  padding: 0 var(--space-1);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.late__chip--pause {
+  color: var(--color-ink-muted);
+  font-weight: 400;
+}
+
+.late__rest {
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.clock-fix__minute {
-  min-width: 3.5ch;
-  font-size: 44px;
+.late__rest-value {
+  font-family: var(--font-display);
+  font-size: 40px;
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1.05;
+}
+
+.late__rest-minute {
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.late__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.late__steps .btn,
+.late__count .btn {
+  min-height: 52px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.late__score-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.late__count {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px 44px 56px;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.late__team {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.late__count-value {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums lining-nums;
   text-align: center;
 }
 
@@ -4165,4 +4245,10 @@ button.plan__row {
 .live__trainer.card > .card:first-child {
   padding-top: 0;
   border-top: 0;
+}
+
+/* Spec 023 FR-J12: Kennzeichen auf dem Dashboard. */
+.dash-goal__pre {
+  color: var(--color-ink-muted);
+  font-size: 13px;
 }

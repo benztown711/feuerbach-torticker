@@ -90,6 +90,7 @@ export function GoalList({ game, players, onOpen, events = [], onOpenEvent }: Pr
             <span class="goal-row__score">{it.row.score}</span>
             {/* Spec 009 FR-V11: mit Torschütze ohne Mannschaftsnamen, z. B. "Max (Vorlage: Ben)". */}
             <span class="goal-row__team">{goalWho(game, it.row.goal, players)}</span>
+            {it.row.beforeTicker && <span class="goal-row__pre">vor Tickerbeginn</span>}
             {it.row.removed && <span class="goal-row__tag">entfernt</span>}
             <Chevron />
           </button>

@@ -26,15 +26,8 @@ import {
   updateSub,
 } from '../../domain/events';
 import { addGoal, homeAway, score, undoGoal } from '../../domain/goals';
-import {
-  canAddLateGoal,
-  canUndoWhistle,
-  clockShiftRange,
-  shiftClock,
-  undoWhistle,
-  whistleKind,
-} from '../../domain/corrections';
-import { formatMinute, minuteFor } from '../../domain/minute';
+import { canAddLateGoal, canUndoWhistle, restRange, undoWhistle, whistleKind } from '../../domain/corrections';
+import { formatMinute } from '../../domain/minute';
 import { formatTime } from '../../domain/format';
 import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
@@ -58,11 +51,15 @@ import { shareText } from '../../platform/share';
 import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
+import type { LateDraft } from '../components/late-start-sheet';
+
+/** Spec 023 FR-J01: nur vor dem ersten Anpfiff (wie `canJoin`, ohne das nachgeladene Modul). */
+const notStarted = (game: Game): boolean => game.clockEvents.length === 0;
 import { Confirm } from '../components/confirm';
 import { GoalButton } from '../components/goal-button';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { addGoalStep, PICKER_MS, type EditStep } from '../components/goal-steps';
-import { useGoalEditor } from '../components/goal-editor-load';
+import { loadGoalEditor, useGoalEditor } from '../components/goal-editor-load';
 import { BookmarkIcon, CardGlyph, CardIcon, SubIcon } from '../components/event-icons';
 import { GoalList } from '../components/goal-list';
 import { LiveOthers } from '../components/live-others';
@@ -115,7 +112,7 @@ type CardDraft = {
 type SubDraft = { id: string | null; at: number; out: string | null; inn: string | null; others: boolean };
 const CARDS: CardColor[] = ['gelb', 'gelbrot', 'rot', 'zeit'];
 
-export function GameScreen({ id }: { id: string }) {
+export function GameScreen({ id, join = false }: { id: string; join?: boolean }) {
   const now = useNow(250);
   const dark = useDarkTheme();
   const [game, setGame] = useState<Game | null | undefined>(undefined);
@@ -147,8 +144,20 @@ export function GameScreen({ id }: { id: string }) {
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraMin, setExtraMin] = useState(10);
   const [firstAsk, setFirstAsk] = useState(false);
-  // Spec 012: Uhr korrigieren.
-  const [clockFix, setClockFix] = useState<number | null>(null);
+  // Spec 012, Spec 023 FR-J20: Uhr korrigieren mit Restzeit (gewählt und beim Öffnen gerundet).
+  const [clockFix, setClockFix] = useState<{ rest: number; start: number } | null>(null);
+  /** Spec 023: Blatt "Spiel läuft schon", Blatt "Trikots" daraus (FR-J06) und "Rückgängig" nach dem Einstieg. */
+  const [late, setLate] = useState<LateDraft | null>(null);
+  const [lateKits, setLateKits] = useState(false);
+  const [entryUndo, setEntryUndo] = useState<{ before: Game; text: string; until: number } | null>(null);
+  /** Blatt "Spiel läuft schon" liegt im nachgeladenen Teil der Tor-Blätter (Bundle-Budget, Spec 021 R-W3). */
+  const openLate = (): void =>
+    void loadGoalEditor()
+      .then((m) => {
+        const g = gameRef.current;
+        if (g && notStarted(g)) setLate(m.lateDraft(g));
+      })
+      .catch(() => undefined);
   /** Spec 017 FR-C10: Blatt "Trikots". */
   const [kitsOpen, setKitsOpen] = useState(false);
   /** Spec 017 FR-C21: Zeitpunkt der Korrektur, die "Korrigiert. Ergebnis neu teilen?" auslöst (0 = keine). */
@@ -175,6 +184,11 @@ export function GameScreen({ id }: { id: string }) {
     void getGame(id).then((g) => {
       gameRef.current = g ?? null;
       setGame(g ?? null);
+      // Spec 023 FR-J02, R-J6: aus "Neues Spiel" mit "Spiel läuft schon" gleich das Blatt öffnen.
+      if (join) {
+        openLate();
+        navigate(`/spiel/${id}`, true);
+      }
     });
   }, [id]);
 
@@ -445,9 +459,23 @@ export function GameScreen({ id }: { id: string }) {
       />
     );
 
-  // Spec 012 FR-S20, FR-S21: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
-  const range = goalsOpen ? clockShiftRange(game, now) : null;
-  const shiftRange = range && (range.min < 0 || range.max > 0) ? range : null;
+  // Spec 023 FR-J22: Uhr korrigieren nur bei laufender oder angehaltener Uhr und wenn es Spielraum gibt.
+  const restRng = goalsOpen ? restRange(game, now) : null;
+
+  /** Spec 023 FR-J04, FR-J05: Einstieg übernehmen; "Rückgängig" stellt das Spiel davor wieder her (ohne Trikots). */
+  const doJoin = (): void => {
+    if (!late || !editor) return;
+    const t = Date.now();
+    const before = cur();
+    const next = editor.joinGame(before, editor.lateInput(before, late), t);
+    setLate(null);
+    if (next === before) return;
+    setKeepAlive(true);
+    unlockAudio();
+    update(next);
+    setEntryUndo({ before, text: editor.lateSummary(before, late), until: t + UNDO_MS });
+  };
+  const entryUndoObj = entryUndo && now < entryUndo.until ? entryUndo : null;
 
   // Spec 003 FR-E09: Knopfzeile ab Anpfiff bis Schlusspfiff, wenn mindestens ein Schalter an ist.
   const allEvents = gameEvents(game);
@@ -516,6 +544,7 @@ export function GameScreen({ id }: { id: string }) {
     markUndo: !!markUndoObj,
     eventUndo: !!evUndoObj,
     reshare: reshareAt > 0,
+    entryUndo: !!entryUndoObj,
     handedOver: now < handedUntil,
     shareResult: !!shareMsg && now < shareUntil,
     doubleTap: now < hintUntil,
@@ -575,6 +604,20 @@ export function GameScreen({ id }: { id: string }) {
               undoAction('event-undo', () => {
                 update(removeEvent(cur(), evUndoObj.id));
                 setEvUndo(null);
+              }),
+            ],
+          }
+        : null,
+    entry: () =>
+      entryUndoObj
+        ? {
+            testId: 'entry-undo-bar',
+            text: entryUndoObj.text,
+            actions: [
+              undoAction('entry-undo', () => {
+                const g = cur();
+                update({ ...entryUndoObj.before, ownColor: g.ownColor, oppColor: g.oppColor });
+                setEntryUndo(null);
               }),
             ],
           }
@@ -679,13 +722,19 @@ export function GameScreen({ id }: { id: string }) {
               {(status === 'created' || status === 'break') && (
                 <button
                   type="button"
-                  class="btn btn--primary controls__wide"
+                  // Spec 023 FR-J01: vor dem ersten Anpfiff neben "Spiel läuft schon" (iPhone SE ohne Scrollen).
+                  class={notStarted(game) ? 'btn btn--primary' : 'btn btn--primary controls__wide'}
                   data-testid="btn-kickoff"
                   onClick={doKickoff}
                 >
                   {status === 'created' || clock.kickoffSection === null
                     ? 'Anpfiff'
                     : `Anpfiff ${sectionLabel(clock.kickoffSection, game.schema.sections)}`}
+                </button>
+              )}
+              {notStarted(game) && (
+                <button type="button" class="btn btn--secondary" data-testid="btn-late" onClick={openLate}>
+                  Spiel läuft schon
                 </button>
               )}
               {status === 'running' && (
@@ -898,14 +947,14 @@ export function GameScreen({ id }: { id: string }) {
               {whistleKind(game)} zurücknehmen
             </button>
           )}
-          {shiftRange && (
+          {restRng && (
             <button
               type="button"
               class="btn btn--secondary"
               data-testid="menu-fix-clock"
               onClick={() => {
                 setMenu(false);
-                setClockFix(0);
+                setClockFix({ rest: restRng.current, start: restRng.current });
               }}
             >
               Uhr korrigieren
@@ -1317,15 +1366,19 @@ export function GameScreen({ id }: { id: string }) {
         </Sheet>
       )}
 
-      {kitsOpen && (
+      {(kitsOpen || (late && lateKits)) && (
         <KitsSheet
           game={game}
           dark={dark}
           onSave={(own, opp) => {
             applyKits(cur(), own, opp, update);
             setKitsOpen(false);
+            setLateKits(false);
           }}
-          onClose={() => setKitsOpen(false)}
+          onClose={() => {
+            setKitsOpen(false);
+            setLateKits(false);
+          }}
         />
       )}
 
@@ -1449,53 +1502,30 @@ export function GameScreen({ id }: { id: string }) {
         </div>
       )}
 
-      {clockFix !== null && shiftRange && (
-        <Sheet
-          title="Uhr korrigieren"
-          subtitle="Welche Spielminute ist jetzt?"
-          testId="clock-fix-sheet"
+      {clockFix !== null && restRng && editor && (
+        <editor.ClockFixSheet
+          game={game}
+          clock={clock}
+          range={restRng}
+          fix={clockFix}
+          onChange={setClockFix}
+          onSave={() => {
+            if (clockFix.rest !== clockFix.start) update(editor.setRest(cur(), clockFix.rest, Date.now()));
+            setClockFix(null);
+          }}
           onClose={() => setClockFix(null)}
-        >
-          <div class="clock-fix">
-            <button
-              type="button"
-              class="btn btn--secondary"
-              data-testid="clock-fix-minus"
-              disabled={clockFix <= shiftRange.min}
-              onClick={() => setClockFix(clockFix - 1)}
-            >
-              −1 Min
-            </button>
-            <output class="clock-fix__minute" data-testid="clock-fix-minute" aria-live="polite">
-              {minuteFor(clock.section, clock.playedMs + clockFix * 60_000, game.schema).label}
-            </output>
-            <button
-              type="button"
-              class="btn btn--secondary"
-              data-testid="clock-fix-plus"
-              disabled={clockFix >= shiftRange.max}
-              onClick={() => setClockFix(clockFix + 1)}
-            >
-              +1 Min
-            </button>
-          </div>
-          <p class="field__help">
-            {clockFix === 0
-              ? 'Unverändert.'
-              : `Uhr ${clockFix > 0 ? '+' : '−'}${Math.abs(clockFix)} Min. Restzeit, Pfiff und Tor-Minuten folgen.`}
-          </p>
-          <button
-            type="button"
-            class="btn btn--primary"
-            data-testid="clock-fix-save"
-            onClick={() => {
-              if (clockFix !== 0) update(shiftClock(cur(), clockFix, Date.now()));
-              setClockFix(null);
-            }}
-          >
-            Übernehmen
-          </button>
-        </Sheet>
+        />
+      )}
+
+      {late && !lateKits && editor && (
+        <editor.LateStartSheet
+          game={game}
+          draft={late}
+          onChange={setLate}
+          onKits={() => setLateKits(true)}
+          onSave={doJoin}
+          onClose={() => setLate(null)}
+        />
       )}
 
       {ask && (

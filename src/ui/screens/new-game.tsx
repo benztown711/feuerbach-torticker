@@ -98,6 +98,8 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
   const [pal, setPal] = useState<'own' | 'opp' | null>(null);
   const [busy, setBusy] = useState(false);
   const [liveOn, setLiveOn] = useState(true);
+  /** Spec 023 FR-J02: "Spiel läuft schon", bei jedem neuen Spiel aus. */
+  const [lateOn, setLateOn] = useState(false);
   /** Spec 006 US6: Live-Spieltag mithören, um ein schon übertragenes Spiel zu erkennen (nachgeladen). */
   const watch = useRef<LiveWatch | null>(null);
   /** Das Nachladen des Mithörens; null, solange das Handy nicht gekoppelt ist. */
@@ -400,7 +402,7 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
         check.value,
       ),
     );
-    navigate(`/spiel/${game.id}`, true);
+    navigate(`/spiel/${game.id}${lateOn ? '/einstieg' : ''}`, true);
   };
 
   /** Spec 006 FR-L23: Spiel mit Stand, Spielzeit und Toren übernehmen. */
@@ -706,6 +708,24 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
             Signalton: {signalSoundName(settings.signalSound)}, änderbar unter „Mehr“ → „Einstellungen“. Lautstärke mit
             den Tasten am Handy einstellen, solange die App offen ist.
           </p>
+          {/* Spec 023 FR-J02 */}
+          <div class="switch-row" data-testid="new-late-row">
+            <div class="switch-row__text">
+              <span class="switch-row__title" id="ng-late">
+                Spiel läuft schon
+              </span>
+              <p class="switch-row__help">Abschnitt, Restzeit und Spielstand gleich danach einstellen.</p>
+            </div>
+            <button
+              type="button"
+              class="switch"
+              role="switch"
+              aria-checked={lateOn}
+              aria-labelledby="ng-late"
+              data-testid="new-late-switch"
+              onClick={() => setLateOn(!lateOn)}
+            />
+          </div>
         </section>
 
         <section class="field card" aria-label="Aufgebot" data-testid="card-squad">

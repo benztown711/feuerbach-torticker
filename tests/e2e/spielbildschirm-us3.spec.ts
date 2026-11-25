@@ -51,7 +51,7 @@ const noPageScroll = async (page: Page): Promise<void> => {
 test.describe('019 US3 Große Knöpfe, ruhige Torliste', () => {
   test('019 US3-S1 Knöpfe unter der Uhr in jedem Zustand mindestens 64 × 64', async ({ page }) => {
     await newGame(page, { sections: 2, minutes: 10 });
-    await expectControlsBig(page, 1); // Anpfiff
+    await expectControlsBig(page, 2); // Anpfiff, Spiel läuft schon (Spec 023 FR-J01)
     await page.getByTestId('btn-kickoff').click();
     await expectControlsBig(page, 2); // Uhr anhalten, Pausenpfiff
     await page.getByTestId('btn-pause').click();
