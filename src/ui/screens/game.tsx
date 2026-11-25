@@ -53,6 +53,10 @@ import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import type { LateDraft } from '../components/late-start-sheet';
 
+/** Unterscheiden sich zwei Stände nur in den gemerkten Signalen (FR-007)? */
+const onlySignals = (a: Game, b: Game): boolean =>
+  JSON.stringify({ ...a, signalledThresholds: [] }) === JSON.stringify({ ...b, signalledThresholds: [] });
+
 /** Spec 023 FR-J01: nur vor dem ersten Anpfiff (wie `canJoin`, ohne das nachgeladene Modul). */
 const notStarted = (game: Game): boolean => game.clockEvents.length === 0;
 import { Confirm } from '../components/confirm';
@@ -199,6 +203,9 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
     setGame(g);
     // Spec 017 FR-C21: Korrektur an einem schon geteilten Ergebnis.
     if (before && needsReshare(before, g, players ?? [])) setReshareAt(Date.now());
+    // Spec 023 FR-J05: "Rückgängig" gilt nur für den Einstieg selbst; jede weitere Erfassung (außer gemerkten
+    // Signalen) beendet es, damit es nichts danach Erfasstes mitnimmt.
+    if (before && !onlySignals(before, g)) setEntryUndo(null);
     return putGame(g);
   };
   const update = (g: Game): void => void save(g);

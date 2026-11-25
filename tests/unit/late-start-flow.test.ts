@@ -87,6 +87,8 @@ describe('023 FR-J15 Live-Meldung', () => {
       now: NOW + min(1),
       newId: ids,
     });
+    // FR-J14: der Halbzeitstand bleibt nach der Übernahme unbekannt (Tore vor Tickerbeginn, R-J2).
+    expect(g.halfTimeScore).toBeNull();
     expect(g.goals.map((x) => [x.beforeTicker, x.at])).toEqual([
       [true, g.clockEvents[0]!.at],
       [true, g.clockEvents[0]!.at],

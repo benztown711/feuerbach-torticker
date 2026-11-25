@@ -111,6 +111,9 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 - **Ältere App auf dem Eltern-Handy**: Kennt sie "vor Tickerbeginn" noch nicht, zeigt sie diese Tore mit einer Minute aus dem Abschnittsanfang; Stand und Uhr stimmen trotzdem. Mit dem nächsten Update (Spec 010 "Update") stimmt auch die Anzeige.
 - **Uhrzeit im Teilen-Text**: Die Anpfiff-Uhrzeit ergibt sich aus dem zurückgerechneten Verlauf (geschätzt, mit 5 Minuten je Pause).
 - **Offline**: Alles lokal; das Dashboard bekommt den Stand mit der nächsten Verbindung.
+- **Uhrzeiten früherer Tore nach "Uhr korrigieren"** (FR-J21): Rückt der Verlauf mit zurück, verschieben sich auch die erfassten Uhrzeiten früherer Tore und Ereignisse (für die Videozuordnung); ihre Spielminuten bleiben. Hinnehmbar, weil der Fall fast nur nach einem schnellen Durchklickern auftritt, bei dem die Uhrzeiten ohnehin nicht stimmen.
+- **"Spiel übernehmen" nach dem Einstieg** (Spec 006 US6): Das übernehmende Handy kennt den Halbzeitstand nicht, sobald es Tore vor Tickerbeginn gibt (FR-J14), auch wenn in der Halbzeitpause eingestiegen wurde.
+- **"Rückgängig" nach dem Einstieg** (FR-J05) gilt nur, bis etwas Weiteres erfasst oder geändert wird.
 - **Verlängerung, Elfmeterschießen**: kein Einstiegspunkt (siehe Clarifications).
 - **Großer Rückstand im Kinderfußball** (z. B. 0:15): bis 30 je Seite; mehr über "Tor nachtragen" bzw. Tor-Knöpfe.
 

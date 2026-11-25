@@ -113,7 +113,9 @@ export function takeoverGame(i: TakeoverInput): Game {
     squad: [],
     status: clock.status,
     finalScore: clock.status === 'finished' ? scoreOf(goals) : null,
-    halfTimeScore: firstHalfDone ? scoreOf(goals.filter((g) => g.section === 1)) : null,
+    // Spec 023 FR-J14: Mit Toren vor Tickerbeginn ist nicht erkennbar, ob der Halbzeitstand bekannt war.
+    halfTimeScore:
+      firstHalfDone && !goals.some((g) => g.beforeTicker) ? scoreOf(goals.filter((g) => g.section === 1)) : null,
     live: true,
     liveTakeover: Math.min(s.h + 1, MAX_TAKEOVER),
   };

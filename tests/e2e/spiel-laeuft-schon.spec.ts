@@ -156,6 +156,20 @@ test.describe('023 US1 Ins laufende Spiel einsteigen', () => {
   });
 });
 
+test('023 FR-J05 "Rückgängig" gilt nur für den Einstieg: ein Tor danach beendet es', async ({ page }) => {
+  await newGame(page);
+  await openLate(page);
+  await page.getByTestId('late-choice-s2').click();
+  await page.getByTestId('late-save').click();
+  await expect(page.getByTestId('entry-undo-bar')).toBeVisible();
+  await page.getByTestId('btn-goal-opp').click();
+  await expect(page.getByTestId('undo-bar')).toBeVisible();
+  await page.getByTestId('btn-undo').click();
+  // Das Tor ist zurückgenommen, der Einstieg bleibt; seine Leiste kommt nicht wieder.
+  await expect(page.getByTestId('entry-undo-bar')).toHaveCount(0);
+  await expect(page.getByTestId('section-label')).toHaveText('2. Halbzeit');
+});
+
 test('023 US1-S8 auch beim Spiel über "Nächstes Spiel"', async ({ page }) => {
   await playFinishedGame(page, ['own']);
   await page.getByTestId('btn-next-game').click();
