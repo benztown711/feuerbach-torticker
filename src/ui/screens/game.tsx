@@ -331,7 +331,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
       <main class="page">
         <p class="t-text">Dieses Spiel gibt es nicht mehr.</p>
         <button type="button" class="btn btn--primary" onClick={() => navigate(parentPath ?? '/')}>
-          {parentPath ? 'Zurück zu Live' : 'Zur Startseite'}
+          {parentPath ? 'Zum Spieltag' : 'Zur Startseite'}
         </button>
       </main>
     );
@@ -704,7 +704,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
             Ton aus · tippen
           </button>
         )}
-        {/* Spec 024: Eltern sehen den Live-Zustand in der Zeile darunter; so passt "Zurück zu Live" auch auf das SE. */}
+        {/* Spec 024: Eltern sehen den Live-Zustand in der Zeile darunter; so passt "Zum Spieltag" auch auf das SE. */}
         {!parentPath && <LivePill game={game} />}
         {parentPath && (
           <button
@@ -716,7 +716,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon">
               <path d="M15 5l-7 7 7 7" />
             </svg>
-            Zurück zu Live
+            Zum Spieltag
           </button>
         )}
         <button
@@ -938,7 +938,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
                   data-testid="parent-back-end"
                   onClick={() => navigate(parentPath)}
                 >
-                  Zurück zu Live
+                  Zum Spieltag
                 </button>
               ) : (
                 <button
