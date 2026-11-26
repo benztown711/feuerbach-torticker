@@ -48,6 +48,10 @@ Gesichtet am 26.11.2026 in Specs und Code:
 - **Übernommenes Eltern-Spiel (US5)** geht vom Trainer-Handy nicht erneut an den Dienst; die Karte bleibt beim Stand der Eltern ("Getickert von Paul").
 - **Nach dem Ausschalten (US4-S2)** bekommt das tickernde Eltern-Handy keinen Kader mehr; Tore gehen ohne Torschützen-Auswahl.
 
+### Review C (26.11.2026, Design-Check)
+
+- Atti: "Merge #100, 1 und 2 als Folge-PR" → (1) Der Rückweg der Eltern heißt überall "Zum Spieltag", wie der Reiter "Spieltag" der Eltern-Leiste (Spec 010 FR-H16), statt "Zurück zu Live"; der Hinweis in "Neues Spiel" der Eltern lautet "Das Spiel steht gleich live im Spieltag, als <Name>." (2) Beim Schalter "Eltern dürfen tickern" ist die ganze Zeile tippbar (Mannschaft und Schalter), nicht nur der Schalter.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ich tickere dieses Spiel (Priority: P1)
@@ -64,9 +68,9 @@ Die E2 hat heute um 17:30 ein Spiel aus dem Spielplan, die Trainer sind auf eine
 2. **Given** das Handy hat noch keinen Ticker-Namen, **When** "Ich tickere dieses Spiel" getippt wird, **Then** fragt das Blatt "Wie heißt du?" mit dem Hinweis "Die anderen sehen, dass du tickerst.", einem Feld "Vorname" und "Weiter"; "Weiter" ist erst mit mindestens 2 Zeichen wählbar.
 3. **Given** ein Ticker-Name ist gespeichert, **When** "Ich tickere dieses Spiel" getippt wird, **Then** fragt die App "Du tickerst E2 gegen TSV Musterstadt als Paul." mit "Los geht's", "Name ändern" und "Abbrechen".
 4. **Given** "Los geht's", **Then** öffnet der Spielbildschirm mit Gegner, Heim/Gast, Trikots und Spielzeit aus dem Spielplan, vor dem Anpfiff, mit "Anpfiff" und "Spiel läuft schon" (Spec 023); das Spiel ist sofort auf dem Dashboard und alle Zuschauer sehen auf der Karte "Paul tickert bereits", schon vor dem Anpfiff.
-5. **Given** Paul tickert, **Then** verhält sich der Spielbildschirm wie bei einem Trainer (Tore, Uhr, Pfiffe, Rückgängig, Torschützen, "Teilen") mit diesen Ausnahmen: kein "Nicht live senden", keine Navigation zu Startbildschirm, Historie, Kader oder Einstellungen; statt der Navigation steht "Zurück zu Live".
-6. **Given** "Zurück zu Live" während des Spiels, **Then** zeigt das Dashboard die Karte mit "Du tickerst" und dem Knopf "Weiter tickern"; das Spiel läuft weiter.
-7. **Given** der Schlusspfiff, **Then** bietet der Spielbildschirm "Ergebnis teilen" und "Zurück zu Live"; die Karte zeigt den Endstand und "Getickert von Paul".
+5. **Given** Paul tickert, **Then** verhält sich der Spielbildschirm wie bei einem Trainer (Tore, Uhr, Pfiffe, Rückgängig, Torschützen, "Teilen") mit diesen Ausnahmen: kein "Nicht live senden", keine Navigation zu Startbildschirm, Historie, Kader oder Einstellungen; statt der Navigation steht "Zum Spieltag".
+6. **Given** "Zum Spieltag" während des Spiels, **Then** zeigt das Dashboard die Karte mit "Du tickerst" und dem Knopf "Weiter tickern"; das Spiel läuft weiter.
+7. **Given** der Schlusspfiff, **Then** bietet der Spielbildschirm "Ergebnis teilen" und "Zum Spieltag"; die Karte zeigt den Endstand und "Getickert von Paul".
 8. **Given** niemand tickert für die Mannschaft, aber ein früheres Spiel von heute ist beendet, **Then** erscheint "Ich tickere dieses Spiel" für das nächste nicht beendete Planspiel von heute; gibt es keins, erscheint der Knopf nicht (siehe US3).
 
 ---
@@ -120,7 +124,7 @@ Ivica sieht auf "Live für Eltern", wer tickert. Unter "Für Trainer" schaltet e
 
 **Acceptance Scenarios**:
 
-1. **Given** ein Live-Spieltag, **Then** steht unter "Live für Eltern" → "Für Trainer" je Mannschaft der Schalter "Eltern dürfen tickern"; Vorgabe an, auch für bestehende Live-Spieltage nach dem Update.
+1. **Given** ein Live-Spieltag, **Then** steht unter "Live für Eltern" → "Für Trainer" je Mannschaft der Schalter "Eltern dürfen tickern" (ein Tipp auf die Zeile schaltet); Vorgabe an, auch für bestehende Live-Spieltage nach dem Update.
 2. **Given** ein Trainer schaltet den Schalter aus, **Then** gilt das innerhalb von 10 Sekunden auf allen Handys mit Netz: keine Ticker-Knöpfe für diese Mannschaft, Meldungen von Zuschauer-Handys für diese Mannschaft ändern das Dashboard nicht mehr, der Kader der Mannschaft wird an Zuschauer-Handys nicht mehr ausgeliefert.
 3. **Given** ein Elternteil tickert, als der Schalter ausgeht, **Then** zeigt sein Spielbildschirm "Die Trainer haben das Tickern für Eltern ausgeschaltet. Hier wird nur noch lokal erfasst."; die Erfassung geht lokal weiter.
 4. **Given** ein Trainer schaltet wieder ein, **Then** erscheinen die Knöpfe wieder; das lokal weiter erfasste Spiel sendet nicht automatisch, es kann über "Spiel übernehmen" fortgesetzt werden.
@@ -192,13 +196,13 @@ Nach dem Schlusspfiff des Nachholspiels öffnet Atti den Torticker. Oben steht "
 
 **Spielbildschirm für Eltern**
 
-- **FR-E15**: Der Spielbildschirm MUSS beim Tickern über den Zuschauer-Link alle Erfassungsfunktionen wie bei Trainern bieten (inkl. "Spiel läuft schon", "Uhr korrigieren", Rückgängig, "Teilen"), aber keine Navigation in die Trainer-App; stattdessen "Zurück zu Live" (US1-S5 bis S7).
+- **FR-E15**: Der Spielbildschirm MUSS beim Tickern über den Zuschauer-Link alle Erfassungsfunktionen wie bei Trainern bieten (inkl. "Spiel läuft schon", "Uhr korrigieren", Rückgängig, "Teilen"), aber keine Navigation in die Trainer-App; stattdessen "Zum Spieltag" (US1-S5 bis S7).
 - **FR-E16**: Die Torschützen-Auswahl MUSS den gesamten geteilten Kader der Mannschaft zeigen; Eltern können ihn nicht ändern. Ohne geteilten Kader gilt die Auswahl wie ohne Kader.
 - **FR-E17**: Das Spiel bleibt auf dem Eltern-Handy, bis die Mannschaft ein neues Spiel hat; eine Historie gibt es in der Eltern-Ansicht nicht.
 
 **Trainer**
 
-- **FR-E18**: Unter "Live für Eltern" → "Für Trainer" MUSS je Mannschaft der Schalter "Eltern dürfen tickern" stehen, Vorgabe an; jedes Trainer-Handy darf ihn ändern, es gilt die jüngste Änderung (US4-S1).
+- **FR-E18**: Unter "Live für Eltern" → "Für Trainer" MUSS je Mannschaft der Schalter "Eltern dürfen tickern" stehen (die ganze Zeile ist tippbar), Vorgabe an; jedes Trainer-Handy darf ihn ändern, es gilt die jüngste Änderung (US4-S1).
 - **FR-E19**: Beim Ausschalten MUSS das tickernde Eltern-Handy den Hinweis aus US4-S3 zeigen und lokal weiter erfassen; geladene Kader dieser Mannschaft MÜSSEN auf Zuschauer-Handys gelöscht werden (US4-S2, S3).
 - **FR-E20**: Trainer-Handys MÜSSEN nach dem Schlusspfiff eines von einem Zuschauer-Handy getickerten Spiels einer eigenen Mannschaft die Übernahme-Frage zeigen, solange das Spiel nicht in ihrer Historie ist und nicht abgelehnt wurde (US5-S1, S3 bis S6).
 - **FR-E21**: "Übernehmen" MUSS das Spiel vollständig in die Historie legen (US5-S2), mit dem Hinweis "Getickert von <Name>"; gibt es das Spiel schon (gleiche Spiel-Kennung), wird nichts doppelt angelegt.
@@ -221,7 +225,7 @@ Einträge in `src/domain/help-entries.ts`; Bezeichnungen wörtlich wie in der Ap
 
 | Eintrag | Änderung | Quelle |
 |---|---|---|
-| neu `eltern-tickern` "Wie tickere ich ein Spiel als Elternteil?" (für Eltern, Thema Live-Spieltag) | Auf der Karte "Ich tickere dieses Spiel", einmal "Wie heißt du?" (nur dein Vorname, kein Kindername), dann wie gewohnt Tore tippen. Fehlt das Spiel: unten "Spiel fehlt? Selbst tickern". Läuft das Spiel schon: "Spiel läuft schon". "Zurück zu Live" und "Weiter tickern" | 024 US1, 024 US3 |
+| neu `eltern-tickern` "Wie tickere ich ein Spiel als Elternteil?" (für Eltern, Thema Live-Spieltag) | Auf der Karte "Ich tickere dieses Spiel", einmal "Wie heißt du?" (nur dein Vorname, kein Kindername), dann wie gewohnt Tore tippen. Fehlt das Spiel: unten "Spiel fehlt? Selbst tickern". Läuft das Spiel schon: "Spiel läuft schon". "Zum Spieltag" und "Weiter tickern" | 024 US1, 024 US3 |
 | neu `wer-tickert` "Wie sehe ich, ob schon jemand tickert?" (für Eltern) | "Paul tickert bereits" bzw. "Trainer Jonas tickert bereits" auf der Karte, "Du tickerst" auf dem eigenen Handy; "Spiel übernehmen" mit Rückfrage; "Weiter tickern", wenn seit 5 Min nichts kommt; was das abgelöste Handy sieht | 024 US2 |
 | neu `eltern-tickern-aus` "Wie verhindere ich, dass Eltern tickern?" (Trainer) | "Mehr" → "Live für Eltern" → "Für Trainer" → "Eltern dürfen tickern" je Mannschaft; was Eltern dann sehen | 024 US4 |
 | neu `eltern-spiel-uebernehmen` "Wie kommt ein Spiel, das Eltern getickert haben, in meine Historie?" (Trainer) | Karte auf dem Startbildschirm, "Übernehmen" bzw. "Nein danke"; "Getickert von …" in den Spieldetails | 024 US5 |

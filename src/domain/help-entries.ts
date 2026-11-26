@@ -805,7 +805,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie tickere ich ein Spiel als Elternteil?',
     answer:
-      "Ist kein Trainer am Platz, tippe auf der Karte der Mannschaft auf „Ich tickere dieses Spiel“. Beim ersten Mal fragt die App „Wie heißt du?“: nur dein Vorname, kein Kindername. Nach „Los geht's“ tippst du wie gewohnt „Anpfiff“ und die Tore; nach einem Tor wählst du den Torschützen aus dem Kader. Läuft das Spiel schon, tippe „Spiel läuft schon“. Fehlt das Spiel (z. B. ein Nachholspiel), tippe unten auf „Spiel fehlt? Selbst tickern“, wähle die Mannschaft und gib den Gegner ein. „Zurück zu Live“ führt zum Dashboard, „Weiter tickern“ wieder ins Spiel.",
+      "Ist kein Trainer am Platz, tippe auf der Karte der Mannschaft auf „Ich tickere dieses Spiel“. Beim ersten Mal fragt die App „Wie heißt du?“: nur dein Vorname, kein Kindername. Nach „Los geht's“ tippst du wie gewohnt „Anpfiff“ und die Tore; nach einem Tor wählst du den Torschützen aus dem Kader. Läuft das Spiel schon, tippe „Spiel läuft schon“. Fehlt das Spiel (z. B. ein Nachholspiel), tippe unten auf „Spiel fehlt? Selbst tickern“, wähle die Mannschaft und gib den Gegner ein. „Zum Spieltag“ führt zu den Karten aller Spiele, „Weiter tickern“ wieder ins Spiel.",
     steps: [
       'Auf der Karte „Ich tickere dieses Spiel“ tippen (oder unten „Spiel fehlt? Selbst tickern“).',
       'Beim ersten Mal deinen Vornamen eingeben, „Weiter“.',

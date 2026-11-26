@@ -35,7 +35,7 @@ Gesichtet am 26.11.2026: `relay/src/spieltag.ts`, `src/domain/relay-protocol.ts`
 
 ## R-E6 Wege in der Eltern-Ansicht
 
-- Routen `#/live/<Daten>/spiel/<id>` (Spielbildschirm, Eltern-Fassung) und `#/live/<Daten>/neu` (Neues Spiel, Eltern-Fassung); ohne Navigationsleiste, mit "Zurück zu Live" (FR-E15).
+- Routen `#/live/<Daten>/spiel/<id>` (Spielbildschirm, Eltern-Fassung) und `#/live/<Daten>/neu` (Neues Spiel, Eltern-Fassung); ohne Navigationsleiste, mit "Zum Spieltag" (FR-E15).
 - "Ich tickere dieses Spiel" legt das Spiel aus dem Planspiel an (Gegner, Heim/Gast, Spielzeit aus dem Plan bzw. der letzten Spielzeit der Mannschaft, Trikots aus der Konfiguration bzw. Palette), Spiel-Kennung = Kennung des Planspiels, damit die Karte nicht doppelt erscheint.
 - Doppelstart (FR-E11): Vor dem Anlegen prüft die Eltern-Ansicht `runningElsewhere`/die Karte; nach dem Anlegen sendet sie sofort (Spiele vor dem Anpfiff gehen schon heute hinaus). Kommt binnen 3 Sekunden ein fremder Stand derselben Mannschaft mit früherer Serverzeit, zeigt sie die Frage aus US2-S6.
 

@@ -85,7 +85,7 @@ export function ParentNewScreen({ data }: { data: string }) {
   return (
     <main class="page" data-testid="parent-new">
       <header class="topbar">
-        <button type="button" class="icon-btn" aria-label="Zurück zu Live" onClick={() => navigate(back)}>
+        <button type="button" class="icon-btn" aria-label="Zum Spieltag" onClick={() => navigate(back)}>
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="icon">
             <path d="M15 5l-7 7 7 7" />
           </svg>
@@ -200,7 +200,9 @@ export function ParentNewScreen({ data }: { data: string }) {
               {error}
             </p>
           )}
-          <p class="field__help">Das Spiel geht live aufs Dashboard{name ? `, als ${name}` : ''}.</p>
+          <p class="field__help" data-testid="parent-go-help">
+            Das Spiel steht gleich live im Spieltag{name ? `, als ${name}` : ''}.
+          </p>
           <button
             type="submit"
             class="btn btn--primary btn--large"

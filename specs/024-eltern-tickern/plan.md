@@ -55,7 +55,7 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 |---|---|
 | `src/ui/router.ts`, `src/ui/app.tsx` | Routen `liveGame`, `liveNew` (ohne Navigationsleiste) |
 | `src/ui/screens/live-dashboard.tsx` | Ticker-Zeile, "Ich tickere dieses Spiel", "Weiter tickern", "Spiel übernehmen", "Spiel fehlt? Selbst tickern", Namensblatt, Rückfragen |
-| `src/ui/screens/game.tsx` | Eltern-Fassung: Kopfzeile "Zurück zu Live", Zeile "Du tickerst als …", Kader aus der Kopie, keine Vorlage, kein "Nicht live senden"; Hinweise bei Übernahme und Abschalten |
+| `src/ui/screens/game.tsx` | Eltern-Fassung: Kopfzeile "Zum Spieltag", Zeile "Du tickerst als …", Kader aus der Kopie, keine Vorlage, kein "Nicht live senden"; Hinweise bei Übernahme und Abschalten |
 | `src/ui/screens/new-game.tsx` | Eltern-Fassung (Mannschaft aus erlaubten, ohne Spielplan und "Live aufs Dashboard") |
 | `src/ui/screens/live.tsx` | Schalter "Eltern dürfen tickern" je Mannschaft; Karten mit Ticker-Zeile (Paket B) |
 | `src/ui/screens/start.tsx` | Karte "… hat … getickert. In deine Spiele übernehmen?" (Paket B) |
