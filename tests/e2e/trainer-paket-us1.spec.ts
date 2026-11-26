@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 import { createLive, openTrainerSection } from './live-helpers';
 import { seedRoster } from './helpers';
-import { ROSTER, settle, shareTrainerWithSquads, squadTab, twoSquads, writes } from './paket-helpers';
+import { ROSTER, settle, shareTrainerWithSquads, squadTab, trainerSquadWrites, twoSquads } from './paket-helpers';
 
 /**
  * Spec 016 US1: Kader mit den Trainern teilen. Vor "Trainer-Link teilen" fragt die App einmal, welche Kader
@@ -16,7 +16,7 @@ test('016 US1-S1 US1-S2 Frage vor dem Teilen: alle angekreuzt; abgewählter Kade
   recorded,
   relay,
 }) => {
-  await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   await twoSquads(page);
   await page.goto('./#/live-spieltag');
   await openTrainerSection(page);
@@ -37,8 +37,8 @@ test('016 US1-S1 US1-S2 Frage vor dem Teilen: alle angekreuzt; abgewählter Kade
   expect(text).toContain('#/trainer/');
   expect(text).not.toMatch(/Max|Paul/);
   await settle(page);
-  await expect.poll(() => writes(relay, 'squad').length).toBe(1);
-  expect(writes(relay, 'squad')[0]!.gone).toBe(false);
+  await expect.poll(async () => (await trainerSquadWrites(relay, links.viewer)).length).toBe(1);
+  expect((await trainerSquadWrites(relay, links.viewer))[0]!.gone).toBe(false);
 
   await page.goto('./#/kader');
   await expect(page.getByTestId('roster-share-switch')).toHaveAttribute('aria-checked', 'true');
@@ -49,11 +49,11 @@ test('016 US1-S1 US1-S2 Frage vor dem Teilen: alle angekreuzt; abgewählter Kade
 });
 
 test('016 US1-S3 sind alle Kader geteilt, teilt die App ohne Rückfrage', async ({ page, recorded, relay }) => {
-  await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   await twoSquads(page);
   await shareTrainerWithSquads(page);
   await settle(page);
-  await expect.poll(() => writes(relay, 'squad').length).toBe(2);
+  await expect.poll(async () => (await trainerSquadWrites(relay, links.viewer)).length).toBe(2);
   const shares = (await recorded()).shares.length;
   await page.getByTestId('btn-share-trainer').click();
   await expect.poll(async () => (await recorded()).shares.length).toBe(shares + 1);
@@ -65,7 +65,7 @@ test('016 US1-S4 Schalter aus: Rückfrage, danach "nicht mehr geteilt" beim Dien
   recorded,
   relay,
 }) => {
-  await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
+  const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   await twoSquads(page);
   await shareTrainerWithSquads(page);
   await settle(page);
@@ -78,7 +78,7 @@ test('016 US1-S4 Schalter aus: Rückfrage, danach "nicht mehr geteilt" beim Dien
   await page.getByTestId('confirm-yes').click();
   await expect(page.getByTestId('roster-share-switch')).toHaveAttribute('aria-checked', 'false');
   await settle(page);
-  await expect.poll(() => writes(relay, 'squad').filter((w) => w.gone).length).toBe(1);
+  await expect.poll(async () => (await trainerSquadWrites(relay, links.viewer)).filter((w) => w.gone).length).toBe(1);
   // Wieder einschalten geht ohne Rückfrage.
   await page.getByTestId('roster-share-switch').click();
   await expect(page.getByTestId('roster-share-switch')).toHaveAttribute('aria-checked', 'true');

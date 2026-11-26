@@ -1,7 +1,9 @@
 import {
   boardView,
+  emptyBoard,
   lastSentAt,
   otherGames,
+  parentGameOffers,
   runningElsewhere,
   sentLabel,
   takeoverOffers,
@@ -11,7 +13,8 @@ import {
   type TakeoverOffer,
 } from '../domain/live-board';
 import { configOf, sendsFor, viewerOf } from '../domain/live-spieltag';
-import { handOver, takenOver, takeoverGame } from '../domain/live-takeover';
+import { handOver, historyGame, newTicker, takenOver, takeoverGame } from '../domain/live-takeover';
+import type { Ticker } from '../domain/live-parent';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
 import { adoptPlan, adoptReceived } from './live-setup';
@@ -82,7 +85,7 @@ export function watchSpieltag(live: LiveSpieltag, deps: Partial<ReceiverDeps> = 
       const serverNow = r.serverNow();
       const entry = runningElsewhere(r.get().board, team, localIds, serverNow);
       if (!entry) return null;
-      const card = boardView({ config: null, games: [entry], removed: [], plan: [] }, serverNow).cards[0];
+      const card = boardView({ ...emptyBoard(), games: [entry] }, serverNow).cards[0];
       return card
         ? { entry, summary: `${card.home.name} ${card.score} ${card.away.name} · ${card.phase}` }
         : { entry, summary: entry.snap.opp };
@@ -102,6 +105,8 @@ export interface GameWatch {
   /** FR-L24 erneut prüfen, z. B. wenn das Spiel geladen ist oder dieses Handy wieder sendet. */
   check(): void;
   onChange(cb: () => void): () => void;
+  /** Spec 024: aktueller Stand (Kader-Kopien für Eltern, Konfiguration). */
+  board(): Board;
   stop(): void;
 }
 
@@ -111,7 +116,7 @@ export interface GameWatchHooks {
   /** Aktueller Stand des Spiels auf diesem Handy. */
   current(): Game | null;
   /** FR-L24: einmal je Spiel und eigenem Übergabezähler, sobald ein anderes Handy das Spiel übernommen hat. */
-  onTakenOver(): void;
+  onTakenOver(by: Ticker | null): void;
 }
 
 /** Eine Verbindung je Spielbildschirm, solange er offen und das Handy gekoppelt ist (US4, FR-L24). */
@@ -125,7 +130,8 @@ export function watchGame(live: LiveSpieltag, hooks: GameWatchHooks, deps: Parti
     const key = `${g.id}:${g.liveTakeover ?? 0}`;
     if (reported === key) return;
     reported = key;
-    hooks.onTakenOver();
+    // Spec 024 FR-E12: wer übernommen hat (Name aus dem neueren Stand).
+    hooks.onTakenOver(newTicker(r.get().board, g, team));
   };
   // Der Spielbildschirm zeichnet viermal je Sekunde: Karten je Stand, Sekunde und Spiel nur einmal berechnen.
   let cache: { board: Board; sec: number; key: string; cards: BoardCard[] } | null = null;
@@ -146,6 +152,7 @@ export function watchGame(live: LiveSpieltag, hooks: GameWatchHooks, deps: Parti
     serverNow: () => r.serverNow(),
     check,
     onChange: (cb) => r.onChange(cb),
+    board: () => r.get().board,
     stop: () => r.stop(),
   };
 }
@@ -162,6 +169,10 @@ export interface StartWatch {
   offers(localIds: string[]): TakeoverOffer[];
   /** Spec 018 FR-005 (Spec 006 FR-L23): Spiel aus dem letzten Stand anlegen. */
   takeover(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
+  /** Spec 024 US5: beendete Eltern-Spiele eigener Mannschaften für "In deine Spiele übernehmen?". */
+  parentGames(localIds: string[], done: string[]): BoardEntry[];
+  /** Spec 024 FR-E21: Eltern-Spiel für die Historie. */
+  toHistory(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
   onChange(cb: () => void): () => void;
   stop(): void;
 }
@@ -177,6 +188,9 @@ export function watchStart(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {})
       r.get().relay === 'live' ? takeoverOffers(r.get().board, teams, localIds, r.serverNow(), deps.timeZone) : [],
     takeover: (entry, ownTeam, players, newId) =>
       takeoverGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
+    parentGames: (localIds, done) => parentGameOffers(r.get().board, teams, localIds, done, r.serverNow()),
+    toHistory: (entry, ownTeam, players, newId) =>
+      historyGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
     onChange: (cb) => r.onChange(cb),
     stop: () => r.stop(),
   };

@@ -60,10 +60,12 @@ describe('010 FR-H08 FR-H09 Inhalte', () => {
     for (const e of withOpen) expect(paths.has(e.open?.path ?? ''), e.id).toBe(true);
   });
 
-  it('Einträge für Eltern: Dashboard, Letzte Spiele, Home-Bildschirm, Teilen, Verbindung, Tor-Hinweis, Meldung, Selbst trainieren, Datenschutz (FR-H16, 007 US3, 020 US3 bis US5)', () => {
+  it('Einträge für Eltern: Dashboard, Tickern (024), Wer tickert (024), Letzte Spiele, Home-Bildschirm, Teilen, Verbindung, Tor-Hinweis, Meldung, Selbst trainieren, Datenschutz (FR-H16, 007 US3, 020 US3 bis US5)', () => {
     const parents = HELP_ENTRIES.filter((e) => e.parents).map((e) => e.title);
     expect(parents).toEqual([
       'Wie verfolge ich die Spiele als Elternteil?',
+      'Wie tickere ich ein Spiel als Elternteil?',
+      'Wie sehe ich, ob schon jemand tickert?',
       'Wo sehe ich frühere Ergebnisse?',
       'Wie lege ich den Spieltag auf den Home-Bildschirm?',
       'Wie teile ich den Spieltag mit Familie und Freunden?',

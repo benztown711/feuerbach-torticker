@@ -362,7 +362,7 @@ export function SettingsScreen() {
               SPIELPLAN
             </h2>
             <label class="field__label t-label" for="trainer-name">
-              Dein Name für die Trainer
+              Dein Name (sehen Trainer und Eltern)
             </label>
             <input
               id="trainer-name"
@@ -374,7 +374,10 @@ export function SettingsScreen() {
               data-testid="settings-trainer-name"
               onChange={(e) => save({ ...settings, trainerName: e.currentTarget.value.trim() })}
             />
-            <p class="field__help">Steht im Spielplan bei Spielen, die du tickerst („Tickert: …“). Leer: „vergeben“.</p>
+            <p class="field__help">
+              Steht im Spielplan („Tickert: …“) und auf dem Dashboard („Trainer … tickert bereits“). Leer: „vergeben“
+              bzw. „Trainer“.
+            </p>
           </section>
         )}
 

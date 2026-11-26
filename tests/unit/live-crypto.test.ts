@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fromBase64Url, toBase64Url } from '../../src/domain/base64url';
+import { parentCertValue } from '../../src/domain/live-parent';
 import { signedText } from '../../src/domain/relay-protocol';
 import {
   MAX_MESSAGE,
@@ -8,7 +9,6 @@ import {
   newSigningKey,
   newTopic,
   newViewKey,
-  openMessage,
   sealMessage,
   sign,
   signData,
@@ -22,6 +22,7 @@ import {
   verifySigned,
   seal,
 } from '../../src/platform/live-crypto';
+import { openMessage } from '../../src/platform/live-open';
 
 describe('006 FR-L11 Schlüssel und Signaturen (research.md R-L5)', () => {
   it('Topic hat 22 Zeichen base64url, Zuschauer-Schlüssel 32 Byte, beide zufällig', () => {
@@ -265,5 +266,58 @@ describe('016 R-B2 Kader-Schlüssel nur für Trainer-Handys', () => {
     expect(await squadSlot(view, 'abc')).toBe(a);
     expect(await squadSlot(view, 'abd')).not.toBe(a);
     expect(await slotOf(view, 'squad', 'abc')).not.toBe(a);
+  });
+});
+
+describe('024 R-E1 R-E5 Eltern-Paket, Eltern-Zertifikat und Kader-Kopie im Umschlag', () => {
+  async function setup() {
+    const org = await newSigningKey();
+    const parent = await newSigningKey();
+    const viewKey = newViewKey();
+    const certValue = parentCertValue(parent.pub, 5);
+    const cert = await signData(org.priv, certValue);
+    const kitValue = { k: parent.priv, c: cert, iat: 5 };
+    const kit = await signData(org.priv, kitValue);
+    return { org, parent, viewKey, cert, certValue, kit, kitValue, view: { viewKey, orgPub: org.pub } };
+  }
+
+  it('Paket (k) wird geöffnet und geprüft; ein vom falschen Schlüssel signiertes fällt weg', async () => {
+    const s = await setup();
+    const opened = await openMessage(s.view, await sealMessage(s.viewKey, { kit: s.kit }));
+    expect(opened?.kit).toEqual(s.kitValue);
+    expect(opened?.signedKit).toEqual(s.kit);
+    const fake = await signData(s.parent.priv, s.kitValue);
+    expect((await openMessage(s.view, await sealMessage(s.viewKey, { kit: fake })))?.kit).toBeUndefined();
+    const broken = await signData(s.org.priv, { k: 'x' });
+    expect((await openMessage(s.view, await sealMessage(s.viewKey, { kit: broken })))?.kit).toBeUndefined();
+  });
+
+  it('Eltern-Zertifikat gilt für jede Mannschaft und meldet parent', async () => {
+    const s = await setup();
+    for (const team of ['E1', 'E2']) {
+      const text = await sealMessage(s.viewKey, {
+        content: `{"team":"${team}"}`,
+        leadKey: s.parent.priv,
+        cert: s.cert,
+      });
+      expect(await openMessage(s.view, text)).toMatchObject({ content: { team }, parent: true });
+    }
+  });
+
+  it('Lead-Zertifikat einer Mannschaft meldet kein parent', async () => {
+    const s = await setup();
+    const lead = await signData(s.org.priv, { ...s.certValue, key: 'E1', p: undefined });
+    const text = await sealMessage(s.viewKey, { content: '{"team":"E1"}', leadKey: s.parent.priv, cert: lead });
+    const opened = await openMessage(s.view, text);
+    expect(opened?.content).toEqual({ team: 'E1' });
+    expect(opened?.parent).toBeUndefined();
+  });
+
+  it('Kader-Kopie (q) wird geöffnet; Ungültiges fällt weg', async () => {
+    const s = await setup();
+    const squad = { s: 'e12', t: ['E1'], k: [['Max', 9]] as [string, number | null][], at: 5 };
+    expect((await openMessage(s.view, await sealMessage(s.viewKey, { squad })))?.squad).toEqual(squad);
+    const bad = { ...squad, k: 'x' };
+    expect((await openMessage(s.view, await sealMessage(s.viewKey, { squad: bad as never })))?.squad).toBeUndefined();
   });
 });

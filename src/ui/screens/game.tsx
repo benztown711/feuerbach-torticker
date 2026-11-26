@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   canAct,
   clockOf,
@@ -32,7 +32,9 @@ import { formatTime } from '../../domain/format';
 import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../../domain/roster';
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
-import type { CardColor, EventPerson, Game, Settings, Side } from '../../domain/types';
+import type { CardColor, EventPerson, Game, Player, Settings, Side } from '../../domain/types';
+import { kaderAsText, kitOf, parentAllowed, tickerSpieltag, tickerLine, type Ticker } from '../../domain/live-parent';
+import { viewerPlayers } from '../../domain/viewer-squad';
 import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
 import {
@@ -116,7 +118,9 @@ type CardDraft = {
 type SubDraft = { id: string | null; at: number; out: string | null; inn: string | null; others: boolean };
 const CARDS: CardColor[] = ['gelb', 'gelbrot', 'rot', 'zeit'];
 
-export function GameScreen({ id, join = false }: { id: string; join?: boolean }) {
+export function GameScreen({ id, join = false, parent }: { id: string; join?: boolean; parent?: string }) {
+  /** Spec 024 R-E6: Eltern-Fassung (Zuschauer-Link), Rückweg zum Dashboard. */
+  const parentPath = parent ? `/live/${parent}` : null;
   const now = useNow(250);
   const dark = useDarkTheme();
   const [game, setGame] = useState<Game | null | undefined>(undefined);
@@ -127,7 +131,9 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
   const [undo, setUndo] = useState<{ goalId: string; until: number } | null>(null);
   const [flashUntil, setFlashUntil] = useState(0);
   const [hintUntil, setHintUntil] = useState(0);
-  const [players] = usePlayers();
+  const [ownPlayers] = usePlayers();
+  /** Spec 024 R-E5: Kader aus der Kopie (Eltern), für das Speichern als Freitext. */
+  const parentPlayers = useRef<Player[]>([]);
   const [shareMsg, setShareMsg] = useState('');
   /** Spec 019 FR-A04: Der Teilen-Hinweis ist ein kurzer Hinweis und verschwindet nach SHARE_MSG_MS. */
   const [shareUntil, setShareUntil] = useState(0);
@@ -178,11 +184,14 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
   /** Spec 021 R-W3: Tor-Blätter und Auswahl nachgeladen, beim Öffnen vorgeladen, bei Fehler beim nächsten Schritt neu. */
   const editor = useGoalEditor(edit);
 
+  // Spec 024: Eltern erfassen ohne Vorlagen und Wechsel (dafür bräuchte es Kader-Kennungen auf dem Handy).
+  const adjust = (s: Settings): Settings =>
+    parentPath ? { ...s, features: { ...s.features, assists: false, subs: false } } : s;
   useEffect(() => {
-    void getSettings().then(setSettings);
+    void getSettings().then((s) => setSettings(adjust(s)));
   }, []);
   // Spec 006 US5: Änderungen am Live-Spieltag (z. B. von einem anderen Trainer-Handy übernommen) übernehmen.
-  useEffect(() => onLiveSettings(setSettings), []);
+  useEffect(() => onLiveSettings((s) => setSettings(adjust(s))), []);
 
   useEffect(() => {
     void getGame(id).then((g) => {
@@ -191,13 +200,15 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
       // Spec 023 FR-J02, R-J6: aus "Neues Spiel" mit "Spiel läuft schon" gleich das Blatt öffnen.
       if (join) {
         openLate();
-        navigate(`/spiel/${id}`, true);
+        navigate(parentPath ? `${parentPath}/spiel/${id}` : `/spiel/${id}`, true);
       }
     });
   }, [id]);
 
   /** FR-010: jede Änderung sofort speichern; erfüllt sich, wenn gespeichert ist. */
-  const save = (g: Game): Promise<void> => {
+  const save = (raw: Game): Promise<void> => {
+    // Spec 024 R-E5: Kinder aus der Kader-Kopie als Freitext (nichts gelangt in den Kader des Eltern-Handys).
+    const g = parentPath ? kaderAsText(raw, parentPlayers.current) : raw;
     const before = gameRef.current;
     gameRef.current = g;
     setGame(g);
@@ -227,8 +238,16 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
   // Spec 006 US4 und FR-L24: eine Verbindung (nachgeladen), solange der Spielbildschirm eines nicht beendeten
   // Spiels offen und das Handy gekoppelt ist: Zeile mit den anderen Spielen und Übernahme durch ein anderes Handy.
   const [handedUntil, setHandedUntil] = useState(0);
+  /** Spec 024 FR-E12: wer übernommen hat ("Anna tickert jetzt E2."). */
+  const [handedBy, setHandedBy] = useState<Ticker | null>(null);
   const [watch, setWatch] = useState<GameWatch | null>(null);
-  const live = settings?.live ?? null;
+  // Spec 024 R-E3: Eltern-Handy sendet mit dem Live-Spieltag aus dem Eltern-Paket.
+  const tickerLive = useMemo(() => {
+    const t = parentPath ? settings?.liveTicker : undefined;
+    const kit = t ? kitOf(t.kit) : null;
+    return t && kit ? tickerSpieltag(t, kit) : null;
+  }, [settings?.liveTicker]);
+  const live = settings?.live ?? tickerLive;
   const liveKey = game && live ? (sendingTeamFor(game, live)?.key ?? null) : null;
   const liveKeyRef = useRef(liveKey);
   liveKeyRef.current = liveKey;
@@ -243,9 +262,10 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
         w = m.watchGame(live, {
           team: () => liveKeyRef.current,
           current: () => gameRef.current,
-          onTakenOver: () => {
+          onTakenOver: (by) => {
             const g = gameRef.current;
             if (g) update(m.handOver(g));
+            setHandedBy(by);
             setHandedUntil(Date.now() + 10_000);
           },
         });
@@ -261,6 +281,18 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
   }, [id, live?.topic, watching]);
   // FR-L24 auch prüfen, wenn dieses Handy (wieder) für die Mannschaft sendet, ohne dass eine Meldung kommt.
   useEffect(() => watch?.check(), [watch, liveKey]);
+  // Spec 024 US4-S3: Trainer haben "Eltern dürfen tickern" ausgeschaltet; hier wird nur noch lokal erfasst.
+  const boardConfig = parentPath ? (watch?.board().config ?? null) : null;
+  const parentOff = !!boardConfig && !!liveKey && !parentAllowed(boardConfig, liveKey);
+  const [offNotice, setOffNotice] = useState(false);
+  useEffect(() => {
+    if (!parentOff) return setOffNotice(false);
+    setOffNotice(true);
+    setHandedUntil(Date.now() + 10_000);
+  }, [parentOff]);
+  // Spec 024 FR-E16: Eltern wählen Torschützen aus der Kader-Kopie ihrer Mannschaft.
+  const players = parentPath ? viewerPlayers(watch?.board().squads ?? [], liveKey ?? '') : ownPlayers;
+  if (parentPath) parentPlayers.current = players ?? [];
   const ownKey = game && live ? (liveTeamFor(game.ownTeam, live)?.key ?? null) : null;
 
   // FR-007: Signal bei 00:00 und jeder vollen Nachspielminute; einmal je Schwelle, auch nach Neuladen.
@@ -298,8 +330,8 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
     return (
       <main class="page">
         <p class="t-text">Dieses Spiel gibt es nicht mehr.</p>
-        <button type="button" class="btn btn--primary" onClick={() => navigate('/')}>
-          Zur Startseite
+        <button type="button" class="btn btn--primary" onClick={() => navigate(parentPath ?? '/')}>
+          {parentPath ? 'Zurück zu Live' : 'Zur Startseite'}
         </button>
       </main>
     );
@@ -559,7 +591,12 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
   const hints: Record<SlotHint, BandHint> = {
     handedOver: {
       testId: 'live-handed-over',
-      text: `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
+      // Spec 024 FR-E12: mit Namen, wenn der neue Stand ihn nennt; US4-S3: Tickern für Eltern ausgeschaltet.
+      text: offNotice
+        ? 'Die Trainer haben das Tickern für Eltern ausgeschaltet. Hier wird nur noch lokal erfasst.'
+        : handedBy
+          ? `${tickerLine(handedBy, { own: false, ended: false })?.tag ?? ''} tickert jetzt ${ownKey ?? teamShortLabel(game.ownTeam)}. Hier wird nur noch lokal erfasst.`
+          : `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
     },
     shareResult: { testId: 'share-result', text: shareMsg },
     doubleTap: { testId: 'double-tap-hint', text: 'Schon gezählt' },
@@ -667,7 +704,21 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
             Ton aus · tippen
           </button>
         )}
-        <LivePill game={game} />
+        {/* Spec 024: Eltern sehen den Live-Zustand in der Zeile darunter; so passt "Zurück zu Live" auch auf das SE. */}
+        {!parentPath && <LivePill game={game} />}
+        {parentPath && (
+          <button
+            type="button"
+            class="btn btn--secondary parent-back"
+            data-testid="parent-back"
+            onClick={() => navigate(parentPath)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" class="icon">
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+            Zurück zu Live
+          </button>
+        )}
         <button
           type="button"
           class="icon-btn"
@@ -683,6 +734,23 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
           </svg>
         </button>
       </header>
+      {parentPath && (
+        <p
+          class={(game.liveHandedOver && game.live === false) || parentOff ? 'parent-as parent-as--off' : 'parent-as'}
+          data-testid="parent-as"
+        >
+          {(game.liveHandedOver && game.live === false) || parentOff ? (
+            'Nur noch lokal erfasst'
+          ) : (
+            <>
+              <span class="live-pill__dot" aria-hidden="true" />
+              <span>
+                Du tickerst als <strong>{settings?.tickerName ?? ''}</strong> · live
+              </span>
+            </>
+          )}
+        </p>
+      )}
       {/*
         Spec 021 FR-W10: alles zwischen Kopfzeile und Tor-Bereich in einer Fläche; die Schnellauswahl füllt sie genau
         (Flex statt fester Rechnung). Im Elfmeterschießen ohne eigene Fläche (Inhalt wie bisher direkt im Spiel).
@@ -776,13 +844,15 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
               )}
               {status === 'finished' && (
                 <>
-                  <button
-                    type="button"
-                    class="btn btn--secondary"
-                    onClick={() => navigate(`/spiel/${game.id}/details`)}
-                  >
-                    Spieldetails
-                  </button>
+                  {!parentPath && (
+                    <button
+                      type="button"
+                      class="btn btn--secondary"
+                      onClick={() => navigate(`/spiel/${game.id}/details`)}
+                    >
+                      Spieldetails
+                    </button>
+                  )}
                   {/* Spec 021 FR-W01: eine Hauptaktion je Seite ("Nächstes Spiel"); teilen bleibt ein Tipp. */}
                   <button
                     type="button"
@@ -861,14 +931,25 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
           {status === 'finished' ? (
             // Spec 021 FR-W01: nach dem Schlusspfiff "Nächstes Spiel" statt ausgegrauter Tor-Knöpfe.
             <div class="next-game">
-              <button
-                type="button"
-                class="btn next-game__btn"
-                data-testid="btn-next-game"
-                onClick={() => navigate(`/neu/nach/${game.id}`)}
-              >
-                Nächstes Spiel
-              </button>
+              {parentPath ? (
+                <button
+                  type="button"
+                  class="btn next-game__btn"
+                  data-testid="parent-back-end"
+                  onClick={() => navigate(parentPath)}
+                >
+                  Zurück zu Live
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  class="btn next-game__btn"
+                  data-testid="btn-next-game"
+                  onClick={() => navigate(`/neu/nach/${game.id}`)}
+                >
+                  Nächstes Spiel
+                </button>
+              )}
             </div>
           ) : (
             <section class="goal-buttons" aria-label="Tore erfassen">
@@ -921,7 +1002,8 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
               onClick={() => {
                 setMenu(false);
                 // Spec 020 FR-E18: Blatt "Teilen"; ohne nachgeladenes Modul wie bisher der Zwischenstand.
-                if (quick) setShareSheet(true);
+                // Spec 024: Eltern teilen den Stand als Text (der Link für Eltern ist schon in der Gruppe).
+                if (quick && !parentPath) setShareSheet(true);
                 else void doShareInterim();
               }}
             >
@@ -991,16 +1073,18 @@ export function GameScreen({ id, join = false }: { id: string; join?: boolean })
           >
             Trikots ändern
           </button>
-          <button
-            type="button"
-            class="btn btn--secondary"
-            data-testid="menu-details"
-            onClick={() => navigate(`/spiel/${game.id}/details`)}
-          >
-            Spieldetails
-          </button>
+          {!parentPath && (
+            <button
+              type="button"
+              class="btn btn--secondary"
+              data-testid="menu-details"
+              onClick={() => navigate(`/spiel/${game.id}/details`)}
+            >
+              Spieldetails
+            </button>
+          )}
           {/* Spec 020 FR-E61: ganz unten; "Nicht live senden" in Gefahr-Farbe wie "Live beenden …". */}
-          {liveStatus !== null && liveStatus !== 'handed' && (
+          {liveStatus !== null && liveStatus !== 'handed' && !parentPath && (
             <button
               type="button"
               class={game.live === false ? 'btn btn--secondary' : 'btn btn--secondary live__action--danger'}

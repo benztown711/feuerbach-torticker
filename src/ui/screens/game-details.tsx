@@ -189,6 +189,12 @@ export function GameDetailsScreen({ id }: { id: string }) {
         </div>
         <div class="details__foot">
           {summary && <p class="details__meta">{summary}</p>}
+          {/* Spec 024 FR-E21: aus einem Eltern-Spiel übernommen. */}
+          {game.tickedBy && (
+            <p class="details__meta" data-testid="details-ticked-by">
+              Getickert von <span class="ticker-tag">{game.tickedBy}</span>
+            </p>
+          )}
           <span class="details__fixes">
             {/* Spec 022 FR-F13: der Name ist änderbar, vor allem ein leer gelassener ("Gegner"). */}
             <button type="button" class="link-btn details__kits" data-testid="details-opponent" onClick={openOpponent}>

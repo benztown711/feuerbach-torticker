@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import type { Game, LiveSpieltag } from '../../src/domain/types';
-import type { OpenedMessage } from '../../src/platform/live-crypto';
+import type { OpenedMessage } from '../../src/platform/live-open';
 import type { RelayTarget, SubscribeOptions } from '../../src/platform/relay';
 import { watchGame, watchLive, watchSpieltag } from '../../src/platform/live-watch';
 

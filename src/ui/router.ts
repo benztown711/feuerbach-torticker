@@ -12,6 +12,9 @@ export type Route =
   | { name: 'liveDash' }
   | { name: 'plan' }
   | { name: 'liveView'; data: string; help: boolean; entry: string | null }
+  /** Spec 024 R-E6: Eltern tickern über den Zuschauer-Link (ohne Navigationsleiste). */
+  | { name: 'liveGame'; data: string; id: string; join?: boolean }
+  | { name: 'liveNew'; data: string }
   | { name: 'leadLink'; data: string; kind: 'lead' | 'trainer' }
   | { name: 'game'; id: string; join?: boolean }
   | { name: 'details'; id: string };
@@ -37,6 +40,12 @@ export function parseHash(hash: string): Route {
   if (path === '/live-spieltag') return { name: 'live' };
   if (path === '/live-spieltag/dashboard') return { name: 'liveDash' };
   if (path === '/live-spieltag/spielplan') return { name: 'plan' };
+  // Spec 024 R-E6: Spielbildschirm und "Neues Spiel" in der Eltern-Fassung.
+  const liveGame = /^\/live\/([A-Za-z0-9_-]+)\/spiel\/([\w-]+)(\/einstieg)?$/.exec(path);
+  if (liveGame?.[1] && liveGame[2])
+    return { name: 'liveGame', data: liveGame[1], id: liveGame[2], join: !!liveGame[3] };
+  const liveNew = /^\/live\/([A-Za-z0-9_-]+)\/neu$/.exec(path);
+  if (liveNew?.[1]) return { name: 'liveNew', data: liveNew[1] };
   // Zuschauer-Link, mit Eltern-Hilfe unter `/hilfe[/<id>]` (Spec 010 FR-H16).
   const view = /^\/live\/([A-Za-z0-9_-]+)(\/hilfe(?:\/([a-z0-9-]+))?)?$/.exec(path);
   if (view?.[1]) return { name: 'liveView', data: view[1], help: !!view[2], entry: view[3] ?? null };

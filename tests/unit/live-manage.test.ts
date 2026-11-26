@@ -6,6 +6,7 @@ import {
   checkTitle,
   removeLiveTeam,
   renameSpieltag,
+  setParentTicking,
   reissueSpieltag,
   restoreLive,
   retireConfig,
@@ -307,5 +308,19 @@ describe('006 US5-S3 Hinweis "neu ausgestellt" auf dem alten Live-Spieltag (Vari
     expect(parseConfig({ ...base, retired: true })).toEqual({ ...base, retired: true });
     expect(parseConfig({ ...base, retired: false })).toBeNull();
     expect(parseConfig({ ...base, retired: 'ja' })).toBeNull();
+  });
+});
+
+describe('024 US4 FR-E18 "Eltern dürfen tickern" je Mannschaft', () => {
+  it('ausschalten setzt x, einschalten entfernt es; Titeländerung behält x; unbekannte Mannschaft abgelehnt', async () => {
+    const live = await spieltag();
+    expect(cfg(live).x).toBeUndefined();
+    const off = await setParentTicking(live, 'E2', false, deps(T0 + 1));
+    expect(cfg(off).x).toEqual(['E2']);
+    expect(cfg(off).iat).toBeGreaterThan(cfg(live).iat);
+    expect(cfg(await setParentTicking(off, 'E2', false, deps(T0 + 2))).x).toEqual(['E2']);
+    expect(cfg(await renameSpieltag(off, 'Neu', deps(T0 + 3))).x).toEqual(['E2']);
+    expect(cfg(await setParentTicking(off, 'E2', true, deps(T0 + 4))).x).toBeUndefined();
+    await expect(setParentTicking(live, 'E9', false, deps())).rejects.toThrow('gehört nicht');
   });
 });

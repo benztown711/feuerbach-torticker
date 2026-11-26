@@ -234,7 +234,7 @@ function ClaimDialog({
         {askName && (
           <div class="field">
             <label class="field__label t-label" for="claim-name">
-              DEIN NAME FÜR DIE TRAINER (OPTIONAL)
+              DEIN NAME (SEHEN TRAINER UND ELTERN)
             </label>
             <input
               id="claim-name"
@@ -246,7 +246,7 @@ function ClaimDialog({
               data-testid="claim-name"
               onInput={(e) => setName(e.currentTarget.value)}
             />
-            <p class="field__help">Fragt die App nur beim ersten Mal. Ändern in den Einstellungen.</p>
+            <p class="field__help">Optional. Fragt die App nur beim ersten Mal. Ändern in den Einstellungen.</p>
           </div>
         )}
         <div class="button-row">

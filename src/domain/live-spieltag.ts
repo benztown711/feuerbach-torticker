@@ -194,10 +194,15 @@ export function parseConfig(v: unknown): LiveConfig | null {
   const m = v.m;
   if (m !== undefined && (!Array.isArray(m) || m.length > MAX_LIVE_TEAMS || !m.every(isTeamDetail))) return null;
   if (v.retired !== undefined && v.retired !== true) return null;
+  // Spec 024 R-E2: Mannschaften ohne Eltern-Tickern.
+  const x = v.x;
+  if (x !== undefined && (!Array.isArray(x) || x.length > MAX_LIVE_TEAMS || !x.every((t) => isText(t, MAX_KEY))))
+    return null;
   return {
     ...config,
     ...(m !== undefined ? { m: m as TeamDetail[] } : {}),
     ...(v.retired ? { retired: true } : {}),
+    ...(x !== undefined && x.length > 0 ? { x: x as string[] } : {}),
   };
 }
 
@@ -241,7 +246,8 @@ export function parseLiveSpieltag(v: unknown): LiveSpieltag | null {
   const teams = (v.teams as unknown[]).map(parseCred);
   if (teams.length > MAX_LIVE_TEAMS || teams.some((t) => t === null)) return null;
   if (new Set(teams.map((t) => t?.key)).size !== teams.length) return null;
-  const { orgKey, config } = v;
+  if (v.kit !== undefined && !isSignedData(v.kit)) return null;
+  const { orgKey, config, kit } = v;
   return {
     v: 1,
     topic: v.topic,
@@ -251,6 +257,8 @@ export function parseLiveSpieltag(v: unknown): LiveSpieltag | null {
     config: { d: config.d, s: config.s },
     teams: teams as LiveTeamCred[],
     createdAt: v.createdAt,
+    // Spec 024 R-E1: Eltern-Paket (die Signatur prüft die Plattform beim Wiederherstellen nicht; es geht nur weiter).
+    ...(kit ? { kit: { d: kit.d, s: kit.s } } : {}),
   };
 }
 

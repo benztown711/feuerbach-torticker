@@ -1,6 +1,5 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
-import { parseLeadCert } from '../domain/live-spieltag';
-import { isObj, isSignedData, MAX_PLAN_SIGNED } from '../domain/live-validate';
+import type { ViewerSquad } from '../domain/viewer-squad';
 import { signedText, type RelayDraft, type RelayWrite } from '../domain/relay-protocol';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
 
@@ -189,6 +188,10 @@ export interface MessageParts {
   config?: SignedData;
   /** Spec 015: Planspiele, signiert mit dem Organisator-Schlüssel (contracts/plan-message.md). */
   plan?: SignedData;
+  /** Spec 024 R-E1: Eltern-Paket, signiert mit dem Organisator-Schlüssel (nur in `cfg`-Meldungen). */
+  kit?: SignedData;
+  /** Spec 024 R-E5: Kader-Kopie für den Zuschauer-Link. */
+  squad?: ViewerSquad;
 }
 
 /** Baut den Umschlag (contracts/live-message.md) und verschlüsselt ihn. */
@@ -201,61 +204,7 @@ export async function sealMessage(viewKey: string, parts: MessageParts): Promise
   }
   if (parts.config) env.g = parts.config;
   if (parts.plan) env.p = parts.plan;
+  if (parts.kit) env.k = parts.kit;
+  if (parts.squad) env.q = parts.squad;
   return seal(viewKey, JSON.stringify(env));
-}
-
-export interface OpenedMessage {
-  /** Geprüfter Inhalt (JSON-Wert) oder null, wenn er fehlt oder eine Prüfung scheitert. */
-  content: unknown;
-  /** Geprüftes Zertifikat (JSON-Wert) oder null. */
-  cert: unknown;
-  /** Geprüfte Konfiguration (JSON-Wert) oder null. */
-  config: unknown;
-  /** Die geprüfte Konfiguration wie signiert, zum Weitergeben (Spec 006 US5); fehlt ohne gültiges g. */
-  signedConfig?: SignedData;
-  /** Spec 015: geprüfte Nutzlast einer Plan-Meldung als JSON-Text; fehlt ohne gültiges p. */
-  plan?: string;
-}
-
-const parseJson = (text: string): unknown => {
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Entschlüsselt und prüft eine Meldung in der Reihenfolge aus contracts/live-message.md.
- * null, wenn sie sich nicht entschlüsseln lässt oder kein Umschlag ist.
- */
-export async function openMessage(
-  view: { viewKey: string; orgPub: string },
-  text: string,
-): Promise<OpenedMessage | null> {
-  const plain = await unseal(view.viewKey, text);
-  const env = plain === null ? null : parseJson(plain);
-  if (typeof env !== 'object' || env === null || Array.isArray(env)) return null;
-  const e = env as Record<string, unknown>;
-  const g = isSignedData(e.g) ? e.g : null;
-  const config = g ? await verifySigned(view.orgPub, g) : null;
-  let content: unknown = null;
-  let cert: unknown = null;
-  const c = isSignedData(e.c) ? e.c : null;
-  if (typeof e.m === 'string' && typeof e.s === 'string' && c) {
-    const certValue = parseLeadCert(await verifySigned(view.orgPub, c));
-    const parsed = certValue && (await verify(certValue.pub, e.m, e.s)) ? parseJson(e.m) : null;
-    // Ein Live-Stand gilt nur für die Mannschaft seines Zertifikats (contracts/live-message.md).
-    if (certValue && isObj(parsed) && parsed.team === certValue.key) {
-      cert = certValue;
-      content = parsed;
-    }
-  }
-  // Eine geprüfte Konfiguration stammt immer aus g.
-  const opened: OpenedMessage =
-    config === null ? { content, cert, config } : { content, cert, config, signedConfig: g as SignedData };
-  // Spec 015: Planspiele nur mit gültiger Signatur des Organisators.
-  const p = isSignedData(e.p, MAX_PLAN_SIGNED) ? e.p : null;
-  if (p && (await verify(view.orgPub, p.d, p.s))) opened.plan = p.d;
-  return opened;
 }

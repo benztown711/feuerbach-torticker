@@ -7,6 +7,7 @@ import {
   checkTitle,
   couplingKind,
   DEFAULT_LIVE_TITLE,
+  configOf,
   isOrganizer,
   isRetired,
   knowsTeam,
@@ -32,6 +33,7 @@ import {
   reissueLive,
   removeTeamFromLive,
   renameLive,
+  setParentAllowed,
   shareTrainerLink,
   shareViewerLink,
   type VerifiedLink,
@@ -315,6 +317,12 @@ export function LiveScreen() {
           onShare={share}
           onPaste={() => setView('paste')}
           onDialog={setDialog}
+          onParent={(key, on) =>
+            void run(
+              () => setParentAllowed(key, on),
+              on ? `Eltern dürfen für ${key} tickern.` : `Eltern tickern für ${key} nicht mehr.`,
+            )
+          }
         />
       )}
       {view === 'main' && live && !isRetired(live) && !isOrganizer(live) && (
@@ -622,6 +630,7 @@ function Overview({
   onShare,
   onPaste,
   onDialog,
+  onParent,
 }: {
   live: LiveSpieltag;
   canAdd: boolean;
@@ -630,8 +639,11 @@ function Overview({
   onShare: (p: Promise<ShareResult>) => Promise<void>;
   onPaste: () => void;
   onDialog: (d: Dialog) => void;
+  /** Spec 024 US4: "Eltern dürfen tickern" je Mannschaft. */
+  onParent: (key: string, on: boolean) => void;
 }) {
   const sent = useSent(live);
+  const off = configOf(live.config)?.x ?? [];
   return (
     <div class="form live" data-testid="live-overview">
       <h2 class="live__title t-zwischentitel" data-testid="live-title">
@@ -714,6 +726,35 @@ function Overview({
             Jedes Trainer-Handy sendet automatisch die Spiele, die es erfasst. „Zuletzt gesendet“ zählt für alle
             Trainer-Handys zusammen.
           </p>
+        </section>
+        <section class="field card" data-testid="live-parent-card">
+          <span class="t-label card__title">ELTERN DÜRFEN TICKERN</span>
+          <p class="live__text">
+            Wer den Link für Eltern hat, kann einspringen, wenn kein Trainer tickert. Sein Name steht für alle sichtbar
+            auf der Karte.
+          </p>
+          <ul class="live__rows">
+            {live.teams.map((t) => {
+              const on = !off.includes(t.key);
+              return (
+                <li key={t.key} class="live__row" data-testid={`live-parent-row-${t.key}`}>
+                  <Mark color={t.homeColor} />
+                  <span class="live__row-text" id={`parent-allow-${t.key}`}>
+                    <strong>{shortTeamName(t.name)}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    class="switch"
+                    role="switch"
+                    aria-checked={on}
+                    aria-labelledby={`parent-allow-${t.key}`}
+                    data-testid={`parent-allow-${t.key}`}
+                    onClick={() => onParent(t.key, !on)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         </section>
         <PlanCard live={live} />
         <section class="field card">

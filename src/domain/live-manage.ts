@@ -49,14 +49,30 @@ async function withConfig(
   title: string,
   teams: LiveTeamCred[],
   deps: SignDeps,
+  off: string[] = configOf(live.config)?.x ?? [],
 ): Promise<LiveSpieltag> {
+  // Spec 024 R-E2: "Eltern dürfen tickern" bleibt bei Titel- und Mannschaftsänderungen erhalten.
+  const x = off.filter((k) => teams.some((t) => t.key === k));
   const config: LiveConfig = {
     title,
     teams: teams.map((t) => t.key),
     iat: nextIat(live, deps.now),
     m: detailsOf(teams),
+    ...(x.length > 0 ? { x } : {}),
   };
   return { ...live, config: await deps.signData(orgKeyOf(live), config), teams };
+}
+
+/** Spec 024 US4: "Eltern dürfen tickern" für eine Mannschaft ein- oder ausschalten (neue Konfiguration). */
+export async function setParentTicking(
+  live: LiveSpieltag,
+  key: string,
+  on: boolean,
+  deps: SignDeps,
+): Promise<LiveSpieltag> {
+  if (!live.teams.some((t) => t.key === key)) throw new Error('Diese Mannschaft gehört nicht zum Live-Spieltag.');
+  const off = (configOf(live.config)?.x ?? []).filter((k) => k !== key);
+  return withConfig(live, titleOf(live), live.teams, deps, on ? off : [...off, key]);
 }
 
 /** US5-S4: neuer Titel; Links bleiben gleich. */

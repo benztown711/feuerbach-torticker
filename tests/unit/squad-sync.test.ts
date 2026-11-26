@@ -7,7 +7,10 @@ import {
   mergeRecord,
   parseRecord,
   recordAt,
+  parseViewerSquad,
   stamp,
+  viewerPlayers,
+  viewerSquad,
   type SquadRecord,
   type SquadState,
 } from '../../src/domain/squad-sync';
@@ -507,5 +510,75 @@ describe('016 Randfälle beim Bauen, Stempeln und Zusammenführen', () => {
     ).state;
     const r = mergeRecord(local, buildRecord(shareAll(base()), 'e3', LIVE, T0)!, LIVE, T0 + 6, newId);
     expect(r.republish).toEqual([]);
+  });
+});
+
+describe('024 R-E5 Kader-Kopie für den Zuschauer-Link', () => {
+  const rec: SquadRecord = {
+    s: 'e12',
+    n: 'E1/E2',
+    na: T0,
+    sh: true,
+    t: [
+      ['E1', T0],
+      ['E2', T0 + 5],
+    ],
+    k: [
+      ['max', 'Max', 9, false, T0],
+      ['ben', 'Ben', null, true, T0 + 9],
+      ['tom', 'Tom', 10, false, T0 + 2],
+    ],
+  };
+  const cfg = { title: 'Unser Spieltag', teams: ['E1', 'E2'], iat: T0 + 20 };
+
+  it('nur erlaubte Mannschaften, ohne gelöschte Kinder; Zeit = jüngste Änderung inkl. Konfiguration', () => {
+    expect(viewerSquad(rec, { ...cfg, x: ['E2'] })).toEqual({
+      s: 'e12',
+      t: ['E1'],
+      k: [
+        ['Max', 9],
+        ['Tom', 10],
+      ],
+      at: T0 + 20,
+    });
+  });
+
+  it('Grabstein: nicht mehr geteilt, keine erlaubte Mannschaft oder keine Konfiguration', () => {
+    const gone = { s: 'e12', t: [], k: [], at: T0 + 20 };
+    expect(viewerSquad({ ...rec, sh: false }, cfg)).toEqual(gone);
+    expect(viewerSquad(rec, { ...cfg, x: ['E1', 'E2'] })).toEqual(gone);
+    expect(viewerSquad(rec, null)).toEqual({ ...gone, at: recordAt(rec) });
+  });
+
+  it('Kopie prüfen; Ungültiges ergibt null', () => {
+    const ok = { s: 'e12', t: ['E1'], k: [['Max', 9]], at: T0 };
+    expect(parseViewerSquad(ok)).toEqual(ok);
+    expect(parseViewerSquad({ ...ok, k: [['', 9]] })).toBeNull();
+    expect(parseViewerSquad({ ...ok, k: [['Max', 100]] })).toBeNull();
+    expect(parseViewerSquad({ ...ok, k: 'x' })).toBeNull();
+    expect(parseViewerSquad({ ...ok, t: [3] })).toBeNull();
+    expect(parseViewerSquad({ ...ok, s: '' })).toBeNull();
+    expect(parseViewerSquad({ ...ok, at: -1 })).toBeNull();
+    expect(parseViewerSquad(null)).toBeNull();
+  });
+
+  it('Kader einer Mannschaft für die Torschützen-Auswahl (Spieler ohne Kader-Kennung)', () => {
+    const copies = [
+      {
+        s: 'e12',
+        t: ['E1', 'E2'],
+        k: [
+          ['Max', 9],
+          ['Tom', null],
+        ] as [string, number | null][],
+        at: T0,
+      },
+      { s: 'e3', t: ['E3'], k: [['Leo', 4]] as [string, number | null][], at: T0 },
+    ];
+    expect(viewerPlayers(copies, 'E2')).toEqual([
+      { id: 'kader:e12:0', name: 'Max', number: 9, deletedAt: null },
+      { id: 'kader:e12:1', name: 'Tom', number: null, deletedAt: null },
+    ]);
+    expect(viewerPlayers(copies, 'E4')).toEqual([]);
   });
 });

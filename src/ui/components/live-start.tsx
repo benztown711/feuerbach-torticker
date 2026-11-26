@@ -379,7 +379,7 @@ export function StartLive({
 
   return (
     <>
-      {active && offers && <offers.StartOffers live={live} />}
+      {active && offers && <offers.StartOffers live={live} teams={settings.teams} />}
       {follow && (
         <button
           type="button"

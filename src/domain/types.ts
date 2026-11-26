@@ -160,6 +160,8 @@ export interface Game {
   liveHandedOver?: boolean;
   /** Spec 017 FR-C20: "Ergebnis teilen" zuletzt erfolgreich (ms); fehlt = nie geteilt. Geht nicht an den Dienst. */
   sharedAt?: number;
+  /** Spec 024 FR-E21: aus einem Eltern-Spiel übernommen ("Getickert von …"). */
+  tickedBy?: string;
 }
 
 export interface Player {
@@ -234,6 +236,12 @@ export interface Settings {
   squads?: Squad[];
   /** Spec 016 data-model.md: Abgleich geteilter Kader für den gekoppelten Live-Spieltag. */
   squadSync?: SquadSync;
+  /** Spec 024 R-E3: Eltern-Handy, zum Senden nötige Daten des zuletzt getickerten Live-Spieltags. */
+  liveTicker?: { topic: string; viewKey: string; orgPub: string; kit: SignedData; config: SignedData };
+  /** Spec 024 FR-E09: Ticker-Name der Eltern (2 bis 20 Zeichen). */
+  tickerName?: string;
+  /** Spec 024 US5: beantwortete Übernahme-Fragen (`<team>/<gameId>`), höchstens 50. */
+  parentGamesDone?: string[];
 }
 
 /** Spec 016: geteilte Kader ohne Platz (Namen, US2-S4), Hinweis "Kader übernommen" schon gezeigt (FR-B09). */
@@ -262,6 +270,8 @@ export interface LiveConfig {
   m?: TeamDetail[];
   /** Spec 006 US5-S3: Live-Spieltag wurde neu ausgestellt (Hinweis auf dem alten Topic, ohne neue Links). */
   retired?: true;
+  /** Spec 024 R-E2: Kurzlabels, bei denen "Eltern dürfen tickern" aus ist; fehlt = alle erlaubt. */
+  x?: string[];
 }
 
 /** Spec 006: Mannschaft in Trainer-Link und Konfiguration: Kurzlabel, Name, Heim-, Auswärtstrikot. */
@@ -313,6 +323,8 @@ export interface LiveSpieltag {
   config: SignedData;
   teams: LiveTeamCred[];
   createdAt: number;
+  /** Spec 024 R-E1: Eltern-Paket (signiert vom Organisator), nur auf Trainer-Handys; reist mit jeder `cfg`-Meldung. */
+  kit?: SignedData;
 }
 
 /** Spec 006: Inhalt eines Zuschauer-Links. */
