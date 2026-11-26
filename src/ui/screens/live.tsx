@@ -738,19 +738,21 @@ function Overview({
               const on = !off.includes(t.key);
               return (
                 <li key={t.key} class="live__row" data-testid={`live-parent-row-${t.key}`}>
-                  <Mark color={t.homeColor} />
-                  <span class="live__row-text" id={`parent-allow-${t.key}`}>
-                    <strong>{shortTeamName(t.name)}</strong>
-                  </span>
+                  {/* Review C 024: die ganze Zeile schaltet, nicht nur der Schalter. */}
                   <button
                     type="button"
-                    class="switch"
+                    class="live__switch-row"
                     role="switch"
                     aria-checked={on}
-                    aria-labelledby={`parent-allow-${t.key}`}
                     data-testid={`parent-allow-${t.key}`}
                     onClick={() => onParent(t.key, !on)}
-                  />
+                  >
+                    <Mark color={t.homeColor} />
+                    <span class="live__row-text">
+                      <strong>{shortTeamName(t.name)}</strong>
+                    </span>
+                    <span class="switch" aria-hidden="true" />
+                  </button>
                 </li>
               );
             })}
