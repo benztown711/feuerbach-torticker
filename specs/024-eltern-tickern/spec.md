@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung im Chat erledigt (26.11.2026), wartet auf Review A.
+**Status**: Klärung und Review A erledigt (26.11.2026, "Passt, a bis d so übernehmen"), Mockup für Review B: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42
 
 **Input**: Atti (26.11.2026): "Gestern hatten wir ein Nachholspiel, das nicht in der Liste war. Ivica und ich waren auf einem anderen Platz mit Training beschäftigt, sodass niemand getickert hat. Jetzt ist die Überlegung, ob wir den Link in der Elterngruppe verteilen, und je nachdem, wer da ist, kann tickern. […] Man sieht in der App hoffentlich, wer schon tickert. […] Ist es möglich, den Zuschauerlink und den Tickerlink in einem zu belassen und über einen Button abzufragen: Möchtest du nur das Ergebnis sehen oder live tickern?"
 
@@ -28,7 +28,7 @@ Gesichtet am 26.11.2026 in Specs und Code:
 - Q: Darf ein Elternteil einem Trainer das laufende Spiel abnehmen? → A: **Ja, mit Rückfrage**, der Trainer kann es zurückholen (3A).
 - Q: Kommt ein von Eltern getickertes Spiel in die Historie der Trainer? → A: Nicht automatisch (4A), aber **die Trainer-Handys fragen nach dem Schlusspfiff, ob sie es übernehmen möchten** (Präzisierung Atti).
 
-### Folgerungen mit Empfehlung (in Review A zu bestätigen)
+### Folgerungen mit Empfehlung (Review A 26.11.2026: "Passt, a bis d so übernehmen")
 
 - **Name auf dem Dashboard**: Eltern erscheinen mit ihrem Namen ("Tickert: Paul"). Trainer-Handys erscheinen als "Tickert: Trainer", weil ihr Name aus Spec 015 nur für Trainer gedacht war ("Dein Name für die Trainer"); im Spielplan der Trainer bleibt der Name.
 - **Vormerkungen** ("Ich tickere", Spec 015) bleiben für Eltern unsichtbar. Gestern hätte eine Vormerkung eines Trainers, der dann nicht kommt, Eltern vom Tickern abgehalten. Sobald jemand wirklich tickert, zeigt die Karte es.

@@ -32,5 +32,5 @@
 ## Notes
 
 - "Dienst", "verschlüsselt" und "Lead-Zertifikat" (nur in der Ausgangslage) sind Fachbegriffe aus Constitution II und Spec 006/007, keine Technikwahl; die technische Umsetzung des Ticker-Rechts legt der Plan fest.
-- Folgerungen mit Empfehlung (Name "Tickert: Trainer", Vormerkungen unsichtbar, keine Eltern-Historie, Eltern-Spiele immer live) werden in Review A bestätigt.
+- Folgerungen mit Empfehlung (Name "Tickert: Trainer", Vormerkungen unsichtbar, keine Eltern-Historie, Eltern-Spiele immer live) sind in Review A bestätigt (26.11.2026).
 - Constitution II (3.2.0) muss vor der Umsetzung geändert werden (FR-E22).
