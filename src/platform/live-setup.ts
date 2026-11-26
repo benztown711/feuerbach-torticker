@@ -122,6 +122,8 @@ export async function createLive(input: LiveInput, prepared?: PreparedLive): Pro
   void startLiveSender(next);
   // Spec 016 R-B6: das neue Trainer-Handy hält die Verbindung für geteilte Kader (main.tsx).
   liveSettingsChanged(next);
+  // Spec 024 R-E1: ein neuer Live-Spieltag bekommt gleich ein Eltern-Paket.
+  void ensureKit(live);
   return next;
 }
 
