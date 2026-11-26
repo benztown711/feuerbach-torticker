@@ -1,7 +1,7 @@
 import type { ClockState } from '../../domain/clock';
 import type { RestRange } from '../../domain/corrections';
 import { formatClock } from '../../domain/format';
-import { entryChoices, entryMinute, MAX_PRE_GOALS, type JoinInput } from '../../domain/late-start';
+import { entryChoices, entryMinute, MAX_PRE_GOALS, restChangeText, type JoinInput } from '../../domain/late-start';
 import { minuteFor } from '../../domain/minute';
 import { shortTeamName } from '../../domain/team-name';
 import type { Game, Side } from '../../domain/types';
@@ -77,7 +77,7 @@ export function LateStartSheet({ game, draft, onChange, onKits, onSave, onClose 
             <button
               key={c.key}
               type="button"
-              class={c.pause ? 'chip late__chip late__chip--pause' : 'chip late__chip'}
+              class="chip late__chip"
               aria-pressed={c.key === draft.key}
               data-testid={`late-choice-${c.key}`}
               onClick={() => onChange({ ...draft, key: c.key, rest: length })}
@@ -212,9 +212,7 @@ export function ClockFixSheet({ game, clock, range, fix, onChange, onSave, onClo
         ))}
       </div>
       <p class="field__help" data-testid="clock-fix-help">
-        {diff === 0
-          ? 'Unverändert.'
-          : `Restzeit ${diff > 0 ? '+' : '−'}${Math.abs(diff)} Min. Pfiff und Tor-Minuten dieses Abschnitts folgen.`}
+        {restChangeText(game.schema, clock.section, diff)}
       </p>
       <button type="button" class="btn btn--primary" data-testid="clock-fix-save" onClick={onSave}>
         Übernehmen

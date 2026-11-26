@@ -1307,11 +1307,6 @@ body:has(.page:not(.dash, .lead-link)) {
   font-weight: 700;
 }
 
-.late__chip--pause {
-  color: var(--color-ink-muted);
-  font-weight: 400;
-}
-
 .late__rest {
   display: flex;
   flex-direction: column;

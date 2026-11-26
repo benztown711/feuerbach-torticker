@@ -126,6 +126,7 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 - **FR-J01**: Der Spielbildschirm MUSS vor dem ersten Anpfiff neben "Anpfiff" den Zweitknopf "Spiel läuft schon" zeigen; nach dem ersten Anpfiff fehlt er.
 - **FR-J02**: "Neues Spiel" MUSS in der Karte "Spielzeit" den Schalter "Spiel läuft schon" (Vorgabe aus) anbieten; eingeschaltet öffnet "Weiter zum Anpfiff" den Spielbildschirm mit dem Blatt "Spiel läuft schon".
 - **FR-J03**: Das Blatt "Spiel läuft schon" MUSS "Abschnitt" (alle regulären Abschnitte und die Pausen dazwischen), "Restzeit" (ganze Minuten, 0 bis Abschnittslänge, "−5", "−1", "+1", "+5", Anzeige "Noch N Min" und "= M. Minute"; fehlt bei gewählter Pause), "Spielstand" (US2) und "Übernehmen" enthalten.
+  Nachtrag 26.11.2026 (Nachzug Design-Check): Pausen-Chips sehen aus wie die Abschnitts-Chips (gleiche Schrift und Farbe), damit sie in der Sonne nicht gesperrt wirken.
 - **FR-J04**: "Übernehmen" MUSS den Verlauf bis jetzt aus Zeitstempeln zurückrechnen (Constitution V): Anpfiff des gewählten Abschnitts = jetzt minus gespielte Zeit; frühere Abschnitte mit voller Länge davor, je 5 Minuten Pause dazwischen. Bei gewählter Pause endet der vorige Abschnitt jetzt. Uhr, Signale, Pfiffe und Live-Meldung verhalten sich danach wie bei einem durchgehend getickerten Spiel.
 - **FR-J05**: Nach "Übernehmen" MUSS die Leiste "Rückgängig" erscheinen; sie stellt den Zustand vor dem Einstieg vollständig wieder her.
 - **FR-J06**: Das Blatt "Spiel läuft schon" MUSS bei "Spielstand" die Trikotfarben beider Mannschaften als Farbmarken und den Link "Trikots ändern" zeigen. Er öffnet das Blatt "Trikots" (Spec 017 FR-C11 bis FR-C13); danach kehrt die App mit allen Eingaben ins Blatt "Spiel läuft schon" zurück. Die neuen Farben gelten sofort (wie "Trikots ändern" im "…"-Menü) und bleiben auch bei "Rückgängig" des Einstiegs erhalten.
@@ -142,6 +143,7 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 **Uhr korrigieren (US3, ändert Spec 012 FR-S20, FR-S21)**
 
 - **FR-J20**: Das Blatt "Uhr korrigieren" MUSS die Restzeit ("Noch N Min" bzw. in der Nachspielzeit "+N Min") mit "−5", "−1", "+1", "+5" und darunter die Spielminute zeigen. "−" stellt die Uhr vor (weniger Restzeit).
+  Nachtrag 26.11.2026 (Nachzug Design-Check, Atti: "Mach die Design-Punkte 2 und 4"): Der Hinweis unter den Knöpfen lautet "N Min weniger Restzeit." bzw. "N Min mehr Restzeit." und dann "Pfiff und Tor-Minuten dieser Halbzeit passen sich an." (bei Dritteln "dieses Drittels", bei Vierteln "dieses Viertels", bei einem Abschnitt "des Spiels", in der Verlängerung "der Verlängerung"); ohne Änderung "Unverändert.".
 - **FR-J21**: Vorstellen MUSS bis Restzeit 0 möglich sein, unabhängig vom vorigen Uhr-Ereignis: Liegt der neue Anpfiff davor, werden alle früheren Uhr-Ereignisse, Tore und Ereignisse um denselben Betrag früher gelegt (ihre Minuten bleiben). Zurückstellen bleibt nach FR-S21 begrenzt.
 - **FR-J22**: Der Eintrag "Uhr korrigieren" MUSS bei laufender oder angehaltener Uhr immer erscheinen, sobald Vor- oder Zurückstellen möglich ist.
 
