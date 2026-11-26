@@ -4253,6 +4253,7 @@ button.plan__row {
 /* FR-E06: Name des Tickers hervorgehoben (Hinweis-Token wie Hinweisboxen, design/README.md). */
 .ticker-tag {
   padding: 0 5px;
+
   /* Rahmen in Rot-Text, damit die Markierung auch auf der getönten Live-Karte (dunkel) erkennbar ist. */
   border: 1px solid var(--color-rot-text);
   border-radius: var(--radius-sm);
