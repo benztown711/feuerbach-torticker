@@ -48,7 +48,18 @@ export interface LiveGameSnapshot {
   goals: LiveGoal[];
   shootout: LiveShootout | null;
   drawSettled: boolean;
+  /** Spec 024 R-E4: Name des Tickers (Eltern bzw. Trainer); fehlt bei älteren Handys oder ohne Namen. */
+  by?: string;
+  /** Spec 024 R-E4: gesendet von einem Trainer-Handy. */
+  tr?: 1;
 }
+
+/** Spec 024 R-E4: wer sendet; Name höchstens 20 Zeichen. */
+export interface SnapshotTicker {
+  by?: string;
+  tr?: boolean;
+}
+const MAX_BY = 20;
 
 /** "Nicht live senden" (off) oder gelöscht (deleted): entfernt das Spiel vom Dashboard. */
 export interface LiveTombstone {
@@ -119,7 +130,13 @@ export const tombstone = (gameId: string, team: string, sentAt: number, h = 0): 
 });
 
 /** FR-L10: nur, was das Dashboard braucht; nie Kader, Aufgebot, Karten, Wechsel, Lesezeichen. */
-export function buildSnapshot(game: Game, players: Player[], team: string, sentAt: number): LiveSnapshot {
+export function buildSnapshot(
+  game: Game,
+  players: Player[],
+  team: string,
+  sentAt: number,
+  ticker: SnapshotTicker = {},
+): LiveSnapshot {
   const h = game.liveTakeover ?? 0;
   if (game.live === false) return { ...tombstone(game.id, team, sentAt, h), state: 'off' };
   return {
@@ -159,7 +176,13 @@ export function buildSnapshot(game: Game, players: Player[], team: string, sentA
         }
       : null,
     drawSettled: game.drawSettled === true,
+    ...tickerFields(ticker),
   };
+}
+
+function tickerFields(t: SnapshotTicker): { by?: string; tr?: 1 } {
+  const by = t.by?.trim().slice(0, MAX_BY);
+  return { ...(by ? { by } : {}), ...(t.tr ? { tr: 1 as const } : {}) };
 }
 
 /* ---------- Prüfung eingehender Stände (R-L9) ---------- */
@@ -231,6 +254,8 @@ function parseGame(v: Obj, base: Omit<LiveTombstone, 'state'>): LiveGameSnapshot
   const goals = (v.goals as unknown[]).map(parseGoal);
   const shootout = parseShootout(v.shootout);
   if (goals.some((g) => g === null) || shootout === undefined || typeof v.drawSettled !== 'boolean') return null;
+  // Spec 024 R-E4: optional.
+  if (!(v.by === undefined || isText(v.by, MAX_BY)) || !(v.tr === undefined || v.tr === 1)) return null;
   return {
     ...base,
     state: 'live',
@@ -245,6 +270,8 @@ function parseGame(v: Obj, base: Omit<LiveTombstone, 'state'>): LiveGameSnapshot
     goals: goals as LiveGoal[],
     shootout,
     drawSettled: v.drawSettled,
+    ...(v.by !== undefined ? { by: v.by } : {}),
+    ...(v.tr === 1 ? { tr: 1 as const } : {}),
   };
 }
 

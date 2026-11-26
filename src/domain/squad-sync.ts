@@ -1,6 +1,8 @@
 import { firstNameOf, MAX_NAME } from './roster-names';
 import { DEFAULT_SQUAD, findSquad, MAX_SQUAD_NAME, MAX_SQUADS, squadOfPlayer, squadOfTeam } from './squads';
-import type { Player, Squad, Team } from './types';
+import { parentAllowed } from './live-parent';
+import type { ViewerSquad } from './viewer-squad';
+import type { LiveConfig, Player, Squad, Team } from './types';
 import { normalizeName } from './validation';
 
 /**
@@ -345,4 +347,20 @@ export function mergeRecord(
     full: null,
     adopted,
   };
+}
+
+// ---------- Spec 024 R-E5: Kopie für den Zuschauer-Link ----------
+
+/**
+ * Kopie eines geteilten Kaders für den Zuschauer-Link. Ein Grabstein (`t` und `k` leer), wenn der Kader nicht mehr
+ * geteilt ist oder keine seiner Mannschaften Eltern-Tickern erlaubt.
+ */
+export type { ViewerSquad } from './viewer-squad';
+export { parseViewerSquad, viewerPlayers } from './viewer-squad';
+
+export function viewerSquad(rec: SquadRecord, config: LiveConfig | null): ViewerSquad {
+  const at = Math.max(recordAt(rec), config?.iat ?? 0);
+  const t = rec.sh ? rec.t.map(([key]) => key).filter((key) => parentAllowed(config, key)) : [];
+  if (t.length === 0) return { s: rec.s, t: [], k: [], at };
+  return { s: rec.s, t, k: rec.k.filter((x) => !x[3]).map(([, name, number]) => [name, number]), at };
 }

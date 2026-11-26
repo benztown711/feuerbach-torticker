@@ -1,5 +1,7 @@
 import { fromBase64Url, toBase64Url } from '../domain/base64url';
+import { isParentCert, parseParentKit, type ParentKit } from '../domain/live-parent';
 import { parseLeadCert } from '../domain/live-spieltag';
+import { parseViewerSquad, type ViewerSquad } from '../domain/viewer-squad';
 import { isObj, isSignedData, MAX_PLAN_SIGNED } from '../domain/live-validate';
 import { signedText, type RelayDraft, type RelayWrite } from '../domain/relay-protocol';
 import type { PrivateKeyParts, SignedData } from '../domain/types';
@@ -189,6 +191,10 @@ export interface MessageParts {
   config?: SignedData;
   /** Spec 015: Planspiele, signiert mit dem Organisator-Schlüssel (contracts/plan-message.md). */
   plan?: SignedData;
+  /** Spec 024 R-E1: Eltern-Paket, signiert mit dem Organisator-Schlüssel (nur in `cfg`-Meldungen). */
+  kit?: SignedData;
+  /** Spec 024 R-E5: Kader-Kopie für den Zuschauer-Link. */
+  squad?: ViewerSquad;
 }
 
 /** Baut den Umschlag (contracts/live-message.md) und verschlüsselt ihn. */
@@ -201,6 +207,8 @@ export async function sealMessage(viewKey: string, parts: MessageParts): Promise
   }
   if (parts.config) env.g = parts.config;
   if (parts.plan) env.p = parts.plan;
+  if (parts.kit) env.k = parts.kit;
+  if (parts.squad) env.q = parts.squad;
   return seal(viewKey, JSON.stringify(env));
 }
 
@@ -215,6 +223,13 @@ export interface OpenedMessage {
   signedConfig?: SignedData;
   /** Spec 015: geprüfte Nutzlast einer Plan-Meldung als JSON-Text; fehlt ohne gültiges p. */
   plan?: string;
+  /** Spec 024: der Live-Stand kam mit dem Eltern-Zertifikat. */
+  parent?: true;
+  /** Spec 024 R-E1: geprüftes Eltern-Paket und wie signiert (zum Weitergeben); fehlt ohne gültiges k. */
+  kit?: ParentKit;
+  signedKit?: SignedData;
+  /** Spec 024 R-E5: geprüfte Kader-Kopie; fehlt ohne gültiges q. */
+  squad?: ViewerSquad;
 }
 
 const parseJson = (text: string): unknown => {
@@ -241,14 +256,19 @@ export async function openMessage(
   const config = g ? await verifySigned(view.orgPub, g) : null;
   let content: unknown = null;
   let cert: unknown = null;
+  let parent = false;
   const c = isSignedData(e.c) ? e.c : null;
   if (typeof e.m === 'string' && typeof e.s === 'string' && c) {
-    const certValue = parseLeadCert(await verifySigned(view.orgPub, c));
+    const rawCert = await verifySigned(view.orgPub, c);
+    const certValue = parseLeadCert(rawCert);
     const parsed = certValue && (await verify(certValue.pub, e.m, e.s)) ? parseJson(e.m) : null;
-    // Ein Live-Stand gilt nur für die Mannschaft seines Zertifikats (contracts/live-message.md).
-    if (certValue && isObj(parsed) && parsed.team === certValue.key) {
+    // Ein Live-Stand gilt nur für die Mannschaft seines Zertifikats (contracts/live-message.md); das
+    // Eltern-Zertifikat (Spec 024 R-E1) für jede, ob Eltern dort tickern dürfen, prüft das Dashboard.
+    const parentCert = isParentCert(rawCert);
+    if (certValue && isObj(parsed) && (parentCert || parsed.team === certValue.key)) {
       cert = certValue;
       content = parsed;
+      if (parentCert) parent = true;
     }
   }
   // Eine geprüfte Konfiguration stammt immer aus g.
@@ -257,5 +277,15 @@ export async function openMessage(
   // Spec 015: Planspiele nur mit gültiger Signatur des Organisators.
   const p = isSignedData(e.p, MAX_PLAN_SIGNED) ? e.p : null;
   if (p && (await verify(view.orgPub, p.d, p.s))) opened.plan = p.d;
+  if (parent) opened.parent = true;
+  // Spec 024: Eltern-Paket nur mit gültiger Signatur des Organisators; Kader-Kopie streng geprüft.
+  const k = isSignedData(e.k) ? e.k : null;
+  const kit = k ? parseParentKit(await verifySigned(view.orgPub, k)) : null;
+  if (k && kit) {
+    opened.kit = kit;
+    opened.signedKit = k;
+  }
+  const squad = e.q === undefined ? null : parseViewerSquad(e.q);
+  if (squad) opened.squad = squad;
   return opened;
 }

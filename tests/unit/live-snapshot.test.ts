@@ -206,6 +206,24 @@ describe('006 FR-L11 R-L9 Live-Stand prüfen', () => {
     expect(parseSnapshot({ ...off, state: 'deleted' })).toEqual({ ...off, state: 'deleted' });
   });
 
+  it('024 R-E4: Name des Tickers (by, 1 bis 20 Zeichen) und Trainer-Kennzeichen (tr) optional', () => {
+    const named = buildSnapshot(game(), players, 'E1', T0, { by: 'Paul' }) as LiveGameSnapshot;
+    expect(named.by).toBe('Paul');
+    expect('tr' in named).toBe(false);
+    const trainer = buildSnapshot(game(), players, 'E1', T0, { by: 'Atti', tr: true }) as LiveGameSnapshot;
+    expect([trainer.by, trainer.tr]).toEqual(['Atti', 1]);
+    const anon = buildSnapshot(game(), players, 'E1', T0, { by: '', tr: true }) as LiveGameSnapshot;
+    expect('by' in anon).toBe(false);
+    expect(anon.tr).toBe(1);
+    expect(buildSnapshot(game(), players, 'E1', T0, { by: 'x'.repeat(30) }) as LiveGameSnapshot).toMatchObject({
+      by: 'x'.repeat(20),
+    });
+    expect(parseSnapshot(JSON.parse(JSON.stringify(trainer)))).toEqual(trainer);
+    expect(parseSnapshot({ ...ok, by: 'x'.repeat(21) })).toBeNull();
+    expect(parseSnapshot({ ...ok, by: 3 })).toBeNull();
+    expect(parseSnapshot({ ...ok, tr: true })).toBeNull();
+  });
+
   it('FR-L23 Übergabezähler: fehlt = 0 (ältere Handys), sonst ganze Zahl von 0 bis 100', () => {
     const old: Record<string, unknown> = { ...ok };
     delete old.h;

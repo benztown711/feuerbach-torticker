@@ -1,7 +1,11 @@
+import type { ParentKit } from '../domain/live-parent';
 import {
   applyConfig,
   applyPlan,
+  applyKit,
+  applySignedConfig,
   applySnapshot,
+  applyViewerSquad,
   boardJson,
   dayKey,
   emptyBoard,
@@ -58,6 +62,8 @@ export interface ReceiverDeps {
   onPlan?(payload: string, sentAt: number): void;
   /** Spec 016: Meldung, die der Zuschauer-Schlüssel nicht öffnet (geteilter Kader), nur Trainer-Handys. */
   onSealed?(message: string): void;
+  /** Spec 024 R-E1: geprüftes Eltern-Paket (Trainer-Handys merken es für spätere Konfigurationen). */
+  onKit?(signed: SignedData, kit: ParentKit): void;
 }
 
 export class LiveReceiver {
@@ -236,6 +242,7 @@ export class LiveReceiver {
     let board = this.state.board;
     const config = parseConfig(opened.config);
     if (config) board = applyConfig(board, config);
+    if (config && opened.signedConfig) board = applySignedConfig(board, config, opened.signedConfig);
     if (config && opened.signedConfig && config.iat > this.knownIat) {
       this.knownIat = config.iat;
       this.deps.onConfig?.(opened.signedConfig);
@@ -247,7 +254,13 @@ export class LiveReceiver {
       this.deps.onPlan?.(opened.plan, at);
     }
     const snap = parseSnapshot(opened.content);
-    if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone);
+    if (snap) board = applySnapshot(board, snap, at, this.deps.timeZone, opened.parent === true);
+    // Spec 024 R-E1, R-E5: Eltern-Paket und Kader-Kopien für Eltern, die tickern.
+    if (opened.kit && opened.signedKit) {
+      board = applyKit(board, opened.kit, opened.signedKit);
+      this.deps.onKit?.(opened.signedKit, opened.kit);
+    }
+    if (opened.squad) board = applyViewerSquad(board, opened.squad);
     const liveAt = this.deps.now();
     if (board === this.state.board) {
       this.update({ liveAt });

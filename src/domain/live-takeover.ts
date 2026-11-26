@@ -1,6 +1,7 @@
 import { deriveClock } from './clock';
 import { DOUBLE_TAP_MS, score } from './goals';
 import type { Board, BoardEntry } from './live-board';
+import type { Ticker } from './live-parent';
 import { MAX_TAKEOVER, type LiveGameSnapshot, type LiveGoal } from './live-snapshot';
 import { sectionMinutesOf, sectionOffset } from './minute';
 import type { ClockEvent, EventPerson, Game, Goal, Player, Score, Shot, Side } from './types';
@@ -25,6 +26,10 @@ export interface TakeoverInput {
   /** Jetzt auf der eigenen Uhr. */
   now: number;
   newId: () => string;
+  /** Spec 024 R-E5: Eltern-Handy ohne Kader: eigene Torschützen als Freitext übernehmen. */
+  textScorers?: boolean;
+  /** Spec 024 FR-E21: "Getickert von …" (Übernahme eines Eltern-Spiels in die Trainer-Historie). */
+  tickedBy?: string;
 }
 
 const playerNamed = (players: Player[], name: string | null): string | null => {
@@ -33,8 +38,8 @@ const playerNamed = (players: Player[], name: string | null): string | null => {
   return players.find((p) => p.deletedAt === null && normalizeName(p.name) === n)?.id ?? null;
 };
 
-function person(side: Side, who: string | null, players: Player[]): EventPerson {
-  if (side === 'opp') return who === null ? null : { kind: 'text', text: who };
+function person(side: Side, who: string | null, players: Player[], text = false): EventPerson {
+  if (side === 'opp' || text) return who === null ? null : { kind: 'text', text: who };
   const id = playerNamed(players, who);
   return id === null ? null : { kind: 'player', playerId: id };
 }
@@ -55,8 +60,8 @@ function goalAt(g: LiveGoal, clock: ClockEvent[], s: LiveGameSnapshot, latest: n
   return Math.min(latest, kickoff.at + Math.max(0, played) + MINUTE_MS / 2);
 }
 
-function goalOf(g: LiveGoal, at: number, players: Player[], id: string): Goal {
-  const who = person(g.side, g.who, players);
+function goalOf(g: LiveGoal, at: number, players: Player[], id: string, text: boolean): Goal {
+  const who = person(g.side, g.who, players, text);
   return {
     id,
     side: g.side,
@@ -82,13 +87,14 @@ export function takeoverGame(i: TakeoverInput): Game {
   // Die Tore fielen vor der Meldung (Serverzeit der Meldung auf der eigenen Uhr) und gelten nie als gerade eben
   // erfasst: sonst wiese der Doppeltipp-Schutz ein sofortiges eigenes Tor ab.
   const latest = Math.min(i.now - DOUBLE_TAP_MS, i.entry.at - i.skew);
-  const goals = s.goals.map((g) => goalOf(g, goalAt(g, clockEvents, s, latest), i.players, i.newId()));
+  const text = i.textScorers === true;
+  const goals = s.goals.map((g) => goalOf(g, goalAt(g, clockEvents, s, latest), i.players, i.newId(), text));
   const clock = deriveClock(clockEvents, i.now, s.schema);
   const firstHalfDone = clockEvents.some((e) => e.type === 'sectionEnd' && e.section === 1);
   const shots: Shot[] = (s.shootout?.shots ?? []).map(([side, hit, who]) => ({
     side,
     hit,
-    who: person(side, who, i.players),
+    who: person(side, who, i.players, text),
     at: i.now,
   }));
   return {
@@ -118,6 +124,7 @@ export function takeoverGame(i: TakeoverInput): Game {
       firstHalfDone && !goals.some((g) => g.beforeTicker) ? scoreOf(goals.filter((g) => g.section === 1)) : null,
     live: true,
     liveTakeover: Math.min(s.h + 1, MAX_TAKEOVER),
+    ...(i.tickedBy ? { tickedBy: i.tickedBy } : {}),
   };
 }
 
@@ -132,6 +139,15 @@ export function takenOver(board: Board, game: Game, team: string): boolean {
     board.games.some((e) => e.snap.team === team && e.snap.gameId === game.id && e.snap.h > own) ||
     board.removed.some(([r, , h]) => r === id && h > own)
   );
+}
+
+/** Spec 024 FR-E12: wer das Spiel übernommen hat (aus dem neueren Stand); null ohne Angabe. */
+export function newTicker(board: Board, game: Game, team: string): Ticker | null {
+  const own = game.liveTakeover ?? 0;
+  const e = board.games.find((x) => x.snap.team === team && x.snap.gameId === game.id && x.snap.h > own);
+  return e && (e.snap.by !== undefined || e.snap.tr === 1)
+    ? { name: e.snap.by ?? null, trainer: e.snap.tr === 1 }
+    : null;
 }
 
 /** FR-L24: übernommenes Spiel: nicht mehr senden, lokal vollständig erhalten. */

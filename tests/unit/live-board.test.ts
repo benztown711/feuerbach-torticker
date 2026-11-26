@@ -4,7 +4,10 @@ import {
   MAX_REMOVED,
   MAX_STORED_PLAN,
   applyConfig,
+  applyKit,
   applyPlan,
+  applySignedConfig,
+  applyViewerSquad,
   applySnapshot,
   boardJson,
   boardView,
@@ -24,6 +27,7 @@ import {
   type Board,
 } from '../../src/domain/live-board';
 import type { LiveGameSnapshot, LiveGoal, LiveSnapshot } from '../../src/domain/live-snapshot';
+import type { ViewerSquad } from '../../src/domain/squad-sync';
 import type { ClockEventType, LiveConfig, PlanEntry } from '../../src/domain/types';
 
 /** Sa, 07.11.2026, 10:00 Uhr in Stuttgart. */
@@ -1222,5 +1226,101 @@ describe('020 US4-S8 FR-E64 ohne eigene Verbindung keine Aktualität auf den Kar
     }
     expect(shownFreshness(null, false)).toBeNull();
     expect(shownFreshness(null, true)).toBeNull();
+  });
+});
+
+describe('024 R-E2 R-E4 Eltern-Stände und wer tickert', () => {
+  const cfg = (x?: string[]): LiveConfig => ({ ...config(['E1', 'E2']), ...(x ? { x } : {}) });
+  const kicked: Clock = [['kickoff', T0 - min(5), 1]];
+
+  it('FR-E03: Eltern-Stand nur für erlaubte Mannschaften; ohne Konfiguration verworfen', () => {
+    const b = applyConfig(emptyBoard(), cfg(['E2']));
+    expect(applySnapshot(b, snap({ team: 'E1' }), T0, TZ, true).games).toHaveLength(1);
+    expect(applySnapshot(b, snap({ team: 'E2' }), T0, TZ, true)).toBe(b);
+    expect(applySnapshot(emptyBoard(), snap(), T0, TZ, true).games).toHaveLength(0);
+    // Trainer-Stände (ohne Eltern-Zertifikat) gelten immer.
+    expect(applySnapshot(b, snap({ team: 'E2' }), T0, TZ).games).toHaveLength(1);
+  });
+
+  it('US4-S2: nach dem Ausschalten bleibt der letzte Eltern-Stand, neuere ändern nichts', () => {
+    let b = applyConfig(emptyBoard(), cfg());
+    b = applySnapshot(b, snap({ team: 'E2', clock: kicked, goals: [goal('own', 3)] }), T0, TZ, true);
+    expect(b.games[0]?.parent).toBe(true);
+    b = applyConfig(b, { ...cfg(['E2']), iat: T0 + 1 });
+    const later = applySnapshot(
+      b,
+      snap({ team: 'E2', sentAt: T0 + min(1), clock: kicked, goals: [] }),
+      T0 + min(1),
+      TZ,
+      true,
+    );
+    expect(later).toBe(b);
+  });
+
+  it('FR-E06: Karte nennt den Ticker (Eltern, Trainer mit und ohne Namen); ältere Stände ohne Zeile', () => {
+    const view = (s: LiveGameSnapshot) => boardView(put(applyConfig(emptyBoard(), cfg()), s), T0, TZ).cards[0];
+    expect(view(snap({ clock: kicked, by: 'Paul' }))?.ticker).toEqual({ name: 'Paul', trainer: false });
+    expect(view(snap({ clock: kicked, by: 'Atti', tr: 1 }))?.ticker).toEqual({ name: 'Atti', trainer: true });
+    expect(view(snap({ clock: kicked, tr: 1 }))?.ticker).toEqual({ name: null, trainer: true });
+    expect(view(snap({ clock: kicked }))?.ticker).toBeNull();
+  });
+
+  it('Kennzeichen "Eltern" bleibt im gemerkten Stand', () => {
+    const b = applySnapshot(applyConfig(emptyBoard(), cfg()), snap(), T0, TZ, true);
+    const back = parseBoard(JSON.parse(JSON.stringify(boardJson(b))));
+    expect(back.games[0]?.parent).toBe(true);
+    const plain = parseBoard(JSON.parse(JSON.stringify(boardJson(put(emptyBoard(), snap())))));
+    expect(plain.games[0]?.parent).toBeUndefined();
+  });
+});
+
+describe('024 R-E1 R-E5 Eltern-Paket und Kader-Kopien im Dashboard-Stand', () => {
+  const KEY = { d: 'd'.repeat(43), x: 'x'.repeat(43), y: 'y'.repeat(43) };
+  const signed = { d: '{"k":1}', s: 's'.repeat(86) };
+  const kit = (iat: number) => ({ k: KEY, c: { d: '{}', s: 's'.repeat(86) }, iat });
+  const copy = (p: Partial<ViewerSquad> = {}): ViewerSquad => ({ s: 'e12', t: ['E1'], k: [['Max', 9]], at: T0, ...p });
+
+  it('jüngeres Paket gewinnt, älteres ändert nichts', () => {
+    const b = applyKit(emptyBoard(), kit(5), signed);
+    expect(b.kit?.kit.iat).toBe(5);
+    expect(applyKit(b, kit(4), signed)).toBe(b);
+    expect(applyKit(b, kit(6), signed).kit?.kit.iat).toBe(6);
+  });
+
+  it('Kopie ersetzt ältere desselben Kaders; Grabstein entfernt sie; ältere ändern nichts', () => {
+    let b = applyViewerSquad(emptyBoard(), copy());
+    expect(b.squads).toEqual([copy()]);
+    expect(applyViewerSquad(b, copy({ at: T0 - 1, k: [] }))).toBe(b);
+    b = applyViewerSquad(b, copy({ at: T0 + 1, k: [['Tom', 10]] }));
+    expect(b.squads[0]?.k).toEqual([['Tom', 10]]);
+    b = applyViewerSquad(b, copy({ s: 'e3', t: ['E3'] }));
+    expect(b.squads).toHaveLength(2);
+    b = applyViewerSquad(b, copy({ at: T0 + 2, t: [], k: [] }));
+    expect(b.squads.map((q) => q.s)).toEqual(['e3']);
+  });
+
+  it('Paket und Kopien bleiben im gemerkten Stand; Kaputtes fällt weg', () => {
+    const b = applyViewerSquad(applyKit(emptyBoard(), kit(5), signed), copy());
+    const back = parseBoard(JSON.parse(JSON.stringify(boardJson(b))));
+    expect(back.kit).toEqual({ kit: kit(5), signed });
+    expect(back.squads).toEqual([copy()]);
+    const broken = parseBoard({ ...boardJson(b), kit: { kit: 'x', signed }, squads: [{ s: '' }, copy()] });
+    expect(broken.kit).toBeNull();
+    expect(broken.squads).toEqual([copy()]);
+    expect(parseBoard({ ...boardJson(b), squads: 'x' }).squads).toEqual([]);
+  });
+});
+
+describe('024 R-E3 signierte Konfiguration für Eltern-Handys', () => {
+  const signed = (iat: number) => ({ d: JSON.stringify({ iat }), s: 's'.repeat(86) });
+  it('gilt für die geltende (gleich alte oder jüngere) Konfiguration und bleibt im gemerkten Stand', () => {
+    const b = applyConfig(emptyBoard(), config(['E1'], T0));
+    expect(applySignedConfig(emptyBoard(), config(['E1'], T0), signed(1))).toEqual(emptyBoard());
+    const s1 = applySignedConfig(b, config(['E1'], T0), signed(1));
+    expect(s1.signedConfig).toEqual(signed(1));
+    expect(applySignedConfig(s1, config(['E1'], T0), signed(1))).toBe(s1);
+    expect(applySignedConfig(s1, config(['E1'], T0 - 1), signed(2))).toBe(s1);
+    expect(parseBoard(JSON.parse(JSON.stringify(boardJson(s1)))).signedConfig).toEqual(signed(1));
+    expect(parseBoard({ ...boardJson(s1), signedConfig: 'x' }).signedConfig).toBeNull();
   });
 });

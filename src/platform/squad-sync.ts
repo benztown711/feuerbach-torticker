@@ -6,17 +6,19 @@ import {
   parseRecord,
   recordAt,
   stamp,
+  viewerSquad,
   type LiveTeamRef,
   type SquadRecord,
   type SquadState,
+  type ViewerSquad,
 } from '../domain/squad-sync';
 import { inSquad, squadsOf } from '../domain/squads';
 import type { LiveSpieltag, Player, Settings, Squad } from '../domain/types';
 import { getPlayers, getSettings, putPlayers, putSettings } from './db';
-import { sealSquad, squadSlot, unsealSquad } from './live-crypto';
+import { sealMessage, sealSquad, squadSlot, unsealSquad } from './live-crypto';
 import { liveSettingsChanged, squadNotice, squadsChanged } from './live-events';
 import { newReceiver, type LiveReceiver } from './live-receiver';
-import { adoptPlan, adoptReceived } from './live-setup';
+import { adoptKit, adoptPlan, adoptReceived, ensureKit } from './live-setup';
 import { sendOrg } from './relay-write';
 
 /**
@@ -63,7 +65,26 @@ async function send(live: LiveSpieltag & { orgKey: NonNullable<LiveSpieltag['org
     body: await sealSquad(live.orgKey, encodeRecord(rec)),
   }).catch(() => false);
   if (ok) known.set(rec.s, Math.max(known.get(rec.s) ?? 0, at));
+  // Spec 024 R-E5: Kopie für Eltern, die tickern (bzw. Grabstein, wenn keine Mannschaft es mehr erlaubt).
+  if (ok) await sendCopy(live, rec);
   return ok;
+}
+
+/** Spec 024 R-E5: Kopien, die beim Dienst stehen (aus dem Stand dieses Trainer-Handys). */
+const copies = (): ViewerSquad[] => receiver?.get().board.squads ?? [];
+
+async function sendCopy(live: LiveSpieltag, rec: SquadRecord, onlyIfStale = false): Promise<void> {
+  const copy = viewerSquad(rec, configOf(live.config));
+  const current = copies().find((q) => q.s === copy.s);
+  // Ohne erlaubte Mannschaft nur einen vorhandenen Eintrag entfernen; sonst nur Neueres senden.
+  if (copy.t.length === 0 ? !current : onlyIfStale && current !== undefined && current.at >= copy.at) return;
+  await sendOrg(live as LiveSpieltag & { orgKey: NonNullable<LiveSpieltag['orgKey']> }, {
+    kind: 'squad',
+    slot: await squadSlot(live.viewKey, `v.${copy.s}`),
+    at: copy.at,
+    gone: copy.t.length === 0,
+    body: await sealMessage(live.viewKey, { squad: copy }),
+  }).catch(() => false);
 }
 
 /** Sendet die Kader `sids` (bzw. Grabsteine gelöschter) des gekoppelten Live-Spieltags. */
@@ -211,6 +232,21 @@ async function catchUp(): Promise<void> {
     })
     .map((q) => q.sid!);
   await serial(() => publish(stale));
+  // Spec 024 R-E5: fehlende oder ältere Kopien nachsenden (z. B. erster Start nach dem Update).
+  await serial(() => syncCopies(stale));
+}
+
+/** Spec 024 R-E5: Kopien aller Kader mit gemeinsamer Kennung abgleichen (außer `skip`, gerade gesendet). */
+export async function syncCopies(skip: string[] = []): Promise<void> {
+  const s = await getSettings();
+  const live = trainerLive(s);
+  if (!live) return;
+  const state = stateOf(s, await getPlayers());
+  const now = Date.now();
+  for (const q of state.squads.filter((x) => x.sid && !skip.includes(x.sid))) {
+    const rec = buildRecord(state, q.id, liveTeams(live), now);
+    if (rec) await sendCopy(live, rec, true);
+  }
 }
 
 /* ---------- Verbindung, solange die App sichtbar ist ---------- */
@@ -239,6 +275,7 @@ export function syncTrainer(s: Settings, visible: boolean): void {
       onConfig: (signed) => void adoptReceived(signed, live),
       onPlan: (payload, sentAt) => void adoptPlan(payload, live, sentAt),
       onSealed: (text) => void receiveSquad(text, live),
+      onKit: (signed, kit) => void adoptKit(signed, kit, live),
     },
     configOf(live.config),
   );
@@ -252,6 +289,9 @@ export function syncTrainer(s: Settings, visible: boolean): void {
   });
   r.start();
   void r.whenSettled(15_000).then(() => {
-    if (receiver === r) void catchUp().catch(() => undefined);
+    if (receiver !== r) return;
+    void catchUp().catch(() => undefined);
+    // Spec 024 R-E1: Live-Spieltage ohne Eltern-Paket bekommen eines.
+    if (r.get().relay === 'live') void ensureKit(live);
   });
 }

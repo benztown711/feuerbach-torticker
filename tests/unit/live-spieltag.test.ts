@@ -197,7 +197,15 @@ describe('006 FR-L03 FR-L04 Zertifikat und Konfiguration prüfen', () => {
     ['zu viele', { ...cfg, teams: ['1', '2', '3', '4', '5', '6', '7'] }],
     ['Eintrag ungültig', { ...cfg, teams: [''] }],
     ['Zeit fehlt', { ...cfg, iat: null }],
+    ['024 x keine Liste', { ...cfg, x: 'E1' }],
+    ['024 x Eintrag ungültig', { ...cfg, x: [''] }],
+    ['024 x zu viele', { ...cfg, x: ['1', '2', '3', '4', '5', '6', '7'] }],
   ])('Konfiguration ungültig: %s', (_, v) => expect(parseConfig(v)).toBeNull());
+
+  it('024 R-E2: Mannschaften ohne Eltern-Tickern (x); leere Liste entfällt', () => {
+    expect(parseConfig({ ...cfg, x: ['E2'] })).toEqual({ ...cfg, x: ['E2'] });
+    expect(parseConfig({ ...cfg, x: [] })).toEqual(cfg);
+  });
 
   it('jüngere Konfiguration gewinnt', () => {
     const a = { ...cfg, iat: 1 };

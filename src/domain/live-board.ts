@@ -1,8 +1,10 @@
+import { parentAllowed, parseParentKit, type ParentKit, type Ticker } from './live-parent';
+import { parseViewerSquad, type ViewerSquad } from './viewer-squad';
 import { deriveClock, type ClockState } from './clock';
 import { homeAway } from './goals';
 import { parseSnapshot, type LiveGameSnapshot, type LiveGoal, type LiveSnapshot } from './live-snapshot';
 import { newerConfig, parseConfig } from './live-spieltag';
-import { isObj, isText, isTime, type Obj } from './live-validate';
+import { isObj, isSignedData, isText, isTime, type Obj } from './live-validate';
 import { formatMinute } from './minute';
 import {
   compareEntries,
@@ -16,7 +18,7 @@ import {
   pruneEntries,
 } from './plan';
 import { shortTeamName } from './team-name';
-import type { LiveConfig, PlanEntry, Schema, Score, Side, TeamDetail } from './types';
+import type { LiveConfig, PlanEntry, Schema, Score, Side, SignedData, TeamDetail } from './types';
 
 /**
  * Spec 006 FR-L12 bis FR-L16: Stand des Dashboards aus geprüften Meldungen und die Karten daraus.
@@ -43,6 +45,8 @@ export interface BoardEntry {
   snap: LiveGameSnapshot;
   /** Serverzeit der Meldung in ms. */
   at: number;
+  /** Spec 024: Stand kam mit dem Eltern-Zertifikat (Zuschauer-Link). */
+  parent?: true;
 }
 
 export interface Board {
@@ -52,9 +56,43 @@ export interface Board {
   removed: [string, number, number][];
   /** Spec 015 R-P7: empfangene Planspiele, je Planspiel die jüngste Änderung. */
   plan: PlanEntry[];
+  /** Spec 024 R-E3: jüngste Konfiguration, wie vom Organisator signiert (für das Senden der Eltern). */
+  signedConfig: SignedData | null;
+  /** Spec 024 R-E1: jüngstes geprüftes Eltern-Paket (geprüft und wie signiert). */
+  kit: { kit: ParentKit; signed: SignedData } | null;
+  /** Spec 024 R-E5: Kader-Kopien für Eltern, die tickern. */
+  squads: ViewerSquad[];
 }
 
-export const emptyBoard = (): Board => ({ config: null, games: [], removed: [], plan: [] });
+export const emptyBoard = (): Board => ({
+  config: null,
+  games: [],
+  removed: [],
+  plan: [],
+  signedConfig: null,
+  kit: null,
+  squads: [],
+});
+
+/** Spec 024 R-E3: signierte Fassung der geltenden Konfiguration merken (gleich alt oder jünger). */
+export function applySignedConfig(board: Board, config: LiveConfig, signed: SignedData): Board {
+  if (!board.config || config.iat < board.config.iat || board.signedConfig?.d === signed.d) return board;
+  return { ...board, signedConfig: signed };
+}
+
+/** Spec 024 R-E1: das jüngere Eltern-Paket gilt. */
+export function applyKit(board: Board, kit: ParentKit, signed: SignedData): Board {
+  if (board.kit && board.kit.kit.iat >= kit.iat) return board;
+  return { ...board, kit: { kit, signed } };
+}
+
+/** Spec 024 R-E5: Kopie eines Kaders übernehmen (jüngere ersetzt, Grabstein entfernt). */
+export function applyViewerSquad(board: Board, copy: ViewerSquad): Board {
+  const old = board.squads.find((q) => q.s === copy.s);
+  if (old && old.at > copy.at) return board;
+  const others = board.squads.filter((q) => q.s !== copy.s);
+  return { ...board, squads: copy.t.length === 0 ? others : [...others, copy] };
+}
 
 /** Spiel-IDs gelten je Mannschaft: ein Lead-Handy kann kein Spiel einer anderen Mannschaft ändern. */
 const idOf = (s: { team: string; gameId: string }): string => `${s.team}/${s.gameId}`;
@@ -186,7 +224,9 @@ const notNewer = (a: { h: number; sentAt: number }, b: { h: number; sentAt: numb
  * Übernimmt einen geprüften Live-Stand (R-L5): je Spiel gilt der größte Übergabezähler, dann das größte `sentAt`;
  * "off" und "deleted" entfernen das Spiel.
  */
-export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, timeZone?: string): Board {
+export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, timeZone?: string, parent = false): Board {
+  // Spec 024 FR-E03: Stände vom Zuschauer-Link nur für Mannschaften, bei denen Eltern tickern dürfen.
+  if (parent && !parentAllowed(board.config, snap.team)) return board;
   const id = idOf(snap);
   const known = board.games.find((e) => idOf(e.snap) === id);
   const gone = board.removed.find(([r]) => r === id);
@@ -196,7 +236,7 @@ export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, time
     const removed = [...board.removed.filter(([r]) => r !== id), [id, snap.sentAt, snap.h] as [string, number, number]];
     return { ...board, games: others, removed: removed.slice(-MAX_REMOVED) };
   }
-  return { ...board, games: prune([...others, { snap, at }], timeZone) };
+  return { ...board, games: prune([...others, { snap, at, ...(parent ? { parent: true as const } : {}) }], timeZone) };
 }
 
 /** Spec 015 R-P7: geprüfte Planspiele übernehmen (jüngste Änderung je Planspiel, Grabsteine, Grenzen). */
@@ -216,7 +256,9 @@ export function parseBoard(v: unknown): Board {
   if (!isObj(v) || !Array.isArray(v.games) || !Array.isArray(v.removed)) return emptyBoard();
   const games = (v.games as unknown[]).flatMap((e): BoardEntry[] => {
     const snap = isObj(e) && isTime(e.at) ? parseSnapshot(e.snap) : null;
-    return snap?.state === 'live' ? [{ snap, at: (e as { at: number }).at }] : [];
+    if (snap?.state !== 'live') return [];
+    const entry: BoardEntry = { snap, at: (e as { at: number }).at };
+    return [(e as Obj).parent === true ? { ...entry, parent: true } : entry];
   });
   // Ältere Stände ohne Übergabezähler gelten als 0.
   const removed = (v.removed as unknown[]).flatMap((r): [string, number, number][] =>
@@ -224,11 +266,18 @@ export function parseBoard(v: unknown): Board {
       ? [[r[0], r[1], (r[2] as number | undefined) ?? 0]]
       : [],
   );
+  const k = isObj(v.kit) ? v.kit : null;
+  const kit = k ? parseParentKit(k.kit) : null;
   return {
     config: parseConfig(v.config),
     games: games.slice(-MAX_GAMES),
     removed: removed.slice(-MAX_REMOVED),
     plan: parsePayloadValue(v.plan, MAX_STORED_PLAN) ?? [],
+    signedConfig: isSignedData(v.signedConfig) ? { d: v.signedConfig.d, s: v.signedConfig.s } : null,
+    kit: kit && isSignedData(k?.signed) ? { kit, signed: k.signed } : null,
+    squads: Array.isArray(v.squads)
+      ? (v.squads as unknown[]).map(parseViewerSquad).filter((q): q is ViewerSquad => q !== null)
+      : [],
   };
 }
 
@@ -284,6 +333,8 @@ export interface BoardCard {
   updatedAt: number;
   /** Spec 015 FR-P14: sichtbar unter der Karte, "Danach: …" bzw. "Nächstes Spiel: …". */
   lines: string[];
+  /** Spec 024 FR-E06: wer das Spiel tickert; null ohne Angabe (ältere Handys, Planspiel). */
+  ticker: Ticker | null;
 }
 
 export interface BoardView {
@@ -506,6 +557,7 @@ function cardOf(
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: main.entry.at,
     lines,
+    ticker: s.by !== undefined || s.tr === 1 ? { name: s.by ?? null, trainer: s.tr === 1 } : null,
   };
 }
 
@@ -571,6 +623,7 @@ function plannedCard(
     earlier: rest.length > 0 ? `Heute außerdem: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: 0,
     lines,
+    ticker: null,
   };
 }
 

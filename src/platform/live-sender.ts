@@ -1,4 +1,5 @@
-import { buildSnapshot, tombstone, type LiveSnapshot } from '../domain/live-snapshot';
+import { kitOf, tickerSpieltag } from '../domain/live-parent';
+import { buildSnapshot, tombstone, type LiveSnapshot, type SnapshotTicker } from '../domain/live-snapshot';
 import { isRecentGame, isRetired, liveTeamFor, sendsFor } from '../domain/live-spieltag';
 import type { Game, LiveSpieltag, LiveTeamCred, Player, Settings } from '../domain/types';
 import { getPlayers, getSettings, listGames, onGameWrite, type GameChange } from './db';
@@ -44,6 +45,8 @@ export interface SenderDeps {
    * Fehlt: jedes Spiel gilt als jüngst (wie vor Spec 017).
    */
   isRecent?(game: Game): Promise<boolean>;
+  /** Spec 024 R-E4: wer sendet (Name, Trainer-Handy); fehlt: keine Angabe. */
+  ticker?(): SnapshotTicker;
 }
 
 interface Pending {
@@ -197,7 +200,11 @@ export class LiveSender {
   }
 
   private enqueueGame(game: Game, team: LiveTeamCred): void {
-    this.enqueue(game.id, () => buildSnapshot(game, this.players, team.key, this.deps.now()), team);
+    this.enqueue(
+      game.id,
+      () => buildSnapshot(game, this.players, team.key, this.deps.now(), this.deps.ticker?.() ?? {}),
+      team,
+    );
   }
 
   private enqueue(id: string, build: () => LiveSnapshot, team: LiveTeamCred): void {
@@ -338,6 +345,8 @@ export class LiveSender {
 /* ---------- Einbindung in die App ---------- */
 
 let current: LiveSender | null = null;
+/** Spec 024 R-E4: Name und Rolle für die nächsten Stände. */
+let ticker: SnapshotTicker = {};
 let offDb: (() => void) | null = null;
 const startListeners = new Set<() => void>();
 
@@ -375,7 +384,10 @@ export function stopLiveSender(): void {
  */
 export async function startLiveSender(settings?: Settings): Promise<void> {
   const s = settings ?? (await getSettings());
-  const live = s.live;
+  // Spec 024 R-E3: ein Eltern-Handy (ohne Trainer-Link) sendet mit dem Eltern-Paket des Zuschauer-Links.
+  const kit = s.live ? null : kitOf(s.liveTicker?.kit);
+  const live = s.live ?? (s.liveTicker && kit ? tickerSpieltag(s.liveTicker, kit) : null);
+  const who: SnapshotTicker = s.live ? { by: s.trainerName ?? '', tr: true } : { by: s.tickerName ?? '' };
   // US5-S3: neu ausgestellt (auf einem anderen Trainer-Handy): nichts mehr senden.
   if (!live || isRetired(live) || !live.teams.some((t) => sendsFor(live, t))) {
     stopLiveSender();
@@ -383,6 +395,7 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
   }
   // Anderer Live-Spieltag: neuer Sender, damit nichts vom alten an das neue Topic geht.
   if (current && !sameSpieltag(current.spieltag(), live)) stopLiveSender();
+  ticker = who;
   if (current) {
     current.updateLive(live);
     return;
@@ -394,6 +407,7 @@ export async function startLiveSender(settings?: Settings): Promise<void> {
     publish: sendGame,
     visibility: docVisibility,
     isRecent: async (game) => isRecentGame(await listGames(), game, current?.spieltag() ?? null),
+    ticker: () => ticker,
   });
   const sender = current;
   offDb = onGameWrite((c) => sender.handle(c));

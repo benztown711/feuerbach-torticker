@@ -32,6 +32,8 @@ import {
   retireConfig,
 } from '../domain/live-manage';
 import type { LiveTeamOption } from '../domain/live-spieltag';
+import { isRetired } from '../domain/live-spieltag';
+import { kitOf, makeKit, type ParentKit } from '../domain/live-parent';
 import type { LeadCert, LiveConfig, LiveSpieltag, PrivateKeyParts, Settings, SignedData } from '../domain/types';
 import { getGame, getSettings, putSettings } from './db';
 import { newSigningKey, newTopic, newViewKey, sealMessage, sign, signData, verify, verifySigned } from './live-crypto';
@@ -72,7 +74,9 @@ const deps = (): LiveDeps => ({
 export async function publishConfig(live: LiveSpieltag): Promise<boolean> {
   const iat = configOf(live.config)?.iat;
   if (!iat) return false;
-  return sendOrg(live, { kind: 'cfg', iat, body: await sealMessage(live.viewKey, { config: live.config }) });
+  // Spec 024 R-E1: das Eltern-Paket reist mit jeder Konfigurations-Meldung.
+  const body = await sealMessage(live.viewKey, { config: live.config, ...(live.kit ? { kit: live.kit } : {}) });
+  return sendOrg(live, { kind: 'cfg', iat, body });
 }
 
 /** Spec 020 R-E1: vorab erzeugte Schlüssel, damit "Neu starten" nur noch signiert und speichert. */
@@ -341,6 +345,32 @@ export function adoptReceived(signed: SignedData, view: { topic: string; orgPub:
     if (s.live?.topic !== view.topic || s.live.orgPub !== view.orgPub) return;
     const next = await adoptConfig(s, signed, deps());
     if (next) await save(next, false);
+  }).catch(() => undefined);
+}
+
+/**
+ * Spec 024 R-E1: Trainer-Handy ohne Eltern-Paket erzeugt eines und sendet die Konfiguration damit neu (gleiches
+ * `iat`, der Dienst ersetzt die Zeile). Nach dem ersten Stand vom Dienst, damit ein vorhandenes Paket gilt.
+ */
+export function ensureKit(view: { topic: string; orgPub: string }): Promise<void> {
+  return serial(async () => {
+    const s = await getSettings();
+    const live = s.live;
+    if (!live?.orgKey || live.kit || isRetired(live) || live.topic !== view.topic || live.orgPub !== view.orgPub)
+      return;
+    const kit = await makeKit(live.orgKey, deps());
+    await save({ ...s, live: { ...live, kit } }, true);
+  }).catch(() => undefined);
+}
+
+/** Spec 024 R-E1: jüngeres Eltern-Paket eines anderen Trainer-Handys übernehmen (für spätere Konfigurationen). */
+export function adoptKit(signed: SignedData, kit: ParentKit, view: { topic: string; orgPub: string }): Promise<void> {
+  return serial(async () => {
+    const s = await getSettings();
+    const live = s.live;
+    if (!live?.orgKey || live.topic !== view.topic || live.orgPub !== view.orgPub) return;
+    if ((kitOf(live.kit)?.iat ?? 0) >= kit.iat) return;
+    await save({ ...s, live: { ...live, kit: signed } }, false);
   }).catch(() => undefined);
 }
 

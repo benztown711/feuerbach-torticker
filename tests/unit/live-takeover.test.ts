@@ -3,7 +3,7 @@ import { deriveClock } from '../../src/domain/clock';
 import { addGoal, DOUBLE_TAP_MS } from '../../src/domain/goals';
 import { applySnapshot, boardView, emptyBoard, type BoardEntry } from '../../src/domain/live-board';
 import { MAX_TAKEOVER, type LiveGameSnapshot, type LiveGoal } from '../../src/domain/live-snapshot';
-import { handOver, takenOver, takeoverGame } from '../../src/domain/live-takeover';
+import { handOver, newTicker, takenOver, takeoverGame } from '../../src/domain/live-takeover';
 import type { ClockEventType, Game, Player } from '../../src/domain/types';
 
 /** Sa, 07.11.2026, 10:00 Uhr in Stuttgart. */
@@ -216,6 +216,43 @@ describe('006 US6-S2 Pause, Nachspielzeit, Ende und Elfmeterschießen', () => {
   });
 });
 
+describe('024 Eltern übernehmen; Übernahme in die Trainer-Historie', () => {
+  const s = snap({
+    clock: [['kickoff', T0, 1]],
+    goals: [goal('own', 6, { who: 'Max' }), goal('own', 7, { who: 'Unbekannt' }), goal('opp', 8, { who: 'Nr. 9' })],
+    shootout: { first: 'own', done: false, shots: [['own', true, 'Max']] },
+    sentAt: T0 + min(10),
+  });
+  const take = (x: object) =>
+    takeoverGame({
+      entry: entry(s, T0 + min(10)),
+      ownTeam: 'Sportvg Feuerbach E2',
+      players,
+      skew: 0,
+      now: T0 + min(11),
+      newId,
+      ...x,
+    });
+
+  it('R-E5: Eltern-Handy ohne Kader übernimmt eigene Torschützen als Freitext', () => {
+    const g = take({ textScorers: true });
+    expect(g.goals.map((x) => x.scorer)).toEqual([
+      { kind: 'text', text: 'Max' },
+      { kind: 'text', text: 'Unbekannt' },
+      { kind: 'text', text: 'Nr. 9' },
+    ]);
+    expect(g.shootout?.shots[0]?.who).toEqual({ kind: 'text', text: 'Max' });
+    expect(g.tickedBy).toBeUndefined();
+  });
+
+  it('FR-E21: "Getickert von" wird gemerkt, Torschützen dem Kader zugeordnet', () => {
+    const g = take({ tickedBy: 'Paul' });
+    expect(g.tickedBy).toBe('Paul');
+    expect(g.goals[0]?.scorer).toMatchObject({ kind: 'player' });
+    expect(g.goals[1]?.scorer).toBeNull();
+  });
+});
+
 describe('006 US6-S3 FR-L24 wurde das eigene Spiel übernommen?', () => {
   const game = { id: 'g1', liveTakeover: 1 } as Game;
 
@@ -235,6 +272,16 @@ describe('006 US6-S3 FR-L24 wurde das eigene Spiel übernommen?', () => {
     expect(gone.games).toEqual([]);
     expect(takenOver(gone, game, 'E2')).toBe(true);
     expect(takenOver(gone, { ...game, liveTakeover: 2 }, 'E2')).toBe(false);
+  });
+
+  it('024 FR-E12: wer übernommen hat (Name aus dem neueren Stand), sonst null', () => {
+    const b = applySnapshot(emptyBoard(), snap({ h: 2, by: 'Anna' }), T0, TZ);
+    expect(newTicker(b, game, 'E2')).toEqual({ name: 'Anna', trainer: false });
+    const t = applySnapshot(emptyBoard(), snap({ h: 2, tr: 1 }), T0, TZ);
+    expect(newTicker(t, game, 'E2')).toEqual({ name: null, trainer: true });
+    expect(newTicker(applySnapshot(emptyBoard(), snap({ h: 2 }), T0, TZ), game, 'E2')).toBeNull();
+    expect(newTicker(b, { ...game, liveTakeover: 2 }, 'E2')).toBeNull();
+    expect(newTicker(b, { id: 'g1' } as Game, 'E2')).toEqual({ name: 'Anna', trainer: false });
   });
 
   it('übergebenes Spiel sendet nicht mehr und bleibt lokal erhalten', () => {
