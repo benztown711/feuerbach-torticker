@@ -210,8 +210,8 @@ describe('006 FR-L11 R-L9 Live-Stand prüfen', () => {
     const named = buildSnapshot(game(), players, 'E1', T0, { by: 'Paul' }) as LiveGameSnapshot;
     expect(named.by).toBe('Paul');
     expect('tr' in named).toBe(false);
-    const trainer = buildSnapshot(game(), players, 'E1', T0, { by: 'Atti', tr: true }) as LiveGameSnapshot;
-    expect([trainer.by, trainer.tr]).toEqual(['Atti', 1]);
+    const trainer = buildSnapshot(game(), players, 'E1', T0, { by: 'Jonas', tr: true }) as LiveGameSnapshot;
+    expect([trainer.by, trainer.tr]).toEqual(['Jonas', 1]);
     const anon = buildSnapshot(game(), players, 'E1', T0, { by: '', tr: true }) as LiveGameSnapshot;
     expect('by' in anon).toBe(false);
     expect(anon.tr).toBe(1);

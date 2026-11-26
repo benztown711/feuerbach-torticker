@@ -222,13 +222,13 @@ Einträge in `src/domain/help-entries.ts`; Bezeichnungen wörtlich wie in der Ap
 | Eintrag | Änderung | Quelle |
 |---|---|---|
 | neu `eltern-tickern` "Wie tickere ich ein Spiel als Elternteil?" (für Eltern, Thema Live-Spieltag) | Auf der Karte "Ich tickere dieses Spiel", einmal "Wie heißt du?" (nur dein Vorname, kein Kindername), dann wie gewohnt Tore tippen. Fehlt das Spiel: unten "Spiel fehlt? Selbst tickern". Läuft das Spiel schon: "Spiel läuft schon". "Zurück zu Live" und "Weiter tickern" | 024 US1, 024 US3 |
-| neu `wer-tickert` "Wie sehe ich, ob schon jemand tickert?" (für Eltern) | "Paul tickert bereits" bzw. "Trainer Atti tickert bereits" auf der Karte, "Du tickerst" auf dem eigenen Handy; "Spiel übernehmen" mit Rückfrage; "Weiter tickern", wenn seit 5 Min nichts kommt; was das abgelöste Handy sieht | 024 US2 |
+| neu `wer-tickert` "Wie sehe ich, ob schon jemand tickert?" (für Eltern) | "Paul tickert bereits" bzw. "Trainer Jonas tickert bereits" auf der Karte, "Du tickerst" auf dem eigenen Handy; "Spiel übernehmen" mit Rückfrage; "Weiter tickern", wenn seit 5 Min nichts kommt; was das abgelöste Handy sieht | 024 US2 |
 | neu `eltern-tickern-aus` "Wie verhindere ich, dass Eltern tickern?" (Trainer) | "Mehr" → "Live für Eltern" → "Für Trainer" → "Eltern dürfen tickern" je Mannschaft; was Eltern dann sehen | 024 US4 |
 | neu `eltern-spiel-uebernehmen` "Wie kommt ein Spiel, das Eltern getickert haben, in meine Historie?" (Trainer) | Karte auf dem Startbildschirm, "Übernehmen" bzw. "Nein danke"; "Getickert von …" in den Spieldetails | 024 US5 |
 | `spiel-uebernehmen` | geändert: auch über "Spiel übernehmen" auf der Karte; Eltern können übernehmen, Trainer holen zurück | 006 US6, 024 US2 |
 | `eltern-dashboard` | geändert: ergänzt "… tickert bereits" auf der Karte und den Verweis auf `eltern-tickern` | 006 US3, 024 US1 |
 | `trainer-kader`, `datenschutz` | geändert: "Eltern sehen die Kader nicht" wird zu "Eltern sehen geteilte Kader nur beim Tickern, solange „Eltern dürfen tickern“ an ist"; Ticker-Name geht verschlüsselt mit dem Spiel an den Dienst | 016 US1, 024 FR-E22, 024 FR-E23 |
-| `spiel-vormerken` | geändert: ergänzt "Eltern sehen Vormerkungen nicht; tickert niemand, können Eltern einspringen." und "Deinen Namen sehen Trainer und Eltern, wenn du tickerst (z. B. „Trainer Atti tickert bereits“)." | 015 US6, 024 FR-E08, 024 FR-E06a |
+| `spiel-vormerken` | geändert: ergänzt "Eltern sehen Vormerkungen nicht; tickert niemand, können Eltern einspringen." und "Deinen Namen sehen Trainer und Eltern, wenn du tickerst (z. B. „Trainer Jonas tickert bereits“)." | 015 US6, 024 FR-E08, 024 FR-E06a |
 
 Kein Eintrag entfällt. Die Eltern-Hilfe hat danach elf Einträge (bisher neun).
 

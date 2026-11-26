@@ -809,6 +809,15 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
   const [me, setMe] = useState('');
   const [sheet, setSheet] = useState<TickerSheet | null>(null);
   const [error, setError] = useState('');
+  /** Gegen Doppeltipps: ein Anlegen bzw. Übernehmen zur Zeit. */
+  const working = useRef(false);
+  const once = (task: () => Promise<void>): void => {
+    if (working.current) return;
+    working.current = true;
+    void task().finally(() => {
+      working.current = false;
+    });
+  };
   useEffect(() => {
     let alive = true;
     void Promise.all([ownLiveIds(), isTrainerDevice(), tickerName()])
@@ -843,7 +852,7 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
   /** FR-E14: eigener Name, aber hier kein Spiel (z. B. WhatsApp-Browser geschlossen): ohne Rückfrage weiter. */
   const mineLost = (c: BoardCard): boolean =>
     !!me && !isOwn(c) && c.ticker?.name === me && !c.ticker.trainer && running(c);
-  const takeOverNow = (entry: BoardEntry): void => void takeOver(view, board, entry, state.skew).then(go, fail);
+  const takeOverNow = (entry: BoardEntry): void => once(() => takeOver(view, board, entry, state.skew).then(go, fail));
 
   const line = (c: BoardCard): TickerLine | null =>
     c.group === 'planned'
@@ -926,6 +935,10 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
           </p>
         )}
       </div>
+    ) : trainerApp && error ? (
+      <p class="hint" role="status" data-testid="dash-ticker-error">
+        {error}
+      </p>
     ) : null;
 
   const close = (): void => setSheet(null);
@@ -954,8 +967,10 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
         onCancel={close}
         onRename={() => setSheet({ kind: 'name', then: (n) => setSheet({ kind: 'confirm', entry, name: n }) })}
         onGo={() =>
-          void busyWith(board, entry.team, serverNow).then((busy) =>
-            busy ? setSheet({ kind: 'busy', entry: busy }) : startPlanned(view, board, entry).then(go, fail),
+          once(() =>
+            busyWith(board, entry.team, serverNow).then((busy) =>
+              busy ? setSheet({ kind: 'busy', entry: busy }) : startPlanned(view, board, entry).then(go, fail),
+            ),
           )
         }
       />
@@ -973,7 +988,7 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
         onNo={close}
         onYes={() =>
           trainerApp
-            ? void trainerTakeOver(entry, state.skew).then((id) => navigate(`/spiel/${id}`), fail)
+            ? once(() => trainerTakeOver(entry, state.skew).then((id) => navigate(`/spiel/${id}`), fail))
             : takeOverNow(entry)
         }
       />

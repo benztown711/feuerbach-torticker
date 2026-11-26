@@ -137,7 +137,7 @@ export interface TickerLine {
 }
 
 /**
- * FR-E06: "Paul tickert bereits", "Trainer Atti tickert bereits", "Du tickerst"; nach dem Schlusspfiff
+ * FR-E06: "Paul tickert bereits", "Trainer Jonas tickert bereits", "Du tickerst"; nach dem Schlusspfiff
  * "Getickert von …". Ohne Namen und ohne Trainer-Kennzeichen (ältere Handys) keine Zeile.
  */
 export function tickerLine(t: Ticker, at: { own: boolean; ended: boolean }): TickerLine | null {

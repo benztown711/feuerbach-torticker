@@ -135,7 +135,7 @@ export function TakeoverSheet({
   onYes,
   onNo,
 }: {
-  /** Hervorgehobener Name des bisherigen Tickers ("Paul", "Trainer Atti"). */
+  /** Hervorgehobener Name des bisherigen Tickers ("Paul", "Trainer Jonas"). */
   who: string;
   /** Stand und Minute, z. B. "1:0, 12'". */
   state: string;

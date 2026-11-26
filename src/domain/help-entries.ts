@@ -705,7 +705,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie sage ich an, dass ich ein Spiel tickere?',
     answer:
-      'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei. Eltern sehen Vormerkungen nicht, beim Tickern aber „Trainer Atti tickert bereits“.',
+      'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei. Eltern sehen Vormerkungen nicht, beim Tickern aber „Trainer Jonas tickert bereits“.',
     steps: [
       '„Mehr“, „Live für Eltern“, „Für Trainer“, „Spielplan“ öffnen.',
       'Das Spiel antippen und „Ich tickere“ wählen.',
@@ -822,7 +822,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie sehe ich, ob schon jemand tickert?',
     answer:
-      'Auf der Karte steht unter dem Stand, wer tickert, etwa „Paul tickert bereits“ oder „Trainer Atti tickert bereits“; auf deinem Handy „Du tickerst“. Dann musst du nichts tun. Muss Paul gehen, tippe auf die Karte und auf „Spiel übernehmen“: Nach der Rückfrage tickerst du mit Stand, Uhr und Toren weiter, und Paul sieht „Anna tickert jetzt E2“. Kommt seit 5 Minuten nichts mehr, heißt der Knopf „Weiter tickern“. Startet jemand kurz vor dir, fragt die App „Paul tickert bereits.“ mit „Zuschauen“ und „Übernehmen“.',
+      'Auf der Karte steht unter dem Stand, wer tickert, etwa „Paul tickert bereits“ oder „Trainer Jonas tickert bereits“; auf deinem Handy „Du tickerst“. Dann musst du nichts tun. Muss Paul gehen, tippe auf die Karte und auf „Spiel übernehmen“: Nach der Rückfrage tickerst du mit Stand, Uhr und Toren weiter, und Paul sieht „Anna tickert jetzt E2“. Kommt seit 5 Minuten nichts mehr, heißt der Knopf „Weiter tickern“. Startet jemand kurz vor dir, fragt die App „Paul tickert bereits.“ mit „Zuschauen“ und „Übernehmen“.',
     keywords: 'wer tickert schon bereits übernehmen spiel übernehmen doppelt zwei handys eltern weiter tickern',
     sources: ['024 US2'],
     parents: true,

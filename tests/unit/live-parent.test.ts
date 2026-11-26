@@ -164,7 +164,7 @@ describe('024 FR-E06 Zeile "… tickert bereits"', () => {
   });
 
   it('Trainer: "Trainer <Name>" bzw. ohne Namen "Trainer"', () => {
-    expect(tickerLine({ name: 'Atti', trainer: true }, { own: false, ended: false })?.tag).toBe('Trainer Atti');
+    expect(tickerLine({ name: 'Jonas', trainer: true }, { own: false, ended: false })?.tag).toBe('Trainer Jonas');
     expect(tickerLine({ name: null, trainer: true }, { own: false, ended: false })?.tag).toBe('Trainer');
     expect(tickerLine({ name: null, trainer: true }, { own: false, ended: true })).toEqual({
       before: 'Getickert von ',

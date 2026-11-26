@@ -1261,7 +1261,7 @@ describe('024 R-E2 R-E4 Eltern-Stände und wer tickert', () => {
   it('FR-E06: Karte nennt den Ticker (Eltern, Trainer mit und ohne Namen); ältere Stände ohne Zeile', () => {
     const view = (s: LiveGameSnapshot) => boardView(put(applyConfig(emptyBoard(), cfg()), s), T0, TZ).cards[0];
     expect(view(snap({ clock: kicked, by: 'Paul' }))?.ticker).toEqual({ name: 'Paul', trainer: false });
-    expect(view(snap({ clock: kicked, by: 'Atti', tr: 1 }))?.ticker).toEqual({ name: 'Atti', trainer: true });
+    expect(view(snap({ clock: kicked, by: 'Jonas', tr: 1 }))?.ticker).toEqual({ name: 'Jonas', trainer: true });
     expect(view(snap({ clock: kicked, tr: 1 }))?.ticker).toEqual({ name: null, trainer: true });
     expect(view(snap({ clock: kicked }))?.ticker).toBeNull();
   });

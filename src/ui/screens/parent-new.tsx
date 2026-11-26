@@ -50,6 +50,7 @@ export function ParentNewScreen({ data }: { data: string }) {
   const [late, setLate] = useState(false);
   const [busy, setBusy] = useState<BoardEntry | null>(null);
   const [error, setError] = useState('');
+  const [working, setWorking] = useState(false);
 
   if (!view || !receiver || !state || !board) {
     return (
@@ -64,12 +65,19 @@ export function ParentNewScreen({ data }: { data: string }) {
   const fail = (e: unknown): void => setError(e instanceof Error ? e.message : 'Das hat nicht geklappt.');
   const create = (): void => {
     if (!chosen) return;
-    void startGame(view, board, { team: chosen, opponent, venue, schema }).then(go, fail);
+    setWorking(true);
+    void startGame(view, board, { team: chosen, opponent, venue, schema }).then(go, (e: unknown) => {
+      setWorking(false);
+      fail(e);
+    });
   };
   const submit = async (): Promise<void> => {
-    if (!ready || !chosen) return;
+    // Gegen Doppeltipps: ein Anlegen zur Zeit.
+    if (!ready || !chosen || working) return;
     setError('');
+    setWorking(true);
     const running = await busyWith(board, chosen, receiver.serverNow());
+    setWorking(false);
     if (running) setBusy(running);
     else create();
   };
@@ -109,7 +117,11 @@ export function ParentNewScreen({ data }: { data: string }) {
               </button>
             ))}
           </div>
-          <p class="field__help">Nur Mannschaften, für die Eltern tickern dürfen.</p>
+          <p class="field__help" data-testid="parent-teams-help">
+            {teams.length > 0
+              ? 'Nur Mannschaften, für die Eltern tickern dürfen.'
+              : 'Noch keine Verbindung zum Live-Spieltag, oder die Trainer haben das Tickern für Eltern ausgeschaltet.'}
+          </p>
         </section>
         <section class="card" aria-labelledby="pn-match">
           <h2 id="pn-match" class="t-label card__title">
@@ -189,7 +201,12 @@ export function ParentNewScreen({ data }: { data: string }) {
             </p>
           )}
           <p class="field__help">Das Spiel geht live aufs Dashboard{name ? `, als ${name}` : ''}.</p>
-          <button type="submit" class="btn btn--primary btn--large" data-testid="parent-go" disabled={!ready}>
+          <button
+            type="submit"
+            class="btn btn--primary btn--large"
+            data-testid="parent-go"
+            disabled={!ready || working}
+          >
             Weiter zum Anpfiff
           </button>
         </div>
