@@ -6,31 +6,31 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 1: Grundlagen (Paket A)
 
-- [ ] T001 [P] `tests/unit/live-parent.test.ts`: Eltern-Zertifikat, Paket prüfen (gültig, fremde Signatur, kaputt), `parentAllowed` (fehlendes `x`, Mannschaft in `x`), `tickerSpieltag` (nur erlaubte Mannschaften), `checkTickerName` (2 bis 20 Zeichen, Leerzeichen), `tickerLine` (Eltern, Trainer mit/ohne Namen, eigenes Handy, beendet)
-- [ ] T002 [P] `tests/unit/live-snapshot.test.ts`, `live-board.test.ts`, `live-spieltag.test.ts`: `by`/`tr` bauen und prüfen; `parent`-Stände für nicht erlaubte Mannschaften verworfen, erlaubte angenommen; Karte mit Ticker; `parseConfig` mit `x`; `parseLiveSpieltag` mit `kit`
-- [ ] T003 [P] `tests/unit/squad-sync.test.ts`: Zuschauer-Kopie (nur erlaubte Mannschaften, ohne gelöschte Kinder, Grabstein ohne erlaubte Mannschaft bzw. nicht geteilt), Kopie lesen
-- [ ] T004 [P] `tests/unit/live-crypto.test.ts`: Umschlag mit `k`; Eltern-Zertifikat gilt für jede Mannschaft und meldet `parent`; Lead-Zertifikat weiter nur für seine Mannschaft
-- [ ] T005 `src/domain/live-parent.ts`, `types.ts`, `live-spieltag.ts`, `live-snapshot.ts`, `live-board.ts`, `squad-sync.ts`, `live-takeover.ts` (macht T001 bis T003 grün, 100 % Branch-Coverage)
-- [ ] T006 `src/platform/live-crypto.ts`, `live-setup.ts` (`publishConfig` mit Paket, `ensureKit`), `live-receiver.ts`, `live-sender.ts` (Eltern-Sender, `by`/`tr`), `squad-sync.ts` (Kopien) (macht T004 grün)
-- [ ] T007 `.specify/memory/constitution.md` 3.2.0 (Prinzip II, erledigt)
+- [x] T001 [P] `tests/unit/live-parent.test.ts`: Eltern-Zertifikat, Paket prüfen (gültig, fremde Signatur, kaputt), `parentAllowed` (fehlendes `x`, Mannschaft in `x`), `tickerSpieltag` (nur erlaubte Mannschaften), `checkTickerName` (2 bis 20 Zeichen, Leerzeichen), `tickerLine` (Eltern, Trainer mit/ohne Namen, eigenes Handy, beendet)
+- [x] T002 [P] `tests/unit/live-snapshot.test.ts`, `live-board.test.ts`, `live-spieltag.test.ts`: `by`/`tr` bauen und prüfen; `parent`-Stände für nicht erlaubte Mannschaften verworfen, erlaubte angenommen; Karte mit Ticker; `parseConfig` mit `x`; `parseLiveSpieltag` mit `kit`
+- [x] T003 [P] `tests/unit/squad-sync.test.ts`: Zuschauer-Kopie (nur erlaubte Mannschaften, ohne gelöschte Kinder, Grabstein ohne erlaubte Mannschaft bzw. nicht geteilt), Kopie lesen
+- [x] T004 [P] `tests/unit/live-crypto.test.ts`: Umschlag mit `k`; Eltern-Zertifikat gilt für jede Mannschaft und meldet `parent`; Lead-Zertifikat weiter nur für seine Mannschaft
+- [x] T005 `src/domain/live-parent.ts`, `types.ts`, `live-spieltag.ts`, `live-snapshot.ts`, `live-board.ts`, `squad-sync.ts`, `live-takeover.ts` (macht T001 bis T003 grün, 100 % Branch-Coverage)
+- [x] T006 `src/platform/live-crypto.ts`, `live-setup.ts` (`publishConfig` mit Paket, `ensureKit`), `live-receiver.ts`, `live-sender.ts` (Eltern-Sender, `by`/`tr`), `squad-sync.ts` (Kopien) (macht T004 grün)
+- [x] T007 `.specify/memory/constitution.md` 3.2.0 (Prinzip II, erledigt)
 
 ## Phase 2: US1 Ich tickere dieses Spiel (P1)
 
-- [ ] T008 [US1] E2E `tests/e2e/eltern-tickern.spec.ts`: 024 US1-S1 bis S8 (zwei Kontexte, Dienst-Attrappe)
-- [ ] T009 [US1] `router.ts`, `app.tsx` (Routen), `live-dashboard.tsx` (Ticker-Zeile, Knopf, Namensblatt, Bestätigung, "Weiter tickern"), `game.tsx` (Eltern-Fassung, Kader aus Kopie als Freitext, keine Vorlage), `app.css` (macht T008 grün); FR-E17: Eltern-Spiele bleiben in der Gerätedatenbank, die Eltern-Ansicht zeigt nur das aktuelle
-- [ ] T010 [US1] Hilfe: neu `eltern-tickern`; geändert `eltern-dashboard`, `trainer-kader`, `datenschutz`
+- [x] T008 [US1] E2E `tests/e2e/eltern-tickern.spec.ts`: 024 US1-S1 bis S8 (zwei Kontexte, Dienst-Attrappe)
+- [x] T009 [US1] `router.ts`, `app.tsx` (Routen), `live-dashboard.tsx` (Ticker-Zeile, Knopf, Namensblatt, Bestätigung, "Weiter tickern"), `game.tsx` (Eltern-Fassung, Kader aus Kopie als Freitext, keine Vorlage), `app.css` (macht T008 grün); FR-E17: Eltern-Spiele bleiben in der Gerätedatenbank, die Eltern-Ansicht zeigt nur das aktuelle
+- [x] T010 [US1] Hilfe: neu `eltern-tickern`; geändert `eltern-dashboard`, `trainer-kader`, `datenschutz`
 
 ## Phase 3: US2 Sehen, wer tickert, und übernehmen (P1)
 
-- [ ] T011 [US2] E2E: 024 US2-S1 bis S8
-- [ ] T012 [US2] "Spiel übernehmen" mit Rückfrage auf der Karte (Eltern und Trainer-Dashboard), Hinweis beim abgelösten Handy mit Namen, Doppelstart, "Weiter tickern" nach 5 Min und nach verlorenem lokalen Spiel (FR-E14) (macht T011 grün)
-- [ ] T013 [US2] Hilfe: neu `wer-tickert`; geändert `spiel-uebernehmen`, `spiel-vormerken` (Name sichtbar, FR-E06a); Trainer-Namensabfrage "Dein Name (sehen Trainer und Eltern)"
+- [x] T011 [US2] E2E: 024 US2-S1 bis S8
+- [x] T012 [US2] "Spiel übernehmen" mit Rückfrage auf der Karte (Eltern und Trainer-Dashboard), Hinweis beim abgelösten Handy mit Namen, Doppelstart, "Weiter tickern" nach 5 Min und nach verlorenem lokalen Spiel (FR-E14) (macht T011 grün)
+- [x] T013 [US2] Hilfe: neu `wer-tickert`; geändert `spiel-uebernehmen`, `spiel-vormerken` (Name sichtbar, FR-E06a); Trainer-Namensabfrage "Dein Name (sehen Trainer und Eltern)"
 
 ## Phase 4: US3 Spiel fehlt? Selbst tickern (P1)
 
-- [ ] T014 [US3] E2E: 024 US3-S1 bis S5
-- [ ] T015 [US3] `new-game.tsx` Eltern-Fassung, Frage bei laufendem Spiel derselben Mannschaft (macht T014 grün)
-- [ ] T016 [US3] Hilfe: `eltern-tickern` ergänzt "Spiel fehlt? Selbst tickern"
+- [x] T014 [US3] E2E: 024 US3-S1 bis S5
+- [x] T015 [US3] `new-game.tsx` Eltern-Fassung, Frage bei laufendem Spiel derselben Mannschaft (macht T014 grün)
+- [x] T016 [US3] Hilfe: `eltern-tickern` ergänzt "Spiel fehlt? Selbst tickern"
 
 ## Phase 5: US4 Trainer behalten die Kontrolle (P2, Paket B)
 

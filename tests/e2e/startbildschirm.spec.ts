@@ -139,7 +139,10 @@ test('018 US2-S1 US2-S2 US2-S3 US2-S5 B übernimmt das laufende E2-Spiel vom Sta
       return [s?.h, s?.goals?.length];
     })
     .toEqual([1, 2]);
-  await expect(page.getByTestId('live-handed-over')).toContainText('E2 überträgt jetzt ein anderes Handy');
+  await expect(page.getByTestId('live-handed-over')).toContainText(
+    // Spec 024 FR-E12: mit dem neuen Ticker (Trainer-Handy ohne Namen: "Trainer").
+    'Trainer tickert jetzt E2. Hier wird nur noch lokal erfasst.',
+  );
 });
 
 test('018 US2-S4 US2-S6 US2-S7 US2-S8 mehrere Spiele, verstummtes Handy, nicht angepfiffene und beendete Spiele', async ({

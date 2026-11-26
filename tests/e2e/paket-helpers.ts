@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures';
 import { seedRoster } from './helpers';
-import { openTrainerSection } from './live-helpers';
+import { decodeMessage, openTrainerSection } from './live-helpers';
 import type { FakeRelay } from './relay';
 
 /** Spec 016: Hilfen für das Trainer-Paket (geteilte Kader). Fiktive Namen. */
@@ -54,6 +54,22 @@ export const writes = (relay: FakeRelay, kind: string) =>
   relay.posts
     .map((t) => JSON.parse(t) as { kind: string; gone?: boolean; body: string })
     .filter((w) => w.kind === kind);
+
+/**
+ * Spec 024 R-E5: Kader-Meldungen der Trainer ohne die Kopien für den Zuschauer-Link (die öffnet der
+ * Zuschauer-Schlüssel, die Meldungen der Trainer nicht).
+ */
+export async function trainerSquadWrites(relay: FakeRelay, viewerUrl: string) {
+  const out: ReturnType<typeof writes> = [];
+  for (const w of writes(relay, 'squad')) {
+    const copy = await decodeMessage(viewerUrl, w.body).then(
+      () => true,
+      () => false,
+    );
+    if (!copy) out.push(w);
+  }
+  return out;
+}
 
 /** Zeit vergehen lassen (Senden, Empfangen über die Verbindung). */
 export const settle = (page: Page) => page.clock.runFor(3_000);

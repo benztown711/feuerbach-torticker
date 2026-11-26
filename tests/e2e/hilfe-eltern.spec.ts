@@ -52,6 +52,9 @@ test('010 US2-S7 FR-H16 Eltern-Hilfe nur mit Eltern-Einträgen, Suche, zurück z
   const rows = v.getByTestId('help-results').locator('[data-testid^="help-row-"]');
   await expect(rows).toHaveText([
     'Wie verfolge ich die Spiele als Elternteil?',
+    // Spec 024 US1, US2
+    'Wie tickere ich ein Spiel als Elternteil?',
+    'Wie sehe ich, ob schon jemand tickert?',
     'Wo sehe ich frühere Ergebnisse?',
     'Wie lege ich den Spieltag auf den Home-Bildschirm?',
     'Wie teile ich den Spieltag mit Familie und Freunden?',

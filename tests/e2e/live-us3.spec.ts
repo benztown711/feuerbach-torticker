@@ -106,9 +106,12 @@ test('006 US3-S1 US3-S4 US3-S10 zwei Karten in 5 s, zugeklappt, aufklappbar, ohn
   await expect(v.getByTestId('dash-details-E1')).toHaveCount(0);
   await expect(v.getByTestId('dash-toggle-E1')).toHaveAttribute('aria-expanded', 'false');
 
-  // US3-S10: nur lesen, keine Eingaben; einzige Knöpfe sind die Karten selbst.
+  // US3-S10: nur lesen, keine Eingaben; Knöpfe sind die Karten selbst und seit Spec 024 die Wege zum Tickern
+  // ("Spiel übernehmen" in der aufgeklappten E2-Karte, "Spiel fehlt? Selbst tickern").
   await expect(v.locator('input, textarea, select')).toHaveCount(0);
-  await expect(v.getByTestId('dashboard').getByRole('button')).toHaveCount(2);
+  await expect(v.getByTestId('dashboard').getByRole('button')).toHaveCount(4);
+  await expect(v.getByTestId('dash-takeover-E2')).toBeVisible();
+  await expect(v.getByTestId('dash-missing')).toBeVisible();
 });
 
 test('006 US3-S2 Minute läuft ohne neue Meldung weiter, auch in der Nachspielzeit', async ({

@@ -71,7 +71,10 @@ test('006 US6-S1 US6-S2 US6-S3 B übernimmt das laufende E2-Spiel von A mit Stan
     .toEqual([1, 2]);
 
   // US6-S3: A merkt die Übernahme, sendet nichts mehr; das Dashboard bleibt bei B
-  await expect(page.getByTestId('live-handed-over')).toContainText('E2 überträgt jetzt ein anderes Handy');
+  await expect(page.getByTestId('live-handed-over')).toContainText(
+    // Spec 024 FR-E12: mit dem neuen Ticker (Trainer-Handy ohne Namen: "Trainer").
+    'Trainer tickert jetzt E2. Hier wird nur noch lokal erfasst.',
+  );
   // Spec 019 FR-A04: Hinweis im Meldeplatz, höchstens drei Zeilen
   const lines = await page
     .getByTestId('live-handed-over')
