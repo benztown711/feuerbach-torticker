@@ -114,3 +114,21 @@ export function joinGame(game: Game, input: JoinInput, now: number, newId: () =>
     halfTimeScore: halfTime,
   };
 }
+
+/** "dieser Halbzeit", "dieses Drittels", "dieses Viertels", "des Spiels" bzw. "der Verlängerung". */
+function sectionGenitive(schema: Schema, section: number): string {
+  if (section > schema.sections) return 'der Verlängerung';
+  if (schema.sections === 1) return 'des Spiels';
+  return schema.sections === 2 ? 'dieser Halbzeit' : schema.sections === 3 ? 'dieses Drittels' : 'dieses Viertels';
+}
+
+/**
+ * Spec 023 FR-J20 (Nachzug Design-Check): Hinweis im Blatt "Uhr korrigieren" zur gewählten Änderung der Restzeit
+ * in Minuten (negativ = weniger Restzeit), z. B. "17 Min weniger Restzeit. Pfiff und Tor-Minuten dieser Halbzeit
+ * passen sich an."
+ */
+export function restChangeText(schema: Schema, section: number, diff: number): string {
+  if (diff === 0) return 'Unverändert.';
+  const what = `${Math.abs(diff)} Min ${diff < 0 ? 'weniger' : 'mehr'} Restzeit.`;
+  return `${what} Pfiff und Tor-Minuten ${sectionGenitive(schema, section)} passen sich an.`;
+}

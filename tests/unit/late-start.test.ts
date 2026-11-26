@@ -9,6 +9,7 @@ import {
   entryChoices,
   entryMinute,
   joinGame,
+  restChangeText,
 } from '../../src/domain/late-start';
 import type { Game, NewGameInput, Schema } from '../../src/domain/types';
 
@@ -173,5 +174,20 @@ describe('023 FR-J10 bis FR-J14 Tore vor Tickerbeginn', () => {
 
   it('023 US2-S7 Spielstand 0:0 legt keine Tore an', () => {
     expect(joinGame(fresh(), { section: 2, pause: false, rest: 5, own: 0, opp: 0 }, NOW, ids).goals).toEqual([]);
+  });
+});
+
+describe('023 FR-J20 Hinweis im Blatt "Uhr korrigieren" (Nachzug Design-Check)', () => {
+  it('nennt die Änderung der Restzeit und den Abschnitt in Alltagssprache', () => {
+    expect(restChangeText(two25, 2, 0)).toBe('Unverändert.');
+    expect(restChangeText(two25, 2, -17)).toBe(
+      '17 Min weniger Restzeit. Pfiff und Tor-Minuten dieser Halbzeit passen sich an.',
+    );
+    expect(restChangeText(three15, 3, 1)).toBe(
+      '1 Min mehr Restzeit. Pfiff und Tor-Minuten dieses Drittels passen sich an.',
+    );
+    expect(restChangeText({ sections: 4, sectionMinutes: 10 }, 1, -2)).toContain('dieses Viertels');
+    expect(restChangeText({ sections: 1, sectionMinutes: 40 }, 1, -2)).toContain('des Spiels');
+    expect(restChangeText({ ...two25, extraMinutes: 10 }, 3, -1)).toContain('der Verlängerung');
   });
 });

@@ -225,7 +225,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Was tue ich, wenn die Uhr falsch geht?',
     answer:
-      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „−5“, „−1“, „+1“ oder „+5“ die Restzeit wie auf der Uhr am Platz ein („Noch 7 Min“) und tippe auf „Übernehmen“. Die Uhr läuft dann genau ab dieser Restzeit weiter. Pfiff, die Minuten der Tore dieses Abschnitts und das Dashboard folgen; frühere Tore behalten ihre Minute. Das geht auch direkt nach einem Pausenpfiff.',
+      'Anpfiff zu spät oder zu früh getippt? Tippe auf „…“ und „Uhr korrigieren“, stelle mit „−5“, „−1“, „+1“ oder „+5“ die Restzeit wie auf der Uhr am Platz ein („Noch 7 Min“) und tippe auf „Übernehmen“. Die Uhr läuft dann genau ab dieser Restzeit weiter. Pfiff, die Minuten der Tore dieses Abschnitts und das Dashboard passen sich an; frühere Tore behalten ihre Minute. Das geht auch direkt nach einem Pausenpfiff.',
     keywords: 'uhr falsch zu spät anpfiff vergessen minute stimmt nicht verstellen zeit korrigieren restzeit',
     sources: ['012 US4', '023 US3'],
     related: ['uhr-anhalten', 'tor-minute', 'spiel-laeuft-schon'],

@@ -281,7 +281,9 @@ test('012 US4-S1 US4-S2 023 US3-S2 Uhr zwei Minuten vorstellen: Restzeit, Tor-Mi
   await page.getByTestId('clock-fix-m1').click();
   await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 14 Min');
   await expect(page.getByTestId('clock-fix-minute')).toHaveText('= 12. Minute');
-  await expect(page.getByTestId('clock-fix-help')).toContainText('Restzeit −2 Min.');
+  await expect(page.getByTestId('clock-fix-help')).toHaveText(
+    '2 Min weniger Restzeit. Pfiff und Tor-Minuten dieser Halbzeit passen sich an.',
+  );
   await page.getByTestId('clock-fix-save').click();
   await expect(sheet).toHaveCount(0);
   // Genau 14 Minuten Restzeit (die Uhr läuft während des Tests ein paar Sekunden weiter).
