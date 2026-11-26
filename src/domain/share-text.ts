@@ -1,7 +1,7 @@
 import { shootoutState } from './cup';
 import { gameEvents, personLabel, subText } from './events';
 import { clockOf, sectionLabel } from './game';
-import { assistSuffix, goalRows, goalSuffix, homeAway, score, scorerLabel } from './goals';
+import { assistSuffix, goalRows, goalSuffix, homeAway, preGroup, score, scorerLabel, type GoalRow } from './goals';
 import { startedAt } from './history';
 import { formatMinute } from './minute';
 import { shortTeamName } from './team-name';
@@ -81,8 +81,20 @@ function historyLines(game: Game, players: Player[]): string[] {
       e.section === sections + 1 ? 'Verlängerung' : sections === 2 ? 'Halbzeit' : sectionLabel(e.section, sections);
     lines.push({ at: e.at, rank: 0, sep: separator(label) });
   }
-  for (const row of goalRows(game).reverse()) {
-    if (row.removed) continue;
+  const goalLines = goalRows(game);
+  // Spec 023 FR-J16: Tore vor Tickerbeginn als eine Zeile mit dem Stand danach.
+  const pre = preGroup(goalLines);
+  if (pre && pre.count > 0)
+    lines.push({
+      at: (pre.rows.at(-1) as GoalRow).goal.at,
+      rank: 1,
+      symbol: '⚽',
+      minute: '–',
+      score: pre.score,
+      text: 'vor Tickerbeginn',
+    });
+  for (const row of goalLines.reverse()) {
+    if (row.removed || row.beforeTicker) continue;
     // Spec 009 FR-V07: Vorlage in der Zeile des Tores.
     const text = `${scorerLabel(row.goal, players)}${assistSuffix(row.goal, players)}${goalSuffix(row.goal)}`.trim();
     lines.push({

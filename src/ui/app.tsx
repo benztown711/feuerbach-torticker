@@ -4,7 +4,6 @@ import { NavBar } from './components/nav-bar';
 import { UpdatePrompt } from './components/update-prompt';
 import { useRoute } from './router';
 import { onSquadNotice } from '../platform/live-events';
-import { GameDetailsScreen } from './screens/game-details';
 import { GameScreen } from './screens/game';
 import { HistoryScreen } from './screens/history';
 import { MoreScreen } from './screens/more';
@@ -37,6 +36,8 @@ function Lazy<P extends object>({ load, props }: { load: () => Promise<FunctionC
   return Comp ? <Comp {...props} /> : <main class="page" aria-busy="true" />;
 }
 
+/** Spec 023 FR-J16 (Bundle-Budget): Spieldetails werden nachgeladen wie die anderen selten genutzten Bildschirme. */
+const loadDetails = () => import('./screens/game-details').then((m) => m.GameDetailsScreen);
 const loadLive = () => import('./screens/live').then((m) => m.LiveScreen);
 const loadPlan = () => import('./screens/spielplan').then((m) => m.PlanScreen);
 /** Spec 010: Hilfe mit rund 40 Einträgen wird nachgeladen (Bundle-Budget), offline aus dem Service Worker. */
@@ -65,7 +66,7 @@ export function App() {
       {route.name === 'settings' && <Lazy load={loadSettings} props={{}} />}
       {route.name === 'help' && <Lazy load={loadHelp} props={{ entry: route.entry }} />}
       {route.name === 'game' && <GameScreen key={route.id} id={route.id} join={route.join === true} />}
-      {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}
+      {route.name === 'details' && <Lazy key={route.id} load={loadDetails} props={{ id: route.id }} />}
       {route.name === 'live' && <Lazy load={loadLive} props={{}} />}
       {route.name === 'plan' && <Lazy load={loadPlan} props={{}} />}
       {route.name === 'leadLink' && <Lazy load={loadLeadLink} props={{ data: route.data, kind: route.kind }} />}

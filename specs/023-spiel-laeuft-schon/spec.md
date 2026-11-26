@@ -28,6 +28,11 @@ Gesichtet am 25.11.2026 im Code:
 - Review A (25.11.2026): "Passt".
 - Festlegung bei der Umsetzung (Screenshot iPhone SE): "Spiel läuft schon" steht neben statt unter "Anpfiff", sonst schieben zwei Knopfzeilen die Tor-Knöpfe unter die Navigation. Der Schalter in "Neues Spiel" steht in der Karte "Spielzeit".
 
+### Session 2026-11-26 (Nachzug Design-Check: Sammelzeile)
+
+- Atti: "Mach die Sammelzeile 'vor Tickerbeginn'". Klärung im Chat: zusammengefasst wird überall (Torliste im Spiel, Spieldetails, Dashboard, Teilen-Text); im Spiel und in den Spieldetails klappt ein Tipp die Zeile in der Liste auf und wieder zu; ohne Mockup, Prüfung über Screenshots in Review C.
+- Festlegung: Die Sammelzeile zeigt "–", den Stand nach dem letzten Tor vor Tickerbeginn und "Vor Tickerbeginn · N Tore". Auf dem Dashboard folgen bekannte Feuerbach-Torschützen in Klammern ("Vor Tickerbeginn (Max 2, Ben)"); im Teilen-Text steht die Zeile "–  7:4  vor Tickerbeginn", die Torschützen stehen wie bisher in der Liste darunter. Die Tor-Hinweise für Eltern (Spec 020) zählen weiter Einzeltore.
+
 ### Session 2026-11-25 (Review B, Mockup)
 
 - Atti: "Es wäre noch schön, wenn man beim Einstieg mit Spielstand die Trikotfarbe ändern könnte." → Im Blatt "Spiel läuft schon" steht neben "Spielstand" der Link "Trikots ändern"; er öffnet das bekannte Blatt "Trikots" (Spec 017 US2) und kehrt nach "Übernehmen" bzw. Schließen ins Blatt zurück. Wer am Platz einsteigt, sieht erst dort, in welchen Farben gespielt wird.
@@ -77,10 +82,12 @@ Es steht 7:4. Atti tippt im Blatt "Spiel läuft schon" bei Feuerbach siebenmal "
 1. **Given** "Spielstand" im Blatt, **Then** steht je Mannschaft der Name (Kurzform wie auf den Tor-Knöpfen), die Zahl groß sowie "−" und "+"; "−" ist bei 0 nicht wählbar, "+" höchstens bis 30.
 2. **Given** Spielstand 7:4 übernommen, **Then** zählen sieben Feuerbach- und vier Gegentore sofort in Anzeigetafel, Spieldetails, Teilen-Text, Historie und Dashboard.
 3. **Given** Tore vor Tickerbeginn, **Then** stehen sie in Torliste, Spieldetails, Teilen-Text und Dashboard vor allen anderen Toren mit "vor Tickerbeginn" statt einer Minute, zuerst die Feuerbach-Tore, dann die Gegentore, mit fortlaufendem Stand (1:0 … 7:0, 7:1 … 7:4). Im Teilen-Text steht in der Minutenspalte "–".
+   Nachtrag 26.11.2026 (FR-J16): Sie stehen dort zusammengefasst in einer Zeile "Vor Tickerbeginn" (siehe US2-S8).
 4. **Given** ein Tor vor Tickerbeginn wird angetippt, **Then** öffnet das Tor-Blatt wie bei jedem Tor ("Tor entfernen", "Torschütze ändern", "Minute ändern", mit Schalter "Vorlagen" "Vorlage ändern"); "Torschütze ändern" und "Vorlage ändern" wirken wie bei jedem Tor (Spec 017 FR-C02).
 5. **Given** "Minute ändern" bei einem Tor vor Tickerbeginn, **Then** bietet die Auswahl alle gespielten Minuten (wie bei jedem Tor); nach "Übernehmen" ist es ein normales Tor mit dieser Minute an seiner Stelle im Verlauf.
 6. **Given** Einstieg in der 1. Halbzeit oder in der Halbzeitpause mit 2:1, **Then** ist der Halbzeitstand 2:1 plus Tore bis zum Pausenpfiff. **Given** Einstieg ab der 2. Halbzeit, **Then** gibt es keinen Halbzeitstand; der Teilen-Text lässt "Halbzeit x:y" weg.
 7. **Given** Spielstand 0:0, **Then** entstehen keine Tore vor Tickerbeginn.
+8. **Given** Spielstand 7:4 übernommen, **Then** zeigen Torliste und Spieldetails statt elf Zeilen eine Zeile "– 7:4 Vor Tickerbeginn · 11 Tore" mit Pfeil; ein Tipp klappt darunter die einzelnen Tore auf (antippbar wie bisher), ein weiterer Tipp klappt sie zu. Dashboard und Teilen-Text zeigen ebenfalls eine Zeile (FR-J16).
 
 ---
 
@@ -138,6 +145,7 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 - **FR-J12**: Tore vor Tickerbeginn MÜSSEN überall zählen und vor allen anderen Toren stehen, mit "vor Tickerbeginn" statt Minute (Teilen-Text: "–").
 - **FR-J13**: Tore vor Tickerbeginn MÜSSEN wie jedes Tor antippbar sein (Tor-Blatt, Spec 017 FR-C01). "Minute ändern" bietet wie bei jedem Tor alle gespielten Minuten (Spec 012 FR-S11, research.md R-J3); danach ist es ein normales Tor.
 - **FR-J14**: Beim Einstieg ab dem 2. Abschnitt (Pause nach dem 1. Abschnitt ausgenommen) MUSS der Halbzeitstand leer bleiben.
+- **FR-J16** (Nachtrag 26.11.2026): Torliste im Spiel, Spielverlauf der Spieldetails, Dashboard und Teilen-Text MÜSSEN die Tore vor Tickerbeginn zu einer Zeile zusammenfassen: Minute "–", Stand nach dem letzten nicht entfernten Tor vor Tickerbeginn, Text "Vor Tickerbeginn · N Tore" (Spiel, Spieldetails; "1 Tor" in der Einzahl), "Vor Tickerbeginn" mit bekannten Feuerbach-Torschützen in Klammern (Dashboard) bzw. "vor Tickerbeginn" (Teilen-Text). In Torliste und Spieldetails MUSS ein Tipp auf die Zeile die einzelnen Tore darunter auf- bzw. zuklappen (Vorgabe zu); die Zeile zeigt das mit einem Pfeil und `aria-expanded`. Entfernte Tore vor Tickerbeginn zählen nicht in N, stehen aufgeklappt aber durchgestrichen da.
 - **FR-J15**: Die Live-Meldung MUSS Tore vor Tickerbeginn kennzeichnen (optionales Feld, abwärtskompatibel); der Vermittlungsdienst bleibt unverändert.
 
 **Uhr korrigieren (US3, ändert Spec 012 FR-S20, FR-S21)**
@@ -157,11 +165,11 @@ Atti hat wie am 22.11. schon getickert und den Abschnitt angepfiffen, die Uhr ze
 
 | Eintrag | Änderung | Quelle |
 |---|---|---|
-| `spiel-laeuft-schon` "Wie steige ich in ein laufendes Spiel ein?" | neu: "Spiel läuft schon" vor dem Anpfiff bzw. Schalter in "Neues Spiel"; Abschnitt, Restzeit, Spielstand, "Trikots ändern"; Tore "vor Tickerbeginn" antippen, um Torschütze und Vorlage nachzutragen | 023 US1, 023 US2 |
+| `spiel-laeuft-schon` "Wie steige ich in ein laufendes Spiel ein?" | neu: "Spiel läuft schon" vor dem Anpfiff bzw. Schalter in "Neues Spiel"; Abschnitt, Restzeit, Spielstand, "Trikots ändern"; Zeile "Vor Tickerbeginn" antippen, um die Tore aufzuklappen und Torschütze und Vorlage nachzutragen | 023 US1, 023 US2 |
 | `uhr-korrigieren` "Was tue ich, wenn die Uhr falsch geht?" | geändert: Restzeit mit "−5", "−1", "+1", "+5"; geht auch direkt nach einem Pfiff | 012 US4, 023 US3 |
 | `neues-spiel` "Wie lege ich ein Spiel an?" | geändert: Schalter "Spiel läuft schon" | 001 US2, …, 023 US1 |
 | `trikots` "Wie ändere ich die Trikotfarben für ein Spiel?" | geändert: auch im Blatt "Spiel läuft schon" | 004 US2, 017 US2, 023 US1 |
-| `torschuetze` "Wie trage ich den Torschützen nach?" | geändert: auch bei Toren "vor Tickerbeginn" | 001 US3, 017 US1, 023 US2 |
+| `torschuetze` "Wie trage ich den Torschützen nach?" | geändert: auch bei Toren "vor Tickerbeginn" (Zeile "Vor Tickerbeginn" antippen, dann das Tor) | 001 US3, 017 US1, 023 US2 |
 
 ## Success Criteria *(mandatory)*
 

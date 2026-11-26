@@ -723,13 +723,6 @@ body:has(.page:not(.dash, .lead-link)) {
   font-weight: 700;
 }
 
-/* Spec 023 FR-J12: Tor vor Tickerbeginn ohne Minute. */
-.goal-row__pre {
-  flex-shrink: 0;
-  color: var(--color-ink-muted);
-  font-size: 12px;
-}
-
 /* Spec 003: Lesezeichen sind intern */
 .goal-row__tag--private {
   flex-shrink: 0;
@@ -4268,12 +4261,6 @@ button.plan__row {
   border-top: 0;
 }
 
-/* Spec 023 FR-J12: Kennzeichen auf dem Dashboard. */
-.dash-goal__pre {
-  color: var(--color-ink-muted);
-  font-size: 13px;
-}
-
 /* ---------- Spec 024: Eltern tickern ---------- */
 
 /* FR-E06: Name des Tickers hervorgehoben (Hinweis-Token wie Hinweisboxen, design/README.md). */
@@ -4404,4 +4391,32 @@ button.plan__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
+}
+
+/* Spec 023 FR-J16: Zeile "Vor Tickerbeginn" klappt die einzelnen Tore auf; der Pfeil zeigt dann nach unten. */
+.goal-row__chev,
+.details__chevron {
+  transition: transform 0.15s ease;
+}
+
+.goal-row__chev--open,
+.details__chevron--open {
+  transform: rotate(90deg);
+}
+
+.goal-row--sub {
+  padding-left: var(--space-4);
+}
+
+.details__sub {
+  margin: 0;
+  padding: 0 0 0 var(--space-4);
+  list-style: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goal-row__chev,
+  .details__chevron {
+    transition: none;
+  }
 }

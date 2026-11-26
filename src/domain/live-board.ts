@@ -441,6 +441,29 @@ function whoOf(g: LiveGoal, s: LiveGameSnapshot): string {
   return g.penalty ? `${base}${assist} (Elfmeter)` : `${base}${assist}`;
 }
 
+/**
+ * Spec 023 FR-J16: Tore vor Tickerbeginn (in `goals` ganz unten) zu einer Zeile fürs Dashboard zusammenfassen, mit
+ * bekannten Feuerbach-Torschützen in Klammern. Die Einzelzeilen bleiben in `BoardCard.goals` (Tor-Hinweise, Spec 020).
+ */
+export function collapsePre(lines: GoalLine[]): GoalLine[] {
+  const pre = lines.filter((l) => l.beforeTicker);
+  if (pre.length === 0) return lines;
+  const counts = new Map<string, number>();
+  for (const l of [...pre].reverse())
+    if (l.side === 'own' && l.scorer) counts.set(l.scorer, (counts.get(l.scorer) ?? 0) + 1);
+  const names = [...counts].map(([n, c]) => (c > 1 ? `${n} ${c}` : n)).join(', ');
+  const line: GoalLine = {
+    side: 'own',
+    minute: '–',
+    score: (pre[0] as GoalLine).score,
+    who: names ? `Vor Tickerbeginn (${names})` : 'Vor Tickerbeginn',
+    team: '',
+    scorer: null,
+    beforeTicker: true,
+  };
+  return [...lines.filter((l) => !l.beforeTicker), line];
+}
+
 function goalLines(s: LiveGameSnapshot): GoalLine[] {
   const running = { own: 0, opp: 0 };
   return s.goals

@@ -199,3 +199,21 @@ export function goalRows(game: Game): GoalRow[] {
   });
   return rows.reverse();
 }
+
+/** Spec 023 FR-J16: Tore vor Tickerbeginn als eine Zeile. */
+export interface PreGroup {
+  /** Stand nach dem letzten nicht entfernten Tor vor Tickerbeginn (Heim:Gast), sonst "". */
+  score: string;
+  /** Nicht entfernte Tore vor Tickerbeginn. */
+  count: number;
+  /** Alle Tore vor Tickerbeginn, neuestes oben (auch entfernte). */
+  rows: GoalRow[];
+}
+
+/** Spec 023 FR-J16: Gruppe der Tore vor Tickerbeginn aus `goalRows`; null, wenn es keine gibt. */
+export function preGroup(rows: GoalRow[]): PreGroup | null {
+  const pre = rows.filter((r) => r.beforeTicker);
+  if (pre.length === 0) return null;
+  const counted = pre.filter((r) => !r.removed);
+  return { score: counted[0]?.score ?? '', count: counted.length, rows: pre };
+}

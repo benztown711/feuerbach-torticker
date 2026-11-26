@@ -192,36 +192,51 @@ test.describe('023 US2 Bisherigen Spielstand übernehmen', () => {
     await expect(page.getByTestId('late-own-count')).toHaveText('3');
     await page.getByTestId('late-save').click();
 
-    // US2-S2 S3: Stand sofort, Tore vor Tickerbeginn unten in der Liste (neuestes oben), zuerst Feuerbach.
+    // US2-S2 S3 S8: Stand sofort; die Tore vor Tickerbeginn stehen als eine Zeile unten in der Liste (FR-J16).
     await expect(page.getByTestId('score')).toHaveText('3 : 2');
+    const pre = page.getByTestId('goal-pre-row');
+    await expect(rows(page)).toHaveCount(0);
+    await expect(pre).toContainText('–');
+    await expect(pre).toContainText('3:2');
+    await expect(pre).toContainText('Vor Tickerbeginn · 5 Tore');
+    await expect(pre).toHaveAttribute('aria-expanded', 'false');
+
+    // US2-S8: Antippen klappt die einzelnen Tore auf (neuestes oben, zuerst Feuerbach), nochmal antippen zu.
+    await forward(page, 11 * SEC);
+    await pre.click();
+    await expect(pre).toHaveAttribute('aria-expanded', 'true');
     await expect(rows(page)).toHaveCount(5);
-    await expect(rows(page).last()).toContainText('–');
     await expect(rows(page).last()).toContainText('1:0');
-    await expect(rows(page).last()).toContainText('vor Tickerbeginn');
     await expect(rows(page).first()).toContainText('3:2');
+    await pre.click();
+    await expect(rows(page)).toHaveCount(0);
+    await pre.click();
 
     // US2-S4: Torschütze nachtragen.
-    await forward(page, 11 * SEC);
     await rows(page).last().click();
     await expect(page.getByTestId('goal-actions')).toContainText('Vor Tickerbeginn');
     await page.getByTestId('goal-edit-scorer').click();
     await page.getByTestId('scorer-picker').getByRole('button', { name: '7 Max', exact: true }).click();
     await expect(rows(page).last()).toContainText('Max');
-    await expect(rows(page).last()).toContainText('vor Tickerbeginn');
 
-    // US2-S5: Minute nachtragen macht ein normales Tor daraus.
+    // US2-S5: Minute nachtragen macht ein normales Tor daraus; die Zeile zählt nur noch vier.
     await rows(page).first().click();
     await page.getByTestId('goal-edit-minute').click();
     await page.getByTestId('goal-minute-select').selectOption("12'");
     await page.getByTestId('goal-minute-save').click();
     await expect(page.getByText("12'", { exact: true })).toBeVisible();
-    await expect(page.locator('.goal-row__pre')).toHaveCount(4);
+    await expect(pre).toContainText('Vor Tickerbeginn · 4 Tore');
 
-    // FR-J12: im Teilen-Text "–" statt Minute.
+    // FR-J16: Spieldetails und Teilen-Text fassen ebenfalls zusammen; aufklappen zeigt Max.
     await openMenu(page);
     await page.getByTestId('menu-details').click();
-    await expect(page.getByTestId('share-preview')).toContainText('–');
-    await expect(page.getByTestId('details-timeline')).toContainText('vor Tickerbeginn');
+    await expect(page.getByTestId('share-preview')).toContainText('vor Tickerbeginn');
+    const detailsPre = page.getByTestId('details-pre-row');
+    await expect(detailsPre).toContainText('Vor Tickerbeginn · 4 Tore');
+    await expect(page.getByTestId('details-pre')).not.toContainText('Max');
+    await detailsPre.click();
+    await expect(detailsPre).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('details-pre')).toContainText('Max');
   });
 
   test('023 US2-S7 Spielstand 0:0 legt keine Tore an', async ({ page }) => {
@@ -230,6 +245,7 @@ test.describe('023 US2 Bisherigen Spielstand übernehmen', () => {
     await page.getByTestId('late-save').click();
     await expect(page.getByTestId('score')).toHaveText('0 : 0');
     await expect(rows(page)).toHaveCount(0);
+    await expect(page.getByTestId('goal-pre-row')).toHaveCount(0);
   });
 });
 

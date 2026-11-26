@@ -4,7 +4,7 @@ import { formatTime } from '../../domain/format';
 import { sectionLabel } from '../../domain/game';
 import { shootoutState } from '../../domain/cup';
 import { cardText, marksText, personLabel, subText } from '../../domain/events';
-import { goalWho, homeAway, score } from '../../domain/goals';
+import { goalWho, homeAway, score, type GoalRow } from '../../domain/goals';
 import { formatMinute } from '../../domain/minute';
 import { setOpponent } from '../../domain/opponent';
 import { startedAt, teamShortLabel, timeline } from '../../domain/history';
@@ -19,6 +19,7 @@ import { BookmarkIcon, CardGlyph, SubIcon } from '../components/event-icons';
 import { addGoalStep, type EditStep } from '../components/goal-steps';
 import { applyKits, KitsSheet } from '../components/kits-sheet';
 import { useGoalEditor } from '../components/goal-editor-load';
+import { preText } from '../components/goal-list';
 import { ReshareBar } from '../components/reshare-bar';
 import { TeamMark } from '../components/team-mark';
 import { useDarkTheme, useNow } from '../hooks';
@@ -59,6 +60,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
   const [game, setGame] = useState<Game | null | undefined>(undefined);
   const [players, setPlayers] = useState<Player[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  /** Spec 023 FR-J16: Zeile "Vor Tickerbeginn" aufgeklappt. */
+  const [preOpen, setPreOpen] = useState(false);
   const [askDelete, setAskDelete] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
   const [marksMsg, setMarksMsg] = useState('');
@@ -158,6 +161,29 @@ export function GameDetailsScreen({ id }: { id: string }) {
     if (r === 'shared' || r === 'copied') update(markShared(cur(), Date.now()));
     setShareMsg(r === 'copied' ? 'Text in die Zwischenablage kopiert.' : r === 'failed' ? 'Teilen nicht möglich.' : '');
   };
+
+  /** Ein Tor im Spielverlauf; Spec 017 FR-C01: Tipp öffnet das Tor-Blatt wie im Spiel. */
+  const goalItem = (row: GoalRow) => (
+    <li key={row.goal.id} data-testid={`goal-${row.goal.id}`}>
+      <button
+        type="button"
+        class={
+          row.removed ? 'details__item details__item--goal details__item--removed' : 'details__item details__item--goal'
+        }
+        onClick={() => setEdit({ kind: 'goal', goalId: row.goal.id })}
+      >
+        <span class="details__minute">{row.label}</span>
+        <span class="details__score-cell">{row.score}</span>
+        <span class="details__what">{goalWho(game, row.goal, players)}</span>
+        {/* Spec 023 FR-J12: Tore vor Tickerbeginn ohne Uhrzeit. */}
+        <span class="details__time">{row.goal.beforeTicker ? '' : formatTime(row.goal.at)}</span>
+        {row.removed && <span class="goal-row__tag">entfernt</span>}
+        <svg class="details__chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </li>
+  );
 
   return (
     <main class="page">
@@ -259,29 +285,34 @@ export function GameDetailsScreen({ id }: { id: string }) {
                 <span class="details__what">{eventText(item.event, game)}</span>
                 <span class="details__time">{formatTime(item.at)}</span>
               </li>
-            ) : (
-              <li key={item.goal.id} data-testid={`goal-${item.goal.id}`}>
-                {/* Spec 017 FR-C01: Tipp öffnet das Tor-Blatt wie im Spiel. */}
+            ) : item.kind === 'pre' ? (
+              <li key="pre" data-testid="details-pre">
+                {/* Spec 023 FR-J16: Tore vor Tickerbeginn als eine Zeile, Tipp klappt sie auf. */}
                 <button
                   type="button"
-                  class={
-                    item.removed
-                      ? 'details__item details__item--goal details__item--removed'
-                      : 'details__item details__item--goal'
-                  }
-                  onClick={() => setEdit({ kind: 'goal', goalId: item.goal.id })}
+                  class="details__item details__item--goal details__item--pre"
+                  data-testid="details-pre-row"
+                  aria-expanded={preOpen}
+                  onClick={() => setPreOpen(!preOpen)}
                 >
-                  <span class="details__minute">{item.label}</span>
+                  <span class="details__minute">–</span>
                   <span class="details__score-cell">{item.score}</span>
-                  <span class="details__what">{goalWho(game, item.goal, players)}</span>
-                  {/* Spec 023 FR-J12: ohne Minute und ohne Uhrzeit. */}
-                  <span class="details__time">{item.goal.beforeTicker ? 'vor Tickerbeginn' : formatTime(item.at)}</span>
-                  {item.removed && <span class="goal-row__tag">entfernt</span>}
-                  <svg class="details__chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                  <span class="details__what">{preText(item.count)}</span>
+                  <span class="details__time" />
+                  <svg
+                    class={preOpen ? 'details__chevron details__chevron--open' : 'details__chevron'}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
+                {preOpen && <ol class="details__sub">{[...item.rows].reverse().map((row) => goalItem(row))}</ol>}
               </li>
+            ) : (
+              goalItem(item)
             ),
           )}
         </ol>
