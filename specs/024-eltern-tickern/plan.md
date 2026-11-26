@@ -8,7 +8,7 @@ Der Zuschauer-Link bekommt über die Konfigurations-Meldung ein vom Organisator 
 
 ## Technical Context
 
-Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, Vitest, Playwright, Cloudflare Worker). Keine neue Abhängigkeit. Dienst (`relay/`) ohne Änderung. Zwei PRs: Paket A (US1 bis US3, Constitution 3.2.0) in #100, Paket B (US4, US5) danach.
+Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, Vitest, Playwright, Cloudflare Worker). Keine neue Abhängigkeit. Dienst (`relay/`) ohne Änderung. Ein PR (#100) mit Paket A (US1 bis US3, Constitution 3.2.0) und Paket B (US4, US5).
 
 ## Constitution Check
 
@@ -43,7 +43,7 @@ Unverändert gegenüber `specs/001-spiel-erfassen/plan.md` (TypeScript, Preact, 
 
 | Datei | Änderung |
 |---|---|
-| `src/platform/live-crypto.ts` | `sealMessage`/`openMessage` mit Feld `k` (Eltern-Paket); Eltern-Zertifikat für alle Mannschaften |
+| `src/platform/live-crypto.ts`, `live-open.ts` (neu) | `sealMessage` mit Feldern `k` (Eltern-Paket) und `q` (Kader-Kopie); `openMessage` in eigenes Modul (nur mit dem Empfänger nachgeladen, Bundle-Budget); Eltern-Zertifikat für alle Mannschaften |
 | `src/platform/live-setup.ts` | `publishConfig` mit Paket; `ensureKit` (fehlendes Paket erzeugen); Schalter setzen |
 | `src/platform/live-receiver.ts` | Paket und Zuschauer-Kader an die Ansicht weiterreichen |
 | `src/platform/live-sender.ts` | Sender auch aus `Settings.liveTicker`; `by`/`tr` |

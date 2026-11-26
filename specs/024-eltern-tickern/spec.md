@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung, Review A und Review B erledigt (26.11.2026, "Passt, setz es um"). Constitution 3.2.0. Mockup: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42 (Version 2 mit hervorgehobenen Namen)
+**Status**: Klärung, Review A und Review B erledigt (26.11.2026, "Passt, setz es um"). Constitution 3.2.0. US1 bis US5 umgesetzt in PR #100. Mockup: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42 (Version 2 mit hervorgehobenen Namen)
 
 **Input**: Atti (26.11.2026): "Gestern hatten wir ein Nachholspiel, das nicht in der Liste war. Ivica und ich waren auf einem anderen Platz mit Training beschäftigt, sodass niemand getickert hat. Jetzt ist die Überlegung, ob wir den Link in der Elterngruppe verteilen, und je nachdem, wer da ist, kann tickern. […] Man sieht in der App hoffentlich, wer schon tickert. […] Ist es möglich, den Zuschauerlink und den Tickerlink in einem zu belassen und über einen Button abzufragen: Möchtest du nur das Ergebnis sehen oder live tickern?"
 
@@ -39,6 +39,14 @@ Gesichtet am 26.11.2026 in Specs und Code:
 
 - Atti: "Den Namen der jeweiligen Person farblich kennzeichnen. Wenn es ein Trainer ist, dann ‚Trainer' und den Namen, diese beiden Wörter farblich highlighten, und dann ‚tickert bereits'. Wenn es Eltern machen, ihr Name ohne den Zusatz, z. B. ‚Babsi tickert bereits'." → Die Zeile heißt "<Name> tickert bereits", bei Trainer-Handys "Trainer <Name> tickert bereits" (ohne hinterlegten Namen "Trainer tickert bereits"), auf dem eigenen Handy "Du tickerst", nach dem Schlusspfiff "Getickert von <Name>" bzw. "Getickert von Trainer <Name>". Der Name (bei Trainern mit dem Wort "Trainer") steht farbig hervorgehoben (Markierung `rot-hell`, Schrift `ink`, fett), auch in Rückfragen ("Paul tickert bereits (1:0, 12'). Übernehmen?").
 - Folgerung: Der Name, den Trainer bei "Ich tickere" (Spec 015 US6-S2) hinterlegen, wird auf dem Dashboard für Eltern sichtbar. Die Abfrage heißt deshalb künftig "Dein Name (sehen Trainer und Eltern)"; schon hinterlegte Namen erscheinen ab dem Update. Ersetzt Folgerung a aus Review A.
+
+### Festlegungen bei der Umsetzung (26.11.2026)
+
+- **Startbildschirm (US5-S1)**: Die Frage "In deine Spiele übernehmen?" steht im Bereich der Live-Angebote direkt unter "Neues Spiel" (dort, wo auch "E2 übernehmen" steht, Spec 018), damit der Code nachgeladen bleibt (Bundle-Budget). Sie ist damit auf dem iPhone SE ohne Scrollen sichtbar.
+- **Eltern-Fassung des Spielbildschirms**: ohne Vorlagen und Wechsel (beides bräuchte Kader-Kennungen auf dem Eltern-Handy); Karten, Lesezeichen und Torschützen wie bei Trainern. "Spieldetails" entfällt (führt in die Trainer-App), "Teilen" teilt den Stand als Text.
+- **Hinweis beim Abgeben (FR-E12)** gilt auch zwischen Trainer-Handys: "Trainer tickert jetzt E2. Hier wird nur noch lokal erfasst." statt bisher "E2 überträgt jetzt ein anderes Handy." (Spec 006 US6-S3), sobald der neue Stand einen Ticker nennt.
+- **Übernommenes Eltern-Spiel (US5)** geht vom Trainer-Handy nicht erneut an den Dienst; die Karte bleibt beim Stand der Eltern ("Getickert von Paul").
+- **Nach dem Ausschalten (US4-S2)** bekommt das tickernde Eltern-Handy keinen Kader mehr; Tore gehen ohne Torschützen-Auswahl.
 
 ## User Scenarios & Testing *(mandatory)*
 

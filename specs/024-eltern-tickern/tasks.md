@@ -2,7 +2,7 @@
 
 **Input**: `spec.md`, `plan.md`, `research.md` (R-E1 bis R-E8), `data-model.md`; Mockup https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42
 
-Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglich. Paket A (US1 bis US3, Constitution 3.2.0) in PR #100, Paket B (US4, US5) im Folge-PR.
+Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglich. Paket A (US1 bis US3, Constitution 3.2.0) und Paket B (US4, US5) in PR #100 (ein Arbeitszweig).
 
 ## Phase 1: Grundlagen (Paket A)
 
@@ -34,15 +34,15 @@ Tests zuerst, sie müssen fehlschlagen (Constitution IV). [P] = parallel möglic
 
 ## Phase 5: US4 Trainer behalten die Kontrolle (P2, Paket B)
 
-- [ ] T017 [US4] E2E: 024 US4-S1 bis S5
-- [ ] T018 [US4] `live.tsx` Schalter je Mannschaft, Konfiguration senden, Kopien nachziehen; Hinweis auf dem Eltern-Handy (macht T017 grün)
-- [ ] T019 [US4] Hilfe: neu `eltern-tickern-aus`
+- [x] T017 [US4] E2E: 024 US4-S1 bis S5
+- [x] T018 [US4] `live.tsx` Schalter je Mannschaft, Konfiguration senden, Kopien nachziehen; Hinweis auf dem Eltern-Handy (macht T017 grün)
+- [x] T019 [US4] Hilfe: neu `eltern-tickern-aus`
 
 ## Phase 6: US5 Eltern-Spiel in die Trainer-Historie (P2, Paket B)
 
-- [ ] T020 [US5] Unit-Tests: Übernahme-Kandidaten, `tickedBy`, keine Dopplung; E2E: 024 US5-S1 bis S6
-- [ ] T021 [US5] `start.tsx` Karte, Übernahme, Spieldetails "Getickert von …" (macht T020 grün)
-- [ ] T022 [US5] Hilfe: neu `eltern-spiel-uebernehmen`
+- [x] T020 [US5] Unit-Tests: Übernahme-Kandidaten, `tickedBy`, keine Dopplung; E2E: 024 US5-S1 bis S6
+- [x] T021 [US5] `start.tsx` Karte, Übernahme, Spieldetails "Getickert von …" (macht T020 grün)
+- [x] T022 [US5] Hilfe: neu `eltern-spiel-uebernehmen`
 
 ## Phase 7: Abschluss je Paket
 
