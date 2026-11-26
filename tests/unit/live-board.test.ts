@@ -1266,6 +1266,12 @@ describe('024 R-E2 R-E4 Eltern-Stände und wer tickert', () => {
     expect(view(snap({ clock: kicked }))?.ticker).toBeNull();
   });
 
+  it('Eltern-Stände können sich nicht als Trainer ausgeben (tr fällt weg)', () => {
+    const b = applySnapshot(applyConfig(emptyBoard(), cfg()), snap({ by: 'Jonas', tr: 1 }), T0, TZ, true);
+    expect(b.games[0]?.snap.tr).toBeUndefined();
+    expect(boardView(b, T0, TZ).cards[0]?.ticker).toEqual({ name: 'Jonas', trainer: false });
+  });
+
   it('Kennzeichen "Eltern" bleibt im gemerkten Stand', () => {
     const b = applySnapshot(applyConfig(emptyBoard(), cfg()), snap(), T0, TZ, true);
     const back = parseBoard(JSON.parse(JSON.stringify(boardJson(b))));

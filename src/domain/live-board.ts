@@ -236,7 +236,11 @@ export function applySnapshot(board: Board, snap: LiveSnapshot, at: number, time
     const removed = [...board.removed.filter(([r]) => r !== id), [id, snap.sentAt, snap.h] as [string, number, number]];
     return { ...board, games: others, removed: removed.slice(-MAX_REMOVED) };
   }
-  return { ...board, games: prune([...others, { snap, at, ...(parent ? { parent: true as const } : {}) }], timeZone) };
+  // Spec 024: Eltern-Stände dürfen sich nicht als Trainer ausgeben ("Trainer … tickert bereits").
+  const shown: LiveGameSnapshot = parent && snap.tr === 1 ? { ...snap, tr: undefined } : snap;
+  if (shown !== snap) delete shown.tr;
+  const entry: BoardEntry = parent ? { snap: shown, at, parent: true } : { snap, at };
+  return { ...board, games: prune([...others, entry], timeZone) };
 }
 
 /** Spec 015 R-P7: geprüfte Planspiele übernehmen (jüngste Änderung je Planspiel, Grabsteine, Grenzen). */
