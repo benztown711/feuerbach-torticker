@@ -83,6 +83,8 @@ export interface NewInput {
   opponent: string;
   venue: Venue;
   schema?: Schema | null;
+  /** Kennung des Planspiels (US1): Das Dashboard zeigt das Planspiel dann als dieses Spiel. */
+  id?: string;
 }
 
 /** US1, US3: Spiel anlegen (sofort live, R-E6) und die Kennung liefern. */
@@ -101,7 +103,7 @@ export async function startGame(view: View, board: Board, input: NewInput): Prom
         ownColor: own,
         oppColor: oppColorFor(own),
       },
-      { id: globalThis.crypto.randomUUID(), now: Date.now() },
+      { id: input.id ?? globalThis.crypto.randomUUID(), now: Date.now() },
     ),
     live: true,
   };
@@ -111,7 +113,7 @@ export async function startGame(view: View, board: Board, input: NewInput): Prom
 
 /** US1: Spiel aus dem Planspiel. */
 export const startPlanned = (view: View, board: Board, e: PlanEntry): Promise<string> =>
-  startGame(view, board, { team: e.team, opponent: e.opponent, venue: e.venue, schema: e.schema });
+  startGame(view, board, { team: e.team, opponent: e.opponent, venue: e.venue, schema: e.schema, id: e.id });
 
 /**
  * US2-S4, FR-E14: laufendes Spiel aus dem letzten Live-Stand übernehmen (Eltern ohne Kader: Torschützen als

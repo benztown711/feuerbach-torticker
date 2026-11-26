@@ -649,8 +649,11 @@ function teamCard(
   timeZone?: string,
 ): BoardCard | null {
   // FR-P15: ein angelegtes Planspiel erscheint als sein Spiel, auch nicht mehr, wenn das Spiel gelöscht wurde.
+  // Spec 024: Eltern verknüpfen nicht im Plan; ihr Spiel trägt die Kennung des Planspiels.
   const known = new Set([...states.map((s) => s.entry.snap.gameId), ...gone]);
-  const entries = plan.filter((e) => e.team === key && !(e.gameId && known.has(e.gameId))).sort(compareEntries);
+  const entries = plan
+    .filter((e) => e.team === key && !(e.gameId && known.has(e.gameId)) && !known.has(e.id))
+    .sort(compareEntries);
   const todays = entries.filter((e) => e.date === today);
   const todayOpen = [...todays.filter((e) => !e.cancelled), ...todays.filter((e) => e.cancelled)];
   const future = entries.filter((e) => e.date > today && !e.cancelled);

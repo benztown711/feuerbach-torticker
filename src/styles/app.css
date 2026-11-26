@@ -4252,7 +4252,9 @@ button.plan__row {
 
 /* FR-E06: Name des Tickers hervorgehoben (Hinweis-Token wie Hinweisboxen, design/README.md). */
 .ticker-tag {
-  padding: 0 6px;
+  padding: 0 5px;
+  /* Rahmen in Rot-Text, damit die Markierung auch auf der getönten Live-Karte (dunkel) erkennbar ist. */
+  border: 1px solid var(--color-rot-text);
   border-radius: var(--radius-sm);
   background: var(--color-rot-hell);
   color: var(--color-ink);
@@ -4299,9 +4301,8 @@ button.plan__row {
 .dash-missing {
   display: grid;
   gap: var(--space-1);
-  margin: var(--space-4) 0 0;
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-line);
+  margin: 0 12px;
+  padding: var(--space-2) 0 var(--space-4);
 }
 
 .dash-missing .link-btn {

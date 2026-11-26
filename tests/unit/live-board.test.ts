@@ -820,6 +820,12 @@ describe('015 US3 Eltern sehen die nächsten Spiele', () => {
     expect(card(onlyOff)!.phase).toBe('abgesagt · Kreisstaffel');
   });
 
+  it('024 US1: Eltern-Spiel mit der Kennung des Planspiels ersetzt es (kein "Danach" mit demselben Spiel)', () => {
+    const b = planned(pe({ id: 'p1', time: '12:00' }), pe({ id: 'p2', time: '14:00', opponent: 'SC Birkenau' }));
+    const running = put(b, snap({ gameId: 'p1', clock: kicked(T0 + min(1)), sentAt: T0 + min(2) }));
+    expect(card(running, 'E1', T0 + min(5))!.lines).toEqual(['Danach: 14:00 gegen SC Birkenau']);
+  });
+
   it('015 US3-S4: nach dem letzten Spiel des Tages: Ergebnis mit "Nächstes Spiel"', () => {
     const done = snap({ gameId: 'm', clock: fullTime, goals: [goal('own', 3)], sentAt: T0 + min(56) });
     const b = put(
