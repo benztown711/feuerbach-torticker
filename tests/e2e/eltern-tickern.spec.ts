@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { MIN } from './helpers';
-import { decodeMessage, openViewer, type LiveLinks } from './live-helpers';
+import { decodeMessage, openTrainerSection, openViewer, type LiveLinks } from './live-helpers';
 import { ROSTER, shareTrainerWithSquads } from './paket-helpers';
 import { addGame, openPlan, setupPlan, sync } from './plan-helpers';
 import { seedRoster } from './helpers';
@@ -286,4 +286,124 @@ test('024 US3-S3 Spiel fehlt, aber die Mannschaft wird schon getickert', async (
   await expect(a.getByTestId('ticker-busy-new')).toBeVisible();
   await a.getByTestId('ticker-busy-watch').click();
   await expect(a.getByTestId('dashboard')).toBeVisible();
+});
+
+/** Paul tickert das Planspiel E2 und erzielt ein Tor (Kader-Auswahl ohne Torschützen). */
+async function paulTicks(p: Page): Promise<void> {
+  await settle(p);
+  await tick(p, 'Paul');
+  await p.getByTestId('ticker-go').click();
+  await p.getByTestId('btn-kickoff').click();
+  await p.clock.runFor(MIN);
+  await p.getByTestId('btn-goal-own').click();
+  await p.getByTestId('scorer-picker').getByRole('button', { name: /Ohne/ }).click();
+  await settle(p);
+}
+
+test('024 US4-S1 US4-S2 US4-S3 US4-S4 Trainer schaltet "Eltern dürfen tickern" aus und wieder an', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await trainer(page, recorded, relay, { plan: true });
+  const p = await openViewer(newDevice, relay, links);
+  const z = await openViewer(newDevice, relay, links);
+  await paulTicks(p);
+  await settle(z);
+  await expect(z.getByTestId('dash-score-E2')).toHaveText('1:0');
+
+  // S1: Schalter je Mannschaft unter "Für Trainer", Vorgabe an
+  await page.goto('./#/live-spieltag');
+  await openTrainerSection(page);
+  await expect(page.getByTestId('parent-allow-E1')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('parent-allow-E2')).toHaveAttribute('aria-checked', 'true');
+  await page.getByTestId('parent-allow-E2').click();
+  await expect(page.getByTestId('parent-allow-E2')).toHaveAttribute('aria-checked', 'false');
+  await settle(page);
+
+  // S3: Pauls Handy erfasst nur noch lokal
+  await settle(p);
+  await expect(p.getByTestId('live-handed-over')).toContainText(
+    'Die Trainer haben das Tickern für Eltern ausgeschaltet. Hier wird nur noch lokal erfasst.',
+  );
+  await expect(p.getByTestId('parent-as')).toContainText('Nur noch lokal erfasst');
+
+  // S2: weitere Tore von Paul ändern das Dashboard nicht; den Kader gibt es nicht mehr; keine Ticker-Knöpfe für E2
+  await p.getByTestId('btn-goal-own').click();
+  await expect(p.getByTestId('scorer-picker')).toHaveCount(0);
+  await settle(p);
+  await settle(z);
+  await expect(z.getByTestId('dash-score-E2')).toHaveText('1:0');
+  await z.getByTestId('dash-toggle-E2').click();
+  await expect(z.getByTestId('dash-takeover-E2')).toHaveCount(0);
+
+  // S4: wieder an: "Spiel übernehmen" erscheint wieder
+  await page.getByTestId('parent-allow-E2').click();
+  await expect(page.getByTestId('parent-allow-E2')).toHaveAttribute('aria-checked', 'true');
+  await settle(page);
+  await settle(z);
+  await expect(z.getByTestId('dash-takeover-E2')).toBeVisible();
+});
+
+test('024 US5-S1 US5-S2 US5-S3 Trainer übernimmt das Eltern-Spiel in die Historie', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await trainer(page, recorded, relay, { plan: true });
+  const p = await openViewer(newDevice, relay, links);
+  await paulTicks(p);
+  await p.getByTestId('btn-section-end').click();
+  await p.getByTestId('confirm-yes').click();
+  await p.getByTestId('btn-kickoff').click();
+  await p.clock.runFor(MIN);
+  await p.getByTestId('btn-section-end').click();
+  await p.getByTestId('confirm-yes').click();
+  await expect(p.getByTestId('parent-back-end')).toHaveText('Zurück zu Live');
+  await settle(p);
+
+  // S1: Frage auf dem Startbildschirm des Trainers
+  await page.goto('./');
+  await page.clock.runFor(5_000);
+  const card = page.getByTestId('start-parent-E2');
+  await expect(card).toContainText('Paul hat E2 gegen TSV Musterstadt getickert: 1:0. In deine Spiele übernehmen?');
+  await card.getByTestId('start-parent-yes').click();
+  await expect(page.getByTestId('start-parent-msg')).toHaveText('In deine Spiele übernommen.');
+  await expect(card).toHaveCount(0);
+
+  // S2: in der Historie mit "Getickert von Paul"
+  await page.goto('./#/historie');
+  await page.getByText('TSV Musterstadt').first().click();
+  await expect(page.getByTestId('details-ticked-by')).toHaveText('Getickert von Paul');
+
+  // S3: die Frage kommt nicht wieder
+  await page.goto('./');
+  await page.clock.runFor(5_000);
+  await expect(page.getByTestId('start-parent-E2')).toHaveCount(0);
+});
+
+test('024 US4-S5 US2-S7 Trainer holt das Spiel auf "Live für Eltern" zurück', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await trainer(page, recorded, relay, { plan: true });
+  const p = await openViewer(newDevice, relay, links);
+  await paulTicks(p);
+  await page.goto('./#/live-spieltag/dashboard');
+  await page.clock.runFor(5_000);
+  await expect(page.getByTestId('dash-ticker-E2')).toHaveText('Paul tickert bereits');
+  await page.getByTestId('dash-toggle-E2').click();
+  await page.getByTestId('dash-takeover-E2').click();
+  await expect(page.getByTestId('ticker-takeover')).toContainText('Paul tickert bereits (1:0');
+  await page.getByTestId('ticker-takeover-yes').click();
+  await expect(page).toHaveURL(/#\/spiel\/[\w-]+$/);
+  await expect(page.getByTestId('score')).toContainText('1');
+  await page.getByTestId('btn-goal-own').click();
+  await settle(page);
+  await settle(p);
+  await expect(p.getByTestId('live-handed-over')).toContainText('Trainer tickert jetzt E2.');
 });

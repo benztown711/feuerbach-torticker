@@ -3,6 +3,7 @@ import {
   emptyBoard,
   lastSentAt,
   otherGames,
+  parentGameOffers,
   runningElsewhere,
   sentLabel,
   takeoverOffers,
@@ -12,7 +13,7 @@ import {
   type TakeoverOffer,
 } from '../domain/live-board';
 import { configOf, sendsFor, viewerOf } from '../domain/live-spieltag';
-import { handOver, newTicker, takenOver, takeoverGame } from '../domain/live-takeover';
+import { handOver, historyGame, newTicker, takenOver, takeoverGame } from '../domain/live-takeover';
 import type { Ticker } from '../domain/live-parent';
 import type { Game, LiveSpieltag, Player } from '../domain/types';
 import { newReceiver, type LiveReceiver, type ReceiverDeps } from './live-receiver';
@@ -168,6 +169,10 @@ export interface StartWatch {
   offers(localIds: string[]): TakeoverOffer[];
   /** Spec 018 FR-005 (Spec 006 FR-L23): Spiel aus dem letzten Stand anlegen. */
   takeover(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
+  /** Spec 024 US5: beendete Eltern-Spiele eigener Mannschaften für "In deine Spiele übernehmen?". */
+  parentGames(localIds: string[], done: string[]): BoardEntry[];
+  /** Spec 024 FR-E21: Eltern-Spiel für die Historie. */
+  toHistory(entry: BoardEntry, ownTeam: string, players: Player[], newId: () => string): Game;
   onChange(cb: () => void): () => void;
   stop(): void;
 }
@@ -183,6 +188,9 @@ export function watchStart(live: LiveSpieltag, deps: Partial<ReceiverDeps> = {})
       r.get().relay === 'live' ? takeoverOffers(r.get().board, teams, localIds, r.serverNow(), deps.timeZone) : [],
     takeover: (entry, ownTeam, players, newId) =>
       takeoverGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
+    parentGames: (localIds, done) => parentGameOffers(r.get().board, teams, localIds, done, r.serverNow()),
+    toHistory: (entry, ownTeam, players, newId) =>
+      historyGame({ entry, ownTeam, players, skew: r.get().skew, now: Date.now(), newId }),
     onChange: (cb) => r.onChange(cb),
     stop: () => r.stop(),
   };

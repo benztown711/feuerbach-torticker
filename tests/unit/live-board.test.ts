@@ -22,6 +22,7 @@ import {
   sentLabel,
   shownFreshness,
   parseBoard,
+  parentGameOffers,
   runningElsewhere,
   takeoverOffers,
   type Board,
@@ -1322,5 +1323,38 @@ describe('024 R-E3 signierte Konfiguration für Eltern-Handys', () => {
     expect(applySignedConfig(s1, config(['E1'], T0 - 1), signed(2))).toBe(s1);
     expect(parseBoard(JSON.parse(JSON.stringify(boardJson(s1)))).signedConfig).toEqual(signed(1));
     expect(parseBoard({ ...boardJson(s1), signedConfig: 'x' }).signedConfig).toBeNull();
+  });
+});
+
+describe('024 US5 FR-E20 Eltern-Spiele für die Trainer-Historie', () => {
+  const ended: Clock = [
+    ['kickoff', T0 - min(60), 1],
+    ['sectionEnd', T0 - min(35), 1],
+    ['kickoff', T0 - min(30), 2],
+    ['fullTime', T0 - min(5), 2],
+  ];
+  const b = (() => {
+    let x = applyConfig(emptyBoard(), config(['E1', 'E2', 'E3']));
+    x = applySnapshot(x, snap({ gameId: 'p1', team: 'E2', clock: ended, by: 'Paul' }), T0 - min(5), TZ, true);
+    x = applySnapshot(x, snap({ gameId: 'p2', team: 'E1', clock: ended, by: 'Anna' }), T0 - min(4), TZ, true);
+    x = applySnapshot(x, snap({ gameId: 'p3', team: 'E1', clock: [['kickoff', T0 - min(5), 1]] }), T0, TZ, true);
+    x = applySnapshot(x, snap({ gameId: 't1', team: 'E2', clock: ended, tr: 1 }), T0 - min(3), TZ);
+    x = applySnapshot(x, snap({ gameId: 'p4', team: 'E3', clock: ended }), T0 - min(2), TZ, true);
+    return x;
+  })();
+
+  it('nur beendete Eltern-Spiele eigener Mannschaften, neueste zuerst', () => {
+    expect(parentGameOffers(b, ['E1', 'E2'], [], [], T0).map((e) => e.snap.gameId)).toEqual(['p2', 'p1']);
+  });
+
+  it('ohne Spiele, die hier schon sind, und ohne beantwortete', () => {
+    expect(parentGameOffers(b, ['E1', 'E2'], ['p2'], ['E2/p1'], T0)).toEqual([]);
+  });
+
+  it('höchstens drei', () => {
+    let x = b;
+    for (const id of ['a', 'b', 'c', 'd'])
+      x = applySnapshot(x, snap({ gameId: id, team: 'E3', clock: ended }), T0 - min(1), TZ, true);
+    expect(parentGameOffers(x, ['E3'], [], [], T0)).toHaveLength(3);
   });
 });

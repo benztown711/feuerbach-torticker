@@ -3,7 +3,7 @@ import { runningElsewhere, type Board, type BoardEntry } from '../domain/live-bo
 import { checkTickerName, parentAllowed } from '../domain/live-parent';
 import { takeoverGame } from '../domain/live-takeover';
 import type { Game, PlanEntry, Schema, Venue, ViewerLink } from '../domain/types';
-import { getGame, getSettings, listGames, putGame, putSettings } from './db';
+import { getGame, getPlayers, getSettings, listGames, putGame, putSettings } from './db';
 import { startLiveSender } from './live-sender';
 
 /**
@@ -132,5 +132,30 @@ export async function takeOver(view: View, board: Board, entry: BoardEntry, skew
   });
   const old = await getGame(game.id);
   await putGame(old ? { ...game, createdAt: old.createdAt } : game);
+  return game.id;
+}
+
+/** Spec 024 US5-S3: beantwortete Übernahme-Fragen merken (höchstens 50). */
+export async function markParentGameDone(id: string): Promise<string[]> {
+  const s = await getSettings();
+  const done = [...(s.parentGamesDone ?? []).filter((x) => x !== id), id].slice(-50);
+  await putSettings({ ...s, parentGamesDone: done });
+  return done;
+}
+
+/** Spec 024 US4-S5: Trainer-Handy holt ein Spiel vom Dashboard zurück (wie Spec 006 US6). */
+export async function trainerTakeOver(entry: BoardEntry, skew: number): Promise<string> {
+  const s = await getSettings();
+  if (!s.live) throw new Error('Auf diesem Handy ist kein Live-Spieltag eingerichtet.');
+  const team = s.live.teams.find((t) => t.key === entry.snap.team);
+  const game = takeoverGame({
+    entry,
+    ownTeam: team?.name ?? entry.snap.own,
+    players: await getPlayers(),
+    skew,
+    now: Date.now(),
+    newId: () => globalThis.crypto.randomUUID(),
+  });
+  await putGame(game);
   return game.id;
 }

@@ -28,6 +28,7 @@ import {
   removeLiveTeam,
   renameSpieltag,
   reissueSpieltag,
+  setParentTicking,
   restoreLive,
   retireConfig,
 } from '../domain/live-manage';
@@ -295,6 +296,13 @@ function manage(change: (live: LiveSpieltag) => Promise<LiveSpieltag>): Promise<
 
 /** US5-S4: Titel ändern. */
 export const renameLive = (title: string): Promise<Settings> => manage((live) => renameSpieltag(live, title, deps()));
+
+/** Spec 024 US4: "Eltern dürfen tickern" je Mannschaft; Kader-Kopien folgen (R-E5). */
+export async function setParentAllowed(key: string, on: boolean): Promise<Settings> {
+  const next = await manage((live) => setParentTicking(live, key, on, deps()));
+  void import('./squad-sync').then((m) => m.syncCopies()).catch(() => undefined);
+  return next;
+}
 
 /** US5-S1: Mannschaft aus "Meine Mannschaften" hinzufügen; die Links bleiben gleich. */
 export const addTeamToLive = (option: LiveTeamOption): Promise<Settings> =>

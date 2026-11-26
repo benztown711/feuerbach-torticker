@@ -9,7 +9,6 @@ import {
   newSigningKey,
   newTopic,
   newViewKey,
-  openMessage,
   sealMessage,
   sign,
   signData,
@@ -23,6 +22,7 @@ import {
   verifySigned,
   seal,
 } from '../../src/platform/live-crypto';
+import { openMessage } from '../../src/platform/live-open';
 
 describe('006 FR-L11 Schlüssel und Signaturen (research.md R-L5)', () => {
   it('Topic hat 22 Zeichen base64url, Zuschauer-Schlüssel 32 Byte, beide zufällig', () => {

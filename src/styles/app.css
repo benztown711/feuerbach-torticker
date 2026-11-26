@@ -4349,3 +4349,20 @@ button.plan__row {
   color: var(--color-rot-text);
   font-weight: 700;
 }
+
+/* Spec 024 US5: Frage "In deine Spiele übernehmen?" auf dem Startbildschirm. */
+.start__parent {
+  display: grid;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.start__parent-text {
+  margin: 0;
+}
+
+.start__parent-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}

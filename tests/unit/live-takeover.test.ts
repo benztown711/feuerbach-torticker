@@ -3,7 +3,7 @@ import { deriveClock } from '../../src/domain/clock';
 import { addGoal, DOUBLE_TAP_MS } from '../../src/domain/goals';
 import { applySnapshot, boardView, emptyBoard, type BoardEntry } from '../../src/domain/live-board';
 import { MAX_TAKEOVER, type LiveGameSnapshot, type LiveGoal } from '../../src/domain/live-snapshot';
-import { handOver, newTicker, takenOver, takeoverGame } from '../../src/domain/live-takeover';
+import { handOver, historyGame, newTicker, takenOver, takeoverGame } from '../../src/domain/live-takeover';
 import type { ClockEventType, Game, Player } from '../../src/domain/types';
 
 /** Sa, 07.11.2026, 10:00 Uhr in Stuttgart. */
@@ -243,6 +243,27 @@ describe('024 Eltern übernehmen; Übernahme in die Trainer-Historie', () => {
     ]);
     expect(g.shootout?.shots[0]?.who).toEqual({ kind: 'text', text: 'Max' });
     expect(g.tickedBy).toBeUndefined();
+  });
+
+  it('US5 FR-E21: in die Historie ohne Senden, mit "Getickert von" (ohne Namen "Eltern")', () => {
+    const base = {
+      entry: entry(s, T0 + min(10)),
+      ownTeam: 'Sportvg Feuerbach E2',
+      players,
+      skew: 0,
+      now: T0 + min(11),
+      newId,
+    };
+    const g = historyGame({ ...base, entry: entry({ ...s, by: 'Paul' }, T0 + min(10)) });
+    expect([g.id, g.tickedBy, g.live, g.livePrivate, g.liveTakeover]).toEqual([
+      s.gameId,
+      'Paul',
+      false,
+      true,
+      undefined,
+    ]);
+    expect(g.goals[0]?.scorer).toMatchObject({ kind: 'player' });
+    expect(historyGame(base).tickedBy).toBe('Eltern');
   });
 
   it('FR-E21: "Getickert von" wird gemerkt, Torschützen dem Kader zugeordnet', () => {

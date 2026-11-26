@@ -17,7 +17,7 @@ import { parseConfig } from '../domain/live-spieltag';
 import { isTime } from '../domain/live-validate';
 import { parsePayload } from '../domain/plan';
 import type { LiveConfig, SignedData, ViewerLink } from '../domain/types';
-import { openMessage, type OpenedMessage } from './live-crypto';
+import { openMessage, type OpenedMessage } from './live-open';
 import { subscribe, type RelayMessage, type RelayState, type RelayTarget, type SubscribeOptions } from './relay';
 
 /**

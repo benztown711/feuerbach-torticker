@@ -757,6 +757,27 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['live-verwalten', 'trainer-link'],
   },
   {
+    id: 'eltern-tickern-aus',
+    topic: 'live',
+    title: 'Wie verhindere ich, dass Eltern tickern?',
+    answer:
+      'Unter „Mehr“, „Live für Eltern“ und „Für Trainer“ steht „Eltern dürfen tickern“ mit einem Schalter je Mannschaft (Vorgabe an). Schaltest du ihn aus, sehen Eltern keinen Knopf zum Tickern mehr, ein Elternteil, das gerade tickert, erfasst nur noch für sich, und das Dashboard ändert sich durch Eltern nicht mehr. Den Kader sehen Eltern dann auch nicht mehr. Wer gerade tickert, steht auf der Karte; mit „Spiel übernehmen“ holst du ein Spiel zurück.',
+    keywords: 'eltern tickern ausschalten verbieten sperren schalter missbrauch eltern dürfen tickern zurückholen',
+    sources: ['024 US4'],
+    open: { label: 'Live für Eltern', path: '/live-spieltag' },
+    related: ['spiel-uebernehmen', 'eltern-spiel-uebernehmen', 'links-neu'],
+  },
+  {
+    id: 'eltern-spiel-uebernehmen',
+    topic: 'live',
+    title: 'Wie kommt ein Spiel, das Eltern getickert haben, in meine Historie?',
+    answer:
+      'Nach dem Schlusspfiff steht auf deinem Startbildschirm „Paul hat E2 gegen … getickert: 3:1. In deine Spiele übernehmen?“. „Übernehmen“ legt das Spiel mit allen Toren und Torschützen in deine Historie; in den Spieldetails steht „Getickert von Paul“. Danach ist es ein normales Spiel, das du korrigieren und teilen kannst. „Nein danke“ blendet die Frage aus.',
+    keywords: 'eltern spiel historie übernehmen statistik getickert von nachholspiel startbildschirm nein danke',
+    sources: ['024 US5'],
+    related: ['eltern-tickern-aus', 'historie'],
+  },
+  {
     id: 'kopplung-beenden',
     topic: 'live',
     title: 'Wie höre ich auf, live zu senden?',

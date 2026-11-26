@@ -798,6 +798,31 @@ export function takeoverOffers(
     .map((card) => ({ card, entry: board.games.find((e) => e.snap.gameId === card.gameId) as BoardEntry }));
 }
 
+/**
+ * Spec 024 US5 (FR-E20): beendete Spiele, die Eltern getickert haben, für die Frage "In deine Spiele übernehmen?":
+ * nur Mannschaften `teams`, nicht schon auf diesem Handy (`localIds`) und nicht beantwortet (`done`,
+ * "<Mannschaft>/<Spiel>"); neueste zuerst, höchstens drei.
+ */
+export function parentGameOffers(
+  board: Board,
+  teams: string[],
+  localIds: string[],
+  done: string[],
+  serverNow: number,
+): BoardEntry[] {
+  return board.games
+    .filter(
+      (e) =>
+        e.parent === true &&
+        teams.includes(e.snap.team) &&
+        !localIds.includes(e.snap.gameId) &&
+        !done.includes(`${e.snap.team}/${e.snap.gameId}`) &&
+        clockOfEntry(e, serverNow).status === 'finished',
+    )
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 3);
+}
+
 /* ---------- Abschnitt "Spielplan" (Spec 015 US7) ---------- */
 
 export interface PlanRow {

@@ -29,6 +29,7 @@ import {
   startPlanned,
   takeOver,
   tickerName,
+  trainerTakeOver,
 } from '../../platform/parent-ticker';
 import { BusySheet, ConfirmSheet, NameSheet, TakeoverSheet, TickerText } from '../components/ticker-sheets';
 import { getSettings, putSettings } from '../../platform/db';
@@ -823,6 +824,8 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
     };
   }, [board]);
   const parent = !!parentPath && !trainer;
+  // Spec 024 US4-S5: Trainer-Handy holt ein Spiel auf "Live für Eltern" zurück.
+  const trainerApp = !parentPath && trainer;
   const go = (id: string): void => navigate(`${parentPath}/spiel/${id}`);
   const fail = (e: unknown): void => {
     setSheet(null);
@@ -883,7 +886,8 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
   };
 
   const takeover = (c: BoardCard): ComponentChildren => {
-    if (!parent || !canTick(board, c.key) || isOwn(c) || mineLost(c) || !running(c)) return null;
+    const allowed = trainerApp ? board.config?.teams.includes(c.key) === true : parent && canTick(board, c.key);
+    if (!allowed || isOwn(c) || mineLost(c) || !running(c)) return null;
     const entry = entryOf(c);
     if (!entry) return null;
     const stale = c.staleMinutes !== null && c.staleMinutes >= 5;
@@ -892,7 +896,11 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
         type="button"
         class="btn btn--secondary dash-takeover"
         data-testid={`dash-takeover-${c.key}`}
-        onClick={() => needName((name) => setSheet({ kind: 'takeover', entry, card: c, name }))}
+        onClick={() =>
+          trainerApp
+            ? setSheet({ kind: 'takeover', entry, card: c, name: 'Trainer' })
+            : needName((name) => setSheet({ kind: 'takeover', entry, card: c, name }))
+        }
       >
         {stale ? 'Weiter tickern' : 'Spiel übernehmen'}
       </button>
@@ -963,7 +971,11 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
         staleMinutes={card.staleMinutes !== null && card.staleMinutes >= 5 ? card.staleMinutes : null}
         me={name}
         onNo={close}
-        onYes={() => takeOverNow(entry)}
+        onYes={() =>
+          trainerApp
+            ? void trainerTakeOver(entry, state.skew).then((id) => navigate(`/spiel/${id}`), fail)
+            : takeOverNow(entry)
+        }
       />
     );
   }

@@ -33,7 +33,7 @@ import { activePlayers, otherPlayers, squadPlayers, visiblePlayers } from '../..
 import { shortTeamName } from '../../domain/team-name';
 import { anyEventFeature } from '../../domain/settings';
 import type { CardColor, EventPerson, Game, Player, Settings, Side } from '../../domain/types';
-import { kaderAsText, kitOf, tickerSpieltag, tickerLine, type Ticker } from '../../domain/live-parent';
+import { kaderAsText, kitOf, parentAllowed, tickerSpieltag, tickerLine, type Ticker } from '../../domain/live-parent';
 import { viewerPlayers } from '../../domain/viewer-squad';
 import { buildShareText, markShared, needsReshare } from '../../domain/share-text';
 import { getGame, getSettings, putGame } from '../../platform/db';
@@ -281,6 +281,15 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
   }, [id, live?.topic, watching]);
   // FR-L24 auch prüfen, wenn dieses Handy (wieder) für die Mannschaft sendet, ohne dass eine Meldung kommt.
   useEffect(() => watch?.check(), [watch, liveKey]);
+  // Spec 024 US4-S3: Trainer haben "Eltern dürfen tickern" ausgeschaltet; hier wird nur noch lokal erfasst.
+  const boardConfig = parentPath ? (watch?.board().config ?? null) : null;
+  const parentOff = !!boardConfig && !!liveKey && !parentAllowed(boardConfig, liveKey);
+  const [offNotice, setOffNotice] = useState(false);
+  useEffect(() => {
+    if (!parentOff) return setOffNotice(false);
+    setOffNotice(true);
+    setHandedUntil(Date.now() + 10_000);
+  }, [parentOff]);
   // Spec 024 FR-E16: Eltern wählen Torschützen aus der Kader-Kopie ihrer Mannschaft.
   const players = parentPath ? viewerPlayers(watch?.board().squads ?? [], liveKey ?? '') : ownPlayers;
   if (parentPath) parentPlayers.current = players ?? [];
@@ -582,10 +591,12 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
   const hints: Record<SlotHint, BandHint> = {
     handedOver: {
       testId: 'live-handed-over',
-      // Spec 024 FR-E12: mit Namen, wenn der neue Stand ihn nennt.
-      text: handedBy
-        ? `${tickerLine(handedBy, { own: false, ended: false })?.tag ?? ''} tickert jetzt ${ownKey ?? teamShortLabel(game.ownTeam)}. Hier wird nur noch lokal erfasst.`
-        : `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
+      // Spec 024 FR-E12: mit Namen, wenn der neue Stand ihn nennt; US4-S3: Tickern für Eltern ausgeschaltet.
+      text: offNotice
+        ? 'Die Trainer haben das Tickern für Eltern ausgeschaltet. Hier wird nur noch lokal erfasst.'
+        : handedBy
+          ? `${tickerLine(handedBy, { own: false, ended: false })?.tag ?? ''} tickert jetzt ${ownKey ?? teamShortLabel(game.ownTeam)}. Hier wird nur noch lokal erfasst.`
+          : `${teamShortLabel(game.ownTeam)} überträgt jetzt ein anderes Handy. Hier wird nur noch lokal erfasst.`,
     },
     shareResult: { testId: 'share-result', text: shareMsg },
     doubleTap: { testId: 'double-tap-hint', text: 'Schon gezählt' },
@@ -724,10 +735,10 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
       </header>
       {parentPath && (
         <p
-          class={game.liveHandedOver && game.live === false ? 'parent-as parent-as--off' : 'parent-as'}
+          class={(game.liveHandedOver && game.live === false) || parentOff ? 'parent-as parent-as--off' : 'parent-as'}
           data-testid="parent-as"
         >
-          {game.liveHandedOver && game.live === false ? (
+          {(game.liveHandedOver && game.live === false) || parentOff ? (
             'Nur noch lokal erfasst'
           ) : (
             <>

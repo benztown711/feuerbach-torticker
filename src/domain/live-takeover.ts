@@ -141,6 +141,21 @@ export function takenOver(board: Board, game: Game, team: string): boolean {
   );
 }
 
+/**
+ * Spec 024 US5 (FR-E21): beendetes Eltern-Spiel in die Historie eines Trainer-Handys. Gleiche Spiel-Kennung,
+ * Torschützen dem Kader zugeordnet, "Getickert von …". Es geht nicht mehr an den Dienst (die Karte bleibt beim
+ * Eltern-Stand), danach ist es ein normales Spiel.
+ */
+export function historyGame(i: Omit<TakeoverInput, 'textScorers' | 'tickedBy'>): Game {
+  const game: Game = {
+    ...takeoverGame({ ...i, tickedBy: i.entry.snap.by ?? 'Eltern' }),
+    live: false,
+    livePrivate: true,
+  };
+  delete game.liveTakeover;
+  return game;
+}
+
 /** Spec 024 FR-E12: wer das Spiel übernommen hat (aus dem neueren Stand); null ohne Angabe. */
 export function newTicker(board: Board, game: Game, team: string): Ticker | null {
   const own = game.liveTakeover ?? 0;
