@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung und Review A erledigt (26.11.2026, "Passt, a bis d so übernehmen"), Mockup für Review B: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42
+**Status**: Klärung und Review A erledigt (26.11.2026, "Passt, a bis d so übernehmen"), Mockup für Review B: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42 (Version 2 mit hervorgehobenen Namen)
 
 **Input**: Atti (26.11.2026): "Gestern hatten wir ein Nachholspiel, das nicht in der Liste war. Ivica und ich waren auf einem anderen Platz mit Training beschäftigt, sodass niemand getickert hat. Jetzt ist die Überlegung, ob wir den Link in der Elterngruppe verteilen, und je nachdem, wer da ist, kann tickern. […] Man sieht in der App hoffentlich, wer schon tickert. […] Ist es möglich, den Zuschauerlink und den Tickerlink in einem zu belassen und über einen Button abzufragen: Möchtest du nur das Ergebnis sehen oder live tickern?"
 
@@ -30,29 +30,34 @@ Gesichtet am 26.11.2026 in Specs und Code:
 
 ### Folgerungen mit Empfehlung (Review A 26.11.2026: "Passt, a bis d so übernehmen")
 
-- **Name auf dem Dashboard**: Eltern erscheinen mit ihrem Namen ("Tickert: Paul"). Trainer-Handys erscheinen als "Tickert: Trainer", weil ihr Name aus Spec 015 nur für Trainer gedacht war ("Dein Name für die Trainer"); im Spielplan der Trainer bleibt der Name.
+- **Name auf dem Dashboard**: ~~Eltern erscheinen mit ihrem Namen ("Tickert: Paul"), Trainer-Handys als "Tickert: Trainer".~~ Geändert in Review B (siehe unten).
 - **Vormerkungen** ("Ich tickere", Spec 015) bleiben für Eltern unsichtbar. Gestern hätte eine Vormerkung eines Trainers, der dann nicht kommt, Eltern vom Tickern abgehalten. Sobald jemand wirklich tickert, zeigt die Karte es.
 - **Keine Historie für Eltern**: Die Eltern-Ansicht bleibt ohne Historie und ohne Ausgang in die Trainer-App (Spec 020 US5). Das Spiel bleibt auf dem Eltern-Handy gespeichert, bis die Mannschaft ihr nächstes Spiel hat; die dauerhafte Kopie entsteht auf Trainer-Handys (US5).
 - **Eltern-Spiele sind immer live**: "Nicht live senden" gibt es beim Tickern über den Zuschauer-Link nicht, das wäre der falsche Weg.
+
+### Session 2026-11-26 (Review B, Mockup)
+
+- Atti: "Den Namen der jeweiligen Person farblich kennzeichnen. Wenn es ein Trainer ist, dann ‚Trainer' und den Namen, diese beiden Wörter farblich highlighten, und dann ‚tickert bereits'. Wenn es Eltern machen, ihr Name ohne den Zusatz, z. B. ‚Babsi tickert bereits'." → Die Zeile heißt "<Name> tickert bereits", bei Trainer-Handys "Trainer <Name> tickert bereits" (ohne hinterlegten Namen "Trainer tickert bereits"), auf dem eigenen Handy "Du tickerst", nach dem Schlusspfiff "Getickert von <Name>" bzw. "Getickert von Trainer <Name>". Der Name (bei Trainern mit dem Wort "Trainer") steht farbig hervorgehoben (Markierung `rot-hell`, Schrift `ink`, fett), auch in Rückfragen ("Paul tickert bereits (1:0, 12'). Übernehmen?").
+- Folgerung: Der Name, den Trainer bei "Ich tickere" (Spec 015 US6-S2) hinterlegen, wird auf dem Dashboard für Eltern sichtbar. Die Abfrage heißt deshalb künftig "Dein Name (sehen Trainer und Eltern)"; schon hinterlegte Namen erscheinen ab dem Update. Ersetzt Folgerung a aus Review A.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ich tickere dieses Spiel (Priority: P1)
 
-Die E2 hat heute um 17:30 ein Spiel aus dem Spielplan, die Trainer sind auf einem anderen Platz. Paul hat den Zuschauer-Link aus der Elterngruppe. Auf der Karte der E2 steht "Ich tickere dieses Spiel". Er tippt darauf, gibt einmal seinen Namen ein und landet auf dem Spielbildschirm. Alle anderen sehen auf der Karte "Tickert: Paul".
+Die E2 hat heute um 17:30 ein Spiel aus dem Spielplan, die Trainer sind auf einem anderen Platz. Paul hat den Zuschauer-Link aus der Elterngruppe. Auf der Karte der E2 steht "Ich tickere dieses Spiel". Er tippt darauf, gibt einmal seinen Namen ein und landet auf dem Spielbildschirm. Alle anderen sehen auf der Karte "Paul tickert bereits".
 
 **Why this priority**: Der Kern des Wunsches. Ohne diese Story tickert niemand, wenn kein Trainer am Platz ist.
 
-**Independent Test**: Live-Spieltag mit E2 und einem Planspiel heute 17:30 gegen TSV Musterstadt. Handy P öffnet den Zuschauer-Link, tippt "Ich tickere dieses Spiel", gibt "Paul" ein, tippt "Anpfiff" und ein Tor. Handy Z (Zuschauer) zeigt die Karte E2 mit "1:0" und "Tickert: Paul".
+**Independent Test**: Live-Spieltag mit E2 und einem Planspiel heute 17:30 gegen TSV Musterstadt. Handy P öffnet den Zuschauer-Link, tippt "Ich tickere dieses Spiel", gibt "Paul" ein, tippt "Anpfiff" und ein Tor. Handy Z (Zuschauer) zeigt die Karte E2 mit "1:0" und "Paul tickert bereits".
 
 **Acceptance Scenarios**:
 
 1. **Given** eine Mannschaft mit erlaubtem Tickern, ein Spiel von heute (Planspiel, noch nicht beendet) und niemand tickert, **Then** zeigt ihre Karte auf dem Dashboard den Knopf "Ich tickere dieses Spiel" (mindestens 64 pt hoch), auch zugeklappt.
 2. **Given** das Handy hat noch keinen Ticker-Namen, **When** "Ich tickere dieses Spiel" getippt wird, **Then** fragt das Blatt "Wie heißt du?" mit dem Hinweis "Die anderen sehen, dass du tickerst.", einem Feld "Vorname" und "Weiter"; "Weiter" ist erst mit mindestens 2 Zeichen wählbar.
 3. **Given** ein Ticker-Name ist gespeichert, **When** "Ich tickere dieses Spiel" getippt wird, **Then** fragt die App "Du tickerst E2 gegen TSV Musterstadt als Paul." mit "Los geht's", "Name ändern" und "Abbrechen".
-4. **Given** "Los geht's", **Then** öffnet der Spielbildschirm mit Gegner, Heim/Gast, Trikots und Spielzeit aus dem Spielplan, vor dem Anpfiff, mit "Anpfiff" und "Spiel läuft schon" (Spec 023); das Spiel ist sofort auf dem Dashboard und alle Zuschauer sehen auf der Karte "Tickert: Paul", schon vor dem Anpfiff.
+4. **Given** "Los geht's", **Then** öffnet der Spielbildschirm mit Gegner, Heim/Gast, Trikots und Spielzeit aus dem Spielplan, vor dem Anpfiff, mit "Anpfiff" und "Spiel läuft schon" (Spec 023); das Spiel ist sofort auf dem Dashboard und alle Zuschauer sehen auf der Karte "Paul tickert bereits", schon vor dem Anpfiff.
 5. **Given** Paul tickert, **Then** verhält sich der Spielbildschirm wie bei einem Trainer (Tore, Uhr, Pfiffe, Rückgängig, Torschützen, "Teilen") mit diesen Ausnahmen: kein "Nicht live senden", keine Navigation zu Startbildschirm, Historie, Kader oder Einstellungen; statt der Navigation steht "Zurück zu Live".
-6. **Given** "Zurück zu Live" während des Spiels, **Then** zeigt das Dashboard die Karte mit "Tickert: du" und dem Knopf "Weiter tickern"; das Spiel läuft weiter.
+6. **Given** "Zurück zu Live" während des Spiels, **Then** zeigt das Dashboard die Karte mit "Du tickerst" und dem Knopf "Weiter tickern"; das Spiel läuft weiter.
 7. **Given** der Schlusspfiff, **Then** bietet der Spielbildschirm "Ergebnis teilen" und "Zurück zu Live"; die Karte zeigt den Endstand und "Getickert von Paul".
 8. **Given** niemand tickert für die Mannschaft, aber ein früheres Spiel von heute ist beendet, **Then** erscheint "Ich tickere dieses Spiel" für das nächste nicht beendete Planspiel von heute; gibt es keins, erscheint der Knopf nicht (siehe US3).
 
@@ -60,20 +65,20 @@ Die E2 hat heute um 17:30 ein Spiel aus dem Spielplan, die Trainer sind auf eine
 
 ### User Story 2 - Sehen, wer tickert, und übernehmen (Priority: P1)
 
-Mama von Ben kommt zehn Minuten später an den Platz und öffnet den Link. Die Karte zeigt "Tickert: Paul" und den Stand, also weiß sie sofort, dass sie nichts tun muss. Muss Paul gehen, übernimmt sie mit einem Tipp und Rückfrage; Paul sieht, dass sie übernommen hat.
+Mama von Ben kommt zehn Minuten später an den Platz und öffnet den Link. Die Karte zeigt "Paul tickert bereits" und den Stand, also weiß sie sofort, dass sie nichts tun muss. Muss Paul gehen, übernimmt sie mit einem Tipp und Rückfrage; Paul sieht, dass sie übernommen hat.
 
 **Why this priority**: Ohne sichtbaren Ticker fangen zwei Eltern gleichzeitig an, und das Dashboard zeigt zwei Spiele.
 
-**Independent Test**: Handy P tickert E2 (1:0, 12'). Handy M öffnet den Zuschauer-Link: Karte E2 zeigt "Tickert: Paul", kein "Ich tickere dieses Spiel". M klappt die Karte auf, tippt "Spiel übernehmen", bestätigt als "Anna" und erfasst ein Tor. Dashboard zeigt eine Karte mit 2:0 und "Tickert: Anna", P zeigt "Anna tickert jetzt E2."
+**Independent Test**: Handy P tickert E2 (1:0, 12'). Handy M öffnet den Zuschauer-Link: Karte E2 zeigt "Paul tickert bereits", kein "Ich tickere dieses Spiel". M klappt die Karte auf, tippt "Spiel übernehmen", bestätigt als "Anna" und erfasst ein Tor. Dashboard zeigt eine Karte mit 2:0 und "Anna tickert bereits", P zeigt "Anna tickert jetzt E2."
 
 **Acceptance Scenarios**:
 
-1. **Given** jemand tickert ein Spiel der Mannschaft, **Then** zeigt die Karte für alle Zuschauer "Tickert: <Name>" (Eltern) bzw. "Tickert: Trainer" (Trainer-Handy), zugeklappt und aufgeklappt, und keinen Knopf "Ich tickere dieses Spiel".
+1. **Given** jemand tickert ein Spiel der Mannschaft, **Then** zeigt die Karte für alle Zuschauer "<Name> tickert bereits" (Eltern) bzw. "Trainer <Name> tickert bereits" (Trainer-Handy; ohne Namen "Trainer tickert bereits"), Name bzw. "Trainer <Name>" farbig hervorgehoben, zugeklappt und aufgeklappt, und keinen Knopf "Ich tickere dieses Spiel".
 2. **Given** jemand tickert und das Tickern ist für die Mannschaft erlaubt, **Then** steht in der aufgeklappten Karte der Zweitknopf "Spiel übernehmen".
-3. **Given** "Spiel übernehmen", **Then** fragt die App "Paul tickert gerade (1:0, 12'). Übernehmen? Paul sieht, dass du übernommen hast." mit "Übernehmen" und "Abbrechen" (ggf. vorher die Namensfrage aus US1-S2).
-4. **Given** "Übernehmen", **Then** öffnet der Spielbildschirm das laufende Spiel mit Stand, Uhr, Toren und Torschützen wie in Spec 006 US6-S2; ab dann zählt nur dieses Handy, die Karte zeigt "Tickert: Anna" ohne Sprung im Stand.
+3. **Given** "Spiel übernehmen", **Then** fragt die App "Paul tickert bereits (1:0, 12'). Übernehmen? Paul sieht, dass du übernommen hast." mit "Übernehmen" und "Abbrechen" (ggf. vorher die Namensfrage aus US1-S2).
+4. **Given** "Übernehmen", **Then** öffnet der Spielbildschirm das laufende Spiel mit Stand, Uhr, Toren und Torschützen wie in Spec 006 US6-S2; ab dann zählt nur dieses Handy, die Karte zeigt "Anna tickert bereits" ohne Sprung im Stand.
 5. **Given** Anna hat übernommen, **When** Pauls Handy wieder etwas empfängt, **Then** zeigt es "Anna tickert jetzt E2. Hier wird nur noch lokal erfasst." und sendet nichts mehr; spätere Meldungen von Paul ändern das Dashboard nicht (wie Spec 006 US6-S3).
-6. **Given** zwei Handys tippen innerhalb weniger Sekunden "Los geht's" für dasselbe Spiel, **Then** zählt das erste, das beim Dienst ankommt; das zweite zeigt spätestens nach 3 Sekunden "Paul tickert dieses Spiel schon." mit "Zuschauen" (Hauptknopf) und "Übernehmen".
+6. **Given** zwei Handys tippen innerhalb weniger Sekunden "Los geht's" für dasselbe Spiel, **Then** zählt das erste, das beim Dienst ankommt; das zweite zeigt spätestens nach 3 Sekunden "Paul tickert bereits." mit "Zuschauen" (Hauptknopf) und "Übernehmen".
 7. **Given** ein Trainer-Handy tickert, **When** ein Elternteil "Spiel übernehmen" bestätigt, **Then** gilt dasselbe wie in S4 und S5; das Trainer-Handy zeigt "Anna tickert jetzt E2." und kann über "Spiel übernehmen" (Karte auf "Live für Eltern" oder Spec 006 US6) zurückholen.
 8. **Given** seit mindestens 5 Minuten keine Meldung vom tickernden Handy bei laufendem Spiel (Spec 020 US4), **Then** heißt der Zweitknopf "Weiter tickern" und die Rückfrage "Von Paul kommt seit 7 Min nichts. Übernehmen?".
 
@@ -85,13 +90,13 @@ Das Nachholspiel steht nicht im Spielplan. Unten auf dem Dashboard steht "Spiel 
 
 **Why this priority**: Genau der Fall von gestern. Ohne ihn hilft US1 nur bei Spielen, die ein Trainer vorher eingetragen hat.
 
-**Independent Test**: Live-Spieltag mit E1 und E2, kein Planspiel heute. Handy P tippt "Spiel fehlt? Selbst tickern", wählt E2, gibt "SV Beispielstadt" ein, schaltet "Spiel läuft schon" ein, tippt "Weiter zum Anpfiff", stellt "2. Halbzeit", "Noch 10 Min", 1:1 ein. Dashboard zeigt Karte E2 mit 1:1, laufender Minute und "Tickert: Paul".
+**Independent Test**: Live-Spieltag mit E1 und E2, kein Planspiel heute. Handy P tippt "Spiel fehlt? Selbst tickern", wählt E2, gibt "SV Beispielstadt" ein, schaltet "Spiel läuft schon" ein, tippt "Weiter zum Anpfiff", stellt "2. Halbzeit", "Noch 10 Min", 1:1 ein. Dashboard zeigt Karte E2 mit 1:1, laufender Minute und "Paul tickert bereits".
 
 **Acceptance Scenarios**:
 
 1. **Given** mindestens eine Mannschaft mit erlaubtem Tickern, **Then** steht unten auf dem Dashboard (über der Fußzeile) der Textknopf "Spiel fehlt? Selbst tickern".
 2. **Given** "Spiel fehlt? Selbst tickern", **Then** öffnet "Neues Spiel" in der Eltern-Fassung: "Mannschaft" (nur Mannschaften mit erlaubtem Tickern; bei genau einer vorgewählt), "Gegner", Heim/Gast, Trikots, Spielzeit, Schalter "Spiel läuft schon" (Spec 023) und "Weiter zum Anpfiff"; ohne Spielplan-Auswahl, ohne "Live aufs Dashboard" (immer an).
-3. **Given** die gewählte Mannschaft wird gerade getickert, **When** "Weiter zum Anpfiff" getippt wird, **Then** fragt die App wie in US2-S6 ("Paul tickert … schon.") mit "Zuschauen", "Übernehmen" und "Trotzdem neues Spiel" (z. B. zweites Spiel am Turniertag).
+3. **Given** die gewählte Mannschaft wird gerade getickert, **When** "Weiter zum Anpfiff" getippt wird, **Then** fragt die App wie in US2-S6 ("Paul tickert bereits.") mit "Zuschauen", "Übernehmen" und "Trotzdem neues Spiel" (z. B. zweites Spiel am Turniertag).
 4. **Given** das Spiel ist angelegt, **Then** gilt alles aus US1-S4 bis S7; das Spiel erscheint auf dem Dashboard als Karte der Mannschaft, im Spielplan der Trainer erscheint es nicht.
 5. **Given** der Ticker-Name fehlt, **Then** kommt die Namensfrage aus US1-S2 vor "Neues Spiel".
 
@@ -139,7 +144,7 @@ Nach dem Schlusspfiff des Nachholspiels öffnet Atti den Torticker. Oben steht "
 - **Zuschauer-Link weitergeleitet** (Großeltern, Gegner): Jeder mit Link kann tickern und, solange Eltern tickern dürfen, den geteilten Kader lesen. Abhilfe: Name ist sichtbar, Trainer übernehmen oder schalten "Eltern dürfen tickern" aus; als letztes Mittel "Alle Links neu ausstellen" (Spec 006 US5).
 - **Kader nicht geteilt**: Hat kein Trainer den Kader dieser Mannschaft geteilt (Spec 016 US1), wählen Eltern Torschützen wie ohne Kader (Name frei eingeben oder leer lassen, Spec 003); die App zeigt keinen Hinweis darauf.
 - **Ausgeschalteter Schalter und schon geladener Kader**: Ein Kader, den ein Zuschauer-Handy schon geladen hat, lässt sich nicht zurückholen; er wird beim Ausschalten auf den Zuschauer-Handys gelöscht, sobald sie es erfahren.
-- **WhatsApp-Browser geschlossen**: Wird der Link in einem eingebetteten Browser geöffnet und das Fenster mitten im Spiel geschlossen, kann das lokale Spiel weg sein. Beim erneuten Öffnen zeigt die Karte "Tickert: du" mit "Weiter tickern"; das übernimmt den letzten gesendeten Stand wie "Spiel übernehmen" ohne Rückfrage.
+- **WhatsApp-Browser geschlossen**: Wird der Link in einem eingebetteten Browser geöffnet und das Fenster mitten im Spiel geschlossen, kann das lokale Spiel weg sein. Beim erneuten Öffnen zeigt die Karte "Du tickerst" mit "Weiter tickern"; das übernimmt den letzten gesendeten Stand wie "Spiel übernehmen" ohne Rückfrage.
 - **Kein Netz beim Eltern-Handy**: Ohne Netz zeigt das Dashboard keinen Ticker-Knopf (die App weiß nicht, ob schon jemand tickert). Bricht das Netz während des Tickerns ab, geht die Erfassung lokal weiter und sendet nach, wie bei Trainern (Spec 006 US2).
 - **Handy ist Trainer- und Zuschauer-Handy**: Ein Trainer-Handy tickert immer als Trainer; die Eltern-Wege erscheinen dort nicht.
 - **Zwei Spiele derselben Mannschaft am Tag** (Turnier): "Ich tickere dieses Spiel" gilt dem nächsten nicht beendeten Planspiel; "Trotzdem neues Spiel" (US3-S3) erlaubt ein weiteres.
@@ -160,7 +165,8 @@ Nach dem Schlusspfiff des Nachholspiels öffnet Atti den Torticker. Oben steht "
 **Dashboard und Sichtbarkeit**
 
 - **FR-E05**: Die Karte einer Mannschaft MUSS "Ich tickere dieses Spiel" zeigen, wenn das Tickern erlaubt ist, das Handy Netz hat, niemand tickert und es heute ein nicht beendetes Planspiel gibt (US1-S1, US1-S8).
-- **FR-E06**: Tickert jemand, MUSS die Karte für alle Betrachter "Tickert: <Name>" bzw. "Tickert: Trainer" zeigen, auf dem eigenen Handy "Tickert: du"; nach dem Schlusspfiff "Getickert von <Name>" (US1-S7, US2-S1).
+- **FR-E06**: Tickert jemand, MUSS die Karte für alle Betrachter "<Name> tickert bereits" bzw. "Trainer <Name> tickert bereits" (ohne Namen "Trainer tickert bereits") zeigen, auf dem eigenen Handy "Du tickerst"; nach dem Schlusspfiff "Getickert von <Name>" bzw. "Getickert von Trainer <Name>". Der Name, bei Trainern mit "Trainer", ist farbig hervorgehoben, auch in Rückfragen (US1-S7, US2-S1, US2-S3).
+- **FR-E06a**: Die Namensabfrage für Trainer (Spec 015 US6-S2) MUSS "Dein Name (sehen Trainer und Eltern)" heißen.
 - **FR-E07**: Das Dashboard MUSS "Spiel fehlt? Selbst tickern" zeigen, solange mindestens eine Mannschaft Tickern erlaubt (US3-S1).
 - **FR-E08**: Vormerkungen aus Spec 015 US6 bleiben auf dem Dashboard unsichtbar.
 
@@ -198,7 +204,7 @@ Nach dem Schlusspfiff des Nachholspiels öffnet Atti den Torticker. Oben steht "
 
 - **Ticker-Recht**: Fähigkeit eines Zuschauer-Links, für Mannschaften mit erlaubtem Tickern zu senden; kein eigener Link.
 - **Eltern-Ticker-Schalter**: je Mannschaft "Eltern dürfen tickern" (an/aus), Teil der Konfiguration des Live-Spieltags, nur von Trainer-Handys änderbar.
-- **Ticker-Name**: Vorname des tickernden Elternteils, auf dem Gerät gespeichert, mit jeder Meldung des Spiels übertragen; Trainer-Handys melden "Trainer".
+- **Ticker-Name**: Vorname des tickernden Elternteils, auf dem Gerät gespeichert, mit jeder Meldung des Spiels übertragen; Trainer-Handys melden "Trainer" und den bei "Ich tickere" hinterlegten Namen (Spec 015).
 - **Übernahme-Frage**: je beendetem Eltern-Spiel und Trainer-Handy offen, übernommen oder abgelehnt.
 
 ## Hilfe *(mandatory)*
@@ -208,13 +214,13 @@ Einträge in `src/domain/help-entries.ts`; Bezeichnungen wörtlich wie in der Ap
 | Eintrag | Änderung | Quelle |
 |---|---|---|
 | neu `eltern-tickern` "Wie tickere ich ein Spiel als Elternteil?" (für Eltern, Thema Live-Spieltag) | Auf der Karte "Ich tickere dieses Spiel", einmal "Wie heißt du?" (nur dein Vorname, kein Kindername), dann wie gewohnt Tore tippen. Fehlt das Spiel: unten "Spiel fehlt? Selbst tickern". Läuft das Spiel schon: "Spiel läuft schon". "Zurück zu Live" und "Weiter tickern" | 024 US1, 024 US3 |
-| neu `wer-tickert` "Wie sehe ich, ob schon jemand tickert?" (für Eltern) | "Tickert: Paul" auf der Karte; "Spiel übernehmen" mit Rückfrage; "Weiter tickern", wenn seit 5 Min nichts kommt; was das abgelöste Handy sieht | 024 US2 |
+| neu `wer-tickert` "Wie sehe ich, ob schon jemand tickert?" (für Eltern) | "Paul tickert bereits" bzw. "Trainer Atti tickert bereits" auf der Karte, "Du tickerst" auf dem eigenen Handy; "Spiel übernehmen" mit Rückfrage; "Weiter tickern", wenn seit 5 Min nichts kommt; was das abgelöste Handy sieht | 024 US2 |
 | neu `eltern-tickern-aus` "Wie verhindere ich, dass Eltern tickern?" (Trainer) | "Mehr" → "Live für Eltern" → "Für Trainer" → "Eltern dürfen tickern" je Mannschaft; was Eltern dann sehen | 024 US4 |
 | neu `eltern-spiel-uebernehmen` "Wie kommt ein Spiel, das Eltern getickert haben, in meine Historie?" (Trainer) | Karte auf dem Startbildschirm, "Übernehmen" bzw. "Nein danke"; "Getickert von …" in den Spieldetails | 024 US5 |
 | `spiel-uebernehmen` | geändert: auch über "Spiel übernehmen" auf der Karte; Eltern können übernehmen, Trainer holen zurück | 006 US6, 024 US2 |
-| `eltern-dashboard` | geändert: ergänzt "Tickert: …" auf der Karte und den Verweis auf `eltern-tickern` | 006 US3, 024 US1 |
+| `eltern-dashboard` | geändert: ergänzt "… tickert bereits" auf der Karte und den Verweis auf `eltern-tickern` | 006 US3, 024 US1 |
 | `trainer-kader`, `datenschutz` | geändert: "Eltern sehen die Kader nicht" wird zu "Eltern sehen geteilte Kader nur beim Tickern, solange „Eltern dürfen tickern“ an ist"; Ticker-Name geht verschlüsselt mit dem Spiel an den Dienst | 016 US1, 024 FR-E22, 024 FR-E23 |
-| `spiel-vormerken` | geändert: ergänzt "Eltern sehen Vormerkungen nicht; tickert niemand, können Eltern einspringen." | 015 US6, 024 FR-E08 |
+| `spiel-vormerken` | geändert: ergänzt "Eltern sehen Vormerkungen nicht; tickert niemand, können Eltern einspringen." und "Deinen Namen sehen Trainer und Eltern, wenn du tickerst (z. B. „Trainer Atti tickert bereits“)." | 015 US6, 024 FR-E08, 024 FR-E06a |
 
 Kein Eintrag entfällt. Die Eltern-Hilfe hat danach elf Einträge (bisher neun).
 
@@ -223,7 +229,7 @@ Kein Eintrag entfällt. Die Eltern-Hilfe hat danach elf Einträge (bisher neun).
 ### Measurable Outcomes
 
 - **SC-E01**: Ein Elternteil kommt vom geöffneten Zuschauer-Link in höchstens 3 Tipps plus Namenseingabe (nur beim ersten Mal) zum Spielbildschirm eines Planspiels, in höchstens 5 Tipps plus Gegnername zu einem Spiel ohne Spielplan.
-- **SC-E02**: "Tickert: <Name>" erscheint auf anderen Handys mit Netz spätestens 10 Sekunden nach "Los geht's".
+- **SC-E02**: "<Name> tickert bereits" erscheint auf anderen Handys mit Netz spätestens 10 Sekunden nach "Los geht's".
 - **SC-E03**: Zwei gleichzeitige Starts für dasselbe Spiel führen in 100 % der Testfälle zu genau einer Karte auf dem Dashboard.
 - **SC-E04**: Nach dem Ausschalten von "Eltern dürfen tickern" ändert keine Meldung eines Zuschauer-Handys dieser Mannschaft mehr das Dashboard (Test mit verzögerter Meldung).
 - **SC-E05**: Ein übernommenes Eltern-Spiel in der Trainer-Historie stimmt in Endstand, Halbzeitstand, Torzahl, Minuten und Torschützen mit dem Eltern-Handy überein.
