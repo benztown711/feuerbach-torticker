@@ -614,9 +614,9 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie bekommen Trainerkollegen die Kader?',
     answer:
-      'Beim ersten Tippen auf „Trainer-Link teilen“ fragt die App „Kader mit den Trainern teilen?“; die Kader sind angekreuzt, „Teilen“ teilt sie. Unter „Kader“ zeigt der Schalter „Mit Trainern geteilt“, ob der angezeigte Kader geteilt ist. Wer den Trainer-Link einfügt, bekommt die geteilten Kader automatisch, auch wer schon gekoppelt ist. Ein neues Kind, eine neue Rückennummer oder ein gelöschtes Kind ist in wenigen Sekunden auf allen Trainer-Handys, ohne erneutes Einfügen. Auch der Kader einer Mannschaft gilt für alle. Eltern sehen die Kader nicht.',
+      'Beim ersten Tippen auf „Trainer-Link teilen“ fragt die App „Kader mit den Trainern teilen?“; die Kader sind angekreuzt, „Teilen“ teilt sie. Unter „Kader“ zeigt der Schalter „Mit Trainern geteilt“, ob der angezeigte Kader geteilt ist. Wer den Trainer-Link einfügt, bekommt die geteilten Kader automatisch, auch wer schon gekoppelt ist. Ein neues Kind, eine neue Rückennummer oder ein gelöschtes Kind ist in wenigen Sekunden auf allen Trainer-Handys, ohne erneutes Einfügen. Eltern sehen geteilte Kader nur, wenn sie ein Spiel tickern (für die Torschützen).',
     keywords: 'kader teilen trainer kollegen geteilt abgleich automatisch mit trainern geteilt schalter neues kind',
-    sources: ['016 US1', '016 US2', '016 US3'],
+    sources: ['016 US1', '016 US2', '016 US3', '024 FR-E22'],
     open: { label: 'Kader', path: '/kader' },
     related: ['trainer-link', 'kader-liste'],
   },
@@ -666,9 +666,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie übernehme ich ein Spiel, das schon ein anderes Handy überträgt?',
     answer:
-      'Tickert ein anderes Handy gerade ein Spiel, steht auf dem Startbildschirm etwa „E2 übernehmen“ mit Stand und Minute, auch bei leerem Akku des anderen Handys. Antippen und „Spiel übernehmen“ bestätigen: Gegner, Uhr und Tore kommen mit, ab dann sendest nur du. Legst du unter „Neues Spiel“ ein Spiel derselben Mannschaft an, fragt die App ebenfalls nach; „Nur hier erfassen (nicht live)“ zählt nur für dich mit.',
-    keywords: 'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang',
-    sources: ['006 US6', '018 US2'],
+      'Tickert ein anderes Handy gerade ein Spiel, steht auf dem Startbildschirm etwa „E2 übernehmen“ mit Stand und Minute, auch bei leerem Akku des anderen Handys. Antippen und „Spiel übernehmen“ bestätigen: Gegner, Uhr und Tore kommen mit, ab dann sendest nur du. Legst du unter „Neues Spiel“ ein Spiel derselben Mannschaft an, fragt die App ebenfalls nach; „Nur hier erfassen (nicht live)“ zählt nur für dich mit. Auch Eltern können über ihren Link einspringen („Paul tickert bereits“); du holst das Spiel genauso zurück.',
+    keywords:
+      'übernehmen übergabe doppelt zwei handys trainer wechseln gehen früher warten langsam empfang eltern zurückholen',
+    sources: ['006 US6', '018 US2', '024 US2'],
     related: ['live-senden', 'trainer-link', 'spiele-verfolgen'],
   },
   {
@@ -704,7 +705,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie sage ich an, dass ich ein Spiel tickere?',
     answer:
-      'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei.',
+      'Tippe im „Spielplan“ auf das Spiel und wähle „Ich tickere“. Nach der Bestätigung sehen alle Trainer-Handys „Tickert:“ mit deinem Vornamen; beim ersten Mal fragt die App danach (ändern in den Einstellungen), ohne Namen steht „vergeben“. Am Spieltag steht das Spiel oben auf deinem Startbildschirm unter „Heute tickerst du“: ein Tipp, dann „Weiter zum Anpfiff“. Will ein anderer Trainer übernehmen, fragt die App nach. „Nicht mehr tickern“ gibt das Spiel frei. Eltern sehen Vormerkungen nicht, beim Tickern aber „Trainer Atti tickert bereits“.',
     steps: [
       '„Mehr“, „Live für Eltern“, „Für Trainer“, „Spielplan“ öffnen.',
       'Das Spiel antippen und „Ich tickere“ wählen.',
@@ -712,7 +713,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     ],
     keywords:
       'vormerken tickern lead handy wer tickert übernehmen zuständig ankündigen reservieren startbildschirm heute tickerst du name vergeben',
-    sources: ['015 US6'],
+    sources: ['015 US6', '024 FR-E06a', '024 FR-E08'],
     open: { label: 'Live für Eltern', path: '/live-spieltag' },
     related: ['spielplan', 'spiel-aus-plan'],
   },
@@ -771,12 +772,40 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Wie verfolge ich die Spiele als Elternteil?',
     answer:
-      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Ein laufendes Spiel zeigt, wann es zuletzt aktualisiert wurde. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Aufklappen, und „Vergangene Spiele“ mit Endstand. Ganz unten stehen „Letzte Spiele“ mit früheren Ergebnissen. Steht „heute noch kein Spiel“, hat der Trainer noch nichts gesendet.',
+      'Öffne den Link aus der Elterngruppe. Je Mannschaft siehst du eine Karte: das laufende Spiel mit Stand und Minute, sonst das heutige oder nächste Spiel mit Anstoß bzw. das letzte Ergebnis mit „Nächstes Spiel“ darunter; die Seite aktualisiert sich von selbst. Ein laufendes Spiel zeigt, wann es zuletzt aktualisiert wurde. Tippe auf ein Spiel für Tore und Details. Darunter steht der „Spielplan“ ab morgen, nach Datum zum Aufklappen, und „Vergangene Spiele“ mit Endstand. Ganz unten: „Letzte Spiele“. Steht „heute noch kein Spiel“, hat noch niemand gesendet. Unter dem Stand steht, wer tickert.',
     keywords:
-      'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse letzte spiele',
-    sources: ['006 US3', '012 US5', '015 US3', '015 US7', '007 US3', '020 US4'],
+      'eltern zuschauen verfolgen dashboard link spieltag live kein spiel nächstes spiel anstoß uhrzeit spielplan termine vergangene ergebnisse letzte spiele tickert bereits',
+    sources: ['006 US3', '012 US5', '015 US3', '015 US7', '007 US3', '020 US4', '024 US1'],
     parents: true,
-    related: ['eltern-home', 'letzte-spiele', 'keine-verbindung'],
+    related: ['eltern-tickern', 'letzte-spiele', 'keine-verbindung'],
+  },
+  {
+    id: 'eltern-tickern',
+    topic: 'live',
+    title: 'Wie tickere ich ein Spiel als Elternteil?',
+    answer:
+      "Ist kein Trainer am Platz, tippe auf der Karte der Mannschaft auf „Ich tickere dieses Spiel“. Beim ersten Mal fragt die App „Wie heißt du?“: nur dein Vorname, kein Kindername. Nach „Los geht's“ tippst du wie gewohnt „Anpfiff“ und die Tore; nach einem Tor wählst du den Torschützen aus dem Kader. Läuft das Spiel schon, tippe „Spiel läuft schon“. Fehlt das Spiel (z. B. ein Nachholspiel), tippe unten auf „Spiel fehlt? Selbst tickern“, wähle die Mannschaft und gib den Gegner ein. „Zurück zu Live“ führt zum Dashboard, „Weiter tickern“ wieder ins Spiel.",
+    steps: [
+      'Auf der Karte „Ich tickere dieses Spiel“ tippen (oder unten „Spiel fehlt? Selbst tickern“).',
+      'Beim ersten Mal deinen Vornamen eingeben, „Weiter“.',
+      "„Los geht's“, dann „Anpfiff“ oder „Spiel läuft schon“.",
+    ],
+    keywords:
+      'eltern tickern selbst einspringen kein trainer nachholspiel spiel fehlt ich tickere dieses spiel name vorname torschütze kader weiter tickern zurück zu live',
+    sources: ['024 US1', '024 US3'],
+    parents: true,
+    related: ['wer-tickert', 'eltern-dashboard'],
+  },
+  {
+    id: 'wer-tickert',
+    topic: 'live',
+    title: 'Wie sehe ich, ob schon jemand tickert?',
+    answer:
+      'Auf der Karte steht unter dem Stand, wer tickert, etwa „Paul tickert bereits“ oder „Trainer Atti tickert bereits“; auf deinem Handy „Du tickerst“. Dann musst du nichts tun. Muss Paul gehen, tippe auf die Karte und auf „Spiel übernehmen“: Nach der Rückfrage tickerst du mit Stand, Uhr und Toren weiter, und Paul sieht „Anna tickert jetzt E2“. Kommt seit 5 Minuten nichts mehr, heißt der Knopf „Weiter tickern“. Startet jemand kurz vor dir, fragt die App „Paul tickert bereits.“ mit „Zuschauen“ und „Übernehmen“.',
+    keywords: 'wer tickert schon bereits übernehmen spiel übernehmen doppelt zwei handys eltern weiter tickern',
+    sources: ['024 US2'],
+    parents: true,
+    related: ['eltern-tickern', 'eltern-dashboard'],
   },
   {
     id: 'letzte-spiele',
@@ -946,10 +975,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'datenschutz',
     title: 'Welche Daten verlassen mein Handy?',
     answer:
-      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Dann gehen Mannschaften, Spielplan und Spielstände verschlüsselt an einen eigenen Dienst des Vereins bei Cloudflare (Gratis-Plan, ohne Konto). Er kann nichts davon lesen, hebt je Mannschaft die letzten 10 Spiele auf und löscht alles nach einem Jahr ohne Meldung oder beim Neu-Ausstellen der Links. Kader, Karten und Lesezeichen bleiben auf dem Handy, außer Trainer teilen Kader: Die lesen nur Handys mit Trainer-Link, Eltern nicht.',
+      'Keine, solange du nichts teilst. Daten gehen nur weg, wenn du selbst teilst oder sicherst oder ein Live-Spieltag läuft. Dann gehen Mannschaften, Spielplan und Spielstände verschlüsselt an einen eigenen Dienst des Vereins bei Cloudflare (Gratis-Plan, ohne Konto). Er kann nichts davon lesen, hebt je Mannschaft die letzten 10 Spiele auf und löscht alles nach einem Jahr ohne Meldung oder beim Neu-Ausstellen der Links. Kader, Karten und Lesezeichen bleiben auf dem Handy, außer Trainer teilen Kader: Die lesen Trainer und Eltern, die tickern. Der Vorname des Tickers geht verschlüsselt mit.',
     keywords:
       'datenschutz daten privat verschlüsselt server tracking cloudflare dienst speichern löschen kader trainer',
-    sources: ['006 US2', '007 FR-N05', '007 FR-N12', '016 FR-B05'],
+    sources: ['006 US2', '007 FR-N05', '007 FR-N12', '016 FR-B05', '024 FR-E22', '024 FR-E23'],
     parents: true,
     related: ['eltern-teilen'],
   },

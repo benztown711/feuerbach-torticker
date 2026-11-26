@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
@@ -10,13 +11,26 @@ import {
   shownFreshness,
   planSection,
   type BoardCard,
+  type BoardEntry,
   type PlanRow,
   type PlanSection,
   type RecentTeam,
 } from '../../domain/live-board';
 import { linkUrl, parseLinkPath, viewerShareText } from '../../domain/live-link';
 import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
-import type { LiveConfig, ViewerLink } from '../../domain/types';
+import { allowedTeams, tickerLine, type TickerLine } from '../../domain/live-parent';
+import type { LiveConfig, PlanEntry, ViewerLink } from '../../domain/types';
+import {
+  busyWith,
+  canTick,
+  isTrainerDevice,
+  ownLiveIds,
+  saveTickerName,
+  startPlanned,
+  takeOver,
+  tickerName,
+} from '../../platform/parent-ticker';
+import { BusySheet, ConfirmSheet, NameSheet, TakeoverSheet, TickerText } from '../components/ticker-sheets';
 import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
@@ -55,6 +69,15 @@ function NoSignal() {
   );
 }
 
+/** Spec 024: Stift vor "… tickert bereits", nur Schmuck. */
+function Pen() {
+  return (
+    <svg class="dash-ticker__icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" />
+    </svg>
+  );
+}
+
 function Chevron() {
   return (
     <svg class="dash-card__chev" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
@@ -84,6 +107,9 @@ function Card({
   flash,
   offline,
   onToggle,
+  line = null,
+  action = null,
+  takeover = null,
 }: {
   card: BoardCard;
   open: boolean;
@@ -91,6 +117,12 @@ function Card({
   /** FR-E64: ohne eigene Verbindung keine Aktualität auf der Karte. */
   offline: boolean;
   onToggle: () => void;
+  /** Spec 024 FR-E06: "Paul tickert bereits". */
+  line?: TickerLine | null;
+  /** Spec 024: "Ich tickere dieses Spiel" bzw. "Weiter tickern", auch zugeklappt. */
+  action?: ComponentChildren;
+  /** Spec 024 US2-S2: "Spiel übernehmen", nur aufgeklappt. */
+  takeover?: ComponentChildren;
 }) {
   const k = card.key;
   // Tabellenzeilen (Nachtrag 07.11.2026): Heim oben, Gast darunter, Tore rechts; ein Planspiel hat keinen Stand.
@@ -156,11 +188,20 @@ function Card({
         <Chevron />
       </button>
       {/* Spec 015 FR-P14: "Danach" bzw. "Nächstes Spiel" ohne Aufklappen. */}
-      {card.lines.map((line) => (
-        <p key={line} class="dash-card__line" data-testid={`dash-line-${k}`}>
-          {line}
+      {card.lines.map((l) => (
+        <p key={l} class="dash-card__line" data-testid={`dash-line-${k}`}>
+          {l}
         </p>
       ))}
+      {line && (
+        <p class="dash-ticker" data-testid={`dash-ticker-${k}`}>
+          <Pen />
+          <span>
+            <TickerText line={line} />
+          </span>
+        </p>
+      )}
+      {action && <div class="dash-card__act">{action}</div>}
       {open && (
         <div class="dash-card__details" id={`dash-details-${k}`} data-testid={`dash-details-${k}`}>
           <p class="dash-card__info">{card.info}</p>
@@ -193,6 +234,7 @@ function Card({
               {card.earlier}
             </p>
           )}
+          {takeover}
         </div>
       )}
     </article>
@@ -461,6 +503,7 @@ export function Dashboard({
   hidden = false,
   onInfo,
   adopt = false,
+  parentPath,
 }: {
   view: View;
   inApp: boolean;
@@ -471,6 +514,8 @@ export function Dashboard({
   hidden?: boolean;
   /** Titel und Mannschaften für "Teilen" in der Eltern-Leiste (FR-H17). */
   onInfo?: (info: { title: string; teams: string[] }) => void;
+  /** Spec 024: Pfad des Zuschauer-Links; Eltern können darüber tickern. */
+  parentPath?: string;
 }) {
   const receiver = useMemo(
     () =>
@@ -534,6 +579,7 @@ export function Dashboard({
   const title = v.title ?? (view.title || DEFAULT_LIVE_TITLE);
   const teamsKey = v.teams.join('|');
   useEffect(() => onInfo?.({ title, teams: v.teams }), [title, teamsKey]);
+  const ticker = useTicker(view, state, serverNow, parentPath);
   const toggle = (key: string): void =>
     setOpen((s) => {
       const n = new Set(s);
@@ -615,6 +661,9 @@ export function Dashboard({
                 flash={flash.has(c.gameId)}
                 offline={state.relay === 'offline'}
                 onToggle={() => toggle(c.key)}
+                line={ticker.line(c)}
+                action={ticker.action(c)}
+                takeover={ticker.takeover(c)}
               />
             ))}
             {/* Spec 012 FR-S30: Mannschaften ohne Spiel als schlichte Zeile unter den Karten. */}
@@ -628,6 +677,7 @@ export function Dashboard({
             ))}
           </div>
         )}
+        {ticker.missing}
         <DashPlan section={plan} />
         <DashRecent recent={v.recent} />
         <footer class="dash__foot" data-testid="dash-foot">
@@ -640,6 +690,7 @@ export function Dashboard({
           )}
         </footer>
       </main>
+      {ticker.sheet}
       {/* FR-E23: außerhalb von `main`, damit die Ansage auch bei offener Eltern-Hilfe (main verborgen) gelesen wird. */}
       <div class="visually-hidden" aria-live="polite" aria-atomic="true" data-testid="dash-goal-announce">
         {announcement}
@@ -701,7 +752,7 @@ export function ViewerScreen({
   };
   return (
     <>
-      <Dashboard view={link.view} inApp={false} hidden={help} onInfo={setInfo} />
+      <Dashboard view={link.view} inApp={false} hidden={help} onInfo={setInfo} parentPath={path} />
       {help && <HelpView mode="parents" base={`${path}/hilfe`} entryId={entry} />}
       <ViewerNav active={help ? 'help' : 'dash'} base={path} onShare={() => void share()} />
       {msg && (
@@ -738,4 +789,194 @@ export function AppDashboardScreen() {
     );
   }
   return <Dashboard view={view.view} config={view.config} adopt={view.adopt} inApp />;
+}
+
+type TickerSheet =
+  | { kind: 'name'; then: (name: string) => void }
+  | { kind: 'confirm'; entry: PlanEntry; name: string }
+  | { kind: 'takeover'; entry: BoardEntry; card: BoardCard; name: string }
+  | { kind: 'busy'; entry: BoardEntry };
+
+/**
+ * Spec 024 US1, US2: "… tickert bereits" auf allen Karten; in der Eltern-Ansicht (nicht auf Trainer-Handys)
+ * "Ich tickere dieses Spiel", "Weiter tickern", "Spiel übernehmen" und "Spiel fehlt? Selbst tickern".
+ */
+function useTicker(view: View, state: ReceiverState, serverNow: number, parentPath?: string) {
+  const board = state.board;
+  const [own, setOwn] = useState<string[]>([]);
+  const [trainer, setTrainer] = useState(true);
+  const [me, setMe] = useState('');
+  const [sheet, setSheet] = useState<TickerSheet | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let alive = true;
+    void Promise.all([ownLiveIds(), isTrainerDevice(), tickerName()])
+      .then(([ids, t, name]) => {
+        if (!alive) return;
+        setOwn(ids);
+        setTrainer(t);
+        setMe(name);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [board]);
+  const parent = !!parentPath && !trainer;
+  const go = (id: string): void => navigate(`${parentPath}/spiel/${id}`);
+  const fail = (e: unknown): void => {
+    setSheet(null);
+    setError(e instanceof Error ? e.message : 'Das hat nicht geklappt.');
+  };
+  const needName = (then: (name: string) => void): void => {
+    setError('');
+    if (me) then(me);
+    else setSheet({ kind: 'name', then });
+  };
+  const entryOf = (c: BoardCard): BoardEntry | undefined =>
+    board.games.find((e) => e.snap.team === c.key && e.snap.gameId === c.gameId);
+  const isOwn = (c: BoardCard): boolean => c.group !== 'planned' && own.includes(c.gameId);
+  const running = (c: BoardCard): boolean => c.group === 'running' || c.group === 'created';
+  /** FR-E14: eigener Name, aber hier kein Spiel (z. B. WhatsApp-Browser geschlossen): ohne Rückfrage weiter. */
+  const mineLost = (c: BoardCard): boolean =>
+    !!me && !isOwn(c) && c.ticker?.name === me && !c.ticker.trainer && running(c);
+  const takeOverNow = (entry: BoardEntry): void => void takeOver(view, board, entry, state.skew).then(go, fail);
+
+  const line = (c: BoardCard): TickerLine | null =>
+    c.group === 'planned'
+      ? null
+      : tickerLine(c.ticker ?? { name: null, trainer: false }, {
+          own: isOwn(c),
+          ended: c.group === 'finished',
+        });
+
+  const action = (c: BoardCard): ComponentChildren => {
+    if (!parent || !canTick(board, c.key)) return null;
+    if (c.group === 'planned' && c.today && c.planId) {
+      const entry = board.plan.find((e) => e.id === c.planId);
+      if (!entry) return null;
+      return (
+        <button
+          type="button"
+          class="btn btn--secondary btn--tall dash-tick"
+          data-testid={`dash-tick-${c.key}`}
+          onClick={() => needName((name) => setSheet({ kind: 'confirm', entry, name }))}
+        >
+          Ich tickere dieses Spiel
+        </button>
+      );
+    }
+    if ((isOwn(c) || mineLost(c)) && running(c)) {
+      const entry = entryOf(c);
+      return (
+        <button
+          type="button"
+          class="btn btn--primary btn--tall dash-tick"
+          data-testid={`dash-resume-${c.key}`}
+          onClick={() => (isOwn(c) ? go(c.gameId) : entry && takeOverNow(entry))}
+        >
+          Weiter tickern
+        </button>
+      );
+    }
+    return null;
+  };
+
+  const takeover = (c: BoardCard): ComponentChildren => {
+    if (!parent || !canTick(board, c.key) || isOwn(c) || mineLost(c) || !running(c)) return null;
+    const entry = entryOf(c);
+    if (!entry) return null;
+    const stale = c.staleMinutes !== null && c.staleMinutes >= 5;
+    return (
+      <button
+        type="button"
+        class="btn btn--secondary dash-takeover"
+        data-testid={`dash-takeover-${c.key}`}
+        onClick={() => needName((name) => setSheet({ kind: 'takeover', entry, card: c, name }))}
+      >
+        {stale ? 'Weiter tickern' : 'Spiel übernehmen'}
+      </button>
+    );
+  };
+
+  const teams = allowedTeams(board.config).filter((t) => canTick(board, t));
+  const missing =
+    parent && teams.length > 0 ? (
+      <div class="dash-missing">
+        <button
+          type="button"
+          class="link-btn"
+          data-testid="dash-missing"
+          onClick={() => needName(() => navigate(`${parentPath}/neu`))}
+        >
+          Spiel fehlt? Selbst tickern
+        </button>
+        <span class="dash-missing__help">Für ein Spiel, das nicht im Spielplan steht.</span>
+        {error && (
+          <p class="hint" role="status" data-testid="dash-ticker-error">
+            {error}
+          </p>
+        )}
+      </div>
+    ) : null;
+
+  const close = (): void => setSheet(null);
+  let node: ComponentChildren = null;
+  if (sheet?.kind === 'name')
+    node = (
+      <NameSheet
+        initial={me}
+        onCancel={close}
+        onDone={(name) =>
+          void saveTickerName(name).then((n) => {
+            setMe(n);
+            setSheet(null);
+            sheet.then(n);
+          }, fail)
+        }
+      />
+    );
+  if (sheet?.kind === 'confirm') {
+    const { entry, name } = sheet;
+    node = (
+      <ConfirmSheet
+        team={entry.team}
+        opponent={entry.opponent}
+        name={name}
+        onCancel={close}
+        onRename={() => setSheet({ kind: 'name', then: (n) => setSheet({ kind: 'confirm', entry, name: n }) })}
+        onGo={() =>
+          void busyWith(board, entry.team, serverNow).then((busy) =>
+            busy ? setSheet({ kind: 'busy', entry: busy }) : startPlanned(view, board, entry).then(go, fail),
+          )
+        }
+      />
+    );
+  }
+  if (sheet?.kind === 'takeover') {
+    const { entry, card, name } = sheet;
+    const who = tickerLine(card.ticker ?? { name: null, trainer: false }, { own: false, ended: false })?.tag;
+    node = (
+      <TakeoverSheet
+        who={who ?? 'Ein anderes Handy'}
+        state={`${card.score}, ${card.phase}`}
+        staleMinutes={card.staleMinutes !== null && card.staleMinutes >= 5 ? card.staleMinutes : null}
+        me={name}
+        onNo={close}
+        onYes={() => takeOverNow(entry)}
+      />
+    );
+  }
+  if (sheet?.kind === 'busy') {
+    const { entry } = sheet;
+    const s = entry.snap;
+    node = (
+      <BusySheet
+        line={tickerLine({ name: s.by ?? null, trainer: s.tr === 1 }, { own: false, ended: false })}
+        onWatch={close}
+        onTake={() => needName(() => takeOverNow(entry))}
+      />
+    );
+  }
+  return { line, action, takeover, missing, sheet: node };
 }

@@ -48,6 +48,8 @@ const loadRoster = () => import('./screens/roster').then((m) => m.RosterScreen);
 const loadSettings = () => import('./screens/settings').then((m) => m.SettingsScreen);
 const loadViewer = () => import('./screens/live-dashboard').then((m) => m.ViewerScreen);
 const loadAppDashboard = () => import('./screens/live-dashboard').then((m) => m.AppDashboardScreen);
+/** Spec 024 US3: "Neues Spiel" für Eltern (nachgeladen wie das Dashboard). */
+const loadParentNew = () => import('./screens/parent-new').then((m) => m.ParentNewScreen);
 
 export function App() {
   const route = useRoute();
@@ -71,7 +73,14 @@ export function App() {
         <Lazy key={route.data} load={loadViewer} props={{ data: route.data, help: route.help, entry: route.entry }} />
       )}
       {route.name === 'liveDash' && <Lazy load={loadAppDashboard} props={{}} />}
-      {route.name !== 'leadLink' && route.name !== 'liveView' && <NavBar route={route} />}
+      {route.name === 'liveGame' && (
+        <GameScreen key={route.id} id={route.id} join={route.join === true} parent={route.data} />
+      )}
+      {route.name === 'liveNew' && <Lazy load={loadParentNew} props={{ data: route.data }} />}
+      {route.name !== 'leadLink' &&
+        route.name !== 'liveView' &&
+        route.name !== 'liveGame' &&
+        route.name !== 'liveNew' && <NavBar route={route} />}
       <UpdatePrompt route={route.name} />
       <SquadNotice />
     </>

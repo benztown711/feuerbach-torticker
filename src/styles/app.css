@@ -4247,3 +4247,105 @@ button.plan__row {
   color: var(--color-ink-muted);
   font-size: 13px;
 }
+
+/* ---------- Spec 024: Eltern tickern ---------- */
+
+/* FR-E06: Name des Tickers hervorgehoben (Hinweis-Token wie Hinweisboxen, design/README.md). */
+.ticker-tag {
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-rot-hell);
+  color: var(--color-ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dash-ticker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 12px 10px;
+  color: var(--color-ink);
+  font-size: 14px;
+}
+
+.dash-ticker__icon {
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dash-card__act {
+  padding: 0 12px 12px;
+}
+
+.dash-tick {
+  width: 100%;
+}
+
+.btn--tall {
+  min-height: 64px;
+}
+
+.dash-takeover {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.dash-missing {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+.dash-missing .link-btn {
+  justify-self: start;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dash-missing__help {
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.ticker-form {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ticker-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+/* Spielbildschirm der Eltern: Rückweg statt Navigationsleiste, Zeile "Du tickerst als …". */
+.parent-back {
+  flex-shrink: 0;
+  margin-left: auto;
+  gap: var(--space-1);
+}
+
+.parent-as {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-ink-muted);
+  font-size: 13px;
+}
+
+.parent-as--off {
+  color: var(--color-rot-text);
+  font-weight: 700;
+}
