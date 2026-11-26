@@ -1,5 +1,5 @@
 import { clockOf } from './game';
-import { goalRows, type GoalRow } from './goals';
+import { goalRows, preGroup, type GoalRow, type PreGroup } from './goals';
 import { formatMinute } from './minute';
 import { shootoutState } from './cup';
 import { gameEvents } from './events';
@@ -115,16 +115,22 @@ export function filterGames(games: Game[], key: string | null): Game[] {
 export type TimelineItem =
   | { kind: 'event'; at: number; event: ClockEvent }
   | ({ kind: 'goal'; at: number } & GoalRow)
+  /** Spec 023 FR-J16: Tore vor Tickerbeginn als eine Zeile. */
+  | ({ kind: 'pre'; at: number } & PreGroup)
   | { kind: 'ev'; at: number; ev: GameEvent };
 
 /** Zeitleiste der Spieldetails: Uhr-Ereignisse und Tore chronologisch, bei gleicher Zeit Ereignis zuerst. */
 export function timeline(game: Game): TimelineItem[] {
   const events: TimelineItem[] = game.clockEvents.map((event) => ({ kind: 'event', at: event.at, event }));
-  const goals: TimelineItem[] = goalRows(game)
+  const rows = goalRows(game);
+  const goals: TimelineItem[] = rows
+    .filter((row) => !row.beforeTicker)
     .reverse()
     .map((row) => ({ kind: 'goal', at: row.goal.at, ...row }));
+  const pre = preGroup(rows);
+  if (pre) goals.unshift({ kind: 'pre', at: (pre.rows.at(-1) as GoalRow).goal.at, ...pre });
   const marks: TimelineItem[] = gameEvents(game).map((ev) => ({ kind: 'ev', at: ev.at, ev }));
-  const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : i.kind === 'goal' ? 1 : 2);
+  const rank = (i: TimelineItem): number => (i.kind === 'event' ? 0 : i.kind === 'ev' ? 2 : 1);
   return [...events, ...goals, ...marks].sort((a, b) => a.at - b.at || rank(a) - rank(b));
 }
 

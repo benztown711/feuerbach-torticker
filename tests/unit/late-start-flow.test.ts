@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { buildBackup, parseBackup } from '../../src/domain/export';
 import { createGame } from '../../src/domain/game';
 import { joinGame } from '../../src/domain/late-start';
-import { applySnapshot, boardView, emptyBoard } from '../../src/domain/live-board';
+import { applySnapshot, boardView, collapsePre, emptyBoard } from '../../src/domain/live-board';
+import { goalRows, preGroup, removeGoal, setScorer } from '../../src/domain/goals';
+import { timeline } from '../../src/domain/history';
 import { buildSnapshot, parseSnapshot, type LiveGameSnapshot } from '../../src/domain/live-snapshot';
 import { takeoverGame } from '../../src/domain/live-takeover';
 import { buildShareText } from '../../src/domain/share-text';
@@ -97,10 +99,83 @@ describe('023 FR-J15 Live-Meldung', () => {
   });
 });
 
-describe('023 FR-J12 Teilen-Text', () => {
-  it('Tore vor Tickerbeginn mit "–" in der Minutenspalte, vor den Trennzeilen der Abschnitte', () => {
+describe('023 FR-J12 FR-J16 Teilen-Text', () => {
+  it('eine Zeile "vor Tickerbeginn" mit dem Stand danach, vor den Trennzeilen der Abschnitte', () => {
     const text = buildShareText(joined(), [], TZ, NOW);
-    expect(text).toContain('–  1:0');
+    expect(text).toContain('–  2:1  vor Tickerbeginn');
+    expect(text).not.toContain('1:0');
     expect(text.indexOf('2:1')).toBeLessThan(text.indexOf('2. Drittel'));
+  });
+
+  it('ohne nicht entfernte Tore vor Tickerbeginn keine Zeile', () => {
+    let g = joined();
+    for (const x of g.goals) g = removeGoal(g, x.id, NOW);
+    expect(buildShareText(g, [], TZ, NOW)).not.toContain('vor Tickerbeginn');
+  });
+});
+
+describe('023 FR-J16 Sammelzeile', () => {
+  it('Torliste: Gruppe mit Stand nach dem letzten gezählten Tor, entfernte zählen nicht', () => {
+    const g = joined();
+    expect(preGroup(goalRows(g))).toMatchObject({ score: '2:1', count: 3 });
+    const removed = removeGoal(g, g.goals[2]!.id, NOW);
+    const group = preGroup(goalRows(removed))!;
+    expect(group).toMatchObject({ score: '2:0', count: 2 });
+    expect(group.rows).toHaveLength(3);
+    const allRemoved = g.goals.reduce((x, goal) => removeGoal(x, goal.id, NOW), g);
+    expect(preGroup(goalRows(allRemoved))).toMatchObject({ score: '', count: 0 });
+    expect(preGroup([])).toBeNull();
+  });
+
+  it('Spielverlauf der Spieldetails: ein Eintrag "pre" statt der Einzeltore', () => {
+    const items = timeline(joined());
+    const pre = items.filter((i) => i.kind === 'pre');
+    expect(pre).toHaveLength(1);
+    expect(pre[0]).toMatchObject({ kind: 'pre', score: '2:1', count: 3 });
+    expect(items.filter((i) => i.kind === 'goal')).toHaveLength(0);
+    // Ohne Tore vor Tickerbeginn wie bisher.
+    const plain = timeline({ ...joined(), goals: [] });
+    expect(plain.some((i) => i.kind === 'pre')).toBe(false);
+  });
+
+  it('Dashboard: eine Zeile mit bekannten Feuerbach-Torschützen, Einzeltore bleiben für Tor-Hinweise', () => {
+    let g = joined();
+    const players = [
+      { id: 'p-max', name: 'Max', number: 7, deletedAt: null },
+      { id: 'p-ben', name: 'Ben', number: 9, deletedAt: null },
+    ];
+    g = setScorer(g, g.goals[0]!.id, { kind: 'player', playerId: 'p-max' });
+    g = setScorer(g, g.goals[1]!.id, { kind: 'player', playerId: 'p-max' });
+    g = setScorer(g, g.goals[2]!.id, { kind: 'text', text: 'Nr. 9' });
+    const snap = buildSnapshot(g, players, 'E1', NOW) as LiveGameSnapshot;
+    const lines = boardView(applySnapshot(emptyBoard(), snap, NOW, TZ), NOW, TZ).cards[0]!.goals;
+    expect(lines).toHaveLength(3);
+    expect(collapsePre(lines)).toEqual([
+      {
+        side: 'own',
+        minute: '–',
+        score: '2:1',
+        who: 'Vor Tickerbeginn (Max 2)',
+        team: '',
+        scorer: null,
+        beforeTicker: true,
+      },
+    ]);
+    const unnamed = boardView(
+      applySnapshot(emptyBoard(), buildSnapshot(joined(), [], 'E1', NOW) as LiveGameSnapshot, NOW, TZ),
+      NOW,
+      TZ,
+    ).cards[0]!.goals;
+    expect(collapsePre(unnamed)[0]?.who).toBe('Vor Tickerbeginn');
+    const twoNames = setScorer(g, g.goals[1]!.id, { kind: 'player', playerId: 'p-ben' });
+    const lines2 = boardView(
+      applySnapshot(emptyBoard(), buildSnapshot(twoNames, players, 'E1', NOW) as LiveGameSnapshot, NOW, TZ),
+      NOW,
+      TZ,
+    ).cards[0]!.goals;
+    expect(collapsePre(lines2)[0]?.who).toBe('Vor Tickerbeginn (Max, Ben)');
+    const withNormal = [{ ...lines[0]!, beforeTicker: undefined, minute: "40'", score: '3:1' }, ...lines];
+    expect(collapsePre(withNormal).map((l) => l.minute)).toEqual(["40'", '–']);
+    expect(collapsePre(withNormal.slice(0, 1))).toHaveLength(1);
   });
 });

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { joinList } from '../../domain/format';
 import { getColor } from '../../domain/jersey-colors';
 import {
+  collapsePre,
   boardView,
   dayKey,
   formatClockTime,
@@ -211,19 +212,16 @@ function Card({
             <p class="dash-card__info">Noch nicht angelegt</p>
           ) : card.goals.length > 0 ? (
             <ol class="dash-goals" aria-label="Tore, neuestes zuerst">
-              {card.goals.map((g, i) => (
+              {/* Spec 023 FR-J16: Tore vor Tickerbeginn als eine Zeile ganz unten. */}
+              {collapsePre(card.goals).map((g, i) => (
                 <li
-                  key={`${card.goals.length - i}`}
+                  key={g.beforeTicker ? 'pre' : `${card.goals.length - i}`}
                   class={i === 0 && flash ? 'dash-goal dash-goal--new' : 'dash-goal'}
                   data-testid="dash-goal"
                 >
                   <b>{g.minute}</b>
                   <span>{g.score}</span>
-                  <span>
-                    {g.who}
-                    {/* Spec 023 FR-J12 */}
-                    {g.beforeTicker && <span class="dash-goal__pre"> · vor Tickerbeginn</span>}
-                  </span>
+                  <span>{g.who}</span>
                 </li>
               ))}
             </ol>

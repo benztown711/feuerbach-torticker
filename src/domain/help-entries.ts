@@ -133,7 +133,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'spiel',
     title: 'Wie steige ich in ein laufendes Spiel ein?',
     answer:
-      'Niemand tickert und das Spiel läuft schon? Lege das Spiel an und tippe im Spiel statt auf „Anpfiff“ auf „Spiel läuft schon“ (oder schalte es unter „Neues Spiel“ ein). Wähle den Abschnitt oder die Pause, stelle mit „−5“, „−1“, „+1“, „+5“ die Restzeit wie auf der Uhr am Platz ein und trage mit „+“ den Spielstand ein. Mit „Trikots ändern“ passt du die Farben an. Nach „Übernehmen“ läuft die Uhr ab dieser Restzeit, auch auf dem Dashboard. Die Tore stehen als „vor Tickerbeginn“ in der Torliste; tippe sie an, um Torschütze und Vorlage nachzutragen.',
+      'Niemand tickert und das Spiel läuft schon? Lege das Spiel an und tippe im Spiel statt auf „Anpfiff“ auf „Spiel läuft schon“ (oder schalte es unter „Neues Spiel“ ein). Wähle den Abschnitt oder die Pause, stelle mit „−5“, „−1“, „+1“, „+5“ die Restzeit wie auf der Uhr am Platz ein und trage mit „+“ den Spielstand ein. Mit „Trikots ändern“ passt du die Farben an. Nach „Übernehmen“ läuft die Uhr ab dieser Restzeit, auch auf dem Dashboard. Die Tore stehen in der Zeile „Vor Tickerbeginn“ unten in der Torliste; ein Tipp klappt sie auf, ein Tor antippen trägt Torschütze und Vorlage nach.',
     steps: [
       'Spiel anlegen, im Spiel auf „Spiel läuft schon“ tippen.',
       'Abschnitt wählen, z. B. „3. Drittel“, oder die Pause.',
@@ -292,7 +292,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'ereignisse',
     title: 'Wie trage ich den Torschützen nach?',
     answer:
-      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“. Das gilt auch für Tore „vor Tickerbeginn“.',
+      'Nach jedem Tor öffnet sich über dem Spielstand die Auswahl mit deinem Aufgebot; tippe auf den Namen oder auf „Ohne Torschütze“. Die Tor-Knöpfe bleiben frei: Fällt gleich das nächste Tor, tippst du einfach darauf, die Auswahl schließt ohne Torschützen und das Tor zählt. Später tippst du das Tor in der Torliste (Zeilen mit Pfeil rechts) oder in den Spieldetails an und wählst „Torschütze ändern“. Beim Gegner trägst du Name oder Rückennummer ein, zum Beispiel „Nr. 9“. Bei Toren vor Tickerbeginn klappst du zuerst die Zeile „Vor Tickerbeginn“ auf.',
     keywords: 'torschütze schütze spieler name nachtragen wer gegentor schnell gesperrt tickerbeginn',
     sources: ['001 US3', '017 US1', '021 US2', '021 US3', '023 US2'],
     related: ['tor', 'elfmeter', 'kader'],
