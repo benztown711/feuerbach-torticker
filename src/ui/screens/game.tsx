@@ -704,11 +704,12 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
             Ton aus · tippen
           </button>
         )}
-        <LivePill game={game} />
+        {/* Spec 024: Eltern sehen den Live-Zustand in der Zeile darunter; so passt "Zurück zu Live" auch auf das SE. */}
+        {!parentPath && <LivePill game={game} />}
         {parentPath && (
           <button
             type="button"
-            class="btn btn--secondary btn--small parent-back"
+            class="btn btn--secondary parent-back"
             data-testid="parent-back"
             onClick={() => navigate(parentPath)}
           >
@@ -743,7 +744,9 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
           ) : (
             <>
               <span class="live-pill__dot" aria-hidden="true" />
-              Du tickerst als {settings?.tickerName ?? ''} · live
+              <span>
+                Du tickerst als <strong>{settings?.tickerName ?? ''}</strong> · live
+              </span>
             </>
           )}
         </p>

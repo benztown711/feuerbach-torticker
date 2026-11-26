@@ -903,7 +903,7 @@ function useTicker(view: View, state: ReceiverState, serverNow: number, parentPa
     return (
       <button
         type="button"
-        class="btn btn--secondary dash-takeover"
+        class="btn btn--secondary btn--tall dash-takeover"
         data-testid={`dash-takeover-${c.key}`}
         onClick={() =>
           trainerApp

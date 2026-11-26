@@ -74,7 +74,7 @@ export function NameSheet({
           autoFocus
         />
         <p class="field__help">Nur dein Vorname, kein Kindername. Er bleibt auf diesem Handy gespeichert.</p>
-        <button type="submit" class="btn btn--primary" data-testid="ticker-name-ok" disabled={!check.ok}>
+        <button type="submit" class="btn btn--primary btn--tall" data-testid="ticker-name-ok" disabled={!check.ok}>
           Weiter
         </button>
       </form>
@@ -162,7 +162,7 @@ export function TakeoverSheet({
       <p class="sheet__subtitle">
         {who} sieht, dass du übernommen hast. Du tickerst als {me}.
       </p>
-      <button type="button" class="btn btn--primary" data-testid="ticker-takeover-yes" onClick={onYes}>
+      <button type="button" class="btn btn--primary btn--tall" data-testid="ticker-takeover-yes" onClick={onYes}>
         Übernehmen
       </button>
       <button type="button" class="btn btn--quiet" data-testid="ticker-takeover-no" onClick={onNo}>
@@ -199,7 +199,7 @@ export function BusySheet({
       }
     >
       <p class="sheet__subtitle">Meist reicht Zuschauen.</p>
-      <button type="button" class="btn btn--primary" data-testid="ticker-busy-watch" onClick={onWatch}>
+      <button type="button" class="btn btn--primary btn--tall" data-testid="ticker-busy-watch" onClick={onWatch}>
         Zuschauen
       </button>
       <button type="button" class="btn btn--secondary" data-testid="ticker-busy-take" onClick={onTake}>

@@ -4332,8 +4332,11 @@ button.plan__row {
 /* Spielbildschirm der Eltern: Rückweg statt Navigationsleiste, Zeile "Du tickerst als …". */
 .parent-back {
   flex-shrink: 0;
+  min-height: 44px;
   margin-left: auto;
+  padding: 0 var(--space-2);
   gap: var(--space-1);
+  font-size: 15px;
 }
 
 .parent-as {
@@ -4345,6 +4348,14 @@ button.plan__row {
   border-bottom: 1px solid var(--color-line);
   color: var(--color-ink-muted);
   font-size: 13px;
+}
+
+.parent-as .live-pill__dot {
+  color: var(--color-rot-text);
+}
+
+.parent-as strong {
+  color: var(--color-ink);
 }
 
 .parent-as--off {
