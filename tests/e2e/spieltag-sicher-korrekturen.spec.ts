@@ -257,7 +257,7 @@ test('012 US3-S3 US3-S4 nach mehr als 10 Minuten, nach dem nächsten Anpfiff und
   await expect(page.getByTestId('menu-undo-whistle')).toHaveCount(0);
 });
 
-test('012 US4-S1 US4-S2 Uhr zwei Minuten vorstellen: Restzeit, Tor-Minute und Dashboard folgen', async ({
+test('012 US4-S1 US4-S2 023 US3-S2 Uhr zwei Minuten vorstellen: Restzeit, Tor-Minute und Dashboard folgen', async ({
   page,
   recorded,
   relay,
@@ -267,20 +267,25 @@ test('012 US4-S1 US4-S2 Uhr zwei Minuten vorstellen: Restzeit, Tor-Minute und Da
   await forward(page, 4.5 * MIN);
   await tap(page, 'own');
   await expect(rows(page).first()).toContainText("5'");
-  await forward(page, 5 * MIN - 11 * SEC);
-  await expect(page.getByTestId('clock')).toHaveText(/^15:(2\d|30)$/);
+  // Weit weg von einer halben Minute, damit die gerundete Restzeit eindeutig ist.
+  await forward(page, 5 * MIN - 26 * SEC);
+  await expect(page.getByTestId('clock')).toHaveText(/^15:4\d$/);
 
+  // Spec 023 FR-J20: Das Blatt fragt nach der Restzeit (gerundet) und zeigt die Spielminute darunter.
   await openMenu(page);
   await page.getByTestId('menu-fix-clock').click();
   const sheet = page.getByTestId('clock-fix-sheet');
-  await expect(page.getByTestId('clock-fix-minute')).toHaveText("10'");
-  await page.getByTestId('clock-fix-plus').click();
-  await page.getByTestId('clock-fix-plus').click();
-  await expect(page.getByTestId('clock-fix-minute')).toHaveText("12'");
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 16 Min');
+  await expect(page.getByTestId('clock-fix-minute')).toHaveText('= 10. Minute');
+  await page.getByTestId('clock-fix-m1').click();
+  await page.getByTestId('clock-fix-m1').click();
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 14 Min');
+  await expect(page.getByTestId('clock-fix-minute')).toHaveText('= 12. Minute');
+  await expect(page.getByTestId('clock-fix-help')).toContainText('Restzeit −2 Min.');
   await page.getByTestId('clock-fix-save').click();
   await expect(sheet).toHaveCount(0);
-  // Zwei Minuten weniger Restzeit (die Uhr läuft während des Tests ein paar Sekunden weiter).
-  await expect(page.getByTestId('clock')).toHaveText(/^13:(1\d|2\d|30)$/);
+  // Genau 14 Minuten Restzeit (die Uhr läuft während des Tests ein paar Sekunden weiter).
+  await expect(page.getByTestId('clock')).toHaveText(/^(14:00|13:5\d)$/);
   await expect(rows(page).first()).toContainText("7'");
 
   await settle(page);
@@ -292,7 +297,7 @@ test('012 US4-S1 US4-S2 Uhr zwei Minuten vorstellen: Restzeit, Tor-Minute und Da
     .toBe(7);
 });
 
-test('012 US4-S3 Uhr ging vor: eine Minute zurück, der Pfiff kommt zur richtigen Zeit erneut', async ({
+test('012 US4-S3 Uhr ging vor: eine Minute mehr Restzeit, der Pfiff kommt zur richtigen Zeit erneut', async ({
   page,
   recorded,
 }) => {
@@ -302,21 +307,24 @@ test('012 US4-S3 Uhr ging vor: eine Minute zurück, der Pfiff kommt zur richtige
   expect(after).toBeGreaterThan(0);
   await openMenu(page);
   await page.getByTestId('menu-fix-clock').click();
-  await page.getByTestId('clock-fix-minus').click();
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 0 Min');
+  await page.getByTestId('clock-fix-p1').click();
   await page.getByTestId('clock-fix-save').click();
-  await expect(page.getByTestId('clock')).toHaveText(/^0:(4\d|50)$/);
-  await forward(page, 55 * SEC);
+  await expect(page.getByTestId('clock')).toHaveText(/^(1:00|0:5\d)$/);
+  await forward(page, 65 * SEC);
   expect((await recorded()).sounds).toBeGreaterThan(after);
 });
 
-test('012 US4-S4 US4-S5 Grenzen: nicht vor den Anpfiff, nicht vor das Halbzeitende; nicht in der Pause', async ({
+test('012 US4-S4 US4-S5 023 US3-S5 US3-S6 Grenzen: nicht vor den Anpfiff zurück; nicht in der Pause', async ({
   page,
 }) => {
   await startGame(page);
-  await forward(page, 30 * SEC);
+  await forward(page, 20 * SEC);
   await openMenu(page);
   await page.getByTestId('menu-fix-clock').click();
-  await expect(page.getByTestId('clock-fix-minus')).toBeDisabled();
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 25 Min');
+  await expect(page.getByTestId('clock-fix-p1')).toBeDisabled();
+  await expect(page.getByTestId('clock-fix-help')).toHaveText('Unverändert.');
   await page.getByTestId('clock-fix-save').click();
 
   await forward(page, 25 * MIN);
@@ -328,7 +336,12 @@ test('012 US4-S4 US4-S5 Grenzen: nicht vor den Anpfiff, nicht vor das Halbzeiten
   await page.getByTestId('btn-kickoff').click();
   await openMenu(page);
   await page.getByTestId('menu-fix-clock').click();
-  // Halbzeitpause 1,5 Minuten: höchstens eine Minute vor.
-  await page.getByTestId('clock-fix-plus').click();
-  await expect(page.getByTestId('clock-fix-plus')).toBeDisabled();
+  // Spec 023 FR-J21: Vorstellen bis Restzeit 0, auch über die kurze Halbzeitpause hinaus.
+  // Die Halbzeit läuft schon ein paar Sekunden: vorgewählt sind 24 oder 25 Minuten.
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText(/^Noch 2[45] Min$/);
+  for (const step of ['clock-fix-m5', 'clock-fix-m1'])
+    while (await page.getByTestId(step).isEnabled()) await page.getByTestId(step).click();
+  await expect(page.getByTestId('clock-fix-rest')).toHaveText('Noch 0 Min');
+  await expect(page.getByTestId('clock-fix-m1')).toBeDisabled();
+  await expect(page.getByTestId('clock-fix-p5')).toBeEnabled();
 });

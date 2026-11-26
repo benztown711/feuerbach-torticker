@@ -46,6 +46,8 @@ function person(side: Side, who: string | null, players: Player[]): EventPerson 
 function goalAt(g: LiveGoal, clock: ClockEvent[], s: LiveGameSnapshot, latest: number): number {
   const kickoff = clock.filter((e) => e.type === 'kickoff' && e.section === g.section).pop();
   if (!kickoff) return latest;
+  // Spec 023 R-J2: Tore vor Tickerbeginn stehen am Spielbeginn.
+  if (g.pre) return Math.min(latest, clock.find((e) => e.type === 'kickoff')!.at);
   const played =
     g.stoppage === null
       ? (g.minute - sectionOffset(s.schema, g.section) - 1) * MINUTE_MS
@@ -65,6 +67,7 @@ function goalOf(g: LiveGoal, at: number, players: Player[], id: string): Goal {
     scorer: g.side === 'own' && g.ownGoal ? { kind: 'ownGoal' } : who,
     deletedAt: null,
     penalty: g.penalty,
+    ...(g.pre ? { beforeTicker: true } : {}),
   };
 }
 
@@ -110,7 +113,9 @@ export function takeoverGame(i: TakeoverInput): Game {
     squad: [],
     status: clock.status,
     finalScore: clock.status === 'finished' ? scoreOf(goals) : null,
-    halfTimeScore: firstHalfDone ? scoreOf(goals.filter((g) => g.section === 1)) : null,
+    // Spec 023 FR-J14: Mit Toren vor Tickerbeginn ist nicht erkennbar, ob der Halbzeitstand bekannt war.
+    halfTimeScore:
+      firstHalfDone && !goals.some((g) => g.beforeTicker) ? scoreOf(goals.filter((g) => g.section === 1)) : null,
     live: true,
     liveTakeover: Math.min(s.h + 1, MAX_TAKEOVER),
   };

@@ -7,6 +7,7 @@ const none: SlotInput = {
   markUndo: false,
   eventUndo: false,
   reshare: false,
+  entryUndo: false,
   handedOver: false,
   shareResult: false,
   doubleTap: false,
@@ -23,6 +24,12 @@ describe('019 FR-A03 FR-A04 ein Meldeplatz', () => {
     expect(messageSlot({ ...all, goalUndo: false }).message).toBe('mark');
     expect(messageSlot({ ...all, goalUndo: false, markUndo: false }).message).toBe('event');
     expect(messageSlot({ ...none, reshare: true }).message).toBe('reshare');
+  });
+
+  it('023 FR-J05 "Rückgängig" nach dem Einstieg kommt nach dem Tor, vor allen anderen Meldungen', () => {
+    const all = { ...none, entryUndo: true, markUndo: true, eventUndo: true, reshare: true };
+    expect(messageSlot(all).message).toBe('entry');
+    expect(messageSlot({ ...all, goalUndo: true }).message).toBe('goal');
   });
 
   it('Tor-Rückgängig ruht, solange die Torschützen-Auswahl offen ist; dann gilt die nächste Meldung', () => {

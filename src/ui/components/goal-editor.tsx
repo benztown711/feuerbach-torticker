@@ -133,8 +133,8 @@ export function GoalEditor({
   if (step.kind === 'goal') {
     return (
       <Sheet
-        title={`${formatMinute(goal.minute, goal.stoppage)} ${goalWho(game, goal, players)}`}
-        subtitle={`erfasst um ${formatTime(goal.at)} Uhr${goal.deletedAt !== null ? ' · entfernt' : ''}`}
+        title={`${goal.beforeTicker ? 'Vor Tickerbeginn:' : formatMinute(goal.minute, goal.stoppage)} ${goalWho(game, goal, players)}`}
+        subtitle={`${goal.beforeTicker ? 'Minute unbekannt' : `erfasst um ${formatTime(goal.at)} Uhr`}${goal.deletedAt !== null ? ' · entfernt' : ''}`}
         testId="goal-actions"
         onClose={close}
       >
@@ -252,7 +252,7 @@ export function GoalEditor({
         // Neuer Schritt oder neues Tor (Spec 021 FR-W11), neuer Zustand ("Andere …" wieder zu).
         key={`${step.kind}-${goal.id}`}
         kind={step.kind}
-        subtitle={`Tor in Minute ${formatMinute(goal.minute, goal.stoppage)}${
+        subtitle={`${goal.beforeTicker ? 'Tor vor Tickerbeginn' : `Tor in Minute ${formatMinute(goal.minute, goal.stoppage)}`}${
           step.kind === 'assist' ? ` · ${scorerLabel(goal, players)}` : ''
         }`}
         squad={squadPlayers(players, game.squad, sort).filter(notScorer)}
@@ -325,7 +325,8 @@ export function GoalEditor({
     const current = cur().goals.find((g) => g.id === goal.id);
     const opt = minuteOptions(cur(), t).find((o) => o.label === step.label);
     // Unveränderte Minute: nichts tun, damit Tore derselben Minute ihre Reihenfolge behalten.
-    const same = current && formatMinute(current.minute, current.stoppage) === step.label;
+    // Spec 023 R-J3: ein Tor vor Tickerbeginn bekommt seine Minute, auch wenn sie gleich lautet.
+    const same = current && !current.beforeTicker && formatMinute(current.minute, current.stoppage) === step.label;
     if (opt && !same) update(setGoalMinute(cur(), goal.id, opt, t));
     close();
   };
@@ -343,3 +344,14 @@ export function GoalEditor({
     </Sheet>
   );
 }
+
+// Spec 023: Blätter "Spiel läuft schon" und "Uhr korrigieren" im selben nachgeladenen Teil (Bundle-Budget).
+export {
+  ClockFixSheet,
+  joinGame,
+  lateDraft,
+  lateInput,
+  LateStartSheet,
+  lateSummary,
+  setRest,
+} from './late-start-sheet';

@@ -62,7 +62,7 @@ export function App() {
       {route.name === 'more' && <MoreScreen />}
       {route.name === 'settings' && <Lazy load={loadSettings} props={{}} />}
       {route.name === 'help' && <Lazy load={loadHelp} props={{ entry: route.entry }} />}
-      {route.name === 'game' && <GameScreen key={route.id} id={route.id} />}
+      {route.name === 'game' && <GameScreen key={route.id} id={route.id} join={route.join === true} />}
       {route.name === 'details' && <GameDetailsScreen key={route.id} id={route.id} />}
       {route.name === 'live' && <Lazy load={loadLive} props={{}} />}
       {route.name === 'plan' && <Lazy load={loadPlan} props={{}} />}

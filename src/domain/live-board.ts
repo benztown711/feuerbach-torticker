@@ -247,6 +247,8 @@ export interface GoalLine {
   team: string;
   /** Spec 020 FR-E23: übertragener Torschütze, bei einem Eigentor "Eigentor", sonst `null`. */
   scorer: string | null;
+  /** Spec 023 FR-J12: Tor vor Tickerbeginn (Minute "–"). */
+  beforeTicker?: true;
 }
 
 /** Spec 020 FR-E30, FR-E31: wie frisch der Stand eines laufenden Spiels ist. */
@@ -392,11 +394,12 @@ function goalLines(s: LiveGameSnapshot): GoalLine[] {
       const ha = homeAway(s.venue, running);
       return {
         side: g.side,
-        minute: formatMinute(g.minute, g.stoppage),
+        minute: g.pre ? '–' : formatMinute(g.minute, g.stoppage),
         score: `${ha.home}:${ha.away}`,
         who: whoOf(g, s),
         team: g.side === 'own' ? s.own : s.opp,
         scorer: g.side === 'own' && g.ownGoal ? 'Eigentor' : g.who,
+        ...(g.pre ? { beforeTicker: true as const } : {}),
       };
     })
     .reverse();

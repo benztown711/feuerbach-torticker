@@ -30,6 +30,8 @@ export interface ClockEvent {
   at: number;
   /** 1-basiert. */
   section: number;
+  /** Spec 023 R-J1: beim Einstieg ins laufende Spiel zurückgerechnet (fehlt = nein). */
+  entry?: boolean;
 }
 
 export type Scorer = { kind: 'player'; playerId: string } | { kind: 'text'; text: string } | { kind: 'ownGoal' } | null;
@@ -51,6 +53,8 @@ export interface Goal {
   penalty?: boolean;
   /** Spec 009: Kaderspieler-ID des Vorlagengebers (fehlt bzw. null = keine Vorlage). */
   assist?: string | null;
+  /** Spec 023 FR-J11: Tor vor Tickerbeginn, ohne bekannte Minute (fehlt = nein). */
+  beforeTicker?: boolean;
 }
 
 interface EventBase {

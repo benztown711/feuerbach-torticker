@@ -13,7 +13,7 @@ export type Route =
   | { name: 'plan' }
   | { name: 'liveView'; data: string; help: boolean; entry: string | null }
   | { name: 'leadLink'; data: string; kind: 'lead' | 'trainer' }
-  | { name: 'game'; id: string }
+  | { name: 'game'; id: string; join?: boolean }
   | { name: 'details'; id: string };
 
 /** Hash-Routen laut contracts/ui-contract.md, damit Zurück-Geste und Neuladen funktionieren. */
@@ -45,6 +45,9 @@ export function parseHash(hash: string): Route {
   if (lead) return { name: 'leadLink', data: lead[2] ?? '', kind: lead[1] === 'trainer' ? 'trainer' : 'lead' };
   const details = /^\/spiel\/([\w-]+)\/details$/.exec(path);
   if (details?.[1]) return { name: 'details', id: details[1] };
+  // Spec 023 R-J6: aus "Neues Spiel" mit "Spiel läuft schon".
+  const join = /^\/spiel\/([\w-]+)\/einstieg$/.exec(path);
+  if (join?.[1]) return { name: 'game', id: join[1], join: true };
   const game = /^\/spiel\/([\w-]+)$/.exec(path);
   if (game?.[1]) return { name: 'game', id: game[1] };
   return { name: 'start' };

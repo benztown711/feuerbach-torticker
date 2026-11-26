@@ -177,7 +177,11 @@ function Card({
                 >
                   <b>{g.minute}</b>
                   <span>{g.score}</span>
-                  <span>{g.who}</span>
+                  <span>
+                    {g.who}
+                    {/* Spec 023 FR-J12 */}
+                    {g.beforeTicker && <span class="dash-goal__pre"> · vor Tickerbeginn</span>}
+                  </span>
                 </li>
               ))}
             </ol>

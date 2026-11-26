@@ -4,13 +4,13 @@ import {
   addGoalAt,
   canAddLateGoal,
   canUndoWhistle,
-  clockShiftRange,
   defaultOption,
   minuteOptions,
   playedIn,
   sectionRuns,
+  restRange,
   setGoalMinute,
-  shiftClock,
+  setRest,
   timeAt,
   undoWhistle,
   whistleKind,
@@ -28,6 +28,7 @@ import {
   resumeClock,
 } from '../../src/domain/game';
 import { addGoal, goalRows, setAssist, setPenalty, setScorer } from '../../src/domain/goals';
+import { joinGame } from '../../src/domain/late-start';
 import { buildShareText } from '../../src/domain/share-text';
 import type { ClockEvent, Game, NewGameInput, Side } from '../../src/domain/types';
 
@@ -530,35 +531,36 @@ describe('012 FR-S15 Pfiff zurücknehmen', () => {
   });
 });
 
-describe('012 FR-S20 bis FR-S23 Uhr korrigieren', () => {
-  it('012 US4-S5 vor dem Anpfiff, in der Pause und nach dem Schlusspfiff nicht möglich', () => {
-    expect(clockShiftRange(fresh(), T0)).toBeNull();
+describe('012 FR-S20 bis FR-S23, 023 FR-J20 bis FR-J22 Uhr korrigieren mit Restzeit', () => {
+  it('012 US4-S5 023 US3-S6 vor dem Anpfiff, in der Pause und nach dem Schlusspfiff nicht möglich', () => {
+    expect(restRange(fresh(), T0)).toBeNull();
     const brk = firstHalf();
-    expect(clockShiftRange(brk, T0 + min(30))).toBeNull();
-    expect(shiftClock(brk, 1, T0 + min(30))).toBe(brk);
-    expect(clockShiftRange(finished(), FULL + min(1))).toBeNull();
+    expect(restRange(brk, T0 + min(30))).toBeNull();
+    expect(setRest(brk, 1, T0 + min(30))).toBe(brk);
+    expect(restRange(finished(), FULL + min(1))).toBeNull();
   });
 
-  it("012 US4-S1 Uhr zeigt 10', zweimal +1 Min: Uhr zeigt 12', Restzeit zwei Minuten weniger", () => {
+  it("012 US4-S1 Uhr zeigt 10' (Restzeit 15:30), Restzeit 13: Uhr zeigt 13' mit genau 13:00 Restzeit", () => {
     const g = running();
     const now = T0 + min(9) + sec(30);
-    expect(clockOf(g, now).label).toBe("10'");
-    expect(clockShiftRange(g, now)).toEqual({ min: -9, max: 60 });
-    const s = shiftClock(g, 2, now);
-    expect(s.clockEvents).toEqual([ev('kickoff', T0 - min(2))]);
+    expect(restRange(g, now)).toEqual({ min: 0, max: 25, current: 16 });
+    const s = setRest(g, 13, now);
+    expect(s.clockEvents).toEqual([ev('kickoff', T0 - min(2) - sec(30))]);
     expect(s.status).toBe('running');
-    expect(clockOf(s, now)).toMatchObject({ label: "12'", remainingMs: min(13) + sec(30) });
+    expect(clockOf(s, now)).toMatchObject({ label: "13'", remainingMs: min(13) });
+    expect(setRest(g, 2.5, now)).toBe(g);
   });
 
-  it('012 US4-S2 Tore und Ereignisse des laufenden Abschnitts rücken mit, frühere Abschnitte bleiben', () => {
+  it('012 US4-S2 023 US3-S4 Tore und Ereignisse des laufenden Abschnitts rücken mit, frühere Abschnitte bleiben', () => {
     let g = goal(running(), 'own', T0 + min(9) + sec(30));
     g = addMark(g, T0 + min(12) + sec(10), ids)!.game;
     g = kickoff(endSection(g, T0 + min(26) + sec(10)), K2);
     g = goal(g, 'opp', K2 + min(4) + sec(30));
     g = addCard(g, { side: 'own', card: 'gelb', who: null }, K2 + min(6) + sec(10), ids)!.game;
     const now = K2 + min(8);
-    expect(clockShiftRange(g, now)).toEqual({ min: -4, max: 8 });
-    const s = shiftClock(g, 2, now);
+    // Zurückstellen höchstens bis zum Tor nach 4:30 gespielter Zeit: Restzeit höchstens 21:30, also 21.
+    expect(restRange(g, now)).toEqual({ min: 0, max: 21, current: 17 });
+    const s = setRest(g, 15, now);
     expect(s.goals.map((x) => [x.id, x.section, x.minute, x.at])).toEqual([
       [g.goals[0]!.id, 1, 10, T0 + min(9) + sec(30)],
       [g.goals[1]!.id, 2, 32, K2 + min(4) + sec(30)],
@@ -573,9 +575,9 @@ describe('012 FR-S20 bis FR-S23 Uhr korrigieren', () => {
   it('Tor rückt in die Nachspielzeit; Spiele ohne Ereignisse bleiben ohne', () => {
     const g = goal(running(), 'opp', T0 + min(24) + sec(30));
     const now = T0 + min(24) + sec(50);
-    const s = shiftClock(g, 2, now);
-    expect(s.goals[0]).toMatchObject({ minute: 25, stoppage: 2 });
-    expect(clockOf(s, now).label).toBe("25+2'");
+    const s = setRest(g, 0, now);
+    expect(s.goals[0]).toMatchObject({ minute: 25, stoppage: null });
+    expect(clockOf(s, now).remainingMs).toBe(0);
     expect(s).not.toHaveProperty('events');
   });
 
@@ -584,53 +586,91 @@ describe('012 FR-S20 bis FR-S23 Uhr korrigieren', () => {
     const now = T0 + min(25) + sec(20);
     g = markSignalled(g, clockOf(g, now).dueThresholds);
     expect(g.signalledThresholds).toEqual(['1:0']);
-    const s = shiftClock(g, -1, now);
+    expect(restRange(g, now)).toEqual({ min: 0, max: 25, current: 0 });
+    const s = setRest(g, 1, now);
     expect(s.signalledThresholds).toEqual([]);
     expect(clockOf(s, now).label).toBe("25'");
     expect(clockOf(s, now).dueThresholds).toEqual([]);
-    expect(clockOf(s, T0 + min(26) + sec(20)).dueThresholds).toEqual(['1:0']);
+    expect(clockOf(s, now + min(1)).dueThresholds).toEqual(['1:0']);
   });
 
-  it('FR-S23 nur nicht mehr erreichte Signale des laufenden Abschnitts entfallen', () => {
+  it('FR-S23 in der Nachspielzeit: Restzeit negativ ("+N Min"), nur nicht mehr erreichte Signale entfallen', () => {
     let g = kickoff(endSection(running(), T0 + min(25)), T0 + min(30));
     const now = T0 + min(30) + min(27) + sec(10);
     g = markSignalled(g, ['1:0', ...clockOf(g, now).dueThresholds]);
     expect(g.signalledThresholds).toEqual(['1:0', '2:0', '2:+1', '2:+2']);
-    expect(shiftClock(g, -1, now).signalledThresholds).toEqual(['1:0', '2:0', '2:+1']);
+    expect(restRange(g, now)).toEqual({ min: -2, max: 25, current: -2 });
+    expect(setRest(g, -3, now)).toBe(g);
+    expect(setRest(g, -1, now).signalledThresholds).toEqual(['1:0', '2:0', '2:+1']);
   });
 
-  it('012 US4-S4 nicht vor das Ende des vorigen Abschnitts und nicht hinter jetzt', () => {
+  it('023 US3-S3 Vorstellen über den vorigen Pfiff hinaus: der bisherige Verlauf rückt mit, Minuten bleiben', () => {
+    // Wie am 22.11.: Pausenpfiff und Anpfiff der 2. Halbzeit kurz hintereinander.
+    let g = goal(running(), 'own', T0 + sec(20));
+    g = addMark(g, T0 + sec(40), ids)!.game;
+    g = kickoff(endSection(g, T0 + min(1)), T0 + min(1) + sec(30));
+    const now = T0 + min(2) + sec(18);
+    expect(restRange(g, now)).toEqual({ min: 0, max: 25, current: 24 });
+    const s = setRest(g, 7, now);
+    const d = -min(17) - sec(12);
+    expect(s.clockEvents).toEqual([
+      ev('kickoff', T0 + d),
+      ev('sectionEnd', T0 + min(1) + d),
+      ev('kickoff', T0 + min(1) + sec(30) + d, 2),
+    ]);
+    expect(clockOf(s, now)).toMatchObject({ remainingMs: min(7), label: "44'" });
+    expect(s.goals[0]).toMatchObject({ at: T0 + sec(20) + d, minute: 1, section: 1 });
+    expect(s.events?.[0]).toMatchObject({ at: T0 + sec(40) + d, minute: 1 });
+  });
+
+  it('Vorstellen ohne Überschreiten des vorigen Pfiffs lässt frühere Abschnitte, wo sie sind', () => {
+    const g = kickoff(endSection(running(), T0 + min(25)), T0 + min(30));
+    const now = T0 + min(31);
+    const s = setRest(g, 22, now);
+    expect(s.clockEvents.slice(0, 2)).toEqual(g.clockEvents.slice(0, 2));
+    expect(s.clockEvents[2]).toEqual(ev('kickoff', T0 + min(28), 2));
+  });
+
+  it('012 US4-S4 023 US3-S5 Zurückstellen nicht hinter jetzt bzw. die erste Unterbrechung', () => {
     const g = kickoff(endSection(running(), T0 + min(25)), T0 + min(28));
     const now = T0 + min(30);
-    expect(clockShiftRange(g, now)).toEqual({ min: -2, max: 2 });
-    expect(shiftClock(g, 3, now)).toBe(g);
-    expect(shiftClock(g, -3, now)).toBe(g);
-    expect(shiftClock(g, 2, now).clockEvents.at(-1)?.at).toBe(T0 + min(26));
-    expect(shiftClock(g, -2, now).clockEvents.at(-1)?.at).toBe(now);
-    expect(clockOf(shiftClock(g, -2, now), now).playedMs).toBe(0);
+    expect(restRange(g, now)).toEqual({ min: 0, max: 25, current: 23 });
+    expect(setRest(g, 26, now)).toBe(g);
+    expect(setRest(g, -1, now)).toBe(g);
+    expect(clockOf(setRest(g, 25, now), now).playedMs).toBe(0);
+    const paused = resumeClock(pauseClock(running(), T0 + min(2) + sec(20)), T0 + min(4));
+    // Höchstens bis zur ersten Unterbrechung nach 2:20: gespielt bleiben mindestens 6:00.
+    expect(restRange(paused, T0 + min(10))).toEqual({ min: 0, max: 19, current: 17 });
   });
 
-  it('012 US4-S4 nicht hinter die erste Unterbrechung des Abschnitts, ohne vorigen Abschnitt höchstens 60 Minuten', () => {
-    const g = resumeClock(pauseClock(running(), T0 + min(2) + sec(20)), T0 + min(4));
-    const now = T0 + min(10);
-    expect(clockShiftRange(g, now)).toEqual({ min: -2, max: 60 });
-    expect(shiftClock(g, 61, now)).toBe(g);
-    expect(shiftClock(g, 60, now).clockEvents[0]?.at).toBe(T0 - min(60));
-  });
-
-  it('012 US4-S4 nicht hinter das erste Tor oder Ereignis des Abschnitts', () => {
+  it('012 US4-S4 nicht hinter das erste Tor oder Ereignis des Abschnitts; Tore vor Tickerbeginn zählen nicht', () => {
     const withGoal = goal(running(), 'own', T0 + min(4) + sec(30));
-    expect(clockShiftRange(withGoal, T0 + min(9))?.min).toBe(-4);
+    expect(restRange(withGoal, T0 + min(9))?.max).toBe(20);
     const withCard = addCard(withGoal, { side: 'opp', card: 'zeit', who: null }, T0 + min(3) + sec(10), ids)!.game;
-    expect(clockShiftRange(withCard, T0 + min(9))?.min).toBe(-3);
+    expect(restRange(withCard, T0 + min(9))?.max).toBe(19);
+    const joined = joinGame(fresh(), { section: 1, pause: false, rest: 20, own: 2, opp: 0 }, T0, ids);
+    expect(restRange(joined, T0 + min(1))).toEqual({ min: 0, max: 25, current: 19 });
+    const s = setRest(joined, 25, T0 + min(1));
+    expect(clockOf(s, T0 + min(1)).playedMs).toBe(0);
+    expect(s.goals.map((x) => [x.minute, x.beforeTicker])).toEqual([
+      [1, true],
+      [1, true],
+    ]);
+  });
+
+  it('023 FR-J22 kein Spielraum: Eintrag fehlt', () => {
+    const g = kickoff(endSection(running(), T0 + min(25)), T0 + min(28));
+    // Tor genau beim Anpfiff, Restzeit 0 und mehr Spielzeit gibt es nicht.
+    const stuck = goal(g, 'own', T0 + min(28));
+    expect(restRange(stuck, T0 + min(53))).toBeNull();
   });
 
   it('Uhr korrigieren bei angehaltener Uhr: Korrektur gilt sofort, Uhr bleibt angehalten', () => {
     const g = pauseClock(running(), T0 + min(4) + sec(30));
     const now = T0 + min(8);
-    expect(clockShiftRange(g, now)).toEqual({ min: -4, max: 60 });
-    const s = shiftClock(g, 1, now);
+    expect(restRange(g, now)).toEqual({ min: 0, max: 25, current: 21 });
+    const s = setRest(g, 19, now);
     expect(s.status).toBe('paused');
-    expect(clockOf(s, now).label).toBe("6'");
+    expect(clockOf(s, now).label).toBe("7'");
   });
 });

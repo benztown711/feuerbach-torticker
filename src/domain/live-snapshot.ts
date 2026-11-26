@@ -18,6 +18,8 @@ export interface LiveGoal {
   ownGoal: boolean;
   /** Spec 009 FR-V08: Anzeigename des Vorlagengebers; fehlt ohne Vorlage. */
   assist?: string;
+  /** Spec 023 FR-J15: Tor vor Tickerbeginn (Minute unbekannt); fehlt sonst. */
+  pre?: true;
 }
 
 export interface LiveShootout {
@@ -147,6 +149,7 @@ export function buildSnapshot(game: Game, players: Player[], team: string, sentA
         penalty: g.penalty === true,
         ownGoal: g.scorer?.kind === 'ownGoal',
         ...assistOf(assistLabel(g, players) ? g.assist : null, players),
+        ...(g.beforeTicker ? { pre: true as const } : {}),
       })),
     shootout: game.shootout
       ? {
@@ -191,6 +194,8 @@ function parseGoal(v: unknown): LiveGoal | null {
   if (typeof v.penalty !== 'boolean' || typeof v.ownGoal !== 'boolean') return null;
   // Spec 009: Vorlage optional; fehlt bei älteren Trainer-Handys.
   if (!(v.assist === undefined || isName(v.assist))) return null;
+  // Spec 023 FR-J15: optional; ältere Dashboards übergehen es.
+  if (!(v.pre === undefined || v.pre === true)) return null;
   return {
     side: v.side,
     minute: v.minute,
@@ -200,6 +205,7 @@ function parseGoal(v: unknown): LiveGoal | null {
     penalty: v.penalty,
     ownGoal: v.ownGoal,
     ...(typeof v.assist === 'string' ? { assist: v.assist } : {}),
+    ...(v.pre === true ? { pre: true as const } : {}),
   };
 }
 

@@ -92,10 +92,5 @@ export function markSignalled(game: Game, thresholds: string[]): Game {
   return { ...game, signalledThresholds: merged };
 }
 
-/** "Spielzeit" bei einem Abschnitt, sonst "1. Halbzeit", "2. Drittel", "3. Viertel". */
-export function sectionLabel(section: number, sections: number): string {
-  if (section > sections) return `${section - sections}. Hälfte Verlängerung`;
-  if (sections === 1) return 'Spielzeit';
-  const unit = sections === 2 ? 'Halbzeit' : sections === 3 ? 'Drittel' : 'Viertel';
-  return `${section}. ${unit}`;
-}
+/** Beschriftung der Abschnitte; steht in `minute.ts`, damit nachgeladene Teile `game.ts` nicht brauchen. */
+export { sectionLabel } from './minute';

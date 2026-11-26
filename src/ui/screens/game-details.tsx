@@ -268,7 +268,8 @@ export function GameDetailsScreen({ id }: { id: string }) {
                   <span class="details__minute">{item.label}</span>
                   <span class="details__score-cell">{item.score}</span>
                   <span class="details__what">{goalWho(game, item.goal, players)}</span>
-                  <span class="details__time">{formatTime(item.at)}</span>
+                  {/* Spec 023 FR-J12: ohne Minute und ohne Uhrzeit. */}
+                  <span class="details__time">{item.goal.beforeTicker ? 'vor Tickerbeginn' : formatTime(item.at)}</span>
                   {item.removed && <span class="goal-row__tag">entfernt</span>}
                   <svg class="details__chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M9 5l7 7-7 7" />
