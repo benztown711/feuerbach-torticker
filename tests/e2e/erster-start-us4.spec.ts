@@ -297,7 +297,8 @@ test('022 FR-F43 "Für Trainer" aufgeklappt: kein doppeltes Label "TRAINER" unte
   await expect(area).toBeVisible();
   const labels = await area.locator('.t-label').allInnerTexts();
   expect(labels).not.toContain('TRAINER');
-  expect(labels.slice(0, 3)).toEqual(['MANNSCHAFTEN', 'SPIELPLAN', 'VERWALTEN']);
+  // Spec 024 US4: "Eltern dürfen tickern" nach den Mannschaften.
+  expect(labels.slice(0, 4)).toEqual(['MANNSCHAFTEN', 'ELTERN DÜRFEN TICKERN', 'SPIELPLAN', 'VERWALTEN']);
   // Der erste Abschnitt beginnt gleich mit dem Erklärtext unter der Kopfzeile "Für Trainer".
   const first = page.getByTestId('live-trainer-card');
   await expect(first).toBeVisible();

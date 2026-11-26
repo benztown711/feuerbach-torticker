@@ -115,15 +115,15 @@ export function preparedDeps(prepared: PreparedLive, now = Date.now()): LiveDeps
  */
 export async function createLive(input: LiveInput, prepared?: PreparedLive): Promise<Settings> {
   const settings = await getSettings();
-  const live = await createSpieltag(input, settings.teams, prepared ? preparedDeps(prepared) : deps());
+  const created = await createSpieltag(input, settings.teams, prepared ? preparedDeps(prepared) : deps());
+  // Spec 024 R-E1: ein neuer Live-Spieltag hat gleich ein Eltern-Paket (eine Konfigurations-Meldung).
+  const live = created.orgKey ? { ...created, kit: await makeKit(created.orgKey, deps()) } : created;
   const next = { ...settings, live };
   await putSettings(next);
   void publishConfig(live);
   void startLiveSender(next);
   // Spec 016 R-B6: das neue Trainer-Handy hält die Verbindung für geteilte Kader (main.tsx).
   liveSettingsChanged(next);
-  // Spec 024 R-E1: ein neuer Live-Spieltag bekommt gleich ein Eltern-Paket.
-  void ensureKit(live);
   return next;
 }
 
