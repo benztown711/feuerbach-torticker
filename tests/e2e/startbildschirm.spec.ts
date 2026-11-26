@@ -12,6 +12,9 @@ import type { FakeRelay } from './relay';
 
 // Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
+// "Übernehmen" gilt nur für Spiele von heute (Spec 006 FR-L16): Uhren auf heute 12 Uhr, damit ein Lauf kurz nach
+// Mitternacht die eben angepfiffenen Spiele nicht dem Vortag zuordnet.
+test.use({ midday: true });
 
 const E2 = 'Sportvg Feuerbach E2';
 type State = Record<string, unknown> & { gameId?: string; h?: number; goals?: unknown[] };
@@ -154,9 +157,10 @@ test('018 US2-S4 US2-S6 US2-S7 US2-S8 mehrere Spiele, verstummtes Handy, nicht a
   const links = await createLive(page, recorded, { teams: ['E1', 'E2', 'E3'] });
   const now = (): number => Date.now() + relay.offsetMs;
   // E2 läuft, das Handy sendet seit 35 Minuten nichts mehr (Akku leer).
-  relay.offsetMs = -35 * MIN;
+  const base = relay.offsetMs;
+  relay.offsetMs = base - 35 * MIN;
   await sendAs(relay, links.trainer, liveSnap({ team: 'E2', now: now(), minutes: 45, clock: [['kickoff', 5, 1]] }));
-  relay.offsetMs = 0;
+  relay.offsetMs = base;
   // E3 läuft auswärts, E1 ist nur angelegt.
   await sendAs(
     relay,

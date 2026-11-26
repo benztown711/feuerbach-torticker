@@ -11,6 +11,9 @@ import type { FakeRelay } from './relay';
 
 // Service Worker blockieren, damit WebKit die Anfragen an den Vermittlungsdienst durch den Nachbau leitet (fixtures.ts).
 test.use({ serviceWorkers: 'block' });
+// "Übernehmen" gilt nur für Spiele von heute (Spec 006 FR-L16): Uhren auf heute 12 Uhr, damit ein Lauf kurz nach
+// Mitternacht die eben angepfiffenen Spiele nicht dem Vortag zuordnet.
+test.use({ midday: true });
 
 const E2 = 'Sportvg Feuerbach E2';
 type State = Record<string, unknown> & { gameId?: string; h?: number; goals?: unknown[] };
