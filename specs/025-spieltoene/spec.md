@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Entwurf, Review A offen. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7
+**Status**: Klärung erledigt, Vorbelegung nach Hörprobe gewählt (26.11.2026). Review B offen; die Empfehlungen a bis d werden mit dem Mockup bestätigt. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7 · Mockup: https://claude.ai/artifact/92PXE3iS6DDDhWTuELTidN
 
 **Input**: Atti (26.11.2026): "Können wir bitte unterschiedliche Töne für An- und Abpfiff und für Tore festlegen lassen? Sowas wie vielleicht auch ein Jubel bei Toren oder ähnliches."
 
@@ -24,9 +24,11 @@ Gesichtet am 26.11.2026 in Specs und Code:
 - Q: Welche Ereignisse bekommen einen eigenen Ton? → A: **Anpfiff** (auch Wiederanpfiff), **Pausenpfiff**, **Schlusspfiff**, **Tor für uns**, **Gegentor**.
 - Q: Wie festlegen? → A: **Je Ereignis wählbar**, die Vorbelegung gibt Atti vor.
 - Q: Jubel? → A: **Freie Aufnahme** (CC0), mit der App ausgeliefert, offline.
-- Q: Vorbelegung? → A: Anpfiff **Langer Pfiff**, Pausenpfiff **Doppelpfiff**, Schlusspfiff **Pfiff** (kurz-kurz-lang), Gegentor **Raunen** (enttäuschtes "Ohh"), Tor für uns: [OFFEN: Atti entscheidet nach der Hörprobe].
+- Q: Vorbelegung? → A: Anpfiff **Langer Pfiff**, Pausenpfiff **Doppelpfiff**, Schlusspfiff **Pfiff** (kurz-kurz-lang), Gegentor **Raunen** (enttäuschtes "Ohh", Freesound 619007), Tor für uns **Torhupe** (nach der Hörprobe, Atti 26.11.2026: "Tor: Torhupe · Gegentor: Raunen").
 
-### Folgerungen mit Empfehlung (Review A offen)
+### Folgerungen mit Empfehlung (Bestätigung mit dem Mockup, Review B)
+
+- **Auswahl der Aufnahmen**: In die App kommen von den Hörproben-Varianten Torhupe, Jubel, Torhupe mit Jubel, Kinderjubel und Raunen (zusammen etwa 160 KB). Großer Jubel, Jubel kurz und die übrigen Raunen-Aufnahmen entfallen, damit die Liste kurz bleibt.
 
 - **a) Ein Abschnitt "TÖNE" ersetzt "SIGNALTON"** in den Einstellungen: sechs Zeilen (Spielzeitende, Anpfiff, Pausenpfiff, Schlusspfiff, Tor für uns, Gegentor), je mit Auswahl aus derselben Liste plus "Aus". Spielzeitende behält den heutigen Signalton (Vorgabe Pfiff), damit sich für Trainer ohne Änderung nichts verschiebt.
 - **b) Eltern-Ansicht**: "Ton bei Toren" wird zu "Töne" (Standard aus, wie heute) und einem Link "Töne wählen", der dieselben fünf Ereignis-Zeilen zeigt (ohne Spielzeitende). Wer "Ton bei Toren" schon an hatte, hat "Töne" an.
@@ -37,15 +39,15 @@ Gesichtet am 26.11.2026 in Specs und Code:
 
 ### User Story 1 - Töne je Ereignis wählen (Priority: P1)
 
-Der Trainer öffnet Mehr → Einstellungen. Unter "TÖNE" sieht er sechs Zeilen mit dem jeweils gewählten Ton. Er tippt "Tor für uns", hört sich die Liste an und wählt "Torhupe". Beim Gegentor stellt er "Aus" ein.
+Der Trainer öffnet Mehr → Einstellungen. Unter "TÖNE" sieht er sechs Zeilen mit dem jeweils gewählten Ton. Er tippt "Tor für uns", hört sich die Liste an und wählt "Jubel". Beim Gegentor stellt er "Aus" ein.
 
 **Why this priority**: Grundlage für alle anderen Stories; ohne Auswahl gibt es nur feste Töne.
 
-**Independent Test**: Einstellungen öffnen, "Tor für uns" → "Torhupe", "Gegentor" → "Aus", neu laden, Werte stehen noch da.
+**Independent Test**: Einstellungen öffnen, "Tor für uns" → "Jubel", "Gegentor" → "Aus", neu laden, Werte stehen noch da.
 
 **Acceptance Scenarios**:
 
-1. **Given** ein Handy ohne gespeicherte Töne (neu oder vor diesem Update), **When** die Einstellungen geöffnet werden, **Then** zeigt der Abschnitt "TÖNE" die Zeilen "Spielzeitende", "Anpfiff", "Pausenpfiff", "Schlusspfiff", "Tor für uns", "Gegentor" mit den Vorbelegungen Pfiff, Langer Pfiff, Doppelpfiff, Pfiff, [Tor-Vorbelegung], Raunen.
+1. **Given** ein Handy ohne gespeicherte Töne (neu oder vor diesem Update), **When** die Einstellungen geöffnet werden, **Then** zeigt der Abschnitt "TÖNE" die Zeilen "Spielzeitende", "Anpfiff", "Pausenpfiff", "Schlusspfiff", "Tor für uns", "Gegentor" mit den Vorbelegungen Pfiff, Langer Pfiff, Doppelpfiff, Pfiff, Torhupe, Raunen.
 2. **Given** vor dem Update war als Signalton "Gong" gewählt, **Then** zeigt "Spielzeitende" "Gong"; die übrigen Zeilen haben die Vorbelegung.
 3. **Given** die Zeile "Tor für uns", **When** sie getippt wird, **Then** öffnet ein Blatt mit allen Tönen (Name und eine Zeile Beschreibung) und "Aus"; der gewählte ist markiert. **When** ein Ton getippt wird, **Then** ist er gewählt, gespeichert und spielt sofort zur Probe.
 4. **Given** "Aus" ist für "Gegentor" gewählt, **Then** zeigt die Zeile "Aus", und beim Gegentor spielt kein Ton.
@@ -55,7 +57,7 @@ Der Trainer öffnet Mehr → Einstellungen. Unter "TÖNE" sieht er sechs Zeilen 
 
 ### User Story 2 - Töne beim Tickern (Priority: P1)
 
-Max' Vater tickert mit dem Trainer-Handy. Beim Anpfiff ertönt ein langer Pfiff, beim Tor für Feuerbach Jubel, beim Gegentor ein Raunen, zur Pause ein Doppelpfiff, am Ende der Schlusspfiff.
+Max' Vater tickert mit dem Trainer-Handy. Beim Anpfiff ertönt ein langer Pfiff, beim Tor für Feuerbach die Torhupe, beim Gegentor ein Raunen, zur Pause ein Doppelpfiff, am Ende der Schlusspfiff.
 
 **Why this priority**: Kern des Wunsches; macht das Tickern lebendiger und bestätigt jede Eingabe hörbar.
 
@@ -75,7 +77,7 @@ Max' Vater tickert mit dem Trainer-Handy. Beim Anpfiff ertönt ein langer Pfiff,
 
 ### User Story 3 - Töne in der Eltern-Ansicht (Priority: P1)
 
-Max' Oma hat den Link für Eltern offen und "Töne" eingeschaltet. Sie hört den Anpfiff, den Jubel bei jedem Feuerbach-Tor, das Raunen beim Gegentor und den Schlusspfiff, ohne auf den Bildschirm zu schauen.
+Max' Oma hat den Link für Eltern offen und "Töne" eingeschaltet. Sie hört den Anpfiff, die Torhupe bei jedem Feuerbach-Tor, das Raunen beim Gegentor und den Schlusspfiff, ohne auf den Bildschirm zu schauen.
 
 **Why this priority**: Zuschauer, die nicht am Platz sind, profitieren am meisten.
 
@@ -109,10 +111,10 @@ Max' Oma hat den Link für Eltern offen und "Töne" eingeschaltet. Sie hört den
 
 Diese Anforderungen erweitern Spec 008 (FR-K01 bis FR-K05) und Spec 020 (FR-E25). Kanal, Freischaltung, Hinweis "Ton aus · tippen" und stille Tonspur bleiben unverändert.
 
-- **FR-T01**: Die App MUSS diese Töne anbieten, in dieser Reihenfolge: Pfiff, Langer Pfiff, Doppelpfiff, Glocke, Gong, [Tor-Varianten nach Hörprobe], Raunen. Pfiffe, Glocke und Gong werden im Browser erzeugt (wie Spec 008), Jubel, Torhupe und Raunen sind mitgelieferte Aufnahmen unter CC0, höchstens etwa 4 s lang.
+- **FR-T01**: Die App MUSS diese Töne anbieten, in dieser Reihenfolge: Pfiff, Langer Pfiff, Doppelpfiff, Glocke, Gong, Torhupe, Jubel, Torhupe mit Jubel, Kinderjubel, Raunen. Pfiffe, Glocke und Gong werden im Browser erzeugt (wie Spec 008), Jubel, Torhupe und Raunen sind mitgelieferte Aufnahmen unter CC0, höchstens etwa 4 s lang.
 - **FR-T02**: Die Aufnahmen MÜSSEN mit der App ausgeliefert und vom Service Worker für offline zwischengespeichert werden; sie DÜRFEN das Hauptbundle nicht vergrößern (erst bei Bedarf laden) und nicht von fremden Servern kommen (Constitution II).
 - **FR-T03**: Die Einstellungen MÜSSEN den Abschnitt "TÖNE" mit sechs Zeilen zeigen: Spielzeitende, Anpfiff, Pausenpfiff, Schlusspfiff, Tor für uns, Gegentor. Jede Zeile nennt den gewählten Ton; Antippen öffnet die Auswahl (US1-S3). Alle Ereignisse außer Spielzeitende bieten zusätzlich "Aus".
-- **FR-T04**: Vorbelegung: Spielzeitende Pfiff (bzw. der bisher gewählte Signalton), Anpfiff Langer Pfiff, Pausenpfiff Doppelpfiff, Schlusspfiff Pfiff, Tor für uns [OFFEN], Gegentor Raunen. Fehlt ein Wert oder ist er unbekannt, MUSS die Vorbelegung gelten.
+- **FR-T04**: Vorbelegung: Spielzeitende Pfiff (bzw. der bisher gewählte Signalton), Anpfiff Langer Pfiff, Pausenpfiff Doppelpfiff, Schlusspfiff Pfiff, Tor für uns Torhupe, Gegentor Raunen. Fehlt ein Wert oder ist er unbekannt, MUSS die Vorbelegung gelten.
 - **FR-T05**: Auf dem tickernden Handy MUSS beim Anpfiff (jedem Abschnitt), beim bestätigten Pausen- und Schlusspfiff und beim Eintragen eines Tors (auch im Elfmeterschießen) sofort der gewählte Ton spielen. Rückgängig, Korrekturen, "Spiel läuft schon" und Nachträge spielen keinen Ton.
 - **FR-T06**: Die Eltern-Ansicht MUSS den Schalter "Ton bei Toren" durch "Töne" ersetzen (gleiche Vorgabe, gleiches Merken, gleiche Freischaltung) und "Töne wählen" mit den fünf Ereigniszeilen anbieten. Ein gespeichertes "Ton bei Toren: an" MUSS als "Töne: an" gelten.
 - **FR-T07**: Bei eingeschalteten "Tönen" MUSS die Eltern-Ansicht je neuer Meldung höchstens einen Ton spielen, und zwar den des neuesten neuen Ereignisses (Anpfiff, Pausenpfiff, Schlusspfiff, Tor für uns, Gegentor) einer Karte. "Tor für uns" ist ein Tor der Feuerbach-Mannschaft der Karte.
@@ -137,7 +139,7 @@ Diese Anforderungen erweitern Spec 008 (FR-K01 bis FR-K05) und Spec 020 (FR-E25)
 
 - **SC-T01**: Am Spielfeldrand sind alle sechs Töne vom iPhone-Lautsprecher klar unterscheidbar (Prüfung durch Atti in Review C).
 - **SC-T02**: Der Ton beim Tippen kommt ohne spürbare Verzögerung (unter 0,2 s nach dem Tippen, auch bei Aufnahmen nach dem ersten Laden).
-- **SC-T03**: Das Hauptbundle bleibt unter 60 KB gzip; alle Aufnahmen zusammen höchstens 300 KB.
+- **SC-T03**: Das Hauptbundle bleibt unter 60 KB gzip; alle Aufnahmen zusammen höchstens 200 KB.
 - **SC-T04**: Offline (Flugmodus nach einmaligem Laden) spielen alle Töne.
 
 ## Assumptions
