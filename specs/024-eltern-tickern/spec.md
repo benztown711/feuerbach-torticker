@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung und Review A erledigt (26.11.2026, "Passt, a bis d so übernehmen"), Mockup für Review B: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42 (Version 2 mit hervorgehobenen Namen)
+**Status**: Klärung, Review A und Review B erledigt (26.11.2026, "Passt, setz es um"). Constitution 3.2.0. Mockup: https://claude.ai/artifact/15FC1cxThNZLfUwgZt8r42 (Version 2 mit hervorgehobenen Namen)
 
 **Input**: Atti (26.11.2026): "Gestern hatten wir ein Nachholspiel, das nicht in der Liste war. Ivica und ich waren auf einem anderen Platz mit Training beschäftigt, sodass niemand getickert hat. Jetzt ist die Überlegung, ob wir den Link in der Elterngruppe verteilen, und je nachdem, wer da ist, kann tickern. […] Man sieht in der App hoffentlich, wer schon tickert. […] Ist es möglich, den Zuschauerlink und den Tickerlink in einem zu belassen und über einen Button abzufragen: Möchtest du nur das Ergebnis sehen oder live tickern?"
 
