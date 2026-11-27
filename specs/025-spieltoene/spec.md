@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung erledigt, Vorbelegung nach Hörprobe gewählt (26.11.2026). Review B offen; die Empfehlungen a bis d werden mit dem Mockup bestätigt. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7 · Mockup: https://claude.ai/artifact/92PXE3iS6DDDhWTuELTidN
+**Status**: Klärung erledigt, Review B erledigt (27.11.2026, Atti: "Passt"; bestätigt auch die Empfehlungen a bis d und die Auswahl der Aufnahmen). Plan und Tasks erstellt. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7 · Mockup: https://claude.ai/artifact/92PXE3iS6DDDhWTuELTidN
 
 **Input**: Atti (26.11.2026): "Können wir bitte unterschiedliche Töne für An- und Abpfiff und für Tore festlegen lassen? Sowas wie vielleicht auch ein Jubel bei Toren oder ähnliches."
 
@@ -26,7 +26,7 @@ Gesichtet am 26.11.2026 in Specs und Code:
 - Q: Jubel? → A: **Freie Aufnahme** (CC0), mit der App ausgeliefert, offline.
 - Q: Vorbelegung? → A: Anpfiff **Langer Pfiff**, Pausenpfiff **Doppelpfiff**, Schlusspfiff **Pfiff** (kurz-kurz-lang), Gegentor **Raunen** (enttäuschtes "Ohh", Freesound 619007), Tor für uns **Torhupe** (nach der Hörprobe, Atti 26.11.2026: "Tor: Torhupe · Gegentor: Raunen").
 
-### Folgerungen mit Empfehlung (Bestätigung mit dem Mockup, Review B)
+### Folgerungen mit Empfehlung (bestätigt in Review B, 27.11.2026)
 
 - **Auswahl der Aufnahmen**: In die App kommen von den Hörproben-Varianten Torhupe, Jubel, Torhupe mit Jubel, Kinderjubel und Raunen (zusammen etwa 160 KB). Großer Jubel, Jubel kurz und die übrigen Raunen-Aufnahmen entfallen, damit die Liste kurz bleibt.
 
@@ -34,6 +34,12 @@ Gesichtet am 26.11.2026 in Specs und Code:
 - **b) Eltern-Ansicht**: "Ton bei Toren" wird zu "Töne" (Standard aus, wie heute) und einem Link "Töne wählen", der dieselben fünf Ereignis-Zeilen zeigt (ohne Spielzeitende). Wer "Ton bei Toren" schon an hatte, hat "Töne" an.
 - **c) Trainer-Handy Vorgabe an**: Die Ereignistöne spielen ab dem Update beim Antippen. Wer das nicht will, stellt einzelne Ereignisse auf "Aus".
 - **d) Andere Spiele bleiben stumm**: In der Zeile "Andere Spiele" auf dem Trainer-Handy (Spec 006 US4-S3) gibt es weiterhin keinen Ton.
+
+### Festlegungen bei der Planung (27.11.2026)
+
+- **Mehrere Ereignisse in einer Meldung** (FR-T07): Ist der letzte neue Pfiff ein Pausen- oder Schlusspfiff, spielt dessen Ton; sonst bei neuen Toren der Ton des neuesten Tors; sonst beim neuen Anpfiff der Anpfiff-Ton (plan.md R-T3).
+- **Eltern-Ansicht ohne Ton** bei Elfmeterschießen, "Uhr anhalten" und alten Meldungen nach einer Funklücke (wie FR-E21).
+- **Tickerndes Eltern-Handy** (Spec 024): Ereignis-Töne aus "Töne wählen" auf diesem Handy; das Spielzeitende-Signal bleibt dort der Pfiff.
 
 ## User Scenarios & Testing *(mandatory)*
 
