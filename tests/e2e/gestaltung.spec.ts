@@ -46,7 +46,7 @@ test.describe('Spec 011 Karten und Abschnitte', () => {
       'MEINE MANNSCHAFTEN',
       'KADER',
       'IM SPIEL ERFASSEN',
-      'SIGNALTON',
+      'TÖNE',
       'DARSTELLUNG',
       'SICHERUNG',
     ]);

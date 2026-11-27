@@ -107,9 +107,10 @@ test('006 US3-S1 US3-S4 US3-S10 zwei Karten in 5 s, zugeklappt, aufklappbar, ohn
   await expect(v.getByTestId('dash-toggle-E1')).toHaveAttribute('aria-expanded', 'false');
 
   // US3-S10: nur lesen, keine Eingaben; Knöpfe sind die Karten selbst und seit Spec 024 die Wege zum Tickern
-  // ("Spiel übernehmen" in der aufgeklappten E2-Karte, "Spiel fehlt? Selbst tickern").
+  // ("Spiel übernehmen" in der aufgeklappten E2-Karte, "Spiel fehlt? Selbst tickern"), seit Spec 025 "Töne wählen".
   await expect(v.locator('input, textarea, select')).toHaveCount(0);
-  await expect(v.getByTestId('dashboard').getByRole('button')).toHaveCount(4);
+  await expect(v.getByTestId('dashboard').getByRole('button')).toHaveCount(5);
+  await expect(v.getByTestId('dash-sound-choose')).toBeVisible();
   await expect(v.getByTestId('dash-takeover-E2')).toBeVisible();
   await expect(v.getByTestId('dash-missing')).toBeVisible();
 });

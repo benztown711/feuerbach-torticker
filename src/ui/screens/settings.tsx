@@ -3,19 +3,29 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../dom
 import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
-import { SIGNAL_SOUNDS } from '../../domain/signal-sound';
+import { SOUND_EVENTS } from '../../domain/sound-catalog';
 import { joinList } from '../../domain/format';
 import { titleOf } from '../../domain/live-spieltag';
 import { hasSquads, squadOfTeam, squadsOf } from '../../domain/squads';
 import type { BackupPlan } from '../../domain/export';
-import type { EventFeatures, LiveSpieltag, RosterSort, Settings, Squad, Team, Theme } from '../../domain/types';
+import type {
+  EventFeatures,
+  LiveSpieltag,
+  RosterSort,
+  Settings,
+  SoundEvent,
+  Squad,
+  Team,
+  Theme,
+} from '../../domain/types';
 import { getPlayers, getSettings, listGames, putGames, putPlayers, putSettings } from '../../platform/db';
 import { shareFile } from '../../platform/share';
-import { previewSignal } from '../../platform/signal';
+import { setSignalSound } from '../../platform/signal';
 import { applyTheme, isStandalone } from '../../platform/storage';
 import { Confirm } from '../components/confirm';
 import { KitRow } from '../components/kit-row';
 import { Sheet } from '../components/sheet';
+import { SoundEventList, SoundPicker } from '../components/sound-picker';
 import { useDarkTheme } from '../hooks';
 import { navigate } from '../router';
 import { APP_VERSION } from '../../version';
@@ -48,6 +58,9 @@ const FEATURE_SWITCHES: { key: keyof EventFeatures; title: string; help: string 
     help: 'Nach dem Torschützen fragen, wer vorgelegt hat. Nur eigene Tore.',
   },
 ];
+
+/** Spec 025 FR-T03: alle sechs Ereignisse. */
+const ALL_EVENTS = SOUND_EVENTS.map((e) => e.id);
 
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
 
@@ -182,6 +195,7 @@ export function SettingsScreen() {
   const [importMsg, setImportMsg] = useState('');
   /** FR-L21: Live-Spieltag aus der Sicherung wartet auf Bestätigung (wie beim Koppeln per Link). */
   const [pendingLive, setPendingLive] = useState<{ live: LiveSpieltag; base: string; plan?: BackupPlan } | null>(null);
+  const [soundSheet, setSoundSheet] = useState<SoundEvent | null>(null);
   const [editTeam, setEditTeam] = useState<{ team: Team; isNew: boolean } | null>(null);
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -434,50 +448,27 @@ export function SettingsScreen() {
           </ul>
         </section>
 
-        <section class="settings__section card" aria-labelledby="s-sound">
+        <section class="settings__section card" aria-labelledby="s-sound" data-testid="sounds">
           <h2 id="s-sound" class="t-label card__title">
-            SIGNALTON
+            TÖNE
           </h2>
-          <div class="sound-list" role="radiogroup" aria-labelledby="s-sound" data-testid="signal-sounds">
-            {SIGNAL_SOUNDS.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                class="sound-row"
-                role="radio"
-                aria-checked={settings.signalSound === o.id}
-                aria-labelledby={`sound-${o.id}-name`}
-                aria-describedby={`sound-${o.id}-help`}
-                data-testid={`signal-sound-${o.id}`}
-                onClick={() => {
-                  // Spec 008 FR-K02: sofort hören (innerhalb der Berührung) und speichern.
-                  previewSignal(o.id);
-                  save({ ...settings, signalSound: o.id });
-                }}
-              >
-                <span class="sound-row__check" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" class="icon">
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                </span>
-                <span class="sound-row__text">
-                  <span class="sound-row__title" id={`sound-${o.id}-name`}>
-                    {o.name}
-                  </span>
-                  <span class="sound-row__help" id={`sound-${o.id}-help`}>
-                    {o.description}
-                  </span>
-                </span>
-                <span class="sound-row__play" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24">
-                    <path d="M7 4.5v15l12.5-7.5z" />
-                  </svg>
-                </span>
-              </button>
-            ))}
-          </div>
-          <p class="field__help">Antippen spielt den Ton ab. Lautstärke mit den Tasten am Handy einstellen.</p>
+          <SoundEventList events={ALL_EVENTS} sounds={settings.sounds} onOpen={setSoundSheet} />
+          <p class="field__help">
+            Jeder Ton spielt beim Auswählen zur Probe. Lautstärke mit den Tasten am Handy einstellen.
+          </p>
         </section>
+        {soundSheet && (
+          <SoundPicker
+            event={soundSheet}
+            value={settings.sounds[soundSheet]}
+            onPick={(c) => {
+              // Spec 025 FR-T03: sofort speichern; das Spielzeitende gilt ab dem nächsten Signal.
+              if (soundSheet === 'timeUp' && c !== 'aus') setSignalSound(c);
+              save({ ...settings, sounds: { ...settings.sounds, [soundSheet]: c } });
+            }}
+            onClose={() => setSoundSheet(null)}
+          />
+        )}
 
         <section class="settings__section card" aria-labelledby="s-theme">
           <h2 id="s-theme" class="t-label card__title">

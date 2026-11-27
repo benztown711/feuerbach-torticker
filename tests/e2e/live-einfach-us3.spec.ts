@@ -70,7 +70,8 @@ const visibility = (v: Page, state: 'hidden' | 'visible'): Promise<void> =>
   }, state);
 
 const announce = (v: Page) => v.getByTestId('dash-goal-announce');
-const sound = (v: Page) => v.getByRole('switch', { name: 'Ton bei Toren' });
+/** Spec 025 FR-T06: der Schalter heißt jetzt "Töne". */
+const sound = (v: Page) => v.getByRole('switch', { name: 'Töne' });
 
 test('020 US3-S1 Tor von E1: Tab-Titel "Tor! Feuerbach E1 3:1"', async ({ page, recorded, relay, newDevice }) => {
   const { v, goal } = await open(page, recorded, relay, newDevice);
@@ -187,7 +188,7 @@ test('020 US3-S4 Vibration einmal kurz (200 ms); ohne Vibration (iPhone) kein Fe
   expect((await rec()).vibrations).toBe(0);
 });
 
-test('020 US3-S5 Schalter "Ton bei Toren": aus, Probe beim Einschalten, Ton bei jedem Tor, aus nach Ausschalten', async ({
+test('020 US3-S5 025 US3-S1 Schalter "Töne": aus, Probe beim Einschalten, Ton bei jedem Tor, aus nach Ausschalten', async ({
   page,
   recorded,
   relay,
@@ -203,7 +204,8 @@ test('020 US3-S5 Schalter "Ton bei Toren": aus, Probe beim Einschalten, Ton bei 
 
   await sw.click();
   await expect(sw).toHaveAttribute('aria-checked', 'true');
-  expect(await rec()).toMatchObject({ sounds: 1, lastSound: 'pfiff' });
+  // Spec 025: Probe und Tor mit dem Ton für "Tor für uns" (Vorbelegung Torhupe)
+  expect(await rec()).toMatchObject({ sounds: 1, lastSound: 'torhupe' });
   await goal(2);
   await expect.poll(async () => (await rec()).sounds).toBe(2);
   // Ton und Vibration je Meldung nur einmal, ohne das Muster des Abschnittsendes
@@ -320,7 +322,7 @@ test('020 US3-S9 FR-E27 Dashboard in der App: Titel und Ansage, aber weder Vibra
   await page.goto('./#/live-spieltag/dashboard');
   await expect(page.getByTestId('dash-score-E1')).toHaveText('2:1');
   await expect(page.getByTestId('dash-sound')).toHaveCount(0);
-  await expect(page.getByRole('switch', { name: 'Ton bei Toren' })).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Töne' })).toHaveCount(0);
 
   await sendAs(relay, links.trainer, e1WithGoals(extra(1), T + 5000));
   await expect.poll(() => page.title()).toBe('Tor! Feuerbach E1 3:1');

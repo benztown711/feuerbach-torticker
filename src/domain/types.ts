@@ -8,8 +8,20 @@ export type Side = 'own' | 'opp';
 export type GameStatus = 'created' | 'running' | 'paused' | 'break' | 'finished';
 export type Theme = 'system' | 'light' | 'dark';
 
-/** Spec 008 FR-K01. */
-export type SignalSound = 'pfiff' | 'glocke' | 'gong';
+/** Spec 008 FR-K01, Spec 025 FR-T01: im Browser erzeugte Töne. */
+export type SynthSound = 'pfiff' | 'langer-pfiff' | 'doppelpfiff' | 'glocke' | 'gong';
+
+/** Spec 025 FR-T01: alle Töne, die erzeugten und die mitgelieferten Aufnahmen. */
+export type SignalSound = SynthSound | 'torhupe' | 'jubel' | 'hupe-jubel' | 'kinderjubel' | 'raunen';
+
+/** Spec 025 FR-T03: Ton eines Ereignisses oder kein Ton. */
+export type SoundChoice = SignalSound | 'aus';
+
+/** Spec 025 FR-T03: Ereignisse mit eigenem Ton. */
+export type SoundEvent = 'timeUp' | 'kickoff' | 'halftime' | 'fulltime' | 'goalOwn' | 'goalOpp';
+
+/** Spec 025: Ton je Ereignis; das Spielzeitende (Spec 001 FR-007) hat immer einen Ton. */
+export type SoundSettings = { timeUp: SignalSound } & Record<Exclude<SoundEvent, 'timeUp'>, SoundChoice>;
 
 /** Spec 013 FR-K01: Reihenfolge des Kaders, "Vorname" oder "Rückennummer". */
 export type RosterSort = 'name' | 'number';
@@ -219,8 +231,8 @@ export interface Settings {
   /** Zuletzt genutzte Farbe je Gegnername (normalisiert). */
   opponentColors: Record<string, string>;
   theme: Theme;
-  /** Spec 008 FR-K03: gewählter Signalton, Vorgabe Pfiff. */
-  signalSound: SignalSound;
+  /** Spec 025 FR-T04 (ersetzt Spec 008 `signalSound`, jetzt `sounds.timeUp`): Ton je Ereignis. */
+  sounds: SoundSettings;
   /** Spec 013 FR-K02: Sortierung des Kaders, Vorgabe Vorname. */
   rosterSort: RosterSort;
   installHintDismissedAt: number | null;

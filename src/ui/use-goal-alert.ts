@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { goalSpeech, goalTitle, latestGoal, newGoals } from '../domain/goal-alert';
 import type { BoardCard } from '../domain/live-board';
-import { playGoalSignal, vibrateShort } from '../platform/signal';
+import type { ParentSounds } from '../domain/parent-sounds';
+import { newSoundEvent, soundTallies } from '../domain/sound-alert';
+import { playSound, vibrateShort } from '../platform/signal';
 
 /**
  * Eigene Datei statt `hooks.ts`: der Hook gehört nur zum Dashboard, das nachgeladen wird, und soll das
@@ -17,20 +19,24 @@ const SPEECH_MS = 5000;
  * Spec 020 US3: Neue Tore bei offenem Dashboard (FR-E21), erst ab dem ersten Stand vom Dienst (`ready`). Setzt den Tab-Titel auf "Tor! …" und stellt ihn zurück,
  * sobald die Seite wieder sichtbar wird, das Fenster den Fokus bekommt oder nach 30 Sekunden (FR-E22); liefert den
  * Text für den höflichen Ansagebereich (FR-E23). Mit `feedback` (nur Eltern-Ansicht, FR-E27) vibriert das Gerät
- * einmal kurz (FR-E24) und spielt mit `sound` den Signalton einmal (FR-E25), höchstens je einmal je Meldung.
+ * bei einem Tor einmal kurz (FR-E24). Spec 025 FR-T07 (ersetzt FR-E25): Mit `sounds` (Schalter "Töne" an) spielt je
+ * Meldung höchstens ein Ton, der des neuesten Ereignisses (Anpfiff, Pausen-, Schlusspfiff, Tor für uns, Gegentor).
  */
 export function useGoalAlert(
-  cards: Pick<BoardCard, 'gameId' | 'goals' | 'updatedAt'>[],
+  cards: Pick<BoardCard, 'gameId' | 'goals' | 'updatedAt' | 'whistles'>[],
   serverNow: number,
-  { feedback, sound, ready }: { feedback: boolean; sound: boolean; ready: boolean },
+  { feedback, sounds, ready }: { feedback: boolean; sounds: ParentSounds | null; ready: boolean },
 ): string {
   const counts = useRef<Map<string, number> | null>(null);
+  const tallies = useRef<ReturnType<typeof soundTallies> | null>(null);
   const title = useRef<{ original: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   const speechTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const soundOn = useRef(sound);
-  soundOn.current = sound;
+  const soundsRef = useRef(sounds);
+  soundsRef.current = sounds;
   const [speech, setSpeech] = useState('');
-  const signature = cards.map((c) => `${c.gameId}:${c.goals.length}`).join('|');
+  const signature = cards
+    .map((c) => `${c.gameId}:${c.goals.length}:${c.whistles.kickoff}:${c.whistles.halftime}:${c.whistles.fulltime}`)
+    .join('|');
 
   const restore = (): void => {
     const t = title.current;
@@ -59,10 +65,16 @@ export function useGoalAlert(
     // dem Öffnen fiel und im gemerkten Stand noch fehlt; die Basis ist der erste Stand vom Dienst.
     if (!ready) {
       counts.current = null;
+      tallies.current = null;
       return;
     }
     const prev = counts.current;
     counts.current = new Map(cards.map((c) => [c.gameId, c.goals.length]));
+    const before = tallies.current;
+    tallies.current = soundTallies(cards);
+    const event = newSoundEvent(before, cards, serverNow);
+    const chosen = soundsRef.current;
+    if (feedback && event && chosen) void playSound(chosen[event]);
     const goals = newGoals(prev, cards, serverNow);
     if (goals.length === 0) return;
     // Ein weiteres Tor ersetzt den Titel und startet die Frist neu; zurück kommt immer der ursprüngliche Titel.
@@ -73,11 +85,8 @@ export function useGoalAlert(
     setSpeech(goals.map(goalSpeech).join('. '));
     clearTimeout(speechTimer.current);
     speechTimer.current = setTimeout(() => setSpeech(''), SPEECH_MS);
-    if (feedback) {
-      vibrateShort();
-      if (soundOn.current) void playGoalSignal();
-    }
-    // Nur bei geänderter Toranzahl (signature) oder erstem Stand vom Dienst, nicht bei jedem neuen Array.
+    if (feedback) vibrateShort();
+    // Nur bei geänderter Toranzahl oder Pfiffen (signature) oder erstem Stand vom Dienst, nicht bei jedem neuen Array.
   }, [signature, ready]);
 
   return speech;

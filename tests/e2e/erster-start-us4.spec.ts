@@ -160,7 +160,7 @@ test('022 US4-S5 nach "Link einfügen" (Gekoppelt) gibt es "Trainer-Link teilen"
 });
 
 for (const scheme of ['light', 'dark'] as const) {
-  test(`022 US4-S6 Schalter "Ton bei Toren" an: Fläche rot, Schieber weiß (${scheme === 'light' ? 'hell' : 'dunkel'})`, async ({
+  test(`022 US4-S6 025 FR-T06 Schalter "Töne" an: Fläche rot, Schieber weiß (${scheme === 'light' ? 'hell' : 'dunkel'})`, async ({
     page,
     recorded,
     relay,

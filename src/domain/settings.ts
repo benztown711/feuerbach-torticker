@@ -1,4 +1,4 @@
-import { DEFAULT_SIGNAL_SOUND, isSignalSound } from './signal-sound';
+import { DEFAULT_SOUNDS, normalizeSounds } from './signal-sound';
 import { migrateTeams } from './teams';
 import type { RosterSort, Settings } from './types';
 
@@ -16,7 +16,7 @@ export function defaultSettings(): Settings {
     lastOwnColor: null,
     opponentColors: {},
     theme: 'system',
-    signalSound: DEFAULT_SIGNAL_SOUND,
+    sounds: { ...DEFAULT_SOUNDS },
     rosterSort: 'name',
     installHintDismissedAt: null,
     teams: [],
@@ -28,13 +28,14 @@ export function defaultSettings(): Settings {
 
 /**
  * Ergänzt gespeicherte (ältere) Einstellungen um neue Felder; vor Spec 004 gespeicherte bekommen Mannschaften.
- * Spec 008 FR-K03: fehlender oder unbekannter Signalton wird zum Pfiff.
+ * Spec 025 FR-T04: Töne je Ereignis; der Signalton aus Spec 008 (`signalSound`) wird zum Spielzeitende und entfällt.
  * Spec 013 FR-K02: fehlende oder unbekannte Sortierung wird "Vorname".
  */
 export function withSettingsDefaults(stored: Partial<Settings> | undefined): Settings {
   const d = defaultSettings();
-  const signalSound = isSignalSound(stored?.signalSound) ? stored.signalSound : d.signalSound;
-  const rosterSort = isRosterSort(stored?.rosterSort) ? stored.rosterSort : d.rosterSort;
-  const s = { ...d, ...stored, features: { ...d.features, ...stored?.features }, signalSound, rosterSort };
-  return stored?.teams === undefined ? { ...s, teams: migrateTeams(s) } : s;
+  const { signalSound: legacy, ...rest } = (stored ?? {}) as Partial<Settings> & { signalSound?: unknown };
+  const sounds = normalizeSounds(rest.sounds, legacy);
+  const rosterSort = isRosterSort(rest.rosterSort) ? rest.rosterSort : d.rosterSort;
+  const s = { ...d, ...rest, features: { ...d.features, ...rest.features }, sounds, rosterSort };
+  return rest.teams === undefined ? { ...s, teams: migrateTeams(s) } : s;
 }

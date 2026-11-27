@@ -11,7 +11,10 @@ let paused: boolean[] = [];
 
 async function load() {
   vi.resetModules();
-  return import('../../src/platform/signal');
+  const s = await import('../../src/platform/signal');
+  // Spec 025 R-T5: Klangerzeugung lädt beim Start nach
+  await s.soundsReady;
+  return s;
 }
 
 async function flush() {
@@ -158,5 +161,109 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     s.unlockAudio();
     await flush();
     expect(s.audioReady()).toBe(true);
+  });
+  it('025 FR-T05 playSound spielt den Ton hörbar über dasselbe Element, ohne Vibration, und schaltet frei', async () => {
+    const vibrate = vi.fn();
+    (navigator as unknown as { vibrate: unknown }).vibrate = vibrate;
+    const s = await load();
+    s.unlockAudio();
+    await flush();
+    void s.playSound('langer-pfiff');
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: false, sound: 'langer-pfiff' });
+    expect(s.audioReady()).toBe(true);
+    expect(vibrate).not.toHaveBeenCalled();
+    expect(document.querySelectorAll('audio').length).toBe(0);
+  });
+
+  it('025 FR-T02 Aufnahmen spielen von der eigenen Adresse unter sounds/', async () => {
+    const s = await load();
+    void s.playSound('torhupe');
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: false, sound: 'torhupe' });
+    expect(played.at(-1)?.src).toMatch(/\/sounds\/torhupe\.mp3$/);
+  });
+
+  it('025 FR-T03 "Aus" spielt nichts', async () => {
+    const s = await load();
+    await s.playSound('aus');
+    expect(played).toEqual([]);
+  });
+
+  it('025 R-T2 die Freischaltung vor dem Tippen hält einen danach gestarteten Ton nicht an', async () => {
+    const s = await load();
+    // pointerdown: Freischaltung (stumm), click: Ton; die Freischaltung erfüllt sich erst danach
+    void s.unlockAudio();
+    void s.playSound('torhupe');
+    await flush();
+    expect(paused.filter((k) => !k)).toEqual([]);
+    expect(played.at(-1)).toMatchObject({ muted: false, sound: 'torhupe' });
+  });
+
+  it('025 FR-T05 nach einem Ereignis-Ton spielt das Signal wieder den Ton für Spielzeitende', async () => {
+    const s = await load();
+    s.setSignalSound('gong');
+    void s.playSound('raunen');
+    await flush();
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: false, sound: 'gong' });
+    expect(played.at(-1)?.src).not.toMatch(/raunen/);
+  });
+
+  it('025 FR-T03 previewSignal spielt auch Aufnahmen, ohne das Spielzeitende zu ändern', async () => {
+    const s = await load();
+    s.previewSignal('jubel');
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: false, sound: 'jubel' });
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ sound: 'pfiff' });
+  });
+  it('025 R-T5 lädt die Klangerzeugung noch, kommt die Quelle des Signals nach', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    vi.doMock('../../src/domain/signal-synth', async () => {
+      await gate;
+      return vi.importActual('../../src/domain/signal-synth');
+    });
+    vi.resetModules();
+    const s = await import('../../src/platform/signal');
+    // vorher eine Aufnahme: ihre Quelle darf nicht für den Pfiff weiterspielen
+    void s.playSound('torhupe');
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ sound: 'pfiff', src: '' });
+    release();
+    await s.soundsReady;
+    await flush();
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)?.src).toMatch(/^blob:/);
+    vi.doUnmock('../../src/domain/signal-synth');
+  });
+  it('025 R-T2 eine Freischaltung nach dem Start eines Tons (Klick blubbert zur Seite) schaltet ihn nicht stumm', async () => {
+    const s = await load();
+    s.previewSignal('jubel');
+    const el = played.length;
+    void s.unlockAudio();
+    await flush();
+    // keine stumme Freischaltung über den laufenden Ton, kein Anhalten
+    expect(played.slice(el)).toEqual([]);
+    expect(paused.filter((k) => !k)).toEqual([]);
+    expect(s.audioReady()).toBe(true);
+  });
+
+  it('025 R-T2 nach dem Ende eines Tons schaltet eine Berührung wieder wie gewohnt frei', async () => {
+    const s = await load();
+    void s.playSound('raunen');
+    await flush();
+    // Ende des Tons
+    (HTMLMediaElement.prototype.play as unknown as { mock: { contexts: HTMLMediaElement[] } }).mock.contexts
+      .at(-1)!
+      .dispatchEvent(new Event('ended'));
+    void s.unlockAudio();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: true, sound: 'raunen' });
   });
 });

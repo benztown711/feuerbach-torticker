@@ -113,6 +113,8 @@ const CATALOG: [string, string][] = [
   ['übergabe', 'spiel-uebernehmen'],
   ['assist ändern', 'vorlage-aendern'],
   ['ton ändern', 'signalton'],
+  ['torhupe', 'signalton'],
+  ['ton beim anpfiff', 'toene-spiel'],
   ['mehrere spiele löschen', 'spiele-loeschen-mehrere'],
   ['alle spiele löschen', 'spiele-loeschen-mehrere'],
   ['testspiele aufräumen', 'spiele-loeschen-mehrere'],

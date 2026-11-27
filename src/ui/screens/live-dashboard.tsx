@@ -19,7 +19,7 @@ import {
 import { linkUrl, parseLinkPath, viewerShareText } from '../../domain/live-link';
 import { configOf, DEFAULT_LIVE_TITLE, viewerOf } from '../../domain/live-spieltag';
 import { allowedTeams, tickerLine, type TickerLine } from '../../domain/live-parent';
-import type { LiveConfig, PlanEntry, ViewerLink } from '../../domain/types';
+import type { LiveConfig, PlanEntry, SoundChoice, ViewerLink } from '../../domain/types';
 import {
   busyWith,
   canTick,
@@ -36,12 +36,16 @@ import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { shareText } from '../../platform/share';
-import { audioReady, playGoalSignal, unlockAudio } from '../../platform/signal';
+import { audioReady, playSound, unlockAudio } from '../../platform/signal';
 import { pointManifestTo } from '../../platform/web-manifest';
 import { ViewerNav } from '../components/viewer-nav';
 import { useGoalFlash, useNow } from '../hooks';
 import { navigate } from '../router';
 import { useGoalAlert } from '../use-goal-alert';
+import { Sheet } from '../components/sheet';
+import { SoundEventList, SoundPicker } from '../components/sound-picker';
+import { loadParentSounds, saveParentSounds } from '../../platform/sound-prefs';
+import type { ParentSoundEvent } from '../../domain/parent-sounds';
 import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */
@@ -442,6 +446,9 @@ function saveGoalSound(on: boolean): void {
  * Tipp nur hier verarbeiten, nicht zusätzlich auf der Seite (FR-E26): Sonst schaltet die Berührung den Ton schon
  * frei, bevor der Klick den Schalter erreicht, und der Schalter ginge aus.
  */
+/** Spec 025 FR-T06: Ereignisse der Eltern-Ansicht (ohne Spielzeitende). */
+const PARENT_EVENTS: readonly ParentSoundEvent[] = ['kickoff', 'halftime', 'fulltime', 'goalOwn', 'goalOpp'];
+
 const stop = (e: Event): void => e.stopPropagation();
 const only =
   (fn: () => void) =>
@@ -451,19 +458,21 @@ const only =
   };
 
 /**
- * Spec 020 FR-E25, FR-E26: Schalter "Ton bei Toren"; gesperrter Ton steht als Knopf "Ton aus · tippen" darunter. Bei
- * gesperrtem Ton schaltet auch der Schalter nur frei und bleibt an.
+ * Spec 020 FR-E25, FR-E26, Spec 025 FR-T06: Schalter "Töne" (früher "Ton bei Toren") mit "Töne wählen"; gesperrter Ton
+ * steht als Knopf "Ton aus · tippen" darunter. Bei gesperrtem Ton schaltet auch der Schalter nur frei und bleibt an.
  */
 function GoalSound({
   on,
   locked,
   onToggle,
   onUnlock,
+  onChoose,
 }: {
   on: boolean;
   locked: boolean;
   onToggle: () => void;
   onUnlock: () => void;
+  onChoose: () => void;
 }) {
   return (
     <div class="dash-sound">
@@ -473,12 +482,18 @@ function GoalSound({
         role="switch"
         aria-checked={on}
         aria-labelledby="dash-sound-title"
+        aria-describedby="dash-sound-help"
         data-testid="dash-sound"
         onClick={only(locked ? onUnlock : onToggle)}
         onTouchEnd={stop}
       >
-        <span class="dash-sound__title" id="dash-sound-title">
-          Ton bei Toren
+        <span class="dash-sound__text">
+          <span class="dash-sound__title" id="dash-sound-title">
+            Töne
+          </span>
+          <span class="dash-sound__help" id="dash-sound-help">
+            Anpfiff, Pausen- und Schlusspfiff, Tore
+          </span>
         </span>
         <span class="dash-sound__knob" aria-hidden="true" />
       </button>
@@ -493,6 +508,9 @@ function GoalSound({
           Ton aus · tippen
         </button>
       )}
+      <button type="button" class="link-btn dash-sound__choose" data-testid="dash-sound-choose" onClick={onChoose}>
+        Töne wählen
+      </button>
     </div>
   );
 }
@@ -563,14 +581,27 @@ export function Dashboard({
   // Spec 020 US3: Tab-Titel und Ansage überall; Vibration und "Ton bei Toren" nur in der Eltern-Ansicht (FR-E27).
   const parents = !inApp;
   const [soundOn, setSoundOn] = useState(() => parents && savedGoalSound());
+  // Spec 025 FR-T06: Töne je Ereignis auf diesem Gerät; "Töne wählen" öffnet die Liste, eine Zeile die Auswahl.
+  const [choice, setChoice] = useState(loadParentSounds);
+  const [soundsOpen, setSoundsOpen] = useState(false);
+  const [soundSheet, setSoundSheet] = useState<ParentSoundEvent | null>(null);
   const [, refresh] = useState(0);
-  const announcement = useGoalAlert(v.cards, serverNow, { feedback: parents, sound: soundOn, ready: state.loaded });
+  const announcement = useGoalAlert(v.cards, serverNow, {
+    feedback: parents,
+    sounds: soundOn ? choice : null,
+    ready: state.loaded,
+  });
   const toggleSound = (): void => {
     const next = !soundOn;
     setSoundOn(next);
     saveGoalSound(next);
-    // Einschalten spielt den Ton einmal zur Probe und schaltet ihn damit frei (FR-E25).
-    if (next) void playGoalSignal().then(() => refresh((n) => n + 1));
+    // Einschalten spielt den Ton für "Tor für uns" einmal zur Probe und schaltet ihn damit frei (FR-E25, US3-S1).
+    if (next) void playSound(choice.goalOwn).then(() => refresh((n) => n + 1));
+  };
+  const pickSound = (e: ParentSoundEvent, c: SoundChoice): void => {
+    const next = { ...choice, [e]: c };
+    setChoice(next);
+    saveParentSounds(next);
   };
   // FR-E26: Jede Berührung schaltet einen gesperrten Ton frei (iOS braucht dafür eine Berührung).
   const unlock = (): void => {
@@ -629,7 +660,35 @@ export function Dashboard({
           </span>
         </div>
         {parents && (
-          <GoalSound on={soundOn} locked={soundOn && !audioReady()} onToggle={toggleSound} onUnlock={unlock} />
+          <GoalSound
+            on={soundOn}
+            locked={soundOn && !audioReady()}
+            onToggle={toggleSound}
+            onUnlock={unlock}
+            onChoose={() => setSoundsOpen(true)}
+          />
+        )}
+        {soundsOpen && !soundSheet && (
+          <Sheet
+            title="Töne wählen"
+            subtitle="Gilt auf diesem Handy, solange „Töne“ an ist."
+            testId="dash-sounds-sheet"
+            onClose={() => setSoundsOpen(false)}
+          >
+            <SoundEventList
+              events={PARENT_EVENTS}
+              sounds={choice}
+              onOpen={(e) => setSoundSheet(e as ParentSoundEvent)}
+            />
+          </Sheet>
+        )}
+        {soundSheet && (
+          <SoundPicker
+            event={soundSheet}
+            value={choice[soundSheet]}
+            onPick={(c) => pickSound(soundSheet, c)}
+            onClose={() => setSoundSheet(null)}
+          />
         )}
         {v.retired && (
           <p class="dash__status dash__status--alert" role="status" data-testid="dash-retired">

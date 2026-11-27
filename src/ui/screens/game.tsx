@@ -50,7 +50,10 @@ import {
 } from '../../domain/cup';
 import { totalSections } from '../../domain/minute';
 import { shareText } from '../../platform/share';
-import { audioReady, playSignal, setKeepAlive, unlockAudio } from '../../platform/signal';
+import { audioReady, playSignal, playSound, setKeepAlive, unlockAudio } from '../../platform/signal';
+import { loadParentSounds } from '../../platform/sound-prefs';
+import { DEFAULT_SOUNDS } from '../../domain/signal-sound';
+import type { ParentSoundEvent } from '../../domain/parent-sounds';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import type { LateDraft } from '../components/late-start-sheet';
@@ -363,6 +366,20 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
           : 'Pause'
         : sectionLabel(clock.section, game.schema.sections);
 
+  /**
+   * Spec 025 FR-T05: Ton eines Ereignisses beim Tippen; Eltern über den Zuschauer-Link mit ihrer Wahl aus "Töne wählen"
+   * (US2-S7). Abspielen innerhalb der Berührung schaltet den Ton zugleich frei.
+   */
+  const sound = (e: ParentSoundEvent): void => {
+    void playSound(parentPath ? loadParentSounds()[e] : (settings?.sounds[e] ?? DEFAULT_SOUNDS[e]));
+  };
+  /** Anpfiff: Ton spielen, bei "Aus" nur freischalten (FR-007, R-T2: nicht beides, sonst bricht iOS ab). */
+  const kickoffSound = (): void => {
+    const c = parentPath ? loadParentSounds().kickoff : (settings?.sounds.kickoff ?? DEFAULT_SOUNDS.kickoff);
+    if (c === 'aus') void unlockAudio();
+    else void playSound(c);
+  };
+
   const onGoal = (side: Side): void => {
     // FR-021: Bei angehaltener Uhr erst fragen, ob die Uhr weiterlaufen soll.
     if (clockOf(cur(), Date.now()).status === 'paused') {
@@ -372,6 +389,8 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
     const t = Date.now();
     const r = addGoal(cur(), side, t);
     if (r.added && r.goal) {
+      // Spec 025 US2-S2, US2-S3: Ton sofort, vor der Torschützen-Auswahl.
+      sound(side === 'own' ? 'goalOwn' : 'goalOpp');
       update(r.game);
       setUndo({ goalId: r.goal.id, until: t + UNDO_MS });
       // Spec 021 FR-W11: Das gezählte Tor schließt eine offene Schnellauswahl (ohne Torschützen bzw. Vorlage);
@@ -410,7 +429,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
 
   const doKickoff = (): void => {
     setKeepAlive(true);
-    unlockAudio();
+    kickoffSound();
     update(kickoff(cur(), Date.now()));
   };
 
@@ -419,7 +438,10 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
     if (!ask) return;
     const g = cur();
     if (ask.kind === 'pause' && canAct(g, 'pause', t)) update(pauseClock(g, t));
-    if (ask.kind === 'end' && canAct(g, 'end', t)) update(endSection(g, t));
+    if (ask.kind === 'end' && canAct(g, 'end', t)) {
+      update(endSection(g, t));
+      sound(lastSection ? 'fulltime' : 'halftime');
+    }
     if (ask.kind === 'swap') update(swapVenue(g));
     if (ask.kind === 'goalResume' && canAct(g, 'resume', t)) {
       update(resumeClock(g, t));
@@ -774,7 +796,14 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
             sort={sort}
             ownName={ownShort}
             dark={dark}
-            onShot={(hit, who) => update(addShot(cur(), hit, who, Date.now()))}
+            onShot={(hit, who) => {
+              const before = cur();
+              const next = addShot(before, hit, who, Date.now());
+              update(next);
+              // Spec 025 US2-S6: Treffer im Elfmeterschießen wie ein Tor.
+              const shot = next.shootout?.shots.at(-1);
+              if (hit && next !== before && shot) sound(shot.side === 'own' ? 'goalOwn' : 'goalOpp');
+            }}
             onUndo={() => update(undoShot(cur()))}
             onEnd={() => setAsk({ kind: 'endShootout' })}
           />
@@ -1555,7 +1584,7 @@ export function GameScreen({ id, join = false, parent }: { id: string; join?: bo
             onClick={() => {
               const t = Date.now();
               setKeepAlive(true);
-              unlockAudio();
+              kickoffSound();
               update(kickoff(startExtraTime(cur(), extraMin, t), t));
               setExtraOpen(false);
             }}

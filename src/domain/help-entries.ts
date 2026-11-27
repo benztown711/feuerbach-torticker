@@ -251,13 +251,24 @@ export const HELP_ENTRIES: HelpEntry[] = [
     related: ['nachspielzeit', 'ergebnis-teilen', 'naechstes-spiel'],
   },
   {
+    id: 'toene-spiel',
+    topic: 'spiel',
+    title: 'Wann spielt das Handy im Spiel einen Ton?',
+    answer:
+      'Sofort beim Tippen: beim Anpfiff jeder Halbzeit, wenn du „Pausenpfiff“ oder „Schlusspfiff“ bestätigst, und bei jedem Tor, auch im Elfmeterschießen. Ein Tor für deine Mannschaft hat einen anderen Ton als ein Gegentor. „Rückgängig“, „Spiel läuft schon“ und Korrekturen bleiben still. Welcher Ton kommt, stellst du unter „Mehr“ → „Einstellungen“ → „Töne“ ein, dort auch „Aus“.',
+    keywords: 'ton töne anpfiff pausenpfiff schlusspfiff tor gegentor jubel torhupe raunen laut leise aus',
+    sources: ['025 US2'],
+    open: { label: 'Einstellungen', path: '/einstellungen' },
+    related: ['signalton', 'kein-pfiff'],
+  },
+  {
     id: 'nachspielzeit',
     topic: 'spiel',
     title: 'Was passiert, wenn die Spielzeit abgelaufen ist?',
     answer:
-      'Du hörst den Signalton, und die Uhr läuft als Nachspielzeit in Rot weiter. Tore darin stehen zum Beispiel als „25+1’“ in der Liste. Jede volle Minute kommt erneut ein Signal, bis du „Pausenpfiff“ oder „Schlusspfiff“ tippst.',
+      'Du hörst den Ton für Spielzeitende (unter „Töne“ in den Einstellungen wählbar), und die Uhr läuft als Nachspielzeit in Rot weiter. Tore darin stehen zum Beispiel als „25+1’“ in der Liste. Jede volle Minute kommt erneut ein Signal, bis du „Pausenpfiff“ oder „Schlusspfiff“ tippst.',
     keywords: 'nachspielzeit rot überzogen signal abgelaufen',
-    sources: ['001 US2'],
+    sources: ['001 US2', '025 FR-T08'],
     related: ['kein-pfiff', 'pausenpfiff'],
   },
   {
@@ -881,10 +892,10 @@ export const HELP_ENTRIES: HelpEntry[] = [
     topic: 'live',
     title: 'Merke ich, wenn ein Tor fällt?',
     answer:
-      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“ mit dem Stand, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz (das iPhone nicht). Mit dem Schalter „Ton bei Toren“ spielt zusätzlich der Signalton; er ist aus, bis du ihn einschaltest, dann leuchtet er rot. Steht darunter „Ton aus · tippen“, tippe darauf, auf den Schalter oder irgendwo auf die Seite; der Schalter bleibt an. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keine Benachrichtigung.',
+      'Ja, solange die Seite offen ist: Im Tab steht kurz „Tor! …“, ein Screenreader sagt das Tor an, und Android-Handys vibrieren kurz. Mit dem Schalter „Töne“ (rot, wenn an) hörst du Anpfiff, Pausen- und Schlusspfiff und jedes Tor, ein Gegentor anders als ein Tor für Feuerbach. Unter „Töne wählen“ suchst du je Ereignis einen Ton aus oder wählst „Aus“. Steht „Ton aus · tippen“ da, tippe darauf oder irgendwo auf die Seite. Ist die Seite zu oder verdeckt (anderer Tab, Handy gesperrt), gibt es keinen Hinweis.',
     keywords:
-      'tor ton vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren voiceover screenreader pfiff',
-    sources: ['020 US3', '022 US4'],
+      'tor ton töne vibrieren benachrichtigung push hinweis tab titel schalter ton bei toren töne wählen anpfiff jubel voiceover screenreader pfiff',
+    sources: ['020 US3', '022 US4', '025 US3'],
     parents: true,
     related: ['eltern-dashboard', 'keine-meldung'],
   },
@@ -927,11 +938,11 @@ export const HELP_ENTRIES: HelpEntry[] = [
   {
     id: 'signalton',
     topic: 'einstellungen',
-    title: 'Wie wähle ich den Signalton?',
+    title: 'Wie wähle ich die Töne?',
     answer:
-      'In den Einstellungen wählst du unter „Signalton“ zwischen Pfiff, Glocke und Gong; beim Antippen hörst du ihn sofort. Der Pfiff ist am lautesten, der Gong passt gut in die Halle. Der Ton kommt bei Spielzeitende und zu jeder vollen Nachspielminute. „Ton testen“ beim Anlegen des Spiels spielt ihn ebenfalls.',
-    keywords: 'signalton ton pfiff glocke gong klang pfeife halle ändern',
-    sources: ['008 US1'],
+      'In den Einstellungen stehen unter „Töne“ sechs Zeilen: Spielzeitende, Anpfiff, Pausenpfiff, Schlusspfiff, Tor für uns und Gegentor. Tippe eine Zeile an und wähle einen Ton; beim Antippen hörst du ihn sofort. Zur Wahl stehen Pfiff, Langer Pfiff, Doppelpfiff, Glocke, Gong, Torhupe, Jubel, Torhupe mit Jubel, Kinderjubel und Raunen. Außer beim Spielzeitende gibt es auch „Aus“. Vorbelegt sind Pfiff, Langer Pfiff, Doppelpfiff, Pfiff, Torhupe und Raunen. „Ton testen“ beim Anlegen des Spiels spielt den Ton für Spielzeitende.',
+    keywords: 'signalton töne ton pfiff glocke gong jubel torhupe raunen klang pfeife halle ändern aus anpfiff',
+    sources: ['008 US1', '025 US1'],
     open: { label: 'Einstellungen', path: '/einstellungen' },
     related: ['kein-pfiff', 'nachspielzeit'],
   },
@@ -967,7 +978,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
       'Eine Web-App kann nur Ton abspielen, solange sie im Vordergrund ist und der Bildschirm an ist. Lass den Torticker während des Spiels offen. Der Signalton kommt auch bei eingeschaltetem Lautlos-Schalter; die Lautstärke regelst du mit den Lautstärketasten. Steht oben „Ton aus · tippen“, tippe einmal irgendwo auf den Spielbildschirm. Mit „Ton testen“ beim Anlegen des Spiels prüfst du den Ton vorher.',
     keywords: 'pfiff ton signal pfeife leise lautlos lautstärke laut hören',
     sources: ['001 FR-036', '001 FR-039'],
-    related: ['signalton', 'bildschirm', 'nachspielzeit'],
+    related: ['signalton', 'toene-spiel', 'bildschirm'],
   },
   {
     id: 'bildschirm',

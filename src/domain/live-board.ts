@@ -1,3 +1,4 @@
+import { NO_WHISTLES, whistleCounts, type Whistles } from './sound-alert';
 import { parentAllowed, parseParentKit, type ParentKit, type Ticker } from './live-parent';
 import { parseViewerSquad, type ViewerSquad } from './viewer-squad';
 import { deriveClock, type ClockState } from './clock';
@@ -335,6 +336,8 @@ export interface BoardCard {
   earlier: string | null;
   /** Serverzeit der letzten Meldung (ms): nur frische Tore werden hervorgehoben. */
   updatedAt: number;
+  /** Spec 025 FR-T07: Pfiffe der Meldung, für den Ton in der Eltern-Ansicht. */
+  whistles: Whistles;
   /** Spec 015 FR-P14: sichtbar unter der Karte, "Danach: …" bzw. "Nächstes Spiel: …". */
   lines: string[];
   /** Spec 024 FR-E06: wer das Spiel tickert; null ohne Angabe (ältere Handys, Planspiel). */
@@ -560,6 +563,7 @@ function cardOf(
     freshness: main.live && !main.onBreak ? freshnessOf(silent) : null,
     earlier: rest.length > 0 ? `${label}: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: main.entry.at,
+    whistles: whistleCounts(s.clock),
     lines,
     ticker: s.by !== undefined || s.tr === 1 ? { name: s.by ?? null, trainer: s.tr === 1 } : null,
   };
@@ -626,6 +630,7 @@ function plannedCard(
     freshness: null,
     earlier: rest.length > 0 ? `Heute außerdem: ${rest.map(earlierEntry).join('; ')}` : null,
     updatedAt: 0,
+    whistles: NO_WHISTLES,
     lines,
     ticker: null,
   };

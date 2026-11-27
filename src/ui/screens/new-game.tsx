@@ -187,8 +187,8 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
           setDraftReady(true);
         }
       }
-      // Spec 008 FR-K05: "Ton testen" spielt den gewählten Ton.
-      setSignalSound(s.signalSound);
+      // Spec 008 FR-K05, Spec 025 FR-T08: "Ton testen" spielt den Ton für Spielzeitende.
+      setSignalSound(s.sounds.timeUp);
     });
   }, []);
 
@@ -705,8 +705,8 @@ export function NewGameScreen({ plan, after }: { plan?: string; after?: string }
             Ton testen
           </button>
           <p class="t-klein signal-test__hint" data-testid="signal-test-hint">
-            Signalton: {signalSoundName(settings.signalSound)}, änderbar unter „Mehr“ → „Einstellungen“. Lautstärke mit
-            den Tasten am Handy einstellen, solange die App offen ist.
+            Spielzeitende: {signalSoundName(settings.sounds.timeUp)}, änderbar unter „Mehr“ → „Einstellungen“ → „Töne“.
+            Lautstärke mit den Tasten am Handy einstellen, solange die App offen ist.
           </p>
           {/* Spec 023 FR-J02 */}
           <div class="switch-row" data-testid="new-late-row">

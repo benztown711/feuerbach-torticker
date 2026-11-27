@@ -188,7 +188,7 @@ test.describe('020 US3 US4 Eltern-Ansicht mit Schalter, Aktualität und Warnung 
       const v = await sampleDashboard(page, recorded, relay, newDevice, scheme);
       await expect(v.getByTestId('dash-fresh-E1')).toHaveText('gerade aktualisiert');
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
-      await v.getByRole('switch', { name: 'Ton bei Toren' }).click();
+      await v.getByRole('switch', { name: 'Töne' }).click();
       await later(v, relay, 2 * MIN);
       await expect(v.getByTestId('dash-fresh-E1')).toHaveText('vor 2 Min aktualisiert');
       expect((await new AxeBuilder({ page: v }).analyze()).violations).toEqual([]);
