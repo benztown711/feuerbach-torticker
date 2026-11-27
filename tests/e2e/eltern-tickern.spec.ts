@@ -123,7 +123,8 @@ test('024 US1-S1 US1-S2 US1-S3 US1-S4 US1-S5 US1-S6 Paul tickert das Planspiel, 
   await settle(z);
   await expect(z.getByTestId('dash-score-E2')).toHaveText('1:0');
 
-  // S6: "Zurück zu Live": "Du tickerst" und "Weiter tickern"
+  // S6: "Zum Spieltag" (wie der Reiter der Eltern-Leiste): "Du tickerst" und "Weiter tickern"
+  await expect(p.getByTestId('parent-back')).toHaveText('Zum Spieltag');
   await p.getByTestId('parent-back').click();
   await expect(p.getByTestId('dash-ticker-E2')).toHaveText('Du tickerst');
   await p.getByTestId('dash-resume-E2').click();
@@ -249,6 +250,8 @@ test('024 US3-S1 US3-S2 US3-S4 Spiel fehlt? Selbst tickern (Nachholspiel)', asyn
   await p.getByTestId('parent-team-E2').click();
   await p.getByTestId('parent-opponent').fill('SV Beispielstadt');
   await expect(p.getByTestId('new-live-switch')).toHaveCount(0);
+  await expect(p.getByRole('button', { name: 'Zum Spieltag' })).toBeVisible();
+  await expect(p.getByTestId('parent-go-help')).toHaveText('Das Spiel steht gleich live im Spieltag, als Paul.');
   await p.getByTestId('parent-go').click();
 
   // S4: Spiel angelegt, Karte für alle
@@ -318,7 +321,9 @@ test('024 US4-S1 US4-S2 US4-S3 US4-S4 Trainer schaltet "Eltern dürfen tickern" 
   await openTrainerSection(page);
   await expect(page.getByTestId('parent-allow-E1')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('parent-allow-E2')).toHaveAttribute('aria-checked', 'true');
-  await page.getByTestId('parent-allow-E2').click();
+  // Die ganze Zeile ist tippbar (Review C 024), nicht nur der Schalter
+  await expect(page.getByRole('switch', { name: 'E2' })).toHaveAttribute('aria-checked', 'true');
+  await page.getByTestId('live-parent-row-E2').getByText('E2').click();
   await expect(page.getByTestId('parent-allow-E2')).toHaveAttribute('aria-checked', 'false');
   await settle(page);
 
@@ -361,7 +366,7 @@ test('024 US5-S1 US5-S2 US5-S3 Trainer übernimmt das Eltern-Spiel in die Histor
   await p.clock.runFor(MIN);
   await p.getByTestId('btn-section-end').click();
   await p.getByTestId('confirm-yes').click();
-  await expect(p.getByTestId('parent-back-end')).toHaveText('Zurück zu Live');
+  await expect(p.getByTestId('parent-back-end')).toHaveText('Zum Spieltag');
   await settle(p);
 
   // S1: Frage auf dem Startbildschirm des Trainers

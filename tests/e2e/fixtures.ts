@@ -172,13 +172,41 @@ export function guardRequests(page: Page, origin: string, foreign: string[], all
  * - page.goto und page.reload warten zuerst auf offene Schreibvorgänge (flushWrites), damit ein Test
  *   nichts prüft, was der Browser beim Neuladen verworfen hat.
  */
+/**
+ * Heute 12 Uhr (Europe/Berlin, Sommerzeit-Abweichung ±1 h egal): Startzeit für Tests mit `midday`. Spiele, die ein
+ * Test 20 bis 45 Minuten zurückdatiert, bleiben so auf demselben Tag, auch wenn der Lauf kurz nach Mitternacht startet.
+ */
+export function middayToday(now = Date.now()): number {
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+    .format(now)
+    .split('-')
+    .map(Number);
+  return Date.UTC(y!, m! - 1, d!, 11, 0, 0);
+}
+
 export const test = base.extend<{
+  /**
+   * Option: alle Handys und der Nachbau des Dienstes laufen ab heute 12 Uhr statt ab der echten Uhrzeit. Für Tests,
+   * deren Ablauf an "heute" hängt (z. B. Spiel übernehmen, Spec 006 FR-L16).
+   */
+  midday: boolean;
+  /** Verschiebung gegenüber der echten Uhr (ms) bei `midday`, sonst 0. */
+  clockShift: number;
   foreignRequests: string[];
   allowedOrigins: Set<string>;
   recorded: () => Promise<Recorded>;
   relay: FakeRelay;
   newDevice: () => Promise<Page>;
 }>({
+  midday: [false, { option: true }],
+  clockShift: async ({ midday }, use) => {
+    await use(midday ? middayToday() - Date.now() : 0);
+  },
   // eslint-disable-next-line no-empty-pattern -- Playwright verlangt das Objektmuster für Fixtures ohne Abhängigkeit
   allowedOrigins: async ({}, use) => {
     await use(new Set<string>());
@@ -197,15 +225,16 @@ export const test = base.extend<{
    * Spec 007 T013: Nachbau des eigenen Vermittlungsdienstes; nur Tests mit dieser Fixture dürfen ihn erreichen.
    * Verlangt `test.use({ serviceWorkers: 'block' })`, sonst umgehen Anfragen in WebKit den Nachbau.
    */
-  relay: async ({ context, allowedOrigins, serviceWorkers }, use) => {
+  relay: async ({ context, allowedOrigins, serviceWorkers, clockShift }, use) => {
     if (serviceWorkers !== 'block') throw new Error("Fixture relay braucht test.use({ serviceWorkers: 'block' })");
     const relay = new FakeRelay();
+    relay.offsetMs = clockShift;
     allowedOrigins.add(RELAY_ORIGIN);
     await relay.attach(context);
     await use(relay);
   },
   /** Weiteres "Handy": eigener Browser-Kontext (eigene Daten) mit denselben Mocks, Wächter und Relay. */
-  newDevice: async ({ browser, baseURL, allowedOrigins, relay }, use, testInfo) => {
+  newDevice: async ({ browser, baseURL, allowedOrigins, relay, clockShift }, use, testInfo) => {
     const contexts: BrowserContext[] = [];
     const foreign: string[] = [];
     const origin = new URL(baseURL ?? 'http://localhost').origin;
@@ -216,15 +245,17 @@ export const test = base.extend<{
       const page = await context.newPage();
       guardRequests(page, origin, foreign, allowedOrigins);
       await installMocks(page);
+      if (clockShift !== 0) await page.clock.setSystemTime(Date.now() + clockShift);
       wrapNavigation(page);
       return page;
     });
     for (const c of contexts) await c.close();
     expect(foreign, 'Requests an Drittanbieter (Constitution III)').toEqual([]);
   },
-  page: async ({ page }, use) => {
+  page: async ({ page, clockShift }, use) => {
     wrapNavigation(page);
     await installMocks(page);
+    if (clockShift !== 0) await page.clock.setSystemTime(Date.now() + clockShift);
     await use(page);
   },
   recorded: async ({ page }, use) => {
