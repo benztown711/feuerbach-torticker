@@ -60,7 +60,8 @@ export default defineConfig({
       includeAssets: ['brand/*', 'fonts/OFL.txt'],
       manifest,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt}'],
+        // Spec 025 FR-T02: Tonaufnahmen (mp3) offline verfügbar
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest,txt,mp3}'],
         // Vorschaubild nur für WhatsApp & Co. (FR-043), nicht offline nötig
         globIgnores: ['**/link-vorschau.png'],
         navigateFallback: `${BASE}index.html`,

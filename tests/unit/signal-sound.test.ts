@@ -1,3 +1,4 @@
+import { readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { defaultSettings, withSettingsDefaults } from '../../src/domain/settings';
 import {
@@ -219,5 +220,30 @@ describe('Spec 008 und 025 Vorbelegung (FR-K03, FR-T04)', () => {
     expect('signalSound' in old).toBe(false);
     expect(withSettingsDefaults({ signalSound: 'alarm' } as never).sounds.timeUp).toBe('pfiff');
     expect(withSettingsDefaults({ sounds: { ...DEFAULT_SOUNDS, goalOpp: 'aus' } }).sounds.goalOpp).toBe('aus');
+  });
+});
+
+describe('Spec 025 Aufnahmen (FR-T02, FR-T09, SC-T03)', () => {
+  const files = SIGNAL_SOUNDS.filter((s) => s.file).map((s) => `public/${s.file!}`);
+
+  it('FR-T02 jede Aufnahme liegt in der App, ist ein MP3 und zusammen höchstens 200 KB', () => {
+    let total = 0;
+    for (const f of files) {
+      const head = readFileSync(f).subarray(0, 3);
+      // ID3-Kopf oder MPEG-Frame
+      expect(head.toString('latin1') === 'ID3' || (head[0] === 0xff && (head[1]! & 0xe0) === 0xe0)).toBe(true);
+      total += statSync(f).size;
+    }
+    expect(total).toBeLessThanOrEqual(200 * 1024);
+  });
+
+  it('FR-T02 der Service Worker speichert MP3 vorab', () => {
+    expect(readFileSync('vite.config.ts', 'utf8')).toMatch(/globPatterns: \[[^\]]*\bmp3\b/);
+  });
+
+  it('FR-T09 QUELLEN.md nennt jede Datei und CC0', () => {
+    const q = readFileSync('public/sounds/QUELLEN.md', 'utf8');
+    expect(q).toContain('CC0');
+    for (const f of files) expect(q).toContain(f.replace('public/sounds/', ''));
   });
 });
