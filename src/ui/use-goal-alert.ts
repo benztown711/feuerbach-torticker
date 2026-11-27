@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { goalSpeech, goalTitle, latestGoal, newGoals } from '../domain/goal-alert';
 import type { BoardCard } from '../domain/live-board';
-import { playGoalSignal, vibrateShort } from '../platform/signal';
+import { playSound, vibrateShort } from '../platform/signal';
 
 /**
  * Eigene Datei statt `hooks.ts`: der Hook gehört nur zum Dashboard, das nachgeladen wird, und soll das
@@ -75,7 +75,7 @@ export function useGoalAlert(
     speechTimer.current = setTimeout(() => setSpeech(''), SPEECH_MS);
     if (feedback) {
       vibrateShort();
-      if (soundOn.current) void playGoalSignal();
+      if (soundOn.current) void playSound('torhupe');
     }
     // Nur bei geänderter Toranzahl (signature) oder erstem Stand vom Dienst, nicht bei jedem neuen Array.
   }, [signature, ready]);

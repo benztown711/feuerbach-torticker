@@ -1,30 +1,96 @@
-import type { SignalSound } from './types';
+import type { SignalSound, SoundChoice, SoundEvent, SoundSettings, SynthSound } from './types';
 
 /**
- * Spec 008: Signaltöne Pfiff, Glocke und Gong, im Browser erzeugt (keine Audiodatei, offline).
- * Klanggestaltung und Messung: specs/008-signalton/plan.md (R-K1).
+ * Spec 008: Signaltöne, im Browser erzeugt (keine Audiodatei, offline); Klang: specs/008-signalton/plan.md (R-K1).
+ * Spec 025: Langer Pfiff und Doppelpfiff dazu, außerdem mitgelieferte CC0-Aufnahmen (plan.md R-T1); Ton je Ereignis.
  */
 
 export const SIGNAL_SAMPLE_RATE = 44100;
 export const DEFAULT_SIGNAL_SOUND: SignalSound = 'pfiff';
 
-const INFO: Record<SignalSound, { name: string; description: string }> = {
+interface SoundInfo {
+  name: string;
+  description: string;
+  /** Aufnahme unter der Basis-Adresse der App; fehlt bei erzeugten Tönen. */
+  file?: string;
+}
+
+const INFO: Record<SignalSound, SoundInfo> = {
   pfiff: { name: 'Pfiff', description: 'Schiri-Pfeife mit Triller, kurz-kurz-lang. Am lautesten.' },
+  'langer-pfiff': { name: 'Langer Pfiff', description: 'Ein langer Pfiff wie beim Anpfiff.' },
+  doppelpfiff: { name: 'Doppelpfiff', description: 'Kurz, dann lang, wie zur Pause.' },
   glocke: { name: 'Glocke', description: 'Rundenglocke, drei Schläge. Fast so laut wie der Pfiff.' },
   gong: { name: 'Gong', description: 'Aufsteigender Dreiklang. Leiser, gut für die Halle.' },
+  torhupe: { name: 'Torhupe', description: 'Fanfare wie aus der Fankurve.', file: 'sounds/torhupe.mp3' },
+  jubel: { name: 'Jubel', description: 'Zuschauer jubeln und klatschen.', file: 'sounds/jubel.mp3' },
+  'hupe-jubel': {
+    name: 'Torhupe mit Jubel',
+    description: 'Fanfare, direkt danach Jubel.',
+    file: 'sounds/hupe-jubel.mp3',
+  },
+  kinderjubel: { name: 'Kinderjubel', description: 'Kinder jubeln kurz.', file: 'sounds/kinderjubel.mp3' },
+  raunen: { name: 'Raunen', description: 'Enttäuschtes „Ohh“ der Zuschauer.', file: 'sounds/raunen.mp3' },
 };
 
-/** FR-K01: Reihenfolge, Name und Beschreibung für die Einstellungen. */
-export const SIGNAL_SOUNDS: readonly { id: SignalSound; name: string; description: string }[] = (
-  ['pfiff', 'glocke', 'gong'] as const
-).map((id) => ({ id, ...INFO[id] }));
+const SYNTH: readonly SynthSound[] = ['pfiff', 'langer-pfiff', 'doppelpfiff', 'glocke', 'gong'];
+
+/** FR-K01, Spec 025 FR-T01: Reihenfolge, Name, Beschreibung und ggf. Datei für die Auswahl. */
+export const SIGNAL_SOUNDS: readonly ({ id: SignalSound } & SoundInfo)[] = (Object.keys(INFO) as SignalSound[]).map(
+  (id) => ({ id, ...INFO[id] }),
+);
 
 export function isSignalSound(v: unknown): v is SignalSound {
   return SIGNAL_SOUNDS.some((s) => s.id === v);
 }
 
+export function isSynthSound(v: SignalSound): v is SynthSound {
+  return SYNTH.includes(v as SynthSound);
+}
+
 export function signalSoundName(sound: SignalSound): string {
   return INFO[sound].name;
+}
+
+/** Spec 025 FR-T03: Name eines gewählten Tons, auch "Aus". */
+export const soundChoiceName = (c: SoundChoice): string => (c === 'aus' ? 'Aus' : INFO[c].name);
+
+/** Spec 025 FR-T03: Ereignisse in der Reihenfolge der Einstellungen, mit Hinweis im Auswahlblatt. */
+export const SOUND_EVENTS: readonly { id: SoundEvent; name: string; hint: string }[] = [
+  { id: 'timeUp', name: 'Spielzeitende', hint: 'Bei 00:00 und zu jeder vollen Nachspielminute.' },
+  { id: 'kickoff', name: 'Anpfiff', hint: 'Beim Anpfiff jeder Halbzeit bzw. jedes Abschnitts.' },
+  { id: 'halftime', name: 'Pausenpfiff', hint: 'Wenn du den Pausenpfiff bestätigst.' },
+  { id: 'fulltime', name: 'Schlusspfiff', hint: 'Wenn du den Schlusspfiff bestätigst.' },
+  { id: 'goalOwn', name: 'Tor für uns', hint: 'Sofort beim Tippen auf den Tor-Knopf deiner Mannschaft.' },
+  { id: 'goalOpp', name: 'Gegentor', hint: 'Sofort beim Tippen auf den Tor-Knopf des Gegners.' },
+];
+
+/** Spec 025 FR-T04: Vorbelegung (Atti, Hörprobe 26.11.2026). */
+export const DEFAULT_SOUNDS: SoundSettings = {
+  timeUp: 'pfiff',
+  kickoff: 'langer-pfiff',
+  halftime: 'doppelpfiff',
+  fulltime: 'pfiff',
+  goalOwn: 'torhupe',
+  goalOpp: 'raunen',
+};
+
+/**
+ * Spec 025 FR-T04: gespeicherte Töne prüfen; fehlende oder unbekannte Werte bekommen die Vorbelegung, das
+ * Spielzeitende nie "Aus". `legacy` ist der Signalton aus Spec 008 und gilt als Spielzeitende, wenn keins gespeichert ist.
+ */
+export function normalizeSounds(stored: unknown, legacy?: unknown): SoundSettings {
+  const raw = (typeof stored === 'object' && stored !== null ? stored : {}) as Record<string, unknown>;
+  const pick = (e: Exclude<SoundEvent, 'timeUp'>): SoundChoice =>
+    raw[e] === 'aus' || isSignalSound(raw[e]) ? (raw[e] as SoundChoice) : DEFAULT_SOUNDS[e];
+  const timeUp = [raw.timeUp, legacy].find(isSignalSound) ?? DEFAULT_SOUNDS.timeUp;
+  return {
+    timeUp,
+    kickoff: pick('kickoff'),
+    halftime: pick('halftime'),
+    fulltime: pick('fulltime'),
+    goalOwn: pick('goalOwn'),
+    goalOpp: pick('goalOpp'),
+  };
 }
 
 const SR = SIGNAL_SAMPLE_RATE;
@@ -78,14 +144,24 @@ function ring(out: Float32Array, start: number, hz: number, amp: number, tau: nu
   }
 }
 
-/** Schiri-Pfeife mit Kugel-Triller, kurz-kurz-lang. */
-function pfiff(): Float32Array {
-  const blows: [number, number][] = [
+/** Pfiffmuster (Beginn, Dauer in s): kurz-kurz-lang (Schluss), Spec 025: lang (Anpfiff), kurz-lang (Pause). */
+const BLOWS: Record<'pfiff' | 'langer-pfiff' | 'doppelpfiff', [number, number][]> = {
+  pfiff: [
     [0, 0.16],
     [0.3, 0.16],
     [0.6, 0.72],
-  ];
-  const out = new Float32Array(Math.round((LEAD_S + 0.6 + 0.72 + 0.12) * SR));
+  ],
+  'langer-pfiff': [[0, 1]],
+  doppelpfiff: [
+    [0, 0.16],
+    [0.3, 0.6],
+  ],
+};
+
+/** Schiri-Pfeife mit Kugel-Triller im gegebenen Muster. */
+function pfiff(blows: [number, number][]): Float32Array {
+  const [start, dur] = blows[blows.length - 1]!;
+  const out = new Float32Array(Math.round((LEAD_S + start + dur + 0.12) * SR));
   const rand = noise(7);
   const f0 = 3150;
   // Resonator um f0 für das Atemrauschen
@@ -180,9 +256,9 @@ function gong(): Float32Array {
   return normalize(out, 0.9);
 }
 
-/** FR-K01: Abtastwerte des Tons (Mono, SIGNAL_SAMPLE_RATE, Spitzenpegel 0,97). */
-export function renderSignal(sound: SignalSound): Float32Array {
-  return sound === 'glocke' ? glocke() : sound === 'gong' ? gong() : pfiff();
+/** FR-K01, Spec 025 FR-T01: Abtastwerte eines erzeugten Tons (Mono, SIGNAL_SAMPLE_RATE, Spitzenpegel 0,97). */
+export function renderSignal(sound: SynthSound): Float32Array {
+  return sound === 'glocke' ? glocke() : sound === 'gong' ? gong() : pfiff(BLOWS[sound]);
 }
 
 /** 16-Bit-Mono-WAV aus Abtastwerten in [-1, 1] (Werte außerhalb werden begrenzt). */

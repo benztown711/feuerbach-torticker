@@ -21,8 +21,8 @@ if (first.name !== 'liveView' && !(first.name === 'leadLink' && first.kind === '
 // FR-018: gespeichertes Theme anwenden; FR-023: dauerhaften Speicher anfragen.
 void getSettings().then((s) => {
   applyTheme(s.theme);
-  // Spec 008 FR-K04: gewählten Signalton merken (erzeugt wird er beim ersten Abspielen).
-  setSignalSound(s.signalSound);
+  // Spec 008 FR-K04, Spec 025: Ton für Spielzeitende merken (erzeugt wird er beim ersten Abspielen).
+  setSignalSound(s.sounds.timeUp);
   // Spec 006 FR-L05, FR-L06: nur gekoppelte Lead-Handys senden.
   void startLiveSender(s);
   // Spec 015 FR-P07: gekoppelte Trainer-Handys senden den Spielplan beim Öffnen erneut, falls nötig.

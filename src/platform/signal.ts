@@ -1,5 +1,5 @@
-import { DEFAULT_SIGNAL_SOUND, SIGNAL_SAMPLE_RATE, encodeWav, renderSignal } from '../domain/signal-sound';
-import type { SignalSound } from '../domain/types';
+import { DEFAULT_SIGNAL_SOUND, SIGNAL_SAMPLE_RATE, SIGNAL_SOUNDS, encodeWav, isSynthSound, renderSignal } from '../domain/signal-sound';
+import type { SignalSound, SoundChoice } from '../domain/types';
 
 /**
  * Signal am Abschnittsende (FR-007, FR-036, research.md R-4, R-17, R-18; Klang: Spec 008).
@@ -12,10 +12,14 @@ import type { SignalSound } from '../domain/types';
  * iOS erlaubt das spätere, automatische Abspielen nur, wenn dasselbe Element einmal innerhalb einer
  * Berührung gestartet wurde: unlockAudio() spielt es dort stumm an. Lehnt iOS später ab
  * (z. B. nach dem Hintergrund), meldet audioReady() false und die Oberfläche bittet um eine Berührung.
- * Ein Tonwechsel (Spec 008) tauscht nur die Quelle desselben Elements (plan.md R-K2).
+ * Ein Tonwechsel (Spec 008) tauscht nur die Quelle desselben Elements (plan.md R-K2); auch die Ereignis-Töne aus
+ * Spec 025 spielen über dieses Element (specs/025-spieltoene/plan.md R-T2).
  */
 let audio: HTMLAudioElement | null = null;
+/** Ton für Spielzeitende (Spec 025 `sounds.timeUp`). */
 let sound: SignalSound = DEFAULT_SIGNAL_SOUND;
+/** Zählt Abspielaufträge; eine Freischaltung hält das Element nur an, wenn seitdem nichts gestartet wurde (R-T2). */
+let plays = 0;
 const urls = new Map<SignalSound, string>();
 let unlocked = false;
 let still: HTMLAudioElement | null = null;
@@ -48,14 +52,24 @@ function wavUrl(samples: Float32Array, rate: number): string {
   return URL.createObjectURL(new Blob([encodeWav(samples, rate)], { type: 'audio/wav' }));
 }
 
-/** WAV des Tons, je Ton einmal erzeugt und behalten (höchstens drei). */
+/** Erzeugte Töne als WAV, je Ton einmal erzeugt und behalten (höchstens fünf); Aufnahmen von der eigenen Adresse (FR-T02). */
 function soundUrl(s: SignalSound): string {
   let url = urls.get(s);
   if (!url) {
-    url = wavUrl(renderSignal(s), SIGNAL_SAMPLE_RATE);
+    url = isSynthSound(s)
+      ? wavUrl(renderSignal(s), SIGNAL_SAMPLE_RATE)
+      : `${import.meta.env.BASE_URL}${SIGNAL_SOUNDS.find((x) => x.id === s)!.file!}`;
     urls.set(s, url);
   }
   return url;
+}
+
+/** Quelle nur tauschen, wenn sich der Ton ändert (`data-sound` nennt ihn, auch für Tests). */
+function load(el: HTMLAudioElement, s: SignalSound): void {
+  if (el.dataset.sound !== s) {
+    el.dataset.sound = s;
+    el.src = soundUrl(s);
+  }
 }
 
 function stillElement(): HTMLAudioElement {
@@ -89,23 +103,18 @@ function element(): HTMLAudioElement {
     audio = new Audio();
     audio.preload = 'auto';
     audio.setAttribute('playsinline', '');
-    audio.dataset.sound = sound;
-    audio.src = soundUrl(sound);
+    load(audio, sound);
   }
   return audio;
 }
 
 /**
- * Spec 008 FR-K04: gewählter Signalton; gilt ab dem nächsten Signal. Erzeugt wird der Ton erst beim
+ * Spec 008 FR-K04, Spec 025: Ton für Spielzeitende; gilt ab dem nächsten Signal. Erzeugt wird der Ton erst beim
  * ersten Abspielen, damit der Start (auch das Eltern-Dashboard) nicht wartet.
  */
 export function setSignalSound(next: SignalSound): void {
   sound = next;
-  const el = audio;
-  if (el && el.dataset.sound !== next) {
-    el.dataset.sound = next;
-    el.src = soundUrl(next);
-  }
+  if (audio) load(audio, next);
 }
 
 function rewind(el: HTMLAudioElement): void {
@@ -124,15 +133,18 @@ export function unlockAudio(): Promise<void> {
   setPlaybackSession();
   if (keepAliveWanted) startKeepAlive();
   const el = element();
+  const mine = plays;
   el.muted = true;
   rewind(el);
   return el
     .play()
     .then(() => {
+      unlocked = true;
+      // R-T2: Ist inzwischen ein Ton gestartet (Tor-Knopf nach pointerdown), läuft er weiter.
+      if (plays !== mine) return;
       el.pause();
       rewind(el);
       el.muted = false;
-      unlocked = true;
     })
     .catch(() => {
       el.muted = false;
@@ -145,9 +157,11 @@ export function audioReady(): boolean {
   return unlocked;
 }
 
-/** Der gewählte Signalton (Spec 008), höchstens etwa 2,5 Sekunden. */
+/** Der Ton für Spielzeitende (Spec 008, Spec 025), höchstens etwa 2,5 Sekunden, mit Vibrationsmuster. */
 export function playSignal(): void {
   const el = element();
+  plays++;
+  load(el, sound);
   el.muted = false;
   rewind(el);
   el.play()
@@ -161,13 +175,16 @@ export function playSignal(): void {
 }
 
 /**
- * Spec 020 FR-E25: Signalton bei einem Tor in der Eltern-Ansicht, einmal und ohne das Vibrationsmuster von
- * `playSignal()` (das ist für das Abschnittsende gedacht, R-E4). Aus einer Berührung heraus schaltet das Abspielen
- * den Ton auch frei.
+ * Spec 025 FR-T05, FR-T07 (ersetzt Spec 020 FR-E25): Ton eines Ereignisses, einmal und ohne das Vibrationsmuster von
+ * `playSignal()` (das ist für das Abschnittsende gedacht, Spec 020 R-E4); "Aus" spielt nichts. Aus einer Berührung
+ * heraus schaltet das Abspielen den Ton auch frei.
  */
-export function playGoalSignal(): Promise<void> {
+export function playSound(choice: SoundChoice): Promise<void> {
+  if (choice === 'aus') return Promise.resolve();
   setPlaybackSession();
   const el = element();
+  plays++;
+  load(el, choice);
   el.muted = false;
   rewind(el);
   return el.play().then(
@@ -195,8 +212,7 @@ export function testSignal(): void {
   playSignal();
 }
 
-/** Spec 008 FR-K02: Ton in den Einstellungen wählen und sofort hörbar abspielen (innerhalb der Berührung). */
+/** Spec 008 FR-K02, Spec 025 FR-T03: Hörprobe in der Auswahl, sofort hörbar (innerhalb der Berührung). */
 export function previewSignal(next: SignalSound): void {
-  setSignalSound(next);
-  testSignal();
+  void playSound(next);
 }

@@ -36,7 +36,7 @@ import { getSettings, putSettings } from '../../platform/db';
 import { newReceiver, type ReceiverState } from '../../platform/live-receiver';
 import type { RelayState } from '../../platform/relay';
 import { shareText } from '../../platform/share';
-import { audioReady, playGoalSignal, unlockAudio } from '../../platform/signal';
+import { audioReady, playSound, unlockAudio } from '../../platform/signal';
 import { pointManifestTo } from '../../platform/web-manifest';
 import { ViewerNav } from '../components/viewer-nav';
 import { useGoalFlash, useNow } from '../hooks';
@@ -570,7 +570,7 @@ export function Dashboard({
     setSoundOn(next);
     saveGoalSound(next);
     // Einschalten spielt den Ton einmal zur Probe und schaltet ihn damit frei (FR-E25).
-    if (next) void playGoalSignal().then(() => refresh((n) => n + 1));
+    if (next) void playSound('torhupe').then(() => refresh((n) => n + 1));
   };
   // FR-E26: Jede Berührung schaltet einen gesperrten Ton frei (iOS braucht dafür eine Berührung).
   const unlock = (): void => {
