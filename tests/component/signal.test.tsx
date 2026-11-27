@@ -11,7 +11,10 @@ let paused: boolean[] = [];
 
 async function load() {
   vi.resetModules();
-  return import('../../src/platform/signal');
+  const s = await import('../../src/platform/signal');
+  // Spec 025 R-T5: Klangerzeugung lädt beim Start nach
+  await s.soundsReady;
+  return s;
 }
 
 async function flush() {
@@ -216,5 +219,25 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     s.playSignal();
     await flush();
     expect(played.at(-1)).toMatchObject({ sound: 'pfiff' });
+  });
+  it('025 R-T5 lädt die Klangerzeugung noch, kommt die Quelle des Signals nach', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    vi.doMock('../../src/domain/signal-synth', async () => {
+      await gate;
+      return vi.importActual('../../src/domain/signal-synth');
+    });
+    vi.resetModules();
+    const s = await import('../../src/platform/signal');
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ sound: 'pfiff', src: '' });
+    release();
+    await s.soundsReady;
+    await flush();
+    s.playSignal();
+    await flush();
+    expect(played.at(-1)?.src).toMatch(/^blob:/);
+    vi.doUnmock('../../src/domain/signal-synth');
   });
 });

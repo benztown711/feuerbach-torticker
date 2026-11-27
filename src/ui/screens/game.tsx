@@ -53,7 +53,7 @@ import { shareText } from '../../platform/share';
 import { audioReady, playSignal, playSound, setKeepAlive, unlockAudio } from '../../platform/signal';
 import { loadParentSounds } from '../../platform/sound-prefs';
 import { DEFAULT_SOUNDS } from '../../domain/signal-sound';
-import type { ParentSoundEvent } from '../../domain/sound-alert';
+import type { ParentSoundEvent } from '../../domain/parent-sounds';
 import { keepAwake } from '../../platform/wake-lock';
 import { ClockDisplay } from '../components/clock-display';
 import type { LateDraft } from '../components/late-start-sheet';

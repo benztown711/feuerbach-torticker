@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SOUNDS } from '../../src/domain/signal-sound';
-import {
-  NO_WHISTLES,
-  newSoundEvent,
-  parentSounds,
-  soundTallies,
-  whistleCounts,
-  type SoundCard,
-} from '../../src/domain/sound-alert';
+import { NO_WHISTLES, newSoundEvent, soundTallies, whistleCounts, type SoundCard } from '../../src/domain/sound-alert';
+import { parentSounds } from '../../src/domain/parent-sounds';
 import type { ClockEventType, Side } from '../../src/domain/types';
 
 const NOW = 1_800_000_000_000;

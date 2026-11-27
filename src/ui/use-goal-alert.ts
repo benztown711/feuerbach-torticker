@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { goalSpeech, goalTitle, latestGoal, newGoals } from '../domain/goal-alert';
 import type { BoardCard } from '../domain/live-board';
-import { newSoundEvent, soundTallies, type ParentSounds } from '../domain/sound-alert';
+import type { ParentSounds } from '../domain/parent-sounds';
+import { newSoundEvent, soundTallies } from '../domain/sound-alert';
 import { playSound, vibrateShort } from '../platform/signal';
 
 /**

@@ -1,4 +1,4 @@
-import { SIGNAL_SOUNDS, SOUND_EVENTS, soundChoiceName } from '../../domain/signal-sound';
+import { SIGNAL_SOUNDS, SOUND_EVENTS, soundChoiceName } from '../../domain/sound-catalog';
 import type { SoundChoice, SoundEvent } from '../../domain/types';
 import { previewSignal } from '../../platform/signal';
 import { Sheet } from './sheet';

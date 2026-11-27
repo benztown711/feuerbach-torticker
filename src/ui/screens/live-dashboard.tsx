@@ -45,7 +45,7 @@ import { useGoalAlert } from '../use-goal-alert';
 import { Sheet } from '../components/sheet';
 import { SoundEventList, SoundPicker } from '../components/sound-picker';
 import { loadParentSounds, saveParentSounds } from '../../platform/sound-prefs';
-import type { ParentSoundEvent } from '../../domain/sound-alert';
+import type { ParentSoundEvent } from '../../domain/parent-sounds';
 import { HelpView } from './help';
 
 /** Spec 006 US3: Dashboard für Eltern (Zuschauer-Link) und in der App (FR-L17). Nur lesen. */

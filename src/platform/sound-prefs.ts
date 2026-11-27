@@ -1,4 +1,4 @@
-import { parentSounds, type ParentSounds } from '../domain/sound-alert';
+import { parentSounds, type ParentSounds } from '../domain/parent-sounds';
 
 /** Spec 025 R-T4: Töne der Eltern-Ansicht auf diesem Gerät (neben dem Schalter "Töne" aus Spec 020). */
 const KEY = 'torticker-parent-sounds';

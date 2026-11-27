@@ -3,7 +3,7 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../../dom
 import { getColor } from '../../domain/jersey-colors';
 import { blankTeam, removeTeam, upsertTeam, validateTeam } from '../../domain/teams';
 import { shortTeamName } from '../../domain/team-name';
-import { SOUND_EVENTS } from '../../domain/signal-sound';
+import { SOUND_EVENTS } from '../../domain/sound-catalog';
 import { joinList } from '../../domain/format';
 import { titleOf } from '../../domain/live-spieltag';
 import { hasSquads, squadOfTeam, squadsOf } from '../../domain/squads';

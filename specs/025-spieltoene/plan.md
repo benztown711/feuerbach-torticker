@@ -47,12 +47,21 @@ Wie Spec 001 und 008; keine neue Laufzeit-Abhängigkeit. Neue statische Dateien 
 - Bisher `torticker-goal-sound` = `'1'|'0'` (Spec 020). Bleibt als Schalter "Töne" (FR-T06, "an bleibt an"). Neu `torticker-parent-sounds` mit den fünf Ereignis-Tönen als JSON; fehlende oder unbekannte Werte → Vorbelegung.
 - Das tickernde Eltern-Handy (Spec 024) liest dieselben fünf Werte; Spielzeitende bleibt dort der Vorgabe-Pfiff (Eltern haben keine Einstellungen).
 
+### R-T5 Bundle-Budget
+
+- **Befund**: `main` lag bei 59,8 KB von 60 KB; Ton-Modell, Auswahltexte und Eltern-Logik brachten das Hauptbundle auf 61,8 KB.
+- **Decision**: Auswahltexte (`sound-catalog.ts`) und Eltern-Töne (`parent-sounds.ts`, `sound-alert.ts`) liegen in eigenen Modulen, die nur nachgeladene Bildschirme importieren. Die Klangerzeugung (`signal-synth.ts`) lädt `platform/signal.ts` per dynamischem Import sofort beim Start; bis sie da ist (Millisekunden), kommt die Quelle eines erzeugten Tons nach. Ergebnis 59,6 KB.
+- **Alternatives considered**: Budget anheben (Qualitätstor, nicht ohne Atti); Klangerzeugung erst beim ersten Ton laden (Ton käme beim ersten Anpfiff verspätet).
+
 ## Design
 
 - `src/domain/types.ts`: `SignalSound` um sieben Töne erweitert, `SoundChoice = SignalSound | 'aus'`, `SoundEvent`, `SoundSettings`; `Settings.sounds` ersetzt `Settings.signalSound`.
-- `src/domain/signal-sound.ts`: `SIGNAL_SOUNDS` (zehn, mit `file` für Aufnahmen), `SOUND_EVENTS` (Name, Hinweis), `DEFAULT_SOUNDS`, `normalizeSounds(stored, legacy)`, `soundChoiceName`, `isSynthSound`; `renderSignal` für die fünf erzeugten Töne (Pfiff-Muster als Parameter).
+- `src/domain/signal-sound.ts` (Hauptbundle): Ton-Kennungen, Namen, Dateien, `DEFAULT_SOUNDS`, `normalizeSounds(stored, legacy)`, `isSynthSound`, `encodeWav`.
+- `src/domain/signal-synth.ts` (sofort nachgeladen, R-T5): `renderSignal` für die fünf erzeugten Töne (Pfiff-Muster als Parameter).
+- `src/domain/sound-catalog.ts` (nachgeladen): `SIGNAL_SOUNDS` mit Beschreibung, `SOUND_EVENTS` mit Hinweis, `soundChoiceName`.
+- `src/domain/parent-sounds.ts`: `parentSounds(raw)`.
 - `src/domain/settings.ts`: `withSettingsDefaults` übernimmt `signalSound` als `sounds.timeUp` und entfernt das alte Feld.
-- `src/domain/sound-alert.ts` (neu): `whistleCounts(clock, sections)`, `newSoundEvent(prev, cards, serverNow)`, `parentSounds(raw)`.
+- `src/domain/sound-alert.ts` (neu): `whistleCounts(clock)`, `soundTallies(cards)`, `newSoundEvent(prev, cards, serverNow)`.
 - `src/domain/live-board.ts`: `BoardCard.whistles`.
 - `src/platform/signal.ts`: `playSound(choice)` (ohne Vibration, auch Freischaltung), Zähler gegen das Anhalten durch `unlockAudio`, `setSignalSound` nur noch für Spielzeitende, Quellen für Aufnahmen.
 - `src/ui/screens/settings.tsx`: Abschnitt "TÖNE" mit sechs Zeilen, Blatt je Ereignis (Liste wie bisher, plus "Aus").
@@ -64,4 +73,4 @@ Wie Spec 001 und 008; keine neue Laufzeit-Abhängigkeit. Neue statische Dateien 
 
 ## Bundle
 
-Neue Logik rund 1,5 KB gzip im Hauptbundle (Ton-Modell, Ereignis-Töne im Spiel); Eltern-Teil im nachgeladenen Dashboard. Budget 60 KB bleibt eingehalten.
+Hauptbundle 59,6 KB gzip (vorher 59,8 KB), siehe R-T5.

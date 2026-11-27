@@ -5,16 +5,14 @@ import {
   DEFAULT_SIGNAL_SOUND,
   DEFAULT_SOUNDS,
   SIGNAL_SAMPLE_RATE,
-  SIGNAL_SOUNDS,
-  SOUND_EVENTS,
   encodeWav,
   isSignalSound,
   isSynthSound,
   normalizeSounds,
-  renderSignal,
   signalSoundName,
-  soundChoiceName,
 } from '../../src/domain/signal-sound';
+import { renderSignal } from '../../src/domain/signal-synth';
+import { SIGNAL_SOUNDS, SOUND_EVENTS, soundChoiceName } from '../../src/domain/sound-catalog';
 import type { SynthSound } from '../../src/domain/types';
 
 const IDS: SynthSound[] = ['pfiff', 'langer-pfiff', 'doppelpfiff', 'glocke', 'gong'];

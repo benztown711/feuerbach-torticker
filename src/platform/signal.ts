@@ -1,12 +1,16 @@
-import {
-  DEFAULT_SIGNAL_SOUND,
-  SIGNAL_SAMPLE_RATE,
-  SIGNAL_SOUNDS,
-  encodeWav,
-  isSynthSound,
-  renderSignal,
-} from '../domain/signal-sound';
+import { DEFAULT_SIGNAL_SOUND, SIGNAL_SAMPLE_RATE, encodeWav, isSynthSound, soundFile } from '../domain/signal-sound';
 import type { SignalSound, SoundChoice } from '../domain/types';
+
+/**
+ * Spec 025 R-T5: Die Klangerzeugung ist ein eigener Teil (Bundle-Budget), der sofort beim Start lädt. Bis er da ist
+ * (wenige Millisekunden), kommt die Quelle eines erzeugten Tons nach; Aufnahmen brauchen ihn nicht.
+ */
+type Synth = typeof import('../domain/signal-synth');
+let synth: Synth | null = null;
+const synthLoad: Promise<Synth> = import('../domain/signal-synth').then((m) => (synth = m));
+
+/** Für Tests: erfüllt sich, sobald die Klangerzeugung geladen ist. */
+export const soundsReady: Promise<void> = synthLoad.then(() => undefined);
 
 /**
  * Signal am Abschnittsende (FR-007, FR-036, research.md R-4, R-17, R-18; Klang: Spec 008).
@@ -59,24 +63,37 @@ function wavUrl(samples: Float32Array, rate: number): string {
   return URL.createObjectURL(new Blob([encodeWav(samples, rate)], { type: 'audio/wav' }));
 }
 
-/** Erzeugte Töne als WAV, je Ton einmal erzeugt und behalten (höchstens fünf); Aufnahmen von der eigenen Adresse (FR-T02). */
-function soundUrl(s: SignalSound): string {
+/**
+ * Erzeugte Töne als WAV, je Ton einmal erzeugt und behalten (höchstens fünf); Aufnahmen von der eigenen Adresse
+ * (FR-T02). `null`, solange die Klangerzeugung noch lädt (R-T5).
+ */
+function soundUrl(s: SignalSound): string | null {
   let url = urls.get(s);
   if (!url) {
-    url = isSynthSound(s)
-      ? wavUrl(renderSignal(s), SIGNAL_SAMPLE_RATE)
-      : `${import.meta.env.BASE_URL}${SIGNAL_SOUNDS.find((x) => x.id === s)!.file!}`;
+    if (isSynthSound(s)) {
+      if (!synth) return null;
+      url = wavUrl(synth.renderSignal(s), SIGNAL_SAMPLE_RATE);
+    } else {
+      url = `${import.meta.env.BASE_URL}${soundFile(s)!}`;
+    }
     urls.set(s, url);
   }
   return url;
 }
 
-/** Quelle nur tauschen, wenn sich der Ton ändert (`data-sound` nennt ihn, auch für Tests). */
+/**
+ * Quelle nur tauschen, wenn sich der Ton ändert (`data-sound` nennt ihn, auch für Tests). Lädt die Klangerzeugung
+ * noch, kommt die Quelle nach, sofern bis dahin kein anderer Ton gewählt ist.
+ */
 function load(el: HTMLAudioElement, s: SignalSound): void {
-  if (el.dataset.sound !== s) {
-    el.dataset.sound = s;
-    el.src = soundUrl(s);
-  }
+  if (el.dataset.sound === s) return;
+  el.dataset.sound = s;
+  const url = soundUrl(s);
+  if (url) el.src = url;
+  else
+    void synthLoad.then(() => {
+      if (el.dataset.sound === s) el.src = soundUrl(s)!;
+    });
 }
 
 function stillElement(): HTMLAudioElement {
