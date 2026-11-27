@@ -229,6 +229,8 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     });
     vi.resetModules();
     const s = await import('../../src/platform/signal');
+    // vorher eine Aufnahme: ihre Quelle darf nicht für den Pfiff weiterspielen
+    void s.playSound('torhupe');
     s.playSignal();
     await flush();
     expect(played.at(-1)).toMatchObject({ sound: 'pfiff', src: '' });
@@ -239,5 +241,29 @@ describe('Signal-Ton über Audio-Element (FR-007, FR-036)', () => {
     await flush();
     expect(played.at(-1)?.src).toMatch(/^blob:/);
     vi.doUnmock('../../src/domain/signal-synth');
+  });
+  it('025 R-T2 eine Freischaltung nach dem Start eines Tons (Klick blubbert zur Seite) schaltet ihn nicht stumm', async () => {
+    const s = await load();
+    s.previewSignal('jubel');
+    const el = played.length;
+    void s.unlockAudio();
+    await flush();
+    // keine stumme Freischaltung über den laufenden Ton, kein Anhalten
+    expect(played.slice(el)).toEqual([]);
+    expect(paused.filter((k) => !k)).toEqual([]);
+    expect(s.audioReady()).toBe(true);
+  });
+
+  it('025 R-T2 nach dem Ende eines Tons schaltet eine Berührung wieder wie gewohnt frei', async () => {
+    const s = await load();
+    void s.playSound('raunen');
+    await flush();
+    // Ende des Tons
+    (HTMLMediaElement.prototype.play as unknown as { mock: { contexts: HTMLMediaElement[] } }).mock.contexts
+      .at(-1)!
+      .dispatchEvent(new Event('ended'));
+    void s.unlockAudio();
+    await flush();
+    expect(played.at(-1)).toMatchObject({ muted: true, sound: 'raunen' });
   });
 });

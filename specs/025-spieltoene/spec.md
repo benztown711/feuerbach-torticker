@@ -38,6 +38,7 @@ Gesichtet am 26.11.2026 in Specs und Code:
 ### Festlegungen bei der Planung (27.11.2026)
 
 - **Mehrere Ereignisse in einer Meldung** (FR-T07): Ist der letzte neue Pfiff ein Pausen- oder Schlusspfiff, spielt dessen Ton; sonst bei neuen Toren der Ton des neuesten Tors; sonst beim neuen Anpfiff der Anpfiff-Ton (plan.md R-T3).
+- **Neues Spiel in der Eltern-Ansicht**: Erscheint nach dem ersten Laden ein neues Spiel (z. B. angelegt und sofort angepfiffen, beide Schritte in einer Meldung), zählt es ab null; sein Anpfiff spielt also (Code-Review 27.11.2026).
 - **Eltern-Ansicht ohne Ton** bei Elfmeterschießen, "Uhr anhalten" und alten Meldungen nach einer Funklücke (wie FR-E21).
 - **Tickerndes Eltern-Handy** (Spec 024): Ereignis-Töne aus "Töne wählen" auf diesem Handy; das Spielzeitende-Signal bleibt dort der Pfiff.
 

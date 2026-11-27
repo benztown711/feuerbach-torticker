@@ -31,6 +31,11 @@ let audio: HTMLAudioElement | null = null;
 let sound: SignalSound = DEFAULT_SIGNAL_SOUND;
 /** Zählt Abspielaufträge; eine Freischaltung hält das Element nur an, wenn seitdem nichts gestartet wurde (R-T2). */
 let plays = 0;
+/**
+ * R-T2: Ein Ton läuft hörbar (bis `ended`). Eine Freischaltung in derselben Berührung, z. B. weil der Klick nach der
+ * Hörprobe zur Seite hochblubbert, darf ihn weder stummschalten noch anhalten.
+ */
+let audible: Promise<void> | null = null;
 const urls = new Map<SignalSound, string>();
 let unlocked = false;
 let still: HTMLAudioElement | null = null;
@@ -40,7 +45,10 @@ let keepAliveWanted = false;
 // Darum gilt der Ton nach jeder Rückkehr als gesperrt, bis eine Berührung ihn neu freischaltet (FR-036, R-20).
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') unlocked = false;
+    if (document.visibilityState === 'visible') {
+      unlocked = false;
+      audible = null;
+    }
   });
 }
 
@@ -90,10 +98,13 @@ function load(el: HTMLAudioElement, s: SignalSound): void {
   el.dataset.sound = s;
   const url = soundUrl(s);
   if (url) el.src = url;
-  else
+  else {
+    // Nicht den vorigen Ton weiterspielen, bis die Quelle da ist.
+    el.removeAttribute('src');
     void synthLoad.then(() => {
       if (el.dataset.sound === s) el.src = soundUrl(s)!;
     });
+  }
 }
 
 function stillElement(): HTMLAudioElement {
@@ -127,6 +138,11 @@ function element(): HTMLAudioElement {
     audio = new Audio();
     audio.preload = 'auto';
     audio.setAttribute('playsinline', '');
+    audio.addEventListener('ended', () => (audible = null));
+    // Von außen angehalten (z. B. Unterbrechung durch das System): gilt nicht mehr als laufend.
+    audio.addEventListener('pause', () => {
+      if (audio?.paused) audible = null;
+    });
     load(audio, sound);
   }
   return audio;
@@ -157,6 +173,7 @@ export function unlockAudio(): Promise<void> {
   setPlaybackSession();
   if (keepAliveWanted) startKeepAlive();
   const el = element();
+  if (audible) return audible;
   const mine = plays;
   el.muted = true;
   rewind(el);
@@ -183,18 +200,7 @@ export function audioReady(): boolean {
 
 /** Der Ton für Spielzeitende (Spec 008, Spec 025), höchstens etwa 2,5 Sekunden, mit Vibrationsmuster. */
 export function playSignal(): void {
-  const el = element();
-  plays++;
-  load(el, sound);
-  el.muted = false;
-  rewind(el);
-  el.play()
-    .then(() => {
-      unlocked = true;
-    })
-    .catch(() => {
-      unlocked = false;
-    });
+  void start(sound);
   if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300]);
 }
 
@@ -206,19 +212,27 @@ export function playSignal(): void {
 export function playSound(choice: SoundChoice): Promise<void> {
   if (choice === 'aus') return Promise.resolve();
   setPlaybackSession();
+  return start(choice);
+}
+
+/** Ton hörbar von vorn starten; gilt bis `ended` als laufend (R-T2). */
+function start(s: SignalSound): Promise<void> {
   const el = element();
   plays++;
-  load(el, choice);
+  load(el, s);
   el.muted = false;
   rewind(el);
-  return el.play().then(
+  const p = el.play().then(
     () => {
       unlocked = true;
     },
     () => {
       unlocked = false;
+      if (audible === p) audible = null;
     },
   );
+  audible = p;
+  return p;
 }
 
 /** Spec 020 FR-E24: einmal kurz (etwa 0,2 Sekunden) vibrieren, wo der Browser es anbietet (nicht Safari auf dem iPhone). */

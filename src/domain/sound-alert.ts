@@ -54,6 +54,8 @@ export function soundTallies(cards: readonly SoundCard[]): Map<string, Tally> {
   return new Map(cards.map((c) => [c.gameId, { goals: c.goals.length, ...c.whistles }]));
 }
 
+const EMPTY: Tally = { goals: 0, kickoff: 0, halftime: 0, fulltime: 0 };
+
 /** Wie Spec 020 FR-E21: ältere Meldungen (nach einer Funklücke) lösen nichts aus. */
 const FRESH_MS = 60_000;
 
@@ -69,7 +71,8 @@ function eventOf(before: Tally, c: SoundCard): ParentSoundEvent | null {
 
 /**
  * FR-T07: das Ereignis, dessen Ton zu einer neuen Meldung spielt, oder `null`. `prev` ist der Stand davor (`null` beim
- * ersten Laden: nichts ist neu). Bei mehreren Karten zählt die zuletzt gemeldete mit einem neuen Ereignis.
+ * ersten Laden: nichts ist neu); ein danach neu erscheinendes Spiel zählt ab null. Bei mehreren Karten zählt die zuletzt
+ * gemeldete mit einem neuen Ereignis.
  */
 export function newSoundEvent(
   prev: ReadonlyMap<string, Tally> | null,
@@ -79,9 +82,9 @@ export function newSoundEvent(
   if (!prev) return null;
   let best: { at: number; e: ParentSoundEvent } | null = null;
   for (const c of cards) {
-    const before = prev.get(c.gameId);
-    if (!before || serverNow - c.updatedAt >= FRESH_MS) continue;
-    const e = eventOf(before, c);
+    if (serverNow - c.updatedAt >= FRESH_MS) continue;
+    // Ein neues Spiel (z. B. angelegt und sofort angepfiffen) zählt ab null: sein Anpfiff ist in der ersten Meldung.
+    const e = eventOf(prev.get(c.gameId) ?? EMPTY, c);
     if (e && (!best || c.updatedAt >= best.at)) best = { at: c.updatedAt, e };
   }
   return best?.e ?? null;

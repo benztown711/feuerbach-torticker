@@ -93,4 +93,16 @@ test.describe('Spec 025 US2 Töne beim Tickern', () => {
     await page.getByTestId('pen-miss').click();
     expect((await recorded()).sounds).toBe(base + 2);
   });
+  test('025 US2-S5 FR-T05 "Tor nachtragen" im laufenden Spiel spielt keinen Ton', async ({ page, recorded }) => {
+    await startGame(page);
+    await forward(page, 3 * MIN);
+    const base = (await recorded()).sounds;
+    await page.getByTestId('btn-menu').click();
+    await page.getByTestId('menu-add-goal').click();
+    await page.getByTestId('add-goal-side-own').click();
+    await page.getByTestId('add-goal-save').click();
+    await expect(page.getByTestId('add-goal-sheet')).toHaveCount(0);
+    await expect(page.getByTestId('score')).toContainText('1');
+    expect((await recorded()).sounds).toBe(base);
+  });
 });

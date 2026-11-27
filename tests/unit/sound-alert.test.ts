@@ -33,9 +33,14 @@ describe('Spec 025 FR-T07 Ton je Meldung in der Eltern-Ansicht', () => {
     ).toEqual({ kickoff: 2, halftime: 1, fulltime: 1, last: 'fulltime' });
   });
 
-  it('erstes Laden und neu erscheinende Spiele: kein Ton', () => {
+  it('erstes Laden: kein Ton; danach neu erscheinendes Spiel zählt ab null', () => {
     expect(newSoundEvent(null, [card('a', { clock: ['kickoff'] })], NOW)).toBeNull();
-    expect(step([], [card('a', { clock: ['kickoff'], goals: ['own'] })])).toBeNull();
+    // angelegt und innerhalb der Bündelung angepfiffen: erste Meldung mit Anpfiff
+    expect(step([card('alt', { clock: ['kickoff', 'fullTime'] })], [card('neu', { clock: ['kickoff'] })])).toBe(
+      'kickoff',
+    );
+    expect(step([], [card('neu')])).toBeNull();
+    expect(step([], [card('neu', { clock: ['kickoff'], at: NOW - 60_000 })])).toBeNull();
   });
 
   it('US3-S3 Anpfiff, Tor für uns, Gegentor, Pausenpfiff, Schlusspfiff', () => {
