@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-26
 
-**Status**: Klärung erledigt, Review B erledigt (27.11.2026, Atti: "Passt"; bestätigt auch die Empfehlungen a bis d und die Auswahl der Aufnahmen). Plan und Tasks erstellt. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7 · Mockup: https://claude.ai/artifact/92PXE3iS6DDDhWTuELTidN
+**Status**: Klärung erledigt, Review B erledigt (27.11.2026, Atti: "Passt"; bestätigt auch die Empfehlungen a bis d und die Auswahl der Aufnahmen). US1 bis US3 umgesetzt in PR #103, Review C offen. Hörprobe: https://claude.ai/artifact/8LoXBkMhhzSEJJYhLsWcE7 · Mockup: https://claude.ai/artifact/92PXE3iS6DDDhWTuELTidN
 
 **Input**: Atti (26.11.2026): "Können wir bitte unterschiedliche Töne für An- und Abpfiff und für Tore festlegen lassen? Sowas wie vielleicht auch ein Jubel bei Toren oder ähnliches."
 

@@ -35,4 +35,4 @@ Tests zuerst, müssen fehlschlagen. [P] = parallel möglich.
 
 - [x] T015 Hilfe-Einträge laut Spec (Hilfe-Abdeckung grün)
 - [x] T016 Querverweise: Spec 008 FR-K02, FR-K04, FR-K05, Spec 020 FR-E25
-- [ ] T017 `npm run check`, betroffene E2E, Design-Check, Screenshots iPhone hell/dunkel
+- [x] T017 `npm run check`, betroffene E2E, Design-Check, Screenshots iPhone hell/dunkel
