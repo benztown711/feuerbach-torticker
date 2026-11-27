@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { MIN } from './helpers';
-import { decodeMessage, openTrainerSection, openViewer, type LiveLinks } from './live-helpers';
+import { decodeMessage, openTrainerSection, openViewer, recordedOf, type LiveLinks } from './live-helpers';
 import { ROSTER, shareTrainerWithSquads } from './paket-helpers';
 import { addGame, openPlan, setupPlan, sync } from './plan-helpers';
 import { seedRoster } from './helpers';
@@ -411,4 +411,29 @@ test('024 US4-S5 US2-S7 Trainer holt das Spiel auf "Live für Eltern" zurück', 
   await settle(page);
   await settle(p);
   await expect(p.getByTestId('live-handed-over')).toContainText('Trainer tickert jetzt E2.');
+});
+
+test('025 US2-S7 Eltern tickern mit den Tönen aus "Töne wählen" auf ihrem Handy', async ({
+  page,
+  recorded,
+  relay,
+  newDevice,
+}) => {
+  const links = await trainer(page, recorded, relay, { plan: true });
+  const p = await openViewer(newDevice, relay, links);
+  await settle(p);
+  const rec = recordedOf(p);
+  await p.getByTestId('dash-sound-choose').click();
+  await p.getByTestId('sound-event-goalOwn').click();
+  await p.getByTestId('sound-option-kinderjubel').click();
+  await p.getByTestId('sound-sheet').getByRole('button', { name: 'Schließen' }).click();
+  await p.getByTestId('dash-sounds-sheet').getByRole('button', { name: 'Schließen' }).click();
+  const before = (await rec()).sounds;
+
+  await tick(p, 'Paul');
+  await p.getByTestId('ticker-go').click();
+  await p.getByTestId('btn-kickoff').click();
+  expect(await rec()).toMatchObject({ sounds: before + 1, lastSound: 'langer-pfiff' });
+  await p.getByTestId('btn-goal-own').click();
+  expect(await rec()).toMatchObject({ sounds: before + 2, lastSound: 'kinderjubel' });
 });

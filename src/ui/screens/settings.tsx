@@ -453,7 +453,9 @@ export function SettingsScreen() {
             TÖNE
           </h2>
           <SoundEventList events={ALL_EVENTS} sounds={settings.sounds} onOpen={setSoundSheet} />
-          <p class="field__help">Jeder Ton spielt beim Auswählen zur Probe. Lautstärke mit den Tasten am Handy einstellen.</p>
+          <p class="field__help">
+            Jeder Ton spielt beim Auswählen zur Probe. Lautstärke mit den Tasten am Handy einstellen.
+          </p>
         </section>
         {soundSheet && (
           <SoundPicker

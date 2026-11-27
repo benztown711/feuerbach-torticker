@@ -4450,3 +4450,23 @@ button.plan__row {
   flex-shrink: 0;
   stroke: var(--color-ink-muted);
 }
+
+/* Spec 025 FR-T06: "Töne" mit Unterzeile und "Töne wählen" in der Eltern-Ansicht */
+.dash-sound__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dash-sound__help {
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.dash-sound__choose {
+  display: block;
+  min-height: 44px;
+  margin: 0 var(--space-4);
+  font-size: 15px;
+}

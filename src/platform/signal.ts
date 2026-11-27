@@ -1,4 +1,11 @@
-import { DEFAULT_SIGNAL_SOUND, SIGNAL_SAMPLE_RATE, SIGNAL_SOUNDS, encodeWav, isSynthSound, renderSignal } from '../domain/signal-sound';
+import {
+  DEFAULT_SIGNAL_SOUND,
+  SIGNAL_SAMPLE_RATE,
+  SIGNAL_SOUNDS,
+  encodeWav,
+  isSynthSound,
+  renderSignal,
+} from '../domain/signal-sound';
 import type { SignalSound, SoundChoice } from '../domain/types';
 
 /**
